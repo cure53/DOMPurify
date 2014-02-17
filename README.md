@@ -1,4 +1,4 @@
-dompurify
+DOMPurify
 =========
 
 DOMPurify
