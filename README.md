@@ -15,6 +15,10 @@ It's easy. Just include DOMPurify on your website. Afterwards you can sanitiize 
 var clean = DOMPurify.sanitize(dirty);
 ```
 
+### Is there a demo?
+
+Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
+
 ### What is supported?
 
 We currently support HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. We also support the Shadow DOM - and sanitize DOM templates recursively.
