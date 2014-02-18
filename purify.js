@@ -49,9 +49,10 @@ DOMPurify.sanitize = function(a){
     
     /* allowed attribute names */                    
     var ALLOWED_ATTR = [
+        //HTML
         'name', 'id','href','action','class','title',
         'alt','src', 'type','height','width', 'method','rev','rel',
-        'accept','align','autocomplete',
+        'accept','align','autocomplete','xmlns',
         'bgcolor','border','checked','cite','color','cols',
         'colspan','coords','datetime','default','dir',
         'disabled','download','enctype','for','headers',
@@ -62,13 +63,26 @@ DOMPurify.sanitize = function(a){
         'readonly','required','reversed','rows','rowspan',
         'spellcheck','scope','selected','shape','size',
         'span','srclang','start','step','style','summary',
-        'tabindex','usemap','value','wrap','clip','cx','cy',
+        'tabindex','usemap','value',
+       
+        //SVG
+        'wrap','clip','cx','cy',
         'd','dy','dy','in','in2','k1','k2','k3','k4','mask','mode',
         'opacity','order','overflow','path','points','radius',
         'rx','ry','scale','stroke','stroke-width','transform',
         'u1','u2','r','x','y','x1','viewbox',
-        'x2','y1','y2','z','fill'
+        'x2','y1','y2','z','fill',
         
+        //MathML
+        'accent','accentunder','bevelled','close','columnsalign','columnlines',
+        'columnspan','denomalign','depth','display','displaystyle','fence',
+        'frame','largeop','length','linethickness','lspace','lquote',
+        'mathbackground','mathcolor','mathsize','mathvariant','maxsize',
+        'minsize','movablelimits','notation','numalign','open','rowalign',
+        'rowlines','rowspacing','rowspan','rspace','rquote','scriptlevel',
+        'scriptminsize','scriptsizemultiplier','selection','separator',
+        'separators','stretchy','subscriptshift','supscriptshift','symmetric',
+        'voffset'
     ];
     
     /* Ideally, do not touch anything below this line */

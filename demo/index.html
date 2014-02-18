@@ -8,7 +8,7 @@
     <body>
         <h4>DOMPurify 0.0.7.3 "Doing the Math" (alpha)</h4>
         <p>
-        This is the demo for DOMPurify, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML. 
+        This is the demo for <a href="https://github.com/cure53/DOMPurify">DOMPurify</a>, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML. 
         The textarea below contains sample-payload - you can also add your own. Watch it sanitize on the console or in the Iframe below.
         </p>
         <hr>
@@ -35,6 +35,16 @@
         <!-- rendered test data goes in here -->
         <iframe src="about:blank" id="ifr" style="width:95%;height:100px"></iframe>
         <textarea placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:200px">
+            <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+              <mrow>
+                <menclose notation="box"><mi>a</mi></menclose><mo>,</mo>
+                <menclose notation="box"><mi mathcolor="#FF0000">a</mi></menclose><mo>,</mo>
+                <menclose notation="box" mathcolor="#FF0000"><mi>a</mi></menclose><mo>,</mo>
+                <menclose notation="box" mathbackground="#80FF80"><mi mathcolor="#FF0000">a</mi></menclose><mo>,</mo>
+                <menclose notation="box" mathcolor="#FF0000" mathbackground="#80FF80"><mi>a</mi></menclose><mo>,</mo>
+                <menclose notation="box"><mi mathbackground="#80FF80">a</mi></menclose>
+              </mrow>
+            </math>
             <form onsubmit=alert(1)><input onfocus=alert(2) name=nodeName>123</form>
             <form onsubmit=alert(1)><input onfocus=alert(2) name=nodeType>123</form>
             <form onsubmit=alert(1)><input onfocus=alert(2) name=children>123</form>
