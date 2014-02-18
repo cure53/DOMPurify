@@ -31,7 +31,7 @@ Later versions will allow you to configure DOMPurify by passing in a configurati
 
 ### What's on the road-map?
 
-A lot. We want to support as many safe tags and attributes as possible. Currently, we work on extending the MathML support, SVG support. Future versions will also allow to pass in an DOM, get a DOM back, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
+A lot. We want to support as many safe tags and attributes as possible. Currently, we work on extending the MathML & SVG support. Future versions will also allow to pass in a DOM or HTML element, get a DOM or an element back, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
 
 ### Who contributed?
 
