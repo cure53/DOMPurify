@@ -1,18 +1,3 @@
-/**
- * Written by .mario of Cure53 <mario@cure53.de>, 2014
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * 
- * Supported Browsers:
- * IE10, IE11, Firefox, Safari, Chrome, Opera (post-Presto)
- * (Gecko, Trident, Webkit, Blink)
- * 
- * Credits
- * Bypassers: @mmrupp @shafigullin (!!!) @giutro
- * Fixers:    @cgvwzq @garethheyes 
- */
 /* BOF */
 DOMPurify = {};
 DOMPurify.sanitize = function(a){
@@ -25,6 +10,7 @@ DOMPurify.sanitize = function(a){
    * /
     /* allowed element names */
     var ALLOWED_TAGS = [
+        // HTML
         'a','abbr','acronym','address','area','article',
         'aside','audio','b','bdi','bdo','big','blink',
         'blockquote','body','br','button','canvas','caption',
@@ -42,14 +28,20 @@ DOMPurify.sanitize = function(a){
         'tfoot','th','thead','time','tr','track','tt','u',
         'ul','var','video','wbr',
                         
-        // and hell, why the f*ck not allow SVG?
+        // SVG
         'svg','altglyph','altglyphdef','altglyphitem','animatecolor',
         'animatemotion','animatetransform','circle','clippath','defs',
         'desc','ellipse','font','g','glyph','glyphref','hkern','image',
         'line','lineargradient','marker','mask','metadata',
         'mpath','path','pattern','polygon','polyline','radialgradient',
         'rect','stop','switch','symbol','text','textpath','title',
-        'tref','tspan','view','vkern'
+        'tref','tspan','view','vkern',
+        
+        //MathML
+        'math','menclose','merror','mfenced','mfrac','mglyph','mi','mlabeledtr',
+        'mmuliscripts','mn','mo','mover','mpadded','mphantom','mroot','mrow',
+        'ms','mpspace','msqrt','mystyle','msub','msup','msubsup','mtable',
+        'mtd','mtext','mtr','munder','munderover'
     ];
     
     /* decide if custom data attributes are okay */
@@ -213,4 +205,3 @@ DOMPurify.sanitize = function(a){
     return body.innerHTML;
 };
 /* EOF */
-}
