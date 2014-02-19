@@ -121,7 +121,6 @@ DOMPurify.sanitize = function(a){
      * @protect removeChild
      * @protect nodeType
      * @protect nodeName
-     * @protect children
      * @protect textContent  
      * @protect currentNode 
      * 
