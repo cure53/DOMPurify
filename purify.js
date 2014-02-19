@@ -135,7 +135,7 @@ DOMPurify.sanitize = function(a){
             currentNode.parentNode.removeChild(currentNode);
             return true;
         }
-        if(SAFE_FOR_JQUERY && currentNode.children.length === 0){
+        if(SAFE_FOR_JQUERY && !currentNode.firstElementChild){
             currentNode.textContent
                 = currentNode.textContent.replace(/\/+>/g, '>');
         }
