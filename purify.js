@@ -1,7 +1,8 @@
 /* BOF */
 ;
 DOMPurify = {};
-DOMPurify.sanitize = function(a){
+DOMPurify.sanitize = function(dirty, cfg){
+    
   /******* /***************************************************************
    ****** / * Don't allow script elements. Or event handlers.             *
    ***** /  * And careful with SVG's "values" attribute.                  *
@@ -51,7 +52,7 @@ DOMPurify.sanitize = function(a){
     /* Allowed attribute names */                    
     var ALLOWED_ATTR = [
     
-        //HTML
+        // HTML
         'name', 'id','href','action','class','title','alt','src', 'type',
         'height','width', 'method','rev','rel','accept','align','autocomplete',
         'xmlns','bgcolor','border','checked','cite','color','cols','colspan',
@@ -63,13 +64,13 @@ DOMPurify.sanitize = function(a){
         'rows','rowspan','spellcheck','scope','selected','shape','size','span',
         'srclang','start','step','style','summary','tabindex','usemap','value',
        
-        //SVG
+        // SVG
         'wrap','clip','cx','cy','d','dy','dy','in','in2','k1','k2','k3','k4',
         'mask','mode','opacity','order','overflow','path','points','radius',
         'rx','ry','scale','stroke','stroke-width','transform','u1','u2','r','x',
         'y','x1','viewbox','x2','y1','y2','z','fill',
         
-        //MathML
+        // MathML
         'accent','accentunder','bevelled','close','columnsalign','columnlines',
         'columnspan','denomalign','depth','display','displaystyle','fence',
         'frame','largeop','length','linethickness','lspace','lquote',
@@ -83,6 +84,20 @@ DOMPurify.sanitize = function(a){
     
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
+
+
+   /**
+    * _parseConfig
+    * 
+    * @param  optional config literal
+    */
+    var _parseConfig = function(cfg){
+        cfg.ALLOWED_ATTR ? ALLOWED_ATTR = cfg.ALLOWED_ATTR : null;
+        cfg.ALLOWED_TAGS ? ALLOWED_TAGS = cfg.ALLOWED_TAGS : null;
+        cfg.ALLOW_DATA_ATTR ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
+        cfg.SAFE_FOR_JQUERY ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;       
+    }
+  
     
     /**
      * _createIterator
@@ -95,6 +110,7 @@ DOMPurify.sanitize = function(a){
             doc, 129, function() { return NodeFilter.FILTER_ACCEPT }, false
         );            
     }
+
     
     /**
      * _isClobbered
@@ -114,6 +130,7 @@ DOMPurify.sanitize = function(a){
         }
         return false;
     }
+ 
     
     /**
      * _sanitizeElements
@@ -140,6 +157,7 @@ DOMPurify.sanitize = function(a){
         }
         return false;
     }
+ 
             
     /**
      * _sanitizeAttributes
@@ -155,7 +173,7 @@ DOMPurify.sanitize = function(a){
         var regex = /^(\w+script|data):/gi;
         for(var attr = currentNode.attributes.length-1; attr>=0; attr--){
             var tmp  = currentNode.attributes[attr];
-            currentNode.removeAttributeNode(currentNode.attributes[attr]);
+            currentNode.removeAttribute(currentNode.attributes[attr].name);
             if(tmp instanceof Attr) {
                 if((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 || 
                  (ALLOW_DATA_ATTRIBUTES && tmp.name.match(/^data-[\w-]+/i))) 
@@ -165,6 +183,7 @@ DOMPurify.sanitize = function(a){
             }
         }            
     }    
+
         
     /**
      * _sanitizeShadowDOM
@@ -189,10 +208,14 @@ DOMPurify.sanitize = function(a){
             _sanitizeAttributes(shadowNode);
         }            
     }    
+ 
+    
+    /* Assign config vars */
+    cfg ? _parseConfig(cfg) : null;
     
     /* Create documents to map markup to */
     var dom = document.implementation.createHTMLDocument('');
-        dom.body.outerHTML=a;
+        dom.body.outerHTML=dirty;
         var body = dom.body;
     if(!(dom.body instanceof HTMLBodyElement)){
         var freshdom = document.implementation.createHTMLDocument('');    
@@ -217,7 +240,7 @@ DOMPurify.sanitize = function(a){
         _sanitizeAttributes(currentNode);
     }
     
-    /* serialize sanitized document, return a string */ 
+    /* Serialize sanitized document, return a string */ 
     return body.innerHTML;
 };
 /* EOF */
