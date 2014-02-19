@@ -21,18 +21,28 @@ Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
 
 ### What is supported?
 
-We currently support HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. We also support the Shadow DOM - and sanitize DOM templates recursively.
+DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` method - you know, that case when it's used as a HTML factory: `$("<svg onload=alert(1)>")`.
 
 ### Can I configure it?
 
-Sure, right now you can simply customize the file and change what tags you allow, what attributes are permitted, whether you want to allow HTML custom data attributes.
+Yes. The included default configuartion values are pretty good already - but you can of course override them:
 
-Later versions will allow you to configure DOMPurify by passing in a configuration object where you can specify on your own what HTML you want to permit and what should be removed.
+```javascript
+// Allow only <b>
+var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
+
+// Allow only <b> with style attributes (for whatever reason)
+var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b'], ALLOWED_ATTR: ['style']});
+
+// prohibit HTML5 data attributes
+var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
+
+```
 
 ### What's on the road-map?
 
-A lot. We want to support as many safe tags and attributes as possible. Currently, we work on extending the MathML & SVG support. Future versions will also allow to pass in a DOM or HTML element, get a DOM or an element back, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
+A lot. We want to support as many safe tags and attributes as possible. Currently, we work on extending the SVG support. Future versions will also allow to pass in a DOM or HTML element, get a DOM or an element back, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
 
 ### Who contributed?
 
-Several people need to be listed here! [@garethheyes](https://twitter.com/garethheyes) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) for doing the same. Thanks also go to [@cgvwzq](https://twitter.com/cgvwzq) and [@giutro](https://twitter.com/giutro)!
+Several people need to be listed here! [@garethheyes](https://twitter.com/garethheyes) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) for doing the same. Thanks also go to [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork) and [@giutro](https://twitter.com/giutro)!
