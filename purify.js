@@ -1,4 +1,5 @@
 /* BOF */
+;
 DOMPurify = {};
 DOMPurify.sanitize = function(a){
   /******* /***************************************************************
@@ -10,68 +11,63 @@ DOMPurify.sanitize = function(a){
    * /
     /* allowed element names */
     var ALLOWED_TAGS = [
+    
         // HTML
-        'a','abbr','acronym','address','area','article',
-        'aside','audio','b','bdi','bdo','big','blink',
-        'blockquote','body','br','button','canvas','caption',
-        'center','cite','code','col','colgroup','content','data',
-        'datalist','dd','decorator','del','details','dfn','dir',
-        'div','dl','dt','element','em','fieldset',
-        'figcaption','figure','font','footer','form','h1','h2','h3',
-        'h4','h5','h6','header','hgroup','hr','html','i',
-        'img','input','ins','kbd','label','legend','li','main','map',
-        'mark','marquee','menu','menuitem','meter','nav',
-        'nobr','ol','optgroup','option','output','p','pre',
-        'progress','q','rp','rt','ruby','s','samp','section','select',
-        'shadow','small','source','spacer','span','strike','strong','style',
-        'sub','summary','sup','table','tbody','td','template','textarea',
-        'tfoot','th','thead','time','tr','track','tt','u',
-        'ul','var','video','wbr',
+        'a','abbr','acronym','address','area','article','aside','audio','b',
+        'bdi','bdo','big','blink','blockquote','body','br','button','canvas',
+        'caption','center','cite','code','col','colgroup','content','data',
+        'datalist','dd','decorator','del','details','dfn','dir','div','dl','dt',
+        'element','em','fieldset','figcaption','figure','font','footer','form',
+        'h1','h2','h3','h4','h5','h6','header','hgroup','hr','html','i','img',
+        'input','ins','kbd','label','legend','li','main','map','mark','marquee',
+        'menu','menuitem','meter','nav','nobr','ol','optgroup','option','output'
+        ,'p','pre','progress','q','rp','rt','ruby','s','samp','section',
+        'select','shadow','small','source','spacer','span','strike','strong',
+        'style','sub','summary','sup','table','tbody','td','template',
+        'textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var',
+        'video','wbr',
                         
         // SVG
         'svg','altglyph','altglyphdef','altglyphitem','animatecolor',
-        'animatemotion','animatetransform','circle','clippath','defs',
-        'desc','ellipse','font','g','glyph','glyphref','hkern','image',
-        'line','lineargradient','marker','mask','metadata',
-        'mpath','path','pattern','polygon','polyline','radialgradient',
-        'rect','stop','switch','symbol','text','textpath','title',
-        'tref','tspan','view','vkern',
+        'animatemotion','animatetransform','circle','clippath','defs','desc',
+        'ellipse','font','g','glyph','glyphref','hkern','image','line',
+        'lineargradient','marker','mask','metadata','mpath','path','pattern',
+        'polygon','polyline','radialgradient','rect','stop','switch','symbol',
+        'text','textpath','title','tref','tspan','view','vkern',
         
         //MathML
         'math','menclose','merror','mfenced','mfrac','mglyph','mi','mlabeledtr',
         'mmuliscripts','mn','mo','mover','mpadded','mphantom','mroot','mrow',
-        'ms','mpspace','msqrt','mystyle','msub','msup','msubsup','mtable',
-        'mtd','mtext','mtr','munder','munderover'
+        'ms','mpspace','msqrt','mystyle','msub','msup','msubsup','mtable','mtd',
+        'mtext','mtr','munder','munderover'
     ];
     
-    /* decide if custom data attributes are okay */
+    /* Decide if custom data attributes are okay */
     var ALLOW_DATA_ATTRIBUTES = true;
     
-    /* allowed attribute names */                    
+    /* Output should be safe for jQuery's $() factory? */
+    var SAFE_FOR_JQUERY = true;
+    
+    /* Allowed attribute names */                    
     var ALLOWED_ATTR = [
+    
         //HTML
-        'name', 'id','href','action','class','title',
-        'alt','src', 'type','height','width', 'method','rev','rel',
-        'accept','align','autocomplete','xmlns',
-        'bgcolor','border','checked','cite','color','cols',
-        'colspan','coords','datetime','default','dir',
-        'disabled','download','enctype','for','headers',
-        'hidden','high','hreflang','ismap','label','lang',
-        'list','loop', 'low','max','maxlength','media','min',
-        'multiple','novalidate','open','optimum','pattern',
-        'placeholder','poster','preload','pubdate','radiogroup',
-        'readonly','required','reversed','rows','rowspan',
-        'spellcheck','scope','selected','shape','size',
-        'span','srclang','start','step','style','summary',
-        'tabindex','usemap','value',
+        'name', 'id','href','action','class','title','alt','src', 'type',
+        'height','width', 'method','rev','rel','accept','align','autocomplete',
+        'xmlns','bgcolor','border','checked','cite','color','cols','colspan',
+        'coords','datetime','default','dir','disabled','download','enctype',
+        'for','headers','hidden','high','hreflang','ismap','label','lang',
+        'list','loop', 'low','max','maxlength','media','min','multiple',
+        'novalidate','open','optimum','pattern','placeholder','poster',
+        'preload','pubdate','radiogroup','readonly','required','reversed',
+        'rows','rowspan','spellcheck','scope','selected','shape','size','span',
+        'srclang','start','step','style','summary','tabindex','usemap','value',
        
         //SVG
-        'wrap','clip','cx','cy',
-        'd','dy','dy','in','in2','k1','k2','k3','k4','mask','mode',
-        'opacity','order','overflow','path','points','radius',
-        'rx','ry','scale','stroke','stroke-width','transform',
-        'u1','u2','r','x','y','x1','viewbox',
-        'x2','y1','y2','z','fill',
+        'wrap','clip','cx','cy','d','dy','dy','in','in2','k1','k2','k3','k4',
+        'mask','mode','opacity','order','overflow','path','points','radius',
+        'rx','ry','scale','stroke','stroke-width','transform','u1','u2','r','x',
+        'y','x1','viewbox','x2','y1','y2','z','fill',
         
         //MathML
         'accent','accentunder','bevelled','close','columnsalign','columnlines',
@@ -109,6 +105,7 @@ DOMPurify.sanitize = function(a){
     var _isClobbered = function(elm){
         if((elm.children && !(elm.children instanceof HTMLCollection))
             || typeof elm.nodeName !== 'string'
+            || typeof elm.textContent !== 'string'
             || typeof elm.nodeType !== 'number'
             || typeof elm.setAttribute !== 'function'
             || typeof elm.removeAttributeNode !== 'function'
@@ -124,6 +121,8 @@ DOMPurify.sanitize = function(a){
      * @protect removeChild
      * @protect nodeType
      * @protect nodeName
+     * @protect children
+     * @protect textContent  
      * @protect currentNode 
      * 
      * @param   node to check for permission to exist
@@ -135,6 +134,10 @@ DOMPurify.sanitize = function(a){
             ) === -1) {
             currentNode.parentNode.removeChild(currentNode);
             return true;
+        }
+        if(SAFE_FOR_JQUERY && currentNode.children.length === 0){
+            currentNode.textContent
+                = currentNode.textContent.replace(/\/+>/g, '>');
         }
         return false;
     }
