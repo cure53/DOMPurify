@@ -2,13 +2,13 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>DOMPurify 0.0.8 "Omaha Breach"</title>
+        <title>DOMPurify 0.0.8.1 "Biblioteca Alexandrina"</title>
         <script src="https://rawgithub.com/cure53/DOMPurify/master/purify.js"></script>
         <!-- we don't actually need it - just to demo and test the $(html) sanitation -->
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     </head>
     <body>
-        <h4>DOMPurify 0.0.8 "Omaha Breach" (alpha)</h4>
+        <h4>DOMPurify 0.0.8.1 "Biblioteca Alexandrina" (alpha)</h4>
         <p>
         This is the demo for <a href="https://github.com/cure53/DOMPurify">DOMPurify</a>, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML. 
         The textarea below contains sample-payload - you can also add your own. Watch it sanitize on the console or in the Iframe below.
@@ -47,6 +47,8 @@
         <!-- rendered test data goes in here -->
         <iframe src="about:blank" id="ifr" style="width:95%;height:100px"></iframe>
         <textarea placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:200px">
+            <option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>
+            <option><iframe></select><b><script>alert()</script></iframe></option>
             <b><style><style/><img src=xx: onerror=alert(1)>
             <b><style><style////><img src=xx: onerror=alert(1)></style>
             <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">

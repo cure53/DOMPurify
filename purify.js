@@ -153,7 +153,7 @@ DOMPurify.sanitize = function(dirty, cfg){
         }
         if(SAFE_FOR_JQUERY && !currentNode.firstElementChild){
             currentNode.textContent
-                = currentNode.textContent.replace(/\/+>/g, '>');
+                = currentNode.textContent.replace(/</g, '&lt;');
         }
         return false;
     }
