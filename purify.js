@@ -132,6 +132,7 @@ DOMPurify.sanitize = function(dirty, cfg){
             || typeof elm.textContent !== 'string'
             || typeof elm.nodeType !== 'number'
             || typeof elm.setAttribute !== 'function'
+            || typeof elm.cloneNode !== 'function'
             || typeof elm.removeAttributeNode !== 'function'
             || typeof elm.attributes.item !== 'function'){
             return true;
@@ -173,6 +174,7 @@ DOMPurify.sanitize = function(dirty, cfg){
      * @protect attributes
      * @protect removeAttribiuteNode
      * @protect setAttribute
+     * @protect cloneNode
      * 
      * @param   node to sanitize
      * @return  void
