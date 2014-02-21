@@ -170,9 +170,10 @@ DOMPurify.sanitize = function(dirty, cfg){
      * @return  void
      */
     var _sanitizeAttributes = function(currentNode){
-        var regex = /^(\w+script|data):/gi;
+        var regex = /^(\w+script|data):/gi,
+            clonedNode = currentNode.cloneNode();
         for(var attr = currentNode.attributes.length-1; attr>=0; attr--){
-            var tmp  = currentNode.attributes[attr];
+            var tmp  = clonedNode.attributes[attr];
             currentNode.removeAttribute(currentNode.attributes[attr].name);
             if(tmp instanceof Attr) {
                 if((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 || 
