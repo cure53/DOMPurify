@@ -36,7 +36,7 @@
         <button onclick="
             var ifr = document.getElementById('ifr');
             var tx1 = Date.now();
-            var xss = DOMPurify.sanitize(x.value);
+            var xss = DOMPurify.sanitize(x.value, {SAFE_FOR_JQUERY: true});
             console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
             console.log($(xss));
             y.value=xss;

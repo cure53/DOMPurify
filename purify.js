@@ -86,7 +86,7 @@ DOMPurify.sanitize = function(dirty, cfg){
     var RETURN_DOM = false;
     
     /* Output should be safe for jQuery's $() factory? */
-    var SAFE_FOR_JQUERY = true;    
+    var SAFE_FOR_JQUERY = false;    
     
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
