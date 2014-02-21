@@ -19,12 +19,12 @@ DOMPurify.sanitize = function(dirty, cfg){
         'caption','center','cite','code','col','colgroup','content','data',
         'datalist','dd','decorator','del','details','dfn','dir','div','dl','dt',
         'element','em','fieldset','figcaption','figure','font','footer','form',
-        'h1','h2','h3','h4','h5','h6','header','hgroup','hr','html','i','img',
-        'input','ins','kbd','label','legend','li','main','map','mark','marquee',
-        'menu','menuitem','meter','nav','nobr','ol','optgroup','option','output'
-        ,'p','pre','progress','q','rp','rt','ruby','s','samp','section',
-        'select','shadow','small','source','spacer','span','strike','strong',
-        'style','sub','summary','sup','table','tbody','td','template',
+        'h1','h2','h3','h4','h5','h6','head','header','hgroup','hr','html','i',
+        'img','input','ins','kbd','label','legend','li','main','map','mark',
+        'marquee','menu','menuitem','meter','nav','nobr','ol','optgroup',
+        'option','output','p','pre','progress','q','rp','rt','ruby','s','samp',
+        'section','select','shadow','small','source','spacer','span','strike',
+        'strong','style','sub','summary','sup','table','tbody','td','template',
         'textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var',
         'video','wbr',
                         
@@ -45,9 +45,6 @@ DOMPurify.sanitize = function(dirty, cfg){
     
     /* Decide if custom data attributes are okay */
     var ALLOW_DATA_ATTR = true;
-    
-    /* Output should be safe for jQuery's $() factory? */
-    var SAFE_FOR_JQUERY = true;
     
     /* Allowed attribute names */                    
     var ALLOWED_ATTR = [
@@ -82,6 +79,15 @@ DOMPurify.sanitize = function(dirty, cfg){
         'voffset'
     ];
     
+    /* Decide if document with <html>... should be returned */
+    var WHOLE_DOCUMENT = false;
+    
+    /* Decide if a DOM node or a string should be returned */
+    var RETURN_DOM = false;
+    
+    /* Output should be safe for jQuery's $() factory? */
+    var SAFE_FOR_JQUERY = true;    
+    
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
 
@@ -95,7 +101,9 @@ DOMPurify.sanitize = function(dirty, cfg){
         cfg.ALLOWED_ATTR ? ALLOWED_ATTR = cfg.ALLOWED_ATTR : null;
         cfg.ALLOWED_TAGS ? ALLOWED_TAGS = cfg.ALLOWED_TAGS : null;
         cfg.ALLOW_DATA_ATTR ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
-        cfg.SAFE_FOR_JQUERY ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;       
+        cfg.SAFE_FOR_JQUERY ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;  
+        cfg.WHOLE_DOCUMENT ? WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT : null;
+        cfg.RETURN_DOM ? RETURN_DOM = cfg.RETURN_DOM : null;     
     }
   
     
@@ -152,7 +160,7 @@ DOMPurify.sanitize = function(dirty, cfg){
             return true;
         }
         if(SAFE_FOR_JQUERY && !currentNode.firstElementChild){
-            currentNode.textContent
+            currentNode.textContent 
                 = currentNode.textContent.replace(/</g, '&lt;');
         }
         return false;
@@ -212,19 +220,27 @@ DOMPurify.sanitize = function(dirty, cfg){
     
     /* Assign config vars */
     cfg ? _parseConfig(cfg) : null;
+ 
     
     /* Create documents to map markup to */
     var dom = document.implementation.createHTMLDocument('');
+        dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
         dom.body.outerHTML=dirty;
-        var body = dom.body;
-    if(!(dom.body instanceof HTMLBodyElement)){
+        var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
+        
+    if(!(dom.body instanceof HTMLBodyElement) 
+        || !(dom.body instanceof HTMLHtmlElement)){
         var freshdom = document.implementation.createHTMLDocument('');    
-        body = freshdom.getElementsByTagName.call(dom,'body')[0];
+        body = WHOLE_DOCUMENT 
+            ? freshdom.getElementsByTagName.call(dom,'html')[0] 
+            : freshdom.getElementsByTagName.call(dom,'body')[0];
     }
+ 
     
     /* Get node iterator */
     var currentNode; 
     var nodeIterator = _createIterator(body);
+ 
     
     /* Now start iterating over the created document */
     while(currentNode = nodeIterator.nextNode()) {
@@ -239,8 +255,12 @@ DOMPurify.sanitize = function(dirty, cfg){
         /* Check attributes, sanitize if necessary */
         _sanitizeAttributes(currentNode);
     }
-    
-    /* Serialize sanitized document, return a string */ 
-    return body.innerHTML;
+
+
+    /* Return sanitized string or DOM */ 
+    if(RETURN_DOM){
+        return body;
+    }
+    return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 };
 /* EOF */
