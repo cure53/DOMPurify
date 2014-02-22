@@ -98,12 +98,12 @@ DOMPurify.sanitize = function(dirty, cfg){
     * @param  optional config literal
     */
     var _parseConfig = function(cfg){
-        cfg.ALLOWED_ATTR ? ALLOWED_ATTR = cfg.ALLOWED_ATTR : null;
-        cfg.ALLOWED_TAGS ? ALLOWED_TAGS = cfg.ALLOWED_TAGS : null;
+        cfg.ALLOWED_ATTR    ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
+        cfg.ALLOWED_TAGS    ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
         cfg.ALLOW_DATA_ATTR ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
         cfg.SAFE_FOR_JQUERY ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;  
-        cfg.WHOLE_DOCUMENT ? WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT : null;
-        cfg.RETURN_DOM ? RETURN_DOM = cfg.RETURN_DOM : null;     
+        cfg.WHOLE_DOCUMENT  ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
+        cfg.RETURN_DOM      ? RETURN_DOM      = cfg.RETURN_DOM      : null;     
     }
   
     
@@ -128,7 +128,7 @@ DOMPurify.sanitize = function(dirty, cfg){
      */
     var _isClobbered = function(elm){
         if((elm.children && !(elm.children instanceof HTMLCollection))
-            || typeof elm.nodeName !== 'string'
+            || typeof elm.nodeName  !== 'string'
             || typeof elm.textContent !== 'string'
             || typeof elm.nodeType !== 'number'
             || typeof elm.setAttribute !== 'function'
@@ -155,8 +155,7 @@ DOMPurify.sanitize = function(dirty, cfg){
      */
     var _sanitizeElements = function(currentNode){
         if(_isClobbered(currentNode) || currentNode.nodeType === 8 
-                || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()
-            ) === -1) {
+          || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1) {
             currentNode.parentNode.removeChild(currentNode);
             return true;
         }
@@ -186,8 +185,8 @@ DOMPurify.sanitize = function(dirty, cfg){
             var tmp  = clonedNode.attributes[attr];
             currentNode.removeAttribute(currentNode.attributes[attr].name);
             if(tmp instanceof Attr) {
-                if((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 || 
-                 (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i))) 
+                if((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 
+                  || (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i))) 
                     && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)) {
                     currentNode.setAttribute(tmp.name, tmp.value);
                 }
@@ -232,7 +231,7 @@ DOMPurify.sanitize = function(dirty, cfg){
         var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
         
     if(!(dom.body instanceof HTMLBodyElement) 
-        || !(dom.body instanceof HTMLHtmlElement)){
+      || !(dom.body instanceof HTMLHtmlElement)){
         var freshdom = document.implementation.createHTMLDocument('');    
         body = WHOLE_DOCUMENT 
             ? freshdom.getElementsByTagName.call(dom,'html')[0] 
