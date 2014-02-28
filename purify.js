@@ -115,7 +115,9 @@ DOMPurify.sanitize = function(dirty, cfg){
      */
     var _createIterator = function(doc){
         return document.createNodeIterator(
-            doc, 129, function() { return NodeFilter.FILTER_ACCEPT }, false
+            doc,
+            NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT,
+            function() { return NodeFilter.FILTER_ACCEPT }, false
         );            
     }
 
@@ -131,6 +133,7 @@ DOMPurify.sanitize = function(dirty, cfg){
             || typeof elm.nodeName  !== 'string'
             || typeof elm.textContent !== 'string'
             || typeof elm.nodeType !== 'number'
+            || typeof elm.COMMENT_NODE !== 'number'
             || typeof elm.setAttribute !== 'function'
             || typeof elm.cloneNode !== 'function'
             || typeof elm.removeAttributeNode !== 'function'
@@ -154,7 +157,7 @@ DOMPurify.sanitize = function(dirty, cfg){
      * @return  true if node was killed, false if left alive
      */
     var _sanitizeElements = function(currentNode){
-        if(_isClobbered(currentNode) || currentNode.nodeType === 8 
+        if(_isClobbered(currentNode) || currentNode.nodeType === currentNode.COMMENT_NODE
           || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1) {
             currentNode.parentNode.removeChild(currentNode);
             return true;
