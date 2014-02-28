@@ -188,7 +188,12 @@ DOMPurify.sanitize = function(dirty, cfg){
                 if((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 
                   || (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i))) 
                     && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)) {
-                    currentNode.setAttribute(tmp.name, tmp.value);
+                    if(tmp.name === 'style' && currentNode.style.cssText){
+                        currentNode.setAttribute(
+                            'style', currentNode.style.cssText);
+                    } else {
+                        currentNode.setAttribute(tmp.name, tmp.value);
+                    }            
                 }
             }
         }            
