@@ -1,8 +1,8 @@
 /* BOF */
 ;
-DOMPurify = {};
-DOMPurify.sanitize = function(dirty, cfg){
-    
+var DOMPurify = {};
+DOMPurify.sanitize = function(dirty, cfg) {
+
   /******* /***************************************************************
    ****** / * Don't allow script elements. Or event handlers.             *
    ***** /  * And careful with SVG's "values" attribute.                  *
@@ -12,7 +12,7 @@ DOMPurify.sanitize = function(dirty, cfg){
    * /
     /* allowed element names */
     var ALLOWED_TAGS = [
-    
+
         // HTML
         'a','abbr','acronym','address','area','article','aside','audio','b',
         'bdi','bdo','big','blink','blockquote','body','br','button','canvas',
@@ -27,7 +27,7 @@ DOMPurify.sanitize = function(dirty, cfg){
         'strong','style','sub','summary','sup','table','tbody','td','template',
         'textarea','tfoot','th','thead','time','tr','track','tt','u','ul','var',
         'video','wbr',
-                        
+
         // SVG
         'svg','altglyph','altglyphdef','altglyphitem','animatecolor',
         'animatemotion','animatetransform','circle','clippath','defs','desc',
@@ -35,20 +35,20 @@ DOMPurify.sanitize = function(dirty, cfg){
         'lineargradient','marker','mask','metadata','mpath','path','pattern',
         'polygon','polyline','radialgradient','rect','stop','switch','symbol',
         'text','textpath','title','tref','tspan','view','vkern',
-        
+
         //MathML
         'math','menclose','merror','mfenced','mfrac','mglyph','mi','mlabeledtr',
         'mmuliscripts','mn','mo','mover','mpadded','mphantom','mroot','mrow',
         'ms','mpspace','msqrt','mystyle','msub','msup','msubsup','mtable','mtd',
         'mtext','mtr','munder','munderover'
     ];
-    
+
     /* Decide if custom data attributes are okay */
     var ALLOW_DATA_ATTR = true;
-    
-    /* Allowed attribute names */                    
+
+    /* Allowed attribute names */
     var ALLOWED_ATTR = [
-    
+
         // HTML
         'name', 'id','href','action','class','title','alt','src', 'type',
         'height','width', 'method','rev','rel','accept','align','autocomplete',
@@ -60,13 +60,13 @@ DOMPurify.sanitize = function(dirty, cfg){
         'preload','pubdate','radiogroup','readonly','required','reversed',
         'rows','rowspan','spellcheck','scope','selected','shape','size','span',
         'srclang','start','step','style','summary','tabindex','usemap','value',
-       
+
         // SVG
         'wrap','clip','cx','cy','d','dy','dy','in','in2','k1','k2','k3','k4',
         'mask','mode','opacity','order','overflow','path','points','radius',
         'rx','ry','scale','stroke','stroke-width','transform','u1','u2','r','x',
         'y','x1','viewbox','x2','y1','y2','z','fill',
-        
+
         // MathML
         'accent','accentunder','bevelled','close','columnsalign','columnlines',
         'columnspan','denomalign','depth','display','displaystyle','fence',
@@ -78,58 +78,60 @@ DOMPurify.sanitize = function(dirty, cfg){
         'separators','stretchy','subscriptshift','supscriptshift','symmetric',
         'voffset'
     ];
-    
+
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
-    
+
     /* Decide if a DOM node or a string should be returned */
     var RETURN_DOM = false;
-    
+
     /* Output should be safe for jQuery's $() factory? */
-    var SAFE_FOR_JQUERY = false;    
-    
+    var SAFE_FOR_JQUERY = false;
+
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
 
 
    /**
     * _parseConfig
-    * 
+    *
     * @param  optional config literal
     */
-    var _parseConfig = function(cfg){
+    var _parseConfig = function(cfg) {
         cfg.ALLOWED_ATTR    ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
         cfg.ALLOWED_TAGS    ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
         cfg.ALLOW_DATA_ATTR ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
-        cfg.SAFE_FOR_JQUERY ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;  
+        cfg.SAFE_FOR_JQUERY ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;
         cfg.WHOLE_DOCUMENT  ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
-        cfg.RETURN_DOM      ? RETURN_DOM      = cfg.RETURN_DOM      : null;     
-    }
-  
-    
+        cfg.RETURN_DOM      ? RETURN_DOM      = cfg.RETURN_DOM      : null;
+    };
+
+
     /**
      * _createIterator
-     * 
+     *
      * @param  document/fragment to create iterator for
      * @return iterator instance
      */
-    var _createIterator = function(doc){
+    var _createIterator = function(doc) {
         return document.createNodeIterator(
             doc,
             NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT,
-            function() { return NodeFilter.FILTER_ACCEPT }, false
-        );            
-    }
+            function() { return NodeFilter.FILTER_ACCEPT; },
+            false
+        );
+    };
 
-    
+
     /**
      * _isClobbered
-     * 
+     *
      * @param  element to check for clobbering attacks
      * @return true if clobbered, false if safe
      */
-    var _isClobbered = function(elm){
-        if((elm.children && !(elm.children instanceof HTMLCollection))
+    var _isClobbered = function(elm) {
+        if (
+            (elm.children && !(elm.children instanceof HTMLCollection))
             || typeof elm.nodeName  !== 'string'
             || typeof elm.textContent !== 'string'
             || typeof elm.nodeType !== 'number'
@@ -137,138 +139,146 @@ DOMPurify.sanitize = function(dirty, cfg){
             || typeof elm.setAttribute !== 'function'
             || typeof elm.cloneNode !== 'function'
             || typeof elm.removeAttributeNode !== 'function'
-            || typeof elm.attributes.item !== 'function'){
+            || typeof elm.attributes.item !== 'function'
+        ) {
             return true;
         }
         return false;
-    }
- 
-    
+    };
+
+
     /**
      * _sanitizeElements
-     * 
+     *
      * @protect removeChild
      * @protect nodeType
      * @protect nodeName
-     * @protect textContent  
-     * @protect currentNode 
-     * 
+     * @protect textContent
+     * @protect currentNode
+     *
      * @param   node to check for permission to exist
      * @return  true if node was killed, false if left alive
      */
-    var _sanitizeElements = function(currentNode){
-        if(_isClobbered(currentNode) || currentNode.nodeType === currentNode.COMMENT_NODE
-          || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1) {
+    var _sanitizeElements = function(currentNode) {
+        if (
+            _isClobbered(currentNode)
+            || currentNode.nodeType === currentNode.COMMENT_NODE
+            || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
+        ) {
             currentNode.parentNode.removeChild(currentNode);
             return true;
         }
-        if(SAFE_FOR_JQUERY && !currentNode.firstElementChild){
-            currentNode.textContent 
-                = currentNode.textContent.replace(/</g, '&lt;');
+        if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
+            currentNode.textContent = currentNode.textContent.replace(/</g, '&lt;');
         }
         return false;
-    }
- 
-            
+    };
+
+
     /**
      * _sanitizeAttributes
-     * 
+     *
      * @protect attributes
      * @protect removeAttribiuteNode
      * @protect setAttribute
      * @protect cloneNode
-     * 
+     *
      * @param   node to sanitize
      * @return  void
      */
-    var _sanitizeAttributes = function(currentNode){
+    var _sanitizeAttributes = function(currentNode) {
         var regex = /^(\w+script|data):/gi,
             clonedNode = currentNode.cloneNode();
-        for(var attr = currentNode.attributes.length-1; attr>=0; attr--){
-            var tmp  = clonedNode.attributes[attr];
+
+        for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
+            var tmp = clonedNode.attributes[attr];
             currentNode.removeAttribute(currentNode.attributes[attr].name);
-            if(tmp instanceof Attr) {
-                if((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 
-                  || (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i))) 
-                    && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)) {
-                    if(tmp.name === 'style' && currentNode.style.cssText){
-                        currentNode.setAttribute(
-                            'style', currentNode.style.cssText);
-                    } else {
-                        currentNode.setAttribute(tmp.name, tmp.value);
-                    }            
+
+            if (tmp instanceof Attr) {
+                if (
+                    (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
+                    (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
+                    && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)
+                ) {
+                    currentNode.setAttribute(tmp.name, tmp.value);
                 }
             }
-        }            
-    }    
+        }
+    };
 
-        
+
     /**
      * _sanitizeShadowDOM
-     * 
+     *
      * @param  fragment to iterate over recursively
      * @return void
      */
-    var _sanitizeShadowDOM = function(fragment){
-        var shadowNode; 
+    var _sanitizeShadowDOM = function(fragment) {
+        var shadowNode;
         var shadowIterator = _createIterator(fragment);
-        while(shadowNode   = shadowIterator.nextNode()) {
+
+        while (shadowNode = shadowIterator.nextNode()) {
             /* Sanitize tags and elements */
-            if(_sanitizeElements(shadowNode)){
+            if (_sanitizeElements(shadowNode)) {
                 continue;
             }
+
             /* Deep shadow DOM detected */
-            if(shadowNode.content instanceof DocumentFragment){
+            if (shadowNode.content instanceof DocumentFragment) {
                 _sanitizeShadowDOM(shadowNode.content);
-                 
             }
+
             /* Check attributes, sanitize if necessary */
             _sanitizeAttributes(shadowNode);
-        }            
-    }    
- 
-    
+        }
+    };
+
+
     /* Assign config vars */
     cfg ? _parseConfig(cfg) : null;
- 
-    
+
+
     /* Create documents to map markup to */
     var dom = document.implementation.createHTMLDocument('');
         dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
-        dom.body.outerHTML=dirty;
-        var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
-        
-    if(!(dom.body instanceof HTMLBodyElement) 
-      || !(dom.body instanceof HTMLHtmlElement)){
-        var freshdom = document.implementation.createHTMLDocument('');    
-        body = WHOLE_DOCUMENT 
-            ? freshdom.getElementsByTagName.call(dom,'html')[0] 
+        dom.body.outerHTML = dirty;
+    var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
+
+    if (
+        !(dom.body instanceof HTMLBodyElement) ||
+        !(dom.body instanceof HTMLHtmlElement)
+    ) {
+        var freshdom = document.implementation.createHTMLDocument('');
+        body = WHOLE_DOCUMENT
+            ? freshdom.getElementsByTagName.call(dom,'html')[0]
             : freshdom.getElementsByTagName.call(dom,'body')[0];
     }
- 
-    
+
+
     /* Get node iterator */
-    var currentNode; 
+    var currentNode;
     var nodeIterator = _createIterator(body);
- 
-    
+
+
     /* Now start iterating over the created document */
-    while(currentNode = nodeIterator.nextNode()) {
+    while (currentNode = nodeIterator.nextNode()) {
         /* Sanitize tags and elements */
-        if(_sanitizeElements(currentNode)){
+        if (_sanitizeElements(currentNode)) {
             continue;
         }
+
         /* Shadow DOM detected, sanitize it */
-        if(currentNode.content instanceof DocumentFragment){
+        if (currentNode.content instanceof DocumentFragment) {
             _sanitizeShadowDOM(currentNode.content);
         }
+
         /* Check attributes, sanitize if necessary */
         _sanitizeAttributes(currentNode);
     }
 
 
-    /* Return sanitized string or DOM */ 
-    if(RETURN_DOM){
+    /* Return sanitized string or DOM */
+    if (RETURN_DOM) {
         return body;
     }
     return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;

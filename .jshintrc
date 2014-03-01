@@ -1,0 +1,16 @@
+{
+  "browser": true,
+  "curly": true,
+  "eqeqeq": true,
+  "expr": true,
+  "laxbreak": true,
+  "smarttabs": true,
+  "strict": true,
+  "undef": true,
+  "unused": true,
+  "globals": {
+    "Attr": false,
+    "DocumentFragment": false,
+    "HTMLCollection": false
+  }
+}
