@@ -1,0 +1,10 @@
+[
+    {
+        "payload"  : "<p><img src=\"\" onerror=foo(1)></p>",
+        "expected" : "<p><img src=\"\"></p>"
+    },
+    {
+        "payload"  : "<button remove=me onmousedown=\"javascript:alert(1);\" onclick=\"javascript:alert(1)\" >",
+        "expected" : "<button></button>"
+    }
+]
