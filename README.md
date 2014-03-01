@@ -9,7 +9,7 @@ DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with s
 
 ### How do I use it?
 
-It's easy. Just include DOMPurify on your website. Afterwards you can sanitiize strings by executing the following code:
+It's easy. Just include DOMPurify on your website. Afterwards you can sanitize strings by executing the following code:
 
 ```javascript
 var clean = DOMPurify.sanitize(dirty);
@@ -25,7 +25,7 @@ DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows
 
 ### Can I configure it?
 
-Yes. The included default configuartion values are pretty good already - but you can of course override them:
+Yes. The included default configuration values are pretty good already - but you can of course override them:
 
 ```javascript
 // Allow only <b>
