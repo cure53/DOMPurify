@@ -15,6 +15,15 @@ It's easy. Just include DOMPurify on your website. Afterwards you can sanitize s
 var clean = DOMPurify.sanitize(dirty);
 ```
 
+If you're using an [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) module loader like [Require.js](http://requirejs.org/), you can load this script asynchronous as well:
+
+```javascript
+require(['dompurify'], function(DOMPurify) {
+    var clean = DOMPurify.sanitize(dirty);
+};
+```
+
+
 ### Is there a demo?
 
 Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)

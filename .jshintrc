@@ -10,6 +10,7 @@
   "unused": true,
   "globals": {
     "Attr": false,
+    "define": false,
     "DocumentFragment": false,
     "HTMLCollection": false
   }
