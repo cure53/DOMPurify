@@ -85,7 +85,10 @@
             'rowlines','rowspacing','rowspan','rspace','rquote','scriptlevel',
             'scriptminsize','scriptsizemultiplier','selection','separator',
             'separators','stretchy','subscriptshift','supscriptshift','symmetric',
-            'voffset'
+            'voffset',
+            
+            // XML
+            'xlink:href', 'xml:id'
         ];
 
         /* Decide if document with <html>... should be returned */
