@@ -12,13 +12,14 @@
     var DOMPurify = {};
     DOMPurify.sanitize = function(dirty, cfg) {
 
-      /******* /***************************************************************
-       ****** / * Don't allow script elements. Or event handlers.             *
-       ***** /  * And careful with SVG's "values" attribute.                  *
-       **** /   * Other than that, you can basically allow whatever you want. *
-       *** /    * We'll make it safe for you.                                 *
-       ** / *******************************************************************
-       * /
+                /***************************************************************
+               /  Don't allow script elements. Or event handlers.              *
+              /   And be careful with SVG's "values" attribute.                *
+             /    And maction elements in MathML are particularly nasty.       *
+            /     Other than that, you can basically allow whatever you want.  *
+           /      We'll make it safe for you.                                  *
+          / ********************************************************************
+         /
         /* allowed element names */
         var ALLOWED_TAGS = [
 
