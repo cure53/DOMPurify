@@ -1,29 +1,5 @@
 [
 	{
-		"payload": "\u0001<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>",
-		"expected": "\u0001<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>"
-	},
-	{
-		"payload": "<option><iframe></select><b><script>alert()</script>",
-		"expected": "<option></option>"
-	},
-	{
-		"payload": "</iframe></option>",
-		"expected": ""
-	},
-	{
-		"payload": "<b><style><style/><img src=xx: onerror=alert(1)>",
-		"expected": "<b><style><style/><img src=xx: onerror=alert(1)></style></b>"
-	},
-	{
-		"payload": "<b><style><style////><img src=xx: onerror=alert(1)></style>",
-		"expected": "<b><style><style////><img src=xx: onerror=alert(1)></style></b>"
-	},
-	{
-		"payload": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
-		"expected": "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>"
-	},
-	{
 		"payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeName>123</form>",
 		"expected": ""
 	},
@@ -83,6 +59,30 @@
 		"payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
 		"expected": "<a>@shafigullin</a><a></a>"
 	},
+    {
+        "payload": "\u0001<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>",
+        "expected": "\u0001<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>"
+    },
+    {
+        "payload": "<option><iframe></select><b><script>alert()</script>",
+        "expected": "<option></option>"
+    },
+    {
+        "payload": "</iframe></option>",
+        "expected": ""
+    },
+    {
+        "payload": "<b><style><style/><img src=xx: onerror=alert(1)>",
+        "expected": "<b><style><style/><img src=xx: onerror=alert(1)></style></b>"
+    },
+    {
+        "payload": "<b><style><style////><img src=xx: onerror=alert(1)></style>",
+        "expected": "<b><style><style////><img src=xx: onerror=alert(1)></style></b>"
+    },
+    {
+        "payload": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
+        "expected": "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>"
+    },	
 	{
 		"payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
 		"expected": "<img name=\"body\"><img name=\"adoptNode\">@mmrupp<img name=\"firstElementChild\"><svg></svg>"
