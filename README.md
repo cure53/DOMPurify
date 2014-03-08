@@ -28,7 +28,7 @@ require(['dompurify'], function(DOMPurify) {
 
 Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
 
-### Work Samples
+### Some samples please?
 
 How does purified markup look like? Well, the [demo](https://cure53.de/purify) shows it for a big bunch of nasty elements. But let's also show some smaller examples!
 
