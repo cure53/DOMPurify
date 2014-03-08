@@ -1,4 +1,16 @@
 [
+    {
+        "payload": "<img src=x name=getElementById>",
+        "expected": "<img src=\"x\">"
+    },
+    {
+        "payload": "<a href=\"#some-code-here\" id=\"location\">invisible",
+        "expected": "<a href=\"#some-code-here\">invisible</a>"
+    },
+    {
+        "payload": "<div onclick=alert(0)><form onsubmit=alert(1)><input onfocus=alert(2) name=parentNode>123</form></div>",
+        "expected": "<div><form><input name=\"parentNode\">123</form></div>"
+    },
 	{
 		"payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeName>123</form>",
 		"expected": ""
@@ -26,10 +38,6 @@
 	{
 		"payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=setAttribute>123</form>",
 		"expected": ""
-	},
-	{
-		"payload": "<div onclick=alert(0)><form onsubmit=alert(1)><input onfocus=alert(2) name=parentNode>123</form></div>",
-		"expected": "<div><form><input name=\"parentNode\">123</form></div>"
 	},
 	{
 		"payload": "<style>*{color: red}</style>",
