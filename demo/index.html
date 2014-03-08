@@ -13,7 +13,7 @@
                 xhr.onload = function(){
                     var data=JSON.parse(xhr.responseText);
                     for(i in data) {
-                        x.value+="\r\n"+data[i].payload
+                        x.value+=data[i].payload+"\r\n";
                     }
                 }
                 xhr.send(null);
@@ -46,7 +46,7 @@
             ifr.contentDocument.close();
             document.title=t+'ms'
         ">Sanitize textarea value, then write result to DOM</button>
-        <button onclick="
+        <button title="This might not work with the large default payload. Better try with smaller, realistic values" onclick="
             var ifr = document.getElementById('ifr');
             var tx1 = Date.now();
             var xss = DOMPurify.sanitize(x.value, {SAFE_FOR_JQUERY: true});
