@@ -58,7 +58,7 @@ Yes. The included default configuration values are pretty good already - but you
 // allow only <b>
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 
-// allow only <b> with style attributes (for whatever reason)
+// allow only <b> and <q> with style attributes (for whatever reason)
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
 // prohibit HTML5 data attributes (default is true)
