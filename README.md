@@ -8,7 +8,13 @@ DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with s
 
 ## How do I use it?
 
-It's easy. Just include DOMPurify on your website. Afterwards you can sanitize strings by executing the following code:
+It's easy. Just include DOMPurify on your website. 
+
+```html
+<script type="text/javascript" src="purify.js"></script>
+```
+
+Afterwards you can sanitize strings by executing the following code:
 
 ```javascript
 var clean = DOMPurify.sanitize(dirty);
