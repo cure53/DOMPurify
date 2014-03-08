@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "dependencies": {
+    "he": "^0.3.6"
+  },
+  "scripts": {
+    "build-demo": "node scripts/build-demo.js"
+  }
+}
