@@ -267,7 +267,7 @@
         }
         /* Early exit in case document is empty */
         if(typeof body === 'undefined') {
-            return null;
+            return '';
         } 
 
 
