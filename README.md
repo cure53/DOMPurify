@@ -55,14 +55,26 @@ DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows
 Yes. The included default configuration values are pretty good already - but you can of course override them:
 
 ```javascript
-// Allow only <b>
+// allow only <b>
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 
-// Allow only <b> with style attributes (for whatever reason)
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b'], ALLOWED_ATTR: ['style']});
+// allow only <b> with style attributes (for whatever reason)
+var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
 // prohibit HTML5 data attributes
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
+
+// return a DOM instead of a HTML string
+var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
+
+// return entire document including <html> tags
+var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
+
+// make output safe for usage in jQuery's $() method
+var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
+
+// disable DOM Clobbering protection on output (handle with care!)
+var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 ```
 
 ## What's on the road-map?

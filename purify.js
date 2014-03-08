@@ -99,10 +99,12 @@
 
         /* Output should be safe for jQuery's $() factory? */
         var SAFE_FOR_JQUERY = false;
+        
+        /* Output should be free from DOM clobbering attacks? */
+        var SANITIZE_DOM = true;
 
         /* Ideally, do not touch anything below this line */
         /* ______________________________________________ */
-
 
         /**
          * _parseConfig
@@ -116,8 +118,8 @@
             cfg.SAFE_FOR_JQUERY ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;
             cfg.WHOLE_DOCUMENT  ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
             cfg.RETURN_DOM      ? RETURN_DOM      = cfg.RETURN_DOM      : null;
+            cfg.SANITIZE_DOM    ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
         };
-
 
         /**
          * _createIterator
@@ -134,7 +136,6 @@
             );
         };
 
-
         /**
          * _isClobbered
          *
@@ -144,7 +145,7 @@
         var _isClobbered = function(elm) {
             if (
                 (elm.children && !(elm.children instanceof HTMLCollection))
-                || typeof elm.nodeName  !== 'string'
+                || typeof elm.nodeName !== 'string'
                 || typeof elm.textContent !== 'string'
                 || typeof elm.nodeType !== 'number'
                 || typeof elm.COMMENT_NODE !== 'number'
@@ -157,7 +158,6 @@
             }
             return false;
         };
-
 
         /**
          * _sanitizeElements
@@ -186,7 +186,6 @@
             return false;
         };
 
-
         /**
          * _sanitizeAttributes
          *
@@ -204,20 +203,29 @@
 
             for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
                 var tmp = clonedNode.attributes[attr];
+                var clobbering = false;
                 currentNode.removeAttribute(currentNode.attributes[attr].name);
 
                 if (tmp instanceof Attr) {
+                    if(SANITIZE_DOM) {
+                        if(tmp.name === 'id' && window[tmp.value]) {
+                            var clobbering = true;
+                        }
+                        if(tmp.name === 'name' && document[tmp.value]){
+                            var clobbering = true;
+                        }
+                    }                    
                     if (
                         (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
                         (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
                         && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)
+                        && !clobbering
                     ) {
                         currentNode.setAttribute(tmp.name, tmp.value);
                     }
                 }
             }
         };
-
 
         /**
          * _sanitizeShadowDOM
@@ -245,17 +253,14 @@
             }
         };
 
-
         /* Assign config vars */
         cfg ? _parseConfig(cfg) : null;
-
 
         /* Create documents to map markup to */
         var dom = document.implementation.createHTMLDocument('');
             dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
             dom.body.outerHTML = dirty;
         var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
-
         if (
             !(dom.body instanceof HTMLBodyElement) ||
             !(dom.body instanceof HTMLHtmlElement)
@@ -265,16 +270,15 @@
                 ? freshdom.getElementsByTagName.call(dom,'html')[0]
                 : freshdom.getElementsByTagName.call(dom,'body')[0];
         }
+        
         /* Early exit in case document is empty */
         if(typeof body === 'undefined') {
             return '';
         } 
 
-
         /* Get node iterator */
         var currentNode;
         var nodeIterator = _createIterator(body);
-
 
         /* Now start iterating over the created document */
         while (currentNode = nodeIterator.nextNode()) {
@@ -291,7 +295,6 @@
             /* Check attributes, sanitize if necessary */
             _sanitizeAttributes(currentNode);
         }
-
 
         /* Return sanitized string or DOM */
         if (RETURN_DOM) {
