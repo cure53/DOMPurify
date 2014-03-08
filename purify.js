@@ -1,6 +1,5 @@
 ;(function(root, factory) {
     'use strict';
-
     if (typeof define === "function" && define.amd) {
         define(factory);
     } else {
@@ -105,11 +104,11 @@
         /* ______________________________________________ */
 
 
-       /**
-        * _parseConfig
-        *
-        * @param  optional config literal
-        */
+        /**
+         * _parseConfig
+         *
+         * @param  optional config literal
+         */
         var _parseConfig = function(cfg) {
             cfg.ALLOWED_ATTR    ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
             cfg.ALLOWED_TAGS    ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
@@ -266,6 +265,10 @@
                 ? freshdom.getElementsByTagName.call(dom,'html')[0]
                 : freshdom.getElementsByTagName.call(dom,'body')[0];
         }
+        /* Early exit in case document is empty */
+        if(typeof body === 'undefined') {
+            return null;
+        } 
 
 
         /* Get node iterator */
@@ -296,7 +299,5 @@
         }
         return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
     };
-
     return DOMPurify;
-
 }));
