@@ -1,5 +1,9 @@
 [
     {
+        "payload": "123456",
+        "expected": "123456"
+    },
+    {
         "payload": "<img src=x name=getElementById>",
         "expected": "<img src=\"x\">"
     },

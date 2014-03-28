@@ -11,14 +11,11 @@
     var DOMPurify = {};
     DOMPurify.sanitize = function(dirty, cfg) {
 
-                /***************************************************************
-               /  Don't allow script elements. Or event handlers.              *
-              /   And be careful with SVG's "values" attribute.                *
-             /    And maction elements in MathML are particularly nasty.       *
-            /     Other than that, you can basically allow whatever you want.  *
-           /      We'll make it safe for you.                                  *
-          / ********************************************************************
-         /
+        /**
+         * We consider the elements and attributes below to be safe. Ideally 
+         * don't add any new ones but feel free to remove unwanted ones.
+         */
+
         /* allowed element names */
         var ALLOWED_TAGS = [
 
@@ -49,7 +46,10 @@
             'math','menclose','merror','mfenced','mfrac','mglyph','mi','mlabeledtr',
             'mmuliscripts','mn','mo','mover','mpadded','mphantom','mroot','mrow',
             'ms','mpspace','msqrt','mystyle','msub','msup','msubsup','mtable','mtd',
-            'mtext','mtr','munder','munderover'
+            'mtext','mtr','munder','munderover',
+            
+            //Text
+            '#text'
         ];
 
         /* Decide if custom data attributes are okay */
@@ -59,7 +59,7 @@
         var ALLOWED_ATTR = [
 
             // HTML
-            'name', 'id','href','action','class','title','alt','src', 'type',
+            'name', 'id','href','action','class','title','alt','src','type',
             'height','width', 'method','rev','rel','accept','align','autocomplete',
             'xmlns','bgcolor','border','checked','cite','color','cols','colspan',
             'coords','datetime','default','dir','disabled','download','enctype',
@@ -71,10 +71,23 @@
             'srclang','start','step','style','summary','tabindex','usemap','value',
 
             // SVG
-            'wrap','clip','cx','cy','d','dy','dy','in','in2','k1','k2','k3','k4',
-            'mask','mode','opacity','order','overflow','path','points','radius',
-            'rx','ry','scale','stroke','stroke-width','transform','u1','u2','r','x',
-            'y','x1','viewbox','x2','y1','y2','z','fill',
+            'accent-height','accumulate','additivive','alignment-baseline',
+            'ascent','azimuth','baseline-shift','bias','clip','clip-path',
+            'clip-rule','color','color-interpolation','color-interpolation-filters',
+            'color-profile','color-rendering','cx','cy','d','dy','dy','direction',
+            'display','divisor','dur','elevation','end','fill','fill-opacity',
+            'fill-rule','filter','flood-color','flood-opacity','font-family',
+            'font-size','font-size-adjust','font-stretch','font-style','font-variant',
+            'front-weight','image-rendering','in','in2','k1','k2','k3','k4','kerning',
+            'letter-spacing','lighting-color','local','marker-end','marker-mid',
+            'marker-start','max','mask','mode','min','operator','opacity','order',
+            'overflow','paint-order','path','points','r','rx','ry','radius','restart',
+            'scale','seed','shape-rendering','stop-color','stop-opacity',
+            'stroke-dasharray','stroke-dashoffset','stroke-linecap','stroke-linejoin',
+            'stroke-miterlimit','stroke-opacity','stroke','stroke-width','transform',
+            'text-anchor','text-decoration','text-rendering','u1','u2','viewbox',
+            'visibility','word-spacing','wrap','writing-mode','x','x1','x2','y',
+            'y1','y2','z',
 
             // MathML
             'accent','accentunder','bevelled','close','columnsalign','columnlines',
@@ -88,7 +101,7 @@
             'voffset',
             
             // XML
-            'xlink:href', 'xml:id'
+            'xlink:href','xml:id','xlink:title','xml:space'
         ];
 
         /* Decide if document with <html>... should be returned */
@@ -130,7 +143,9 @@
         var _createIterator = function(doc) {
             return document.createNodeIterator(
                 doc,
-                NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT,
+                NodeFilter.SHOW_ELEMENT 
+                | NodeFilter.SHOW_COMMENT 
+                | NodeFilter.SHOW_TEXT,
                 function() { return NodeFilter.FILTER_ACCEPT; },
                 false
             );
@@ -143,6 +158,9 @@
          * @return true if clobbered, false if safe
          */
         var _isClobbered = function(elm) {
+            if(elm instanceof Text) {
+                return false;   
+            }
             if (
                 (elm.children && !(elm.children instanceof HTMLCollection))
                 || typeof elm.nodeName !== 'string'
@@ -199,31 +217,38 @@
          */
         var _sanitizeAttributes = function(currentNode) {
             var regex = /^(\w+script|data):/gi,
-                clonedNode = currentNode.cloneNode();
-
-            for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
-                var tmp = clonedNode.attributes[attr];
-                var clobbering = false;
-                currentNode.removeAttribute(currentNode.attributes[attr].name);
-
-                if (tmp instanceof Attr) {
-                    if(SANITIZE_DOM) {
-                        if(tmp.name === 'id' && window[tmp.value]) {
-                            var clobbering = true;
+                clonedNode = currentNode.cloneNode(true);
+            
+            /* Check if we have attributes; if not we might have a text node */
+            if(currentNode.attributes) {
+                
+                /* Go backwards over all attributes; safely remove bad ones */
+                for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
+                    var tmp = clonedNode.attributes[attr];
+                    var clobbering = false;
+                    currentNode.removeAttribute(currentNode.attributes[attr].name);
+    
+                    if (tmp instanceof Attr) {
+                        if(SANITIZE_DOM) {
+                            if(tmp.name === 'id' && window[tmp.value]) {
+                                var clobbering = true;
+                            }
+                            if(tmp.name === 'name' && document[tmp.value]){
+                                var clobbering = true;
+                            }
+                        }         
+                        
+                        /* Safely handle custom data attributes */           
+                        if (
+                            (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
+                            (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
+                            && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)
+                            && !clobbering
+                        ) {
+                            currentNode.setAttribute(tmp.name, tmp.value);
                         }
-                        if(tmp.name === 'name' && document[tmp.value]){
-                            var clobbering = true;
-                        }
-                    }                    
-                    if (
-                        (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
-                        (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
-                        && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)
-                        && !clobbering
-                    ) {
-                        currentNode.setAttribute(tmp.name, tmp.value);
                     }
-                }
+            }
             }
         };
 
@@ -238,6 +263,7 @@
             var shadowIterator = _createIterator(fragment);
 
             while (shadowNode = shadowIterator.nextNode()) {
+                
                 /* Sanitize tags and elements */
                 if (_sanitizeElements(shadowNode)) {
                     continue;
@@ -260,6 +286,8 @@
         var dom = document.implementation.createHTMLDocument('');
             dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
             dom.body.outerHTML = dirty;
+            
+        /* Work on whole document or just its body */
         var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
         if (
             !(dom.body instanceof HTMLBodyElement) ||
