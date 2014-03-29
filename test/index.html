@@ -43,11 +43,28 @@
               assert.equal( DOMPurify.sanitize( params.payload ), params.expected );
           });
 
-        // XSS tests (alert() should not be called)
+        // XSS tests: Native DOM methods (alert() should not be called)
         QUnit
           .cases(xssTests)
-          .asyncTest('XSS test', function(params, assert) {
-            jQuery( '#qunit-fixture' ).html( DOMPurify.sanitize( params.payload ) );
+          .asyncTest('XSS test: native', function(params, assert) {
+
+            document.getElementById( 'qunit-fixture' ).innerHTML = DOMPurify.sanitize( params.payload );
+            setTimeout(function() {
+                QUnit.start();
+                assert.notEqual( window.xssed, true, 'alert() was called' );
+
+                // Teardown
+                document.getElementById( 'qunit-fixture' ).innerHTML = '';
+                window.xssed = false;
+              }, 100);
+          });
+
+        // XSS tests: jQuery (alert() should not be called)
+        QUnit
+          .cases(xssTests)
+          .asyncTest('XSS test: jQuery', function(params, assert) {
+
+            jQuery( '#qunit-fixture' ).html( DOMPurify.sanitize( params.payload, {SAFE_FOR_JQUERY: true} ) );
             setTimeout(function() {
                 QUnit.start();
                 assert.notEqual( window.xssed, true, 'alert() was called' );
