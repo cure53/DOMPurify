@@ -42,7 +42,7 @@
     {
         "title": "onsubmit, onfocus; DOM clobbering: removeChild",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeChild>123</form>",
-        "expected": "<form><input name=\"removeChild\">123</form>"
+        "expected": "<form><input>123</form>"
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: removeAttributeNode",
@@ -110,23 +110,19 @@
     },
     {
         "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
-        "expected": "<img name=\"body\"><img name=\"adoptNode\">@mmrupp<img name=\"firstElementChild\"><svg></svg>"
+        "expected": "<img><img>@mmrupp<img><svg></svg>"
     },
     {
         "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
         "expected": "<a>@shafigullin</a><a></a>"
     },
     {
-        "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
-        "expected": "<img name=\"body\"><img name=\"adoptNode\">@mmrupp<img name=\"firstElementChild\"><svg></svg>"
-    },
-    {
         "payload": "<image name=activeElement><svg onload=alert(1)>",
-        "expected": "<img name=\"activeElement\"><svg></svg>"
+        "expected": "<img><svg></svg>"
     },
     {
         "payload": "<image name=body><img src=x><svg onload=alert(1); autofocus>, <keygen onfocus=alert(1); autofocus>",
-        "expected": "<img name=\"body\"><img src=\"x\"><svg>, </svg>"
+        "expected": "<img><img src=\"x\"><svg>, </svg>"
     },
     {
         "payload": "<div onmouseout=\"javascript:alert(/superevr/)\" x=yscript: n>@superevr</div>",
@@ -170,7 +166,7 @@
     },
     {
         "payload": "<div id=\"1\"><form id=\"test\"></form><button form=\"test\" formaction=\"javascript:alert(1)\">X</button>//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"1\"><form id=\"test\"></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>"
+        "expected": "<div id=\"1\"><form></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>"
     },
     {
         "payload": "<div id=\"2\"><meta charset=\"x-imap4-modified-utf7\">&ADz&AGn&AG0&AEf&ACA&AHM&AHI&AGO&AD0&AGn&ACA&AG8Abg&AGUAcgByAG8AcgA9AGEAbABlAHIAdAAoADEAKQ&ACAAPABi//[\"'`-->]]>]</div>",
@@ -254,7 +250,7 @@
     },
     {
         "payload": "<div id=\"23\"><form id=test onforminput=alert(23)><input></form><button form=test onformchange=alert(2)>X</button>//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"23\"><form id=\"test\"><input></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>"
+        "expected": "<div id=\"23\"><form><input></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>"
     },
     {
         "payload": "<div id=\"24\">1<set/xmlns=`urn:schemas-microsoft-com:time` style=`behAvior:url(#default#time2)` attributename=`innerhtml` to=`<img/src=\"x\"onerror=alert(24)>`>//[\"'`-->]]>]</div>",
