@@ -5,10 +5,13 @@
   },
   "scripts": {
     "build-demo": "node scripts/build-demo.js",
-    "test": "node scripts/server.js"
+    "qunit": "node scripts/server.js",
+    "jshint": "node node_modules/jshint/bin/jshint purify.js || true",
+    "test": "npm run jshint;npm run qunit"
   },
   "devDependencies": {
     "qunitjs": "^1.14.0",
-    "qunit-parameterize": "^0.4.0"
+    "qunit-parameterize": "^0.4.0",
+    "jshint": "^2.4.4"
   }
 }

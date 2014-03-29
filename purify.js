@@ -1,3 +1,5 @@
+/* jshint boss: true */
+/* global Text */
 ;(function(root, factory) {
     'use strict';
     if (typeof define === "function" && define.amd) {
@@ -12,7 +14,7 @@
     DOMPurify.sanitize = function(dirty, cfg) {
 
         /**
-         * We consider the elements and attributes below to be safe. Ideally 
+         * We consider the elements and attributes below to be safe. Ideally
          * don't add any new ones but feel free to remove unwanted ones.
          */
 
@@ -47,7 +49,7 @@
             'mmuliscripts','mn','mo','mover','mpadded','mphantom','mroot','mrow',
             'ms','mpspace','msqrt','mystyle','msub','msup','msubsup','mtable','mtd',
             'mtext','mtr','munder','munderover',
-            
+
             //Text
             '#text'
         ];
@@ -99,7 +101,7 @@
             'scriptminsize','scriptsizemultiplier','selection','separator',
             'separators','stretchy','subscriptshift','supscriptshift','symmetric',
             'voffset',
-            
+
             // XML
             'xlink:href','xml:id','xlink:title','xml:space'
         ];
@@ -112,7 +114,7 @@
 
         /* Output should be safe for jQuery's $() factory? */
         var SAFE_FOR_JQUERY = false;
-        
+
         /* Output should be free from DOM clobbering attacks? */
         var SANITIZE_DOM = true;
 
@@ -143,8 +145,8 @@
         var _createIterator = function(doc) {
             return document.createNodeIterator(
                 doc,
-                NodeFilter.SHOW_ELEMENT 
-                | NodeFilter.SHOW_COMMENT 
+                NodeFilter.SHOW_ELEMENT
+                | NodeFilter.SHOW_COMMENT
                 | NodeFilter.SHOW_TEXT,
                 function() { return NodeFilter.FILTER_ACCEPT; },
                 false
@@ -159,7 +161,7 @@
          */
         var _isClobbered = function(elm) {
             if(elm instanceof Text) {
-                return false;   
+                return false;
             }
             if (
                 (elm.children && !(elm.children instanceof HTMLCollection))
@@ -217,28 +219,29 @@
          */
         var _sanitizeAttributes = function(currentNode) {
             var regex = /^(\w+script|data):/gi,
-                clonedNode = currentNode.cloneNode(true);
-            
+                clonedNode = currentNode.cloneNode(true),
+                tmp, clobbering;
+
             /* Check if we have attributes; if not we might have a text node */
             if(currentNode.attributes) {
-                
+
                 /* Go backwards over all attributes; safely remove bad ones */
                 for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
-                    var tmp = clonedNode.attributes[attr];
-                    var clobbering = false;
+                    tmp = clonedNode.attributes[attr];
+                    clobbering = false;
                     currentNode.removeAttribute(currentNode.attributes[attr].name);
-    
+
                     if (tmp instanceof Attr) {
                         if(SANITIZE_DOM) {
                             if(tmp.name === 'id' && window[tmp.value]) {
-                                var clobbering = true;
+                                clobbering = true;
                             }
                             if(tmp.name === 'name' && document[tmp.value]){
-                                var clobbering = true;
+                                clobbering = true;
                             }
-                        }         
-                        
-                        /* Safely handle custom data attributes */           
+                        }
+
+                        /* Safely handle custom data attributes */
                         if (
                             (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
                             (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
@@ -263,7 +266,7 @@
             var shadowIterator = _createIterator(fragment);
 
             while (shadowNode = shadowIterator.nextNode()) {
-                
+
                 /* Sanitize tags and elements */
                 if (_sanitizeElements(shadowNode)) {
                     continue;
@@ -286,7 +289,7 @@
         var dom = document.implementation.createHTMLDocument('');
             dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
             dom.body.outerHTML = dirty;
-            
+
         /* Work on whole document or just its body */
         var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
         if (
@@ -298,11 +301,11 @@
                 ? freshdom.getElementsByTagName.call(dom,'html')[0]
                 : freshdom.getElementsByTagName.call(dom,'body')[0];
         }
-        
+
         /* Early exit in case document is empty */
         if(typeof body === 'undefined') {
             return '';
-        } 
+        }
 
         /* Get node iterator */
         var currentNode;
