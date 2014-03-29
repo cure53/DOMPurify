@@ -1,9 +1,12 @@
+/* jshint globalstrict:true, node:true */
+'use strict';
+
 var he = require('he');
 var fs = require('fs');
-var tests = JSON.parse(fs.readFileSync('./tests/expect.json', 'utf-8'));
+var tests = JSON.parse(fs.readFileSync('./test/expect.json', 'utf-8'));
 
 var allTests = tests.reduce(function(previousValue, currentValue) {
-    return previousValue + '\n' + currentValue.payload;
+  return previousValue + '\n' + currentValue.payload;
 }, '').trim();
 var allTestsEscaped = he.encode(allTests);
 

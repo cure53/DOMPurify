@@ -77,10 +77,14 @@ var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 ```
 
+## Unit tests
+
+To run the test suite, you need [Node.js](http://nodejs.org/download/) first. Install the dependencies with `npm install`, then start the test server with `npm test`. You can run the tests in your browser from **http://localhost:8000/test/**.
+
 ## What's on the road-map?
 
 A lot. We want to support as many safe tags and attributes as possible. Currently, we work on extending the SVG support. Future versions will also allow to pass in a DOM or HTML element, get a DOM or an element back, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
 
 ## Who contributed?
 
-Several people need to be listed here! [@garethheyes](https://twitter.com/garethheyes) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) for doing the same. Big thanks also go to [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork) and [@giutro](https://twitter.com/giutro)!
+Several people need to be listed here! [@garethheyes](https://twitter.com/garethheyes) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) for doing the same. Big thanks also go to [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)!

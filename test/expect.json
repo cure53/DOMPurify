@@ -1,53 +1,66 @@
 [
     {
+        "title": "Simple numbers",
         "payload": "123456",
         "expected": "123456"
     },
     {
+        "title": "DOM clobbering: getElementById",
         "payload": "<img src=x name=getElementById>",
         "expected": "<img src=\"x\">"
     },
     {
+        "title": "DOM clobbering: location",
         "payload": "<a href=\"#some-code-here\" id=\"location\">invisible",
         "expected": "<a href=\"#some-code-here\">invisible</a>"
     },
     {
+        "title": "onclick, onsubmit, onfocus; DOM clobbering: parentNode",
         "payload": "<div onclick=alert(0)><form onsubmit=alert(1)><input onfocus=alert(2) name=parentNode>123</form></div>",
         "expected": "<div><form><input name=\"parentNode\">123</form></div>"
     },
     {
+        "title": "onsubmit, onfocus; DOM clobbering: nodeName",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeName>123</form>",
         "expected": ""
     },
     {
+        "title": "onsubmit, onfocus; DOM clobbering: nodeType",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeType>123</form>",
         "expected": ""
     },
     {
+        "title": "onsubmit, onfocus; DOM clobbering: children",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=children>123</form>",
         "expected": ""
     },
     {
+        "title": "onsubmit, onfocus; DOM clobbering: attributes",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=attributes>123</form>",
         "expected": ""
     },
     {
+        "title": "onsubmit, onfocus; DOM clobbering: removeChild",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeChild>123</form>",
         "expected": "<form><input name=\"removeChild\">123</form>"
     },
     {
+        "title": "onsubmit, onfocus; DOM clobbering: removeAttributeNode",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeAttributeNode>123</form>",
         "expected": ""
     },
     {
+        "title": "onsubmit, onfocus; DOM clobbering: setAttribute",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=setAttribute>123</form>",
         "expected": ""
     },
     {
+        "title": "&gt;style&lt;",
         "payload": "<style>*{color: red}</style>",
         "expected": ""
     },
     {
+        "title": "HTML paragraph with text",
         "payload": "<p>hello</p>",
         "expected": "<p>hello</p>"
     },
@@ -94,7 +107,7 @@
     {
         "payload": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
         "expected": "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>"
-    },    
+    },
     {
         "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
         "expected": "<img name=\"body\"><img name=\"adoptNode\">@mmrupp<img name=\"firstElementChild\"><svg></svg>"
@@ -596,18 +609,22 @@
         "expected": "<div id=\"114\">//[\"'`--&gt;]]&gt;]</div><div id=\"115\">\n//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "XML",
         "payload": "<div id=\"116\"><div id=\"x\">x</div>\n<xml:namespace prefix=\"t\">\n<import namespace=\"t\" implementation=\"#default#time2\">\n<t:set attributeName=\"innerHTML\" targetElement=\"x\" to=\"<img\u000Bsrc=x:x\u000Bonerror\u000B=alert(116)>\">//[\"'`-->]]>]</div>",
         "expected": "<div id=\"116\"><div id=\"x\">x</div>\n</div>"
     },
     {
+        "title": "iframe",
         "payload": "<div id=\"117\"><a href=\"http://attacker.org\">\n    <iframe src=\"http://example.org/\"></iframe>\n</a>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"117\"><a href=\"http://attacker.org\">\n    \n</a>//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "Drag & drop",
         "payload": "<div id=\"118\"><div draggable=\"true\" ondragstart=\"event.dataTransfer.setData('text/plain','malicious code');\">\n    <h1>Drop me</h1>\n</div>\n<iframe src=\"http://www.example.org/dropHere.html\"></iframe>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"118\"><div>\n    <h1>Drop me</h1>\n</div>\n//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "view-source",
         "payload": "<div id=\"119\"><iframe src=\"view-source:http://www.example.org/\" frameborder=\"0\" style=\"width:400px;height:180px\"></iframe>",
         "expected": "<div id=\"119\"></div>"
     },
@@ -616,6 +633,7 @@
         "expected": "<textarea rows=\"10\" cols=\"50\" type=\"text\"></textarea>//[\"'`--&gt;]]&gt;]"
     },
     {
+        "title": "window.open",
         "payload": "<div id=\"120\"><script>\nfunction makePopups(){\n    for (i=1;i<6;i++) {\n        window.open('popup.html','spam'+i,'width=50,height=50');\n    }\n}\n</script>\n<body>\n<a href=\"#\" onclick=\"makePopups()\">Spam</a>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"120\">\n\n<a href=\"#\">Spam</a>//[\"'`--&gt;]]&gt;]</div>"
     },
@@ -624,6 +642,7 @@
         "expected": "<div id=\"121\">\n\n</div>"
     },
     {
+        "title": "iframe (sandboxed)",
         "payload": "<div id=\"122\"><iframe sandbox=\"allow-same-origin allow-forms allow-scripts\" src=\"http://example.org/\"></iframe>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"122\">//[\"'`--&gt;]]&gt;]</div>"
     },
@@ -652,14 +671,17 @@
         "expected": "<div id=\"128\"><svg><style></style></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "Inline SVG (data-uri)",
         "payload": "<div id=\"129\"><svg><image style='filter:url(\"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><script>parent.alert(129)</script></svg>\")'>\n<!--\nSame effect with\n<image filter='...'>\n-->\n</svg>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"129\"><svg><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "MathML",
         "payload": "<div id=\"130\"><math href=\"javascript:alert(130)\">CLICKME</math>\n<math>\n<!-- up to FF 13 -->\n<maction actiontype=\"statusline#http://google.com\" xlink:href=\"javascript:alert(2)\">CLICKME</maction>\n\n<!-- FF 14+ -->\n<maction actiontype=\"statusline\" xlink:href=\"javascript:alert(3)\">CLICKME<mtext>http://http://google.com</mtext></maction>\n</math>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"130\"><math>CLICKME</math>\n<math>\n\n\n\n\n\n</math>//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "jAvascript (case sensitive)",
         "payload": "<div id=\"131\"><b>drag and drop one of the following strings to the drop box:</b>\n<br/><hr/>\njAvascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br/><hr/>\nfeed:javascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br/><hr/>\nfeed:data:text/html,<script>alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie)</script><b>\n<br/><hr/>\nfeed:feed:javAscript:javAscript:feed:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br/><hr/>\n<div id=\"dropbox\" style=\"height: 360px;width: 500px;border: 5px solid #000;position: relative;\" ondragover=\"event.preventDefault()\">+ Drop Box +</div>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"131\"><b>drag and drop one of the following strings to the drop box:</b>\n<br><hr>\njAvascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:javascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:data:text/html,<b>\n<br><hr>\nfeed:feed:javAscript:javAscript:feed:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\n<div style=\"height: 360px;width: 500px;border: 5px solid #000;position: relative;\" id=\"dropbox\">+ Drop Box +</div>//[\"'`--&gt;]]&gt;]</b></div>"
     },
@@ -672,10 +694,12 @@
         "expected": "<div id=\"133\">//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "XMP",
         "payload": "<div id=\"134\"><xmp>\n<%\n</xmp>\n<img alt='%></xmp><img src=xx:x onerror=alert(134)//'>\n\n<script>\nx='<%'\n</script> %>/\nalert(2)\n</script>\n\nXXX\n<style>\n*['<!--']{}\n</style>\n-->{}\n*{color:red}</style>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx:x onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "SVG",
         "payload": "<div id=\"135\"><?xml-stylesheet type=\"text/xsl\" href=\"#\" ?>\n<stylesheet xmlns=\"http://www.w3.org/TR/WD-xsl\">\n<template match=\"/\">\n<eval>new ActiveXObject('htmlfile').parentWindow.alert(135)</eval>\n<if expr=\"new ActiveXObject('htmlfile').parentWindow.alert(2)\"></if>\n</template>\n</stylesheet>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"135\">\n//[\"'`--&gt;]]&gt;]</div>"
     },
@@ -684,6 +708,7 @@
         "expected": "<div id=\"136\"><form method=\"post\" action=\"\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" type=\"password\" name=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n</form>//[\"'`--&gt;]]&gt;]</div>"
     },
     {
+        "title": "SVG",
         "payload": "<div id=\"137\"><svg>\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\"></circle>\n<animate attributeName=\"xlink:href\" begin=\"0\" from=\"javascript:alert(137)\" to=\"&\" />\n</a>//[\"'`-->]]>]</div>",
         "expected": "<div id=\"137\"><svg>\n<a xlink:href=\"?\">\n<circle r=\"400\"></circle>\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>"
     }

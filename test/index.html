@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>DOMPurify</title>
+  <link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="../purify.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
+  <script src="../node_modules/qunit-parameterize/qunit-parameterize.js"></script>
+  <script>
+    /* jshint globalstrict:true, browser:true, devel:true */
+    /* global DOMPurify, QUnit, jQuery */
+    'use strict';
+
+    // Override default alert() method.
+    window.alert = function() {
+      window.xssed = true;
+    };
+
+    // Don't start tests automatically
+    QUnit.config.autostart = false;
+
+    // Load assertions
+    jQuery
+      .getJSON( 'expect.json' )
+      .fail(function() { alert( 'Error: Unable to load test assertions from expect.json\nPlease run the tests on a local server with DOMPurify as document root.' ); })
+      .done(function( tests ) {
+
+        // Only test assertions with an alert() call for XSS
+        var xssTests = tests.filter( function( element ) {
+          if ( /alert/.test( element.payload ) ) { return element; }
+        });
+
+        // Sanitization tests
+        QUnit
+          .cases(tests)
+          .test( 'Sanitization test', function(params, assert) {
+              assert.equal( DOMPurify.sanitize( params.payload ), params.expected );
+          });
+
+        // XSS tests (alert() should not be called)
+        QUnit
+          .cases(xssTests)
+          .asyncTest('XSS test', function(params, assert) {
+            jQuery( '#qunit-fixture' ).html( DOMPurify.sanitize( params.payload ) );
+            setTimeout(function() {
+                QUnit.start();
+                assert.notEqual( window.xssed, true, 'alert() was called' );
+
+                // Teardown
+                jQuery( '#qunit-fixture' ).empty();
+                window.xssed = false;
+              }, 100);
+          });
+
+        // Fire it up!
+        QUnit.start();
+      });
+  </script>
+
+</body>
+</html>
