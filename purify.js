@@ -204,7 +204,9 @@
                 || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
             ) {
                 if(KEEP_CONTENT && currentNode.insertAdjacentHTML){
-                    currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
+                    try {
+                        currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
+                    } catch(e) {}
                 }
                 currentNode.parentNode.removeChild(currentNode);
                 return true;
