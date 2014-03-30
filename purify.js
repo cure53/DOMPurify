@@ -22,7 +22,7 @@
         var ALLOWED_TAGS = [
 
             // HTML
-            'a','abbr','acronym','address','area','article','aside','audio','b',
+            'abbr','acronym','address','area','article','aside','audio','b',
             'bdi','bdo','big','blink','blockquote','body','br','button','canvas',
             'caption','center','cite','code','col','colgroup','content','data',
             'datalist','dd','decorator','del','details','dfn','dir','div','dl','dt',
@@ -118,6 +118,9 @@
         /* Output should be free from DOM clobbering attacks? */
         var SANITIZE_DOM = true;
 
+        /* Keep element content when removing element? */
+        var KEEP_CONTENT = true;
+
         /* Ideally, do not touch anything below this line */
         /* ______________________________________________ */
 
@@ -134,6 +137,7 @@
             cfg.WHOLE_DOCUMENT  ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
             cfg.RETURN_DOM      ? RETURN_DOM      = cfg.RETURN_DOM      : null;
             cfg.SANITIZE_DOM    ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
+            cfg.KEEP_CONTENT    ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
         };
 
         /**
@@ -172,6 +176,7 @@
                 || typeof elm.setAttribute !== 'function'
                 || typeof elm.cloneNode !== 'function'
                 || typeof elm.removeAttributeNode !== 'function'
+                || typeof elm.insertAdjacentHTML !== 'function'
                 || typeof elm.attributes.item !== 'function'
             ) {
                 return true;
@@ -187,6 +192,7 @@
          * @protect nodeName
          * @protect textContent
          * @protect currentNode
+         * @protect insertAdjacentHTML
          *
          * @param   node to check for permission to exist
          * @return  true if node was killed, false if left alive
@@ -197,6 +203,9 @@
                 || currentNode.nodeType === currentNode.COMMENT_NODE
                 || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
             ) {
+                if(KEEP_CONTENT && currentNode.insertAdjacentHTML){
+                    currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
+                }
                 currentNode.parentNode.removeChild(currentNode);
                 return true;
             }
