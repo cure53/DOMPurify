@@ -46,7 +46,12 @@
         <hr>
         <!-- rendered test data goes in here -->
         <iframe src="about:blank" id="ifr" style="width:95%;height:100px"></iframe>
-        <textarea placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:200px"><%- examples %></textarea>
+        <textarea placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:200px"><!-- 
+        The following block of HTML is a collection of test cases, attack vectors and hard-to-process HTML chunks. 
+        DOMPurify will take the whole bunch and sanitize it. If you don't see an "alert" pop up afterwards, it means it worked :) 
+        -->
+        
+        <%- examples %></textarea>
         <textarea placeholder="Here be the sanitized markup to inspect!" id="y" style="width:95%;height:200px"></textarea>
     </body>
 </html>
