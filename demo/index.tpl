@@ -38,11 +38,11 @@
             var tx1 = Date.now();
             var xss = DOMPurify.sanitize(x.value, {SAFE_FOR_JQUERY: true});
             console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
-            console.log($(xss));
-            y.value=xss;
+            $(ifr.contentDocument.body).html(xss);
+            y.value=$(ifr.contentDocument.body).html();
             ifr.contentDocument.close();
             document.title=t+'ms'
-        ">Sanitize textarea value, then use $()</button>
+        ">Sanitize textarea value, then use $(elm).html()</button>
         <hr>
         <!-- rendered test data goes in here -->
         <iframe src="about:blank" id="ifr" style="width:95%;height:100px"></iframe>
