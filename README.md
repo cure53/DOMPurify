@@ -70,11 +70,14 @@ var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
 // return entire document including <html> tags (default is false)
 var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
 
-// make output safe for usage in jQuery's $() method (default is false)
+// make output safe for usage in jQuery's $()/html() method (default is false)
 var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
 
 // disable DOM Clobbering protection on output (default is true, handle with care!)
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
+
+// discard an element's content when the element is removed (default is true)
+var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 ```
 
 ## Unit tests

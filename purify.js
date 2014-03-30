@@ -22,7 +22,7 @@
         var ALLOWED_TAGS = [
 
             // HTML
-            'abbr','acronym','address','area','article','aside','audio','b',
+            'a','abbr','acronym','address','area','article','aside','audio','b',
             'bdi','bdo','big','blink','blockquote','body','br','button','canvas',
             'caption','center','cite','code','col','colgroup','content','data',
             'datalist','dd','decorator','del','details','dfn','dir','div','dl','dt',
