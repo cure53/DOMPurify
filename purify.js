@@ -213,9 +213,19 @@
         var _sanitizeElements = function(currentNode) {
             
             /* Check if element is clobbered or can clobber */
-            if (
-                _isClobbered(currentNode)
-                || currentNode.nodeType === currentNode.COMMENT_NODE
+            if (_isClobbered(currentNode)) {
+                
+                /* Be harsh with clobbered content, element has to go! */
+                try{
+                    currentNode.parentNode.removeChild(currentNode)
+                } catch(e){
+                    currentNode.outerHTML='';
+                }
+                return true;
+            }
+            
+            /* Now let's check the element's type and name */
+            if(currentNode.nodeType === currentNode.COMMENT_NODE
                 || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
             ) {
                 /* Keep content for white-listed elements */ 
@@ -232,7 +242,7 @@
                 return true;
             }
             
-            /* Convert markup to cover jQuery behavior */
+            /* Finally, convert markup to cover jQuery behavior */
             if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
                 currentNode.textContent = currentNode.textContent.replace(/</g, '&lt;');
             }
