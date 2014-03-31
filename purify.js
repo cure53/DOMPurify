@@ -120,6 +120,18 @@
 
         /* Keep element content when removing element? */
         var KEEP_CONTENT = true;
+        
+        /* Tags to keep content from (when KEEP_CONTENT is true) */
+        var CONTENT_TAGS = [
+            'a','abbr','acronym','address','article','aside','b','bdi','bdo',
+            'big','blink','blockquote','caption','center','cite','code','col',
+            'dd','del','details','dfn','dir','div','dl','dt','em','figcaption',
+            'figure','footer','h1','h2','h3','h4','h5','h6','header','i','ins',
+            'kbd','label','legend','li','main','mark','marquee','nav','ol',
+            'output','p','pre','q','rp','rt','ruby','s','samp','section','small',
+            'span','strike','strong','sub','summary','sup','table','tbody','td',
+            'tfoot','th','thead','time','tr','tt','u','ul','var'
+        ];
 
         /* Ideally, do not touch anything below this line */
         /* ______________________________________________ */
@@ -169,6 +181,7 @@
             }
             if (
                 (elm.children && !(elm.children instanceof HTMLCollection))
+                || (elm.attributes instanceof NodeList)
                 || typeof elm.nodeName !== 'string'
                 || typeof elm.textContent !== 'string'
                 || typeof elm.nodeType !== 'number'
@@ -198,19 +211,28 @@
          * @return  true if node was killed, false if left alive
          */
         var _sanitizeElements = function(currentNode) {
+            
+            /* Check if element is clobbered or can clobber */
             if (
                 _isClobbered(currentNode)
                 || currentNode.nodeType === currentNode.COMMENT_NODE
                 || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
             ) {
-                if(KEEP_CONTENT && currentNode.insertAdjacentHTML){
+                /* Keep content for white-listed elements */ 
+                if(KEEP_CONTENT && currentNode.insertAdjacentHTML
+                    && currentNode.nodeName.toLowerCase 
+                    && CONTENT_TAGS.indexOf(currentNode.nodeName.toLowerCase()) !== -1){
                     try {
                         currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                     } catch(e) {}
                 }
+                
+                /* Remove element if anything permits its presence */
                 currentNode.parentNode.removeChild(currentNode);
                 return true;
             }
+            
+            /* Convert markup to cover jQuery behavior */
             if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
                 currentNode.textContent = currentNode.textContent.replace(/</g, '&lt;');
             }

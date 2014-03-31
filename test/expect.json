@@ -5,6 +5,11 @@
         "expected": "123456"
     },
     {
+        "title": "DOM clobbering XSS by @irsdl using attributes",
+        "payload": "<form onmouseover='alert(1)'><input name=\"attributes\"><input name=\"attributes\">",
+        "expected": ""
+    },
+    {
         "title": "DOM clobbering: getElementById",
         "payload": "<img src=x name=getElementById>",
         "expected": "<img src=\"x\">"
@@ -65,31 +70,38 @@
         "expected": "<p>hello</p>"
     },
     {
+        "title": "Textarea and comments enabling img element",
         "payload": "<textarea>@shafigullin</textarea><!--</textarea><img src=x onerror=alert(1)>-->",
         "expected": "<textarea>@shafigullin</textarea>"
     },
     {
+        "title": "Img element inside nocript terminated inside comment",
         "payload": "<b><noscript><!-- </noscript><img src=xx: onerror=alert(1) --></noscript>",
         "expected": "<b></b>"
     },
     {
+        "title": "Img element inside noscript terminated inside attribute",
         "payload": "<b><noscript><a alt=\"</noscript><img src=xx: onerror=alert(1)>\"></noscript>",
         "expected": "<b></b>"
     },
     {
+        "title": "Img element inside shadow DOM template",
         "payload": "<body><template><s><template><s><img src=x onerror=alert(1)>@shafigullin</s></template></s></template>",
         "expected": "<template><s><template><s><img src=\"x\">@shafigullin</s></template></s></template>"
     },
     {
+        "title": "Low-range-ASCII obfuscated JavaScript URI",
         "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
         "expected": "<a>@shafigullin</a><a></a>"
     },
     {
+        "title": "Img inside style inside broken option element",
         "payload": "\u0001<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>",
         "expected": "\u0001<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>"
     },
     {
-        "payload": "<option><iframe></select><b><script>alert()</script>",
+        "title": "Iframe inside option element",
+        "payload": "<option><iframe></select><b><script>alert(1)</script>",
         "expected": "<option></option>"
     },
     {
