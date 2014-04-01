@@ -217,7 +217,7 @@
                 
                 /* Be harsh with clobbered content, element has to go! */
                 try{
-                    currentNode.parentNode.removeChild(currentNode)
+                    currentNode.parentNode.removeChild(currentNode);
                 } catch(e){
                     currentNode.outerHTML='';
                 }
