@@ -151,6 +151,38 @@
             cfg.SANITIZE_DOM    ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
             cfg.KEEP_CONTENT    ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
         };
+        
+       /**
+         * _initDocument
+         * 
+         * @param  a string of dirty markup
+         * @return a DOM, filled with the dirty markup
+         */
+        var _initDocument = function(dirty){
+            
+            /* Create documents to map markup to */
+            var dom = document.implementation.createHTMLDocument('');
+                dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
+                dom.body.outerHTML = dirty;
+                
+            /* Cover IE9's buggy outerHTML behavior */
+            if(dom.body === null) {
+                dom.body.innerHTML = dirty;
+            }
+    
+            /* Work on whole document or just its body */
+            var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
+            if (
+                !(dom.body instanceof HTMLBodyElement) ||
+                !(dom.body instanceof HTMLHtmlElement)
+            ) {
+                var freshdom = document.implementation.createHTMLDocument('');
+                body = WHOLE_DOCUMENT
+                    ? freshdom.getElementsByTagName.call(dom,'html')[0]
+                    : freshdom.getElementsByTagName.call(dom,'body')[0];
+            }            
+            return body;
+        }        
 
         /**
          * _createIterator
@@ -217,7 +249,7 @@
                 
                 /* Be harsh with clobbered content, element has to go! */
                 try{
-                    currentNode.parentNode.removeChild(currentNode);
+                    currentNode.parentNode.removeChild(currentNode)
                 } catch(e){
                     currentNode.outerHTML='';
                 }
@@ -328,24 +360,11 @@
         /* Assign config vars */
         cfg ? _parseConfig(cfg) : null;
 
-        /* Create documents to map markup to */
-        var dom = document.implementation.createHTMLDocument('');
-            dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
-            dom.body.outerHTML = dirty;
 
-        /* Work on whole document or just its body */
-        var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
-        if (
-            !(dom.body instanceof HTMLBodyElement) ||
-            !(dom.body instanceof HTMLHtmlElement)
-        ) {
-            var freshdom = document.implementation.createHTMLDocument('');
-            body = WHOLE_DOCUMENT
-                ? freshdom.getElementsByTagName.call(dom,'html')[0]
-                : freshdom.getElementsByTagName.call(dom,'body')[0];
-        }
-
-        /* Early exit in case document is empty */
+        /* Initialize the document to work on */
+        var body = _initDocument(dirty);
+        
+         /* Early exit in case document is empty */
         if(typeof body === 'undefined') {
             return '';
         }
