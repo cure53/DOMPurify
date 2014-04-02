@@ -368,7 +368,6 @@
         /* Assign config vars */
         cfg ? _parseConfig(cfg) : null;
 
-
         /* Initialize the document to work on */
         var body = _initDocument(dirty);
         
