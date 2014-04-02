@@ -61,16 +61,16 @@
         var ALLOWED_ATTR = [
 
             // HTML
-            'name', 'id','href','action','class','title','alt','src','type',
-            'height','width', 'method','rev','rel','accept','align','autocomplete',
-            'xmlns','bgcolor','border','checked','cite','color','cols','colspan',
-            'coords','datetime','default','dir','disabled','download','enctype',
-            'for','headers','hidden','high','hreflang','ismap','label','lang',
-            'list','loop', 'low','max','maxlength','media','min','multiple',
-            'novalidate','open','optimum','pattern','placeholder','poster',
-            'preload','pubdate','radiogroup','readonly','required','reversed',
-            'rows','rowspan','spellcheck','scope','selected','shape','size','span',
-            'srclang','start','step','style','summary','tabindex','usemap','value',
+            'accept','action','align','alt','autocomplete','bgcolor','border',
+            'checked','cite','class','color','cols','colspan','coords','datetime',
+            'default','dir','disabled','download','enctype','for','headers','height',
+            'hidden','high','href','hreflang','id','ismap','label','lang','list',
+            'loop', 'low','max','maxlength','media','method','min','multiple',
+            'name','novalidate','open','optimum','pattern','placeholder','poster',
+            'preload','pubdate','radiogroup','readonly','rel','required','rev',
+            'reversed','rows','rowspan','spellcheck','scope','selected','shape',
+            'size','span','srclang','start','src','step','style','summary','tabindex',
+            'title','type','usemap','valign','value','width','xmlns',
 
             // SVG
             'accent-height','accumulate','additivive','alignment-baseline',
@@ -182,7 +182,7 @@
                     : freshdom.getElementsByTagName.call(dom,'body')[0];
             }            
             return body;
-        }        
+        };       
 
         /**
          * _createIterator
@@ -249,7 +249,7 @@
                 
                 /* Be harsh with clobbered content, element has to go! */
                 try{
-                    currentNode.parentNode.removeChild(currentNode)
+                    currentNode.parentNode.removeChild(currentNode);
                 } catch(e){
                     currentNode.outerHTML='';
                 }
