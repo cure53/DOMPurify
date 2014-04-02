@@ -308,6 +308,7 @@
 
                 /* Go backwards over all attributes; safely remove bad ones */
                 for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
+                    
                     tmp = clonedNode.attributes[attr];
                     clobbering = false;
                     currentNode.removeAttribute(currentNode.attributes[attr].name);
@@ -322,13 +323,20 @@
                             }
                         }
 
-                        /* Safely handle custom data attributes */
+                        /* Safely handle attributes */
                         if (
                             (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
                             (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
                             
-                            /* Get rid of *script / data URIs */
-                            && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)
+                            /* Get rid of script and data URIs */
+                            && (!tmp.value.replace(/[\x00-\x20]/g,'').match(regex) 
+                            
+                                /* Keep image data URIs alive if src is allowed */
+                                || (tmp.name === 'src'
+                                    && tmp.value.indexOf('data:') === 0 
+                                    && tmp.ownerElement.nodeName === 'IMG'))
+                                    
+                            /* Make sure attribute cannot clobber */                                   
                             && !clobbering
                         ) {
                             currentNode.setAttribute(tmp.name, tmp.value);
