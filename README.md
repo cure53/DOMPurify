@@ -61,6 +61,12 @@ var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 // allow only <b> and <q> with style attributes (for whatever reason)
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
+// extend the existing array of allowed tags
+var clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
+
+// extend the existing array of attributes
+var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
+
 // prohibit HTML5 data attributes (default is true)
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 

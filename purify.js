@@ -142,6 +142,8 @@
          * @param  optional config literal
          */
         var _parseConfig = function(cfg) {
+            
+            /* Set configuration parameters */
             cfg.ALLOWED_ATTR    ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
             cfg.ALLOWED_TAGS    ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
             cfg.ALLOW_DATA_ATTR ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
@@ -150,6 +152,10 @@
             cfg.RETURN_DOM      ? RETURN_DOM      = cfg.RETURN_DOM      : null;
             cfg.SANITIZE_DOM    ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
             cfg.KEEP_CONTENT    ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
+            
+            /* Merge configuration parameters */
+            cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
+            cfg.ADD_TAGS ? ALLOWED_TAGS = ALLOWED_TAGS.concat(cfg.ADD_TAGS) : null;
         };
         
        /**
@@ -320,6 +326,8 @@
                         if (
                             (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
                             (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
+                            
+                            /* Get rid of *script / data URIs */
                             && !tmp.value.replace(/[\x00-\x20]/g,'').match(regex)
                             && !clobbering
                         ) {
