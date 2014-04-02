@@ -5,6 +5,11 @@
         "expected": "<img src=\"data:image/jpeg,ab798ewqxbaudbuoibeqbla\">"        
     },
     {
+        "title": "Image with JavaScript URI src (DoS on Firefox)",
+        "payload": "<img src='javascript:while(1){}'>",
+        "expected": "<img>"        
+    },    
+    {
         "title": "Link with data URI href",
         "payload": "<a href=data:,evilnastystuff>clickme</a>",
         "expected": "<a>clickme</a>"        
