@@ -156,6 +156,9 @@
             /* Merge configuration parameters */
             cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
             cfg.ADD_TAGS ? ALLOWED_TAGS = ALLOWED_TAGS.concat(cfg.ADD_TAGS) : null;
+            
+            /* Add #text in case KEEP_CONTENT is set to true */
+            KEEP_CONTENT ? ALLOWED_TAGS.push('#text') : null;
         };
         
        /**
