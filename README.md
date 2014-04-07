@@ -92,7 +92,7 @@ To run the test suite, you need [Node.js](http://nodejs.org/download/) first. In
 
 ## What's on the road-map?
 
-A lot. We want to support as many safe tags and attributes as possible. Currently, we work on extending the SVG support. Future versions will also allow to pass in a DOM or HTML element, get a DOM or an element back, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
+Still a lot of things although we have come far feature-wise. We're currently considering to build a CSS module, that cleans up inside `<style>` elements - and not only `style` attributes. Future versions will also, most likely, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
 
 ## Who contributed?
 
