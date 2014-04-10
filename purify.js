@@ -337,7 +337,7 @@
                                 /* Keep image data URIs alive if src is allowed */
                                 || (tmp.name === 'src'
                                     && tmp.value.indexOf('data:') === 0 
-                                    && tmp.ownerElement.nodeName === 'IMG'))
+                                    && currentNode.nodeName === 'IMG'))
                                     
                             /* Make sure attribute cannot clobber */                                   
                             && !clobbering
