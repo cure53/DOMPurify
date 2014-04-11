@@ -222,6 +222,7 @@
             }
             if (
                 (elm.children && !(elm.children instanceof HTMLCollection))
+                || (elm.attributes instanceof HTMLCollection)
                 || (elm.attributes instanceof NodeList)
                 || typeof elm.nodeName !== 'string'
                 || typeof elm.textContent !== 'string'
@@ -325,7 +326,6 @@
                                 clobbering = true;
                             }
                         }
-
                         /* Safely handle attributes */
                         if (
                             (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
