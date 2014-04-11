@@ -224,15 +224,15 @@
                 (elm.children && !(elm.children instanceof HTMLCollection))
                 || (elm.attributes instanceof HTMLCollection)
                 || (elm.attributes instanceof NodeList)
+                || (elm.insertAdjacentHTML && typeof elm.insertAdjacentHTML !== 'function')
+                || (elm.outerHTML && typeof elm.outerHTML !== 'string')
                 || typeof elm.nodeName !== 'string'
-                || typeof elm.outerHTML !== 'string'
                 || typeof elm.textContent !== 'string'
                 || typeof elm.nodeType !== 'number'
                 || typeof elm.COMMENT_NODE !== 'number'
                 || typeof elm.setAttribute !== 'function'
                 || typeof elm.cloneNode !== 'function'
                 || typeof elm.removeAttributeNode !== 'function'
-                || typeof elm.insertAdjacentHTML !== 'function'
                 || typeof elm.removeChild !== 'function'
                 || typeof elm.attributes.item !== 'function'
             ) {
