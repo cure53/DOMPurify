@@ -62,7 +62,7 @@
     {
         "title": "onsubmit, onfocus; DOM clobbering: removeChild",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeChild>123</form>",
-        "expected": "<form><input>123</form>"
+        "expected": ""
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: removeAttributeNode",
