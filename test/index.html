@@ -49,7 +49,7 @@
           });
 
         // XSS tests: Native DOM methods (alert() should not be called)
-        /*QUnit
+        QUnit
           .cases(xssTests)
           .asyncTest('XSS test: native', function(params, assert) {
 
@@ -78,7 +78,7 @@
                 jQuery( '#qunit-fixture' ).empty();
                 window.xssed = false;
               }, 100);
-          });*/
+          });
 
         // Fire it up!
         QUnit.start();

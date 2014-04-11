@@ -384,14 +384,16 @@
         "payload": "<div id=\"35\">1<a href=#><line xmlns=urn:schemas-microsoft-com:vml style=behavior:url(#default#vml);position:absolute href=javascript:alert(35) strokecolor=white strokeweight=1000px from=0 to=1000 /></a>//[\"'`-->]]>]</div>",
         "expected": [
                         "<div id=\"35\">1<a href=\"#\"><line style=\"behavior:url(#default#vml);position:absolute\" xmlns=\"urn:schemas-microsoft-com:vml\"></line></a>//[\"'`--&gt;]]&gt;]</div>",
-                        "<div id=\"35\">1<a href=\"#\"><line style=\"position: absolute; behavior: url(#default#vml);\" xmlns=\"urn:schemas-microsoft-com:vml\"></line></a>//[\"'`--&gt;]]&gt;]</div>"
+                        "<div id=\"35\">1<a href=\"#\"><line style=\"position: absolute; behavior: url(#default#vml);\" xmlns=\"urn:schemas-microsoft-com:vml\"></line></a>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"35\">1<a href=\"#\"><line style=\"position: absolute; -ms-behavior: url(#default#vml);\" xmlns=\"urn:schemas-microsoft-com:vml\"></line></a>//[\"'`--&gt;]]&gt;]</div>"
                     ]
     },
     {
         "payload": "<div id=\"36\"><a style=\"behavior:url(#default#AnchorClick);\" folder=\"javascript:alert(36)\">XXX</a>//[\"'`-->]]>]</div>",
         "expected": [
                         "<div id=\"36\"><a style=\"behavior:url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-                        "<div id=\"36\"><a style=\"behavior: url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
+                        "<div id=\"36\"><a style=\"behavior: url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"36\"><a style=\"-ms-behavior: url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
                     ]
     },
     {
@@ -744,7 +746,10 @@
     },
     {
         "payload": "<div id=\"106\"><img src onerror /\" '\"= alt=alert(106)//\">//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"106\"><img src=\"\">//[\"'`--&gt;]]&gt;]</div>"
+        "expected": [
+                        "<div id=\"106\"><img src=\"\">//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"106\"><img>//[\"'`--&gt;]]&gt;]</div>"
+                    ]
     },
     {
         "payload": "<div id=\"107\"><title onpropertychange=alert(107)></title><title title=></title>//[\"'`-->]]>]</div>",
@@ -761,7 +766,8 @@
         "payload": "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\"/></a>\n<rect  fill=\"white\" style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\"/>\n</svg>//[\"'`-->]]>]</div>",
         "expected": [
                         "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect height=\"1000\" width=\"1000\" fill=\"white\"></rect></a>\n<rect style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\" fill=\"white\"></rect>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-                        "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"filter: url(&quot;#c&quot;); clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+                        "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"filter: url(&quot;#c&quot;); clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>"
                     ]
     },
     {
@@ -870,7 +876,8 @@
         "expected": [
                         "<div id=\"129\"><svg><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
                         "<div id=\"129\"><svg><image style=\"filter:url(&quot;data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><script>parent.alert(129)</script></svg>&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
-                        "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter: url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;);\">\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>"
+                        "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter: url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;);\">\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image>\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>"
                     ]
     },
     {
@@ -886,7 +893,8 @@
         "payload": "<div id=\"131\"><b>drag and drop one of the following strings to the drop box:</b>\n<br/><hr/>\njAvascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br/><hr/>\nfeed:javascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br/><hr/>\nfeed:data:text/html,<script>alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie)</script><b>\n<br/><hr/>\nfeed:feed:javAscript:javAscript:feed:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br/><hr/>\n<div id=\"dropbox\" style=\"height: 360px;width: 500px;border: 5px solid #000;position: relative;\" ondragover=\"event.preventDefault()\">+ Drop Box +</div>//[\"'`-->]]>]</div>",
         "expected": [
                         "<div id=\"131\"><b>drag and drop one of the following strings to the drop box:</b>\n<br><hr>\njAvascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:javascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:data:text/html,<b>\n<br><hr>\nfeed:feed:javAscript:javAscript:feed:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\n<div style=\"height: 360px;width: 500px;border: 5px solid #000;position: relative;\" id=\"dropbox\">+ Drop Box +</div>//[\"'`--&gt;]]&gt;]</b></div>",
-                        "<div id=\"131\"><b>drag and drop one of the following strings to the drop box:</b>\n<br><hr>\njAvascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:javascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:data:text/html,<b>\n<br><hr>\nfeed:feed:javAscript:javAscript:feed:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\n<div id=\"dropbox\" style=\"border: 5px solid rgb(0, 0, 0); border-image: none; width: 500px; height: 360px; position: relative;\">+ Drop Box +</div>//[\"'`--&gt;]]&gt;]</b></div>"
+                        "<div id=\"131\"><b>drag and drop one of the following strings to the drop box:</b>\n<br><hr>\njAvascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:javascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:data:text/html,<b>\n<br><hr>\nfeed:feed:javAscript:javAscript:feed:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\n<div id=\"dropbox\" style=\"border: 5px solid rgb(0, 0, 0); border-image: none; width: 500px; height: 360px; position: relative;\">+ Drop Box +</div>//[\"'`--&gt;]]&gt;]</b></div>",
+                        "<div id=\"131\"><b>drag and drop one of the following strings to the drop box:</b>\n<br><hr>\njAvascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:javascript:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\nfeed:data:text/html,<b>\n<br><hr>\nfeed:feed:javAscript:javAscript:feed:alert('Top Page Location: '+document.location+' Host Page Cookies: '+document.cookie);//\n<br><hr>\n<div id=\"dropbox\" style=\"border: 5px solid rgb(0, 0, 0); width: 500px; height: 360px; position: relative;\">+ Drop Box +</div>//[\"'`--&gt;]]&gt;]</b></div>"
                     ]
     },
     {
