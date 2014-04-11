@@ -24,6 +24,11 @@
 
     // Don't start tests automatically
     QUnit.config.autostart = false;
+    
+    QUnit.assert.contains = function( needle, haystack, message ) {
+        var actual = haystack.indexOf(needle) > -1;
+        QUnit.push(actual, actual, needle, message);
+    };    
 
     // Load assertions
     jQuery
@@ -40,7 +45,7 @@
         QUnit
           .cases(tests)
           .test( 'Sanitization test', function(params, assert) {
-              assert.equal( DOMPurify.sanitize( params.payload ), params.expected );
+              assert.contains( DOMPurify.sanitize( params.payload ), params.expected );
           });
 
         // XSS tests: Native DOM methods (alert() should not be called)
