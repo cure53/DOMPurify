@@ -151,6 +151,7 @@
         "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
         "expected": [
                         "<img><img>@mmrupp<img><svg></svg>",
+                        "<img><img>@mmrupp<img name=\"firstElementChild\"><svg></svg>",
                         "<img><img>@mmrupp<img name=\"firstElementChild\"><svg xmlns=\"http://www.w3.org/2000/svg\" />"
                     ]
     },
