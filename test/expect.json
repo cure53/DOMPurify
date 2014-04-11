@@ -120,18 +120,22 @@
         "expected": "<option></option>"
     },
     {
+        "title": "Closing Iframe and option",
         "payload": "</iframe></option>",
         "expected": ""
     },
     {
+        "title": "Image after style to trick jQuery tag-completion",
         "payload": "<b><style><style/><img src=xx: onerror=alert(1)>",
         "expected": "<b><style><style/><img src=xx: onerror=alert(1)></style></b>"
     },
     {
+        "title": "Image after self-closing style to trick jQuery tag-completion",
         "payload": "<b><style><style////><img src=xx: onerror=alert(1)></style>",
         "expected": "<b><style><style////><img src=xx: onerror=alert(1)></style></b>"
     },
     {
+        "title": "MathML example",
         "payload": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
         "expected": [
                         "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
@@ -139,56 +143,70 @@
                     ]
     },
     {
+        "title": "DOM clobbering attack using name=body",
         "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
         "expected": "<img><img>@mmrupp<img><svg></svg>"
     },
     {
+        "title": "Special esacpes in protocol handler for XSS in Blink",
         "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
         "expected": "<a>@shafigullin</a><a></a>"
     },
     {
+        "title": "DOM clobbering attack using activeElement",
         "payload": "<image name=activeElement><svg onload=alert(1)>",
         "expected": "<img><svg></svg>"
     },
     {
+        "title": "DOM clobbering attack using name=body and injecting SVG + keygen",
         "payload": "<image name=body><img src=x><svg onload=alert(1); autofocus>, <keygen onfocus=alert(1); autofocus>",
         "expected": "<img><img src=\"x\"><svg>, </svg>"
     },
     {
+        "title": "Bypass using multiple unknown attributes",
         "payload": "<div onmouseout=\"javascript:alert(/superevr/)\" x=yscript: n>@superevr</div>",
         "expected": "<div>@superevr</div>"
     },
     {
+        "title": "Bypass using event handlers and unknown attributes",
         "payload": "<button remove=me onmousedown=\"javascript:alert(1);\" onclick=\"javascript:alert(1)\" >@giutro",
         "expected": "<button>@giutro</button>"
     },
     {
+        "title": "Bypass using DOM bugs when dealing with JS URIs in arbitrary attributes",
         "payload": "<a href=\"javascript:123\" onclick=\"alert(1)\">CLICK ME (bypass by @shafigullin)</a>",
         "expected": "<a>CLICK ME (bypass by @shafigullin)</a>"
     },
     {
+        "title": "Bypass using DOM bugs when dealing with JS URIs in arbitrary attributes (II)",
         "payload": "<isindex x=\"javascript:\" onmouseover=\"alert(1)\" label=\"variation of bypass by @giutro\">",
         "expected": [
                         "<form><hr><label>This is a searchable index. Enter search keywords: <input label=\"variation of bypass by @giutro\" name=\"isindex\"></label><hr></form>",
-                        "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"variation of bypass by @giutro\"></label><hr></form>"
+                        "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"variation of bypass by @giutro\"></label><hr></form>",
+                        ""
                     ]
     },
     {
+        "title": "Bypass using unknown attributes III",
         "payload": "<div wow=removeme onmouseover=alert(1)>text",
         "expected": "<div>text</div>"
     },
     {
+        "title": "Bypass using unknown attributes IV",
         "payload": "<input x=javascript: autofocus onfocus=alert(1)><svg id=1 onload=alert(1)></svg>",
         "expected": "<input><svg id=\"1\"></svg>"
     },
     {
+        "title": "Bypass using unknown attributes V",
         "payload": "<isindex src=\"javascript:\" onmouseover=\"alert(1)\" label=\"bypass by @giutro\" />",
         "expected": [
                         "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"bypass by @giutro\"></label><hr></form>",
-                        "<form><hr><label>This is a searchable index. Enter search keywords: <input label=\"bypass by @giutro\" name=\"isindex\"></label><hr></form>"
+                        "<form><hr><label>This is a searchable index. Enter search keywords: <input label=\"bypass by @giutro\" name=\"isindex\"></label><hr></form>",
+                        ""
                     ]
     },
     {
+        "title": "Bypass using JS URI in href",
         "payload": "<a href=\"javascript:123\" onclick=\"alert(1)\">CLICK ME (bypass by @shafigullin)</a>",
         "expected": "<a>CLICK ME (bypass by @shafigullin)</a>"
     },
