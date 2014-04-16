@@ -176,7 +176,12 @@
                 
             /* Cover IE9's buggy outerHTML behavior */
             if(dom.body === null) {
+                dom = document.implementation.createHTMLDocument('');
                 dom.body.innerHTML = dirty;
+                if(dom.body.firstChild.nodeName && !WHOLE_DOCUMENT
+                    && dom.body.firstChild.nodeName === 'STYLE'){
+                    dom.body.removeChild(dom.body.firstChild);
+                }
             }
     
             /* Work on whole document or just its body */
