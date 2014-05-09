@@ -144,14 +144,14 @@
         var _parseConfig = function(cfg) {
             
             /* Set configuration parameters */
-            cfg.ALLOWED_ATTR    ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
-            cfg.ALLOWED_TAGS    ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
-            cfg.ALLOW_DATA_ATTR ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
-            cfg.SAFE_FOR_JQUERY ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;
-            cfg.WHOLE_DOCUMENT  ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
-            cfg.RETURN_DOM      ? RETURN_DOM      = cfg.RETURN_DOM      : null;
-            cfg.SANITIZE_DOM    ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
-            cfg.KEEP_CONTENT    ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
+            'ALLOWED_ATTR'    in cfg ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
+            'ALLOWED_TAGS'    in cfg ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
+            'ALLOW_DATA_ATTR' in cfg ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
+            'SAFE_FOR_JQUERY' in cfg ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;
+            'WHOLE_DOCUMENT'  in cfg ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
+            'RETURN_DOM'      in cfg ? RETURN_DOM      = cfg.RETURN_DOM      : null;
+            'SANITIZE_DOM'    in cfg ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
+            'KEEP_CONTENT'    in cfg ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
             
             /* Merge configuration parameters */
             cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
@@ -294,7 +294,7 @@
             
             /* Finally, convert markup to cover jQuery behavior */
             if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
-                currentNode.textContent = currentNode.textContent.replace(/</g, '&lt;');
+                currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
             }
             return false;
         };

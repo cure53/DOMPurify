@@ -85,6 +85,16 @@
         "expected": "<p>hello</p>"
     },
     {
+        "title": "mXSS Variation I",
+        "payload": "<listing>&lt;img onerror=\"alert(1);//\" src=1&gt;<t t></listing>",
+        "expected": ""
+    },
+    {
+        "title": "mXSS Variation II",
+        "payload": "<img src=x id/=' onerror=alert(1)//'>",
+        "expected": ["<img src=\"x\">", "<img id=\"\" src=\"x\">"]
+    },
+    {
         "title": "Textarea and comments enabling img element",
         "payload": "<textarea>@shafigullin</textarea><!--</textarea><img src=x onerror=alert(1)>-->",
         "expected": "<textarea>@shafigullin</textarea>"
