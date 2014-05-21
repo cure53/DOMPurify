@@ -28,6 +28,12 @@ require(['dompurify'], function(DOMPurify) {
 };
 ```
 
+You can also grab the files straight from NPM:
+
+```
+npm install dompurify
+```
+
 ## Is there a demo?
 
 Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
