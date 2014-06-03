@@ -340,7 +340,7 @@
                             (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
                             
                             /* Get rid of script and data URIs */
-                            && (!tmp.value.replace(/[\x00-\x20]/g,'').match(regex) 
+                            && (!tmp.value.replace(/[\x00-\x20\u2028-\u2029]/g,'').match(regex) 
                             
                                 /* Keep image data URIs alive if src is allowed */
                                 || (tmp.name === 'src'

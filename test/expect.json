@@ -1,5 +1,20 @@
 [
     {
+        "title": "JavaScript URIs using Unicode LS/PS",
+        "payload": "123<a href='\u2028javascript:alert(1)'>I am a dolphin!</a>",
+        "expected": "123<a>I am a dolphin!</a>"        
+    },
+    {
+        "title": "JavaScript URIs using Unicode LS/PS",
+        "payload": "123<a href='\u2028javascript:alert(1)'>I am a dolphin too!</a>",
+        "expected": "123<a>I am a dolphin too!</a>"        
+    },    
+    {
+        "title": "JavaScript URIs using Unicode LS/PS",
+        "payload": "123<a href='j\u2028avascript:alert(1)'>I am a dolphin too!</a>",
+        "expected": "123<a>I am a dolphin too!</a>"        
+    },      
+    {
         "title": "Image with data URI src",
         "payload": "<img src=data:image/jpeg,ab798ewqxbaudbuoibeqbla>",
         "expected": "<img src=\"data:image/jpeg,ab798ewqxbaudbuoibeqbla\">"        
