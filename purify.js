@@ -314,6 +314,9 @@
             var regex = /^(\w+script|data):/gi,
                 clonedNode = currentNode.cloneNode(true),
                 tmp, clobbering;
+                
+            /* This needs to be extensive thanks to Webkit/Blink's behavior */
+            var whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
             /* Check if we have attributes; if not we might have a text node */
             if(currentNode.attributes) {
@@ -340,7 +343,7 @@
                             (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
                             
                             /* Get rid of script and data URIs */
-                            && (!tmp.value.replace(/[\x00-\x20\u2028-\u2029]/g,'').match(regex) 
+                            && (!tmp.value.replace(whitespace,'').match(regex) 
                             
                                 /* Keep image data URIs alive if src is allowed */
                                 || (tmp.name === 'src'

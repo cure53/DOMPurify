@@ -1,18 +1,18 @@
 [
     {
-        "title": "JavaScript URIs using Unicode LS/PS",
+        "title": "JavaScript URIs using Unicode LS/PS I",
         "payload": "123<a href='\u2028javascript:alert(1)'>I am a dolphin!</a>",
         "expected": "123<a>I am a dolphin!</a>"        
     },
     {
-        "title": "JavaScript URIs using Unicode LS/PS",
+        "title": "JavaScript URIs using Unicode LS/PS II",
         "payload": "123<a href='\u2028javascript:alert(1)'>I am a dolphin too!</a>",
         "expected": "123<a>I am a dolphin too!</a>"        
     },    
     {
-        "title": "JavaScript URIs using Unicode LS/PS",
-        "payload": "123<a href='j\u2028avascript:alert(1)'>I am a dolphin too!</a>",
-        "expected": "123<a>I am a dolphin too!</a>"        
+        "title": "JavaScript URIs using Unicode Whitespace",
+        "payload": "123<a href=' javascript:alert(1)'>CLICK</a><a href='&#xA0javascript:alert(1)'>CLICK</a><a href='&#x1680;javascript:alert(1)'>CLICK</a><a href='&#x180E;javascript:alert(1)'>CLICK</a><a href='&#x2000;javascript:alert(1)'>CLICK</a><a href='&#x2001;javascript:alert(1)'>CLICK</a><a href='&#x2002;javascript:alert(1)'>CLICK</a><a href='&#x2003;javascript:alert(1)'>CLICK</a><a href='&#x2004;javascript:alert(1)'>CLICK</a><a href='&#x2005;javascript:alert(1)'>CLICK</a><a href='&#x2006;javascript:alert(1)'>CLICK</a><a href='&#x2006;javascript:alert(1)'>CLICK</a><a href='&#x2007;javascript:alert(1)'>CLICK</a><a href='&#x2008;javascript:alert(1)'>CLICK</a><a href='&#x2009;javascript:alert(1)'>CLICK</a><a href='&#x200A;javascript:alert(1)'>CLICK</a><a href='&#x200B;javascript:alert(1)'>CLICK</a><a href='&#x205f;javascript:alert(1)'>CLICK</a><a href='&#x3000;javascript:alert(1)'>CLICK</a>",        
+        "expected": "123<a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a>"        
     },      
     {
         "title": "Image with data URI src",
