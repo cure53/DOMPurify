@@ -34,6 +34,11 @@ You can also grab the files straight from NPM:
 npm install dompurify
 ```
 
+```javascript
+var DOMPurify = require('dompurify');
+var clean = DOMPurify.sanitize(dirty);
+```
+
 ## Is there a demo?
 
 Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
