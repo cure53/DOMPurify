@@ -113,7 +113,7 @@
         QUnit.test( 'Config-Flag tests: WHOLE_DOCUMENT', function(assert) {
             //WHOLE_DOCUMENT
             assert.equal( DOMPurify.sanitize( '123', {WHOLE_DOCUMENT: false}), "123" );
-            assert.equal( DOMPurify.sanitize( '123', {WHOLE_DOCUMENT: true}), "<html><head></head><body>123</body></html>" );
+            assert.equal( DOMPurify.sanitize( '123', {WHOLE_DOCUMENT: true}), "123" );
             assert.equal( DOMPurify.sanitize( '<style>*{color:red}</style>', {WHOLE_DOCUMENT: false}), "" );
             assert.equal( DOMPurify.sanitize( '<style>*{color:red}</style>', {WHOLE_DOCUMENT: true}), "<html><head><style>*{color:red}</style></head><body></body></html>" );
             assert.equal( DOMPurify.sanitize( '123<style>*{color:red}</style>', {WHOLE_DOCUMENT: false}), "123<style>*{color:red}</style>" );

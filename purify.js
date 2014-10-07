@@ -406,9 +406,9 @@
         /* Initialize the document to work on */
         var body = _initDocument(dirty);
         
-         /* Early exit in case document is empty */
-        if(typeof body === 'undefined') {
-            return '';
+        /* Early exit in case document is empty */
+        if(typeof body !== 'object') {
+            return body ? body : '';
         }
 
         /* Get node iterator */
