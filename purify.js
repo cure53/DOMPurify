@@ -170,6 +170,8 @@
          * @return a DOM, filled with the dirty markup
          */
         var _initDocument = function(dirty){
+            /* Exit directly if we have nothing to do */
+            if (dirty.indexOf('<') === -1) { return dirty; }
             
             /* Create documents to map markup to */
             var dom = document.implementation.createHTMLDocument('');
