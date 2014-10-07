@@ -391,6 +391,11 @@
                 _sanitizeAttributes(shadowNode);
             }
         };
+        
+        /* Feature check and untouched opt-out return */
+        if(typeof document.implementation.createHTMLDocument === 'undefined') {
+            return dirty;    
+        }               
 
         /* Assign config vars */
         cfg ? _parseConfig(cfg) : null;
