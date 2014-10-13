@@ -145,6 +145,11 @@
          */
         var _parseConfig = function(cfg) {
             
+            /* Shield configuration object from tampering */
+            if (typeof cfg !== 'object'){
+                cfg = {};
+            }
+            
             /* Set configuration parameters */
             'ALLOWED_ATTR'    in cfg ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
             'ALLOWED_TAGS'    in cfg ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
