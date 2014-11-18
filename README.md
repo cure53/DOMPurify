@@ -104,6 +104,12 @@ var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 
 To run the test suite, you need [Node.js](http://nodejs.org/download/) first. Install the dependencies with `npm install`, then start the test server with `npm test`. You can run the tests in your browser from **http://localhost:8000/test/**.
 
+## Security Mailing List
+
+We maintain a mailing list that notifies whenever a security-critical release of DOMPurify was published. This means, if someone found a bypass and we fixed it with a release (which always happens when a bypass was found) a mail will go out to that list. This usually happens within minutes or few hours after learning about a bypass. The list can be subscribed to here:
+
+[https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security](https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security)
+
 ## What's on the road-map?
 
 Still a lot of things although we have come far feature-wise. We're currently considering to build a CSS module, that cleans up inside `<style>` elements - and not only `style` attributes. Future versions will also, most likely, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
