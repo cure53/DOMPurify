@@ -344,45 +344,45 @@
             currentNode = _executeHook('beforeSantitizeAttributes', currentNode);
 
             /* Check if we have attributes; if not we might have a text node */
-            if(currentNode.attributes) {
+            if (!currentNode.attributes) { return; }
 
-                /* Go backwards over all attributes; safely remove bad ones */
-                for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
-                    
-                    tmp = clonedNode.attributes[attr];
-                    clobbering = false;
-                    currentNode.removeAttribute(currentNode.attributes[attr].name);
+            /* Go backwards over all attributes; safely remove bad ones */
+            for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
 
-                    if (tmp instanceof Attr) {
-                        if(SANITIZE_DOM) {
-                            if(tmp.name === 'id' 
-                                && (window[tmp.value] || document[tmp.value])) {
-                                clobbering = true;
-                            }
-                            if(tmp.name === 'name' && document[tmp.value]){
-                                clobbering = true;
-                            }
-                        }
-                        /* Safely handle attributes */
-                        if (
-                            (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
-                            (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
-                            
-                            /* Get rid of script and data URIs */
-                            && (!tmp.value.replace(whitespace,'').match(regex) 
-                            
-                                /* Keep image data URIs alive if src is allowed */
-                                || (tmp.name === 'src'
-                                    && tmp.value.indexOf('data:') === 0 
-                                    && currentNode.nodeName === 'IMG'))
-                                    
-                            /* Make sure attribute cannot clobber */                                   
-                            && !clobbering
-                        ) {
-                            currentNode.setAttribute(tmp.name, tmp.value);
-                        }
+                tmp = clonedNode.attributes[attr];
+                clobbering = false;
+                currentNode.removeAttribute(currentNode.attributes[attr].name);
+
+                if (!tmp instanceof Attr) { continue; }
+
+                if (SANITIZE_DOM) {
+                    if (tmp.name === 'id'
+                        && (window[tmp.value] || document[tmp.value])) {
+                        clobbering = true;
                     }
-            }
+                    if (tmp.name === 'name' && document[tmp.value]){
+                        clobbering = true;
+                    }
+                }
+
+                /* Safely handle attributes */
+                if (
+                    (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
+                    (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
+
+                    /* Get rid of script and data URIs */
+                    && (!tmp.value.replace(whitespace,'').match(regex)
+
+                        /* Keep image data URIs alive if src is allowed */
+                        || (tmp.name === 'src'
+                            && tmp.value.indexOf('data:') === 0
+                            && currentNode.nodeName === 'IMG'))
+
+                    /* Make sure attribute cannot clobber */
+                    && !clobbering
+                ) {
+                    currentNode.setAttribute(tmp.name, tmp.value);
+                }
             }
 
             currentNode = _executeHook('afterSantitizeAttributes', currentNode);
