@@ -4,9 +4,11 @@ DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathM
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model)
 
+
 ## What does it do?
 
 DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with string full of dirty HTML and it will return a string with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
+
 
 ## How do I use it?
 
@@ -27,13 +29,13 @@ If you're using an [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) module loa
 ```javascript
 require(['dompurify'], function(DOMPurify) {
     var clean = DOMPurify.sanitize(dirty);
-};
+});
 ```
 
 You can also grab the files straight from NPM:  
 _(Note: DOMPurify [doesn't work in Node.js yet](https://github.com/cure53/DOMPurify/issues/29), but runs fine with [Browserify](http://browserify.org/).)_
 
-```
+```bash
 npm install dompurify
 ```
 
@@ -42,9 +44,11 @@ var DOMPurify = require('dompurify');
 var clean = DOMPurify.sanitize(dirty);
 ```
 
+
 ## Is there a demo?
 
 Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
+
 
 ## Some samples please?
 
@@ -60,9 +64,11 @@ DOMPurify.sanitize('<TABLE><tr><td>HELLO</tr></TABL>'); // becomes <table><tbody
 DOMPurify.sanitize('<UL><li><A HREF=//google.com>click</UL>'); // becomes <ul><li><a href="//google.com">click</a></li></ul>
 ```
 
+
 ## What is supported?
 
 DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` methods.
+
 
 ## Can I configure it?
 
@@ -100,9 +106,32 @@ var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 ```
 
+
+## Hooks
+
+DOMPurify allows you to augment its functionality by attaching one or more functions with the `DOMPurify.addHook` method to one of the following hooks:
+
+- `beforeSantitizeElements`
+- `afterSantitizeElements`
+- `beforeSantitizeAttributes`
+- `afterSantitizeAttributes`
+
+It passes the currently processed DOM node and the DOMPurify configuration the callback.
+
+_Example_:
+
+```javascript
+DOMPurify.addHook('beforeSantitizeElements', function(currentNode, config) {
+    // Do something with the current node and return it
+    return currentNode;
+});
+```
+
+
 ## Unit tests
 
 To run the test suite, you need [Node.js](http://nodejs.org/download/) first. Install the dependencies with `npm install`, then start the test server with `npm test`. You can run the tests in your browser from **http://localhost:8000/test/**.
+
 
 ## Security Mailing List
 
@@ -110,9 +139,11 @@ We maintain a mailing list that notifies whenever a security-critical release of
 
 [https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security](https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security)
 
+
 ## What's on the road-map?
 
 Still a lot of things although we have come far feature-wise. We're currently considering to build a CSS module, that cleans up inside `<style>` elements - and not only `style` attributes. Future versions will also, most likely, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
+
 
 ## Who contributed?
 

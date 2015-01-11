@@ -1,5 +1,5 @@
 /* jshint boss: true */
-/* global Text */
+/* global Text, module */
 ;(function(root, factory) {
     'use strict';
     if (typeof define === "function" && define.amd) {
@@ -13,6 +13,8 @@
     'use strict';
 
     var DOMPurify = {};
+    var hooks = {};
+
     DOMPurify.sanitize = function(dirty, cfg) {
 
         /**
@@ -135,6 +137,8 @@
             'tfoot','th','thead','time','tr','tt','u','ul','var'
         ];
 
+        var DEBUG_OUTPUT = false;
+
         /* Ideally, do not touch anything below this line */
         /* ______________________________________________ */
 
@@ -159,7 +163,8 @@
             'RETURN_DOM'      in cfg ? RETURN_DOM      = cfg.RETURN_DOM      : null;
             'SANITIZE_DOM'    in cfg ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
             'KEEP_CONTENT'    in cfg ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
-            
+            'DEBUG_OUTPUT'    in cfg ? DEBUG_OUTPUT    = cfg.DEBUG_OUTPUT    : null;
+
             /* Merge configuration parameters */
             cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
             cfg.ADD_TAGS ? ALLOWED_TAGS = ALLOWED_TAGS.concat(cfg.ADD_TAGS) : null;
@@ -275,6 +280,8 @@
          */
         var _sanitizeElements = function(currentNode) {
 
+            currentNode = _executeHook('beforeSantitizeElements', currentNode);
+
             /* Check if element is clobbered or can clobber */
             if (_isClobbered(currentNode)) {
 
@@ -309,6 +316,9 @@
             if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
                 currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
             }
+
+            currentNode = _executeHook('afterSantitizeElements', currentNode);
+
             return false;
         };
 
@@ -330,6 +340,8 @@
 
             /* This needs to be extensive thanks to Webkit/Blink's behavior */
             var whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
+
+            currentNode = _executeHook('beforeSantitizeAttributes', currentNode);
 
             /* Check if we have attributes; if not we might have a text node */
             if(currentNode.attributes) {
@@ -372,6 +384,8 @@
                     }
             }
             }
+
+            currentNode = _executeHook('afterSantitizeAttributes', currentNode);
         };
 
         /**
@@ -400,7 +414,35 @@
                 _sanitizeAttributes(shadowNode);
             }
         };
-        
+
+        /**
+         * _executeHook
+         * Execute user configurable hooks
+         *
+         * @param  {String} entryPoint  Name of the hook's entry point
+         * @param  {Node} currentNode
+         * @return {Node|undefined}
+         */
+        var _executeHook = function(entryPoint, currentNode) {
+            var modifiedNode;
+
+            hooks[entryPoint].forEach(function(hook) {
+                modifiedNode = hook.call(DOMPurify, currentNode, cfg);
+
+                if (!modifiedNode) {
+                    if (DEBUG_OUTPUT && 'console' in window) {
+                        /* jshint devel:true */
+                        console.error('Hook for "' + entryPoint + '" didn\'t returned a node. Skipping.');
+                    }
+                    return;
+                }
+
+                currentNode = modifiedNode;
+            });
+
+            return currentNode;
+        };
+
         /* Feature check and untouched opt-out return */
         if (typeof document.implementation.createHTMLDocument === 'undefined') {
             if (window.toStaticHTML !== 'undefined' && typeof dirty === 'string') {
@@ -446,5 +488,13 @@
         }
         return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
     };
+
+
+    DOMPurify.addHook = function(entryPoint, hookFunction) {
+
+        hooks[entryPoint] = hooks[entryPoint] || [];
+        hooks[entryPoint].push(hookFunction);
+    };
+
     return DOMPurify;
 }));
