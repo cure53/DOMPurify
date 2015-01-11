@@ -122,7 +122,7 @@
 
         /* Keep element content when removing element? */
         var KEEP_CONTENT = true;
-        
+
         /* Tags to keep content from (when KEEP_CONTENT is true) */
         var CONTENT_TAGS = [
             'a','abbr','acronym','address','article','aside','b','bdi','bdo',
@@ -144,12 +144,12 @@
          * @param  optional config literal
          */
         var _parseConfig = function(cfg) {
-            
+
             /* Shield configuration object from tampering */
             if (typeof cfg !== 'object'){
                 cfg = {};
             }
-            
+
             /* Set configuration parameters */
             'ALLOWED_ATTR'    in cfg ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
             'ALLOWED_TAGS'    in cfg ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
@@ -163,40 +163,40 @@
             /* Merge configuration parameters */
             cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
             cfg.ADD_TAGS ? ALLOWED_TAGS = ALLOWED_TAGS.concat(cfg.ADD_TAGS) : null;
-            
+
             /* Add #text in case KEEP_CONTENT is set to true */
             KEEP_CONTENT ? ALLOWED_TAGS.push('#text') : null;
         };
-        
+
        /**
          * _initDocument
-         * 
+         *
          * @param  a string of dirty markup
          * @return a DOM, filled with the dirty markup
          */
-        var _initDocument = function(dirty){
-            
+        var _initDocument = function(dirty) {
+
             /* Exit directly if we have nothing to do */
-            if (typeof dirty === 'string' && dirty.indexOf('<') === -1) { 
-                return dirty; 
+            if (typeof dirty === 'string' && dirty.indexOf('<') === -1) {
+                return dirty;
             }
-            
+
             /* Create documents to map markup to */
             var dom = document.implementation.createHTMLDocument('');
                 dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
                 dom.body.outerHTML = dirty;
-                
+
             /* Cover IE9's buggy outerHTML behavior */
-            if(dom.body === null) {
+            if (dom.body === null) {
                 dom = document.implementation.createHTMLDocument('');
                 dom.body.innerHTML = dirty;
-                if(dom.body.firstChild && dom.body.firstChild.nodeName
+                if (dom.body.firstChild && dom.body.firstChild.nodeName
                     && !WHOLE_DOCUMENT
                     && dom.body.firstChild.nodeName === 'STYLE'){
                     dom.body.removeChild(dom.body.firstChild);
                 }
             }
-    
+
             /* Work on whole document or just its body */
             var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
             if (
@@ -207,9 +207,9 @@
                 body = WHOLE_DOCUMENT
                     ? freshdom.getElementsByTagName.call(dom,'html')[0]
                     : freshdom.getElementsByTagName.call(dom,'body')[0];
-            }            
+            }
             return body;
-        };       
+        };
 
         /**
          * _createIterator
@@ -235,7 +235,7 @@
          * @return true if clobbered, false if safe
          */
         var _isClobbered = function(elm) {
-            if(elm instanceof Text) {
+            if (elm instanceof Text) {
                 return false;
             }
             if (
@@ -274,10 +274,10 @@
          * @return  true if node was killed, false if left alive
          */
         var _sanitizeElements = function(currentNode) {
-            
+
             /* Check if element is clobbered or can clobber */
             if (_isClobbered(currentNode)) {
-                
+
                 /* Be harsh with clobbered content, element has to go! */
                 try{
                     currentNode.parentNode.removeChild(currentNode);
@@ -286,25 +286,25 @@
                 }
                 return true;
             }
-            
+
             /* Now let's check the element's type and name */
-            if(currentNode.nodeType === currentNode.COMMENT_NODE
+            if (currentNode.nodeType === currentNode.COMMENT_NODE
                 || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
             ) {
-                /* Keep content for white-listed elements */ 
-                if(KEEP_CONTENT && currentNode.insertAdjacentHTML
-                    && currentNode.nodeName.toLowerCase 
+                /* Keep content for white-listed elements */
+                if (KEEP_CONTENT && currentNode.insertAdjacentHTML
+                    && currentNode.nodeName.toLowerCase
                     && CONTENT_TAGS.indexOf(currentNode.nodeName.toLowerCase()) !== -1){
                     try {
                         currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                     } catch(e) {}
                 }
-                
+
                 /* Remove element if anything permits its presence */
                 currentNode.parentNode.removeChild(currentNode);
                 return true;
             }
-            
+
             /* Finally, convert markup to cover jQuery behavior */
             if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
                 currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
@@ -327,7 +327,7 @@
             var regex = /^(\w+script|data):/gi,
                 clonedNode = currentNode.cloneNode(true),
                 tmp, clobbering;
-                
+
             /* This needs to be extensive thanks to Webkit/Blink's behavior */
             var whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
@@ -402,21 +402,21 @@
         };
         
         /* Feature check and untouched opt-out return */
-        if(typeof document.implementation.createHTMLDocument === 'undefined') {
+        if (typeof document.implementation.createHTMLDocument === 'undefined') {
             if (window.toStaticHTML !== 'undefined' && typeof dirty === 'string') {
                 return window.toStaticHTML(dirty);
             }
-            return dirty;    
-        }               
+            return dirty;
+        }
 
         /* Assign config vars */
         cfg ? _parseConfig(cfg) : null;
 
         /* Initialize the document to work on */
         var body = _initDocument(dirty);
-        
+
         /* Early exit in case document is empty */
-        if(typeof body !== 'object') {
+        if (typeof body !== 'object') {
             return body ? body : '';
         }
 
