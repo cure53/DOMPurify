@@ -2,9 +2,9 @@
 /* global Text, module */
 ;(function(root, factory) {
     'use strict';
-    if (typeof define === "function" && define.amd) {
+    if (typeof define === 'function' && define.amd) {
         define(factory);
-    } else if (typeof module !== "undefined") {
+    } else if (typeof module !== 'undefined') {
         module.exports = factory();
     } else {
         root.DOMPurify = factory();
@@ -150,7 +150,7 @@
         var _parseConfig = function(cfg) {
 
             /* Shield configuration object from tampering */
-            if (typeof cfg !== 'object'){
+            if (typeof cfg !== 'object') {
                 cfg = {};
             }
 
@@ -171,6 +171,10 @@
 
             /* Add #text in case KEEP_CONTENT is set to true */
             KEEP_CONTENT ? ALLOWED_TAGS.push('#text') : null;
+
+            // Prevent further manipulation of configuration.
+            // Not available in IE8, Safari 5, etc.
+            if (Object && 'freeze' in Object) { Object.freeze(cfg); }
         };
 
        /**
@@ -280,7 +284,7 @@
          */
         var _sanitizeElements = function(currentNode) {
 
-            currentNode = _executeHook('beforeSantitizeElements', currentNode);
+            _executeHook('beforeSantitizeElements', currentNode);
 
             /* Check if element is clobbered or can clobber */
             if (_isClobbered(currentNode)) {
@@ -317,7 +321,7 @@
                 currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
             }
 
-            currentNode = _executeHook('afterSantitizeElements', currentNode);
+            _executeHook('afterSantitizeElements', currentNode);
 
             return false;
         };
@@ -341,7 +345,7 @@
             /* This needs to be extensive thanks to Webkit/Blink's behavior */
             var whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
-            currentNode = _executeHook('beforeSantitizeAttributes', currentNode);
+            _executeHook('beforeSantitizeAttributes', currentNode);
 
             /* Check if we have attributes; if not we might have a text node */
             if (!currentNode.attributes) { return; }
@@ -385,7 +389,7 @@
                 }
             }
 
-            currentNode = _executeHook('afterSantitizeAttributes', currentNode);
+            _executeHook('afterSantitizeAttributes', currentNode);
         };
 
         /**
@@ -421,26 +425,11 @@
          *
          * @param  {String} entryPoint  Name of the hook's entry point
          * @param  {Node} currentNode
-         * @return {Node|undefined}
          */
         var _executeHook = function(entryPoint, currentNode) {
-            var modifiedNode;
-
             hooks[entryPoint].forEach(function(hook) {
-                modifiedNode = hook.call(DOMPurify, currentNode, cfg);
-
-                if (!modifiedNode) {
-                    if (DEBUG_OUTPUT && 'console' in window) {
-                        /* jshint devel:true */
-                        console.error('Hook for "' + entryPoint + '" didn\'t returned a node. Skipping.');
-                    }
-                    return;
-                }
-
-                currentNode = modifiedNode;
+                hook.call(DOMPurify, currentNode, cfg);
             });
-
-            return currentNode;
         };
 
         /* Feature check and untouched opt-out return */
@@ -493,7 +482,9 @@
     DOMPurify.addHook = function(entryPoint, hookFunction) {
 
         hooks[entryPoint] = hooks[entryPoint] || [];
-        hooks[entryPoint].push(hookFunction);
+        if (typeof hookFunction === 'function') {
+            hooks[entryPoint].push(hookFunction);
+        }
     };
 
     return DOMPurify;
