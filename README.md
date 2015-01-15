@@ -72,7 +72,7 @@ DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows
 
 ## Can I configure it?
 
-Yes. The included default configuration values are pretty good already - but you can of course override them:
+Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the `/demos` folder to see a bunch of examples on how you can customize DOMPurify.
 
 ```javascript
 // allow only <b>
