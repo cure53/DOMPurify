@@ -13,8 +13,15 @@
     'use strict';
 
     var DOMPurify = {};
-    var hooks = {};
+    DOMPurify.hooks = {};
 
+    /**
+     * sanitize
+     * Public method providing core sanitation functionality
+     * 
+     * @param {mixed}  dirty string or DOM
+     * @param {Object} configuration object
+     */
     DOMPurify.sanitize = function(dirty, cfg) {
 
         /**
@@ -427,9 +434,11 @@
          * @param  {Node} currentNode
          */
         var _executeHook = function(entryPoint, currentNode) {
-            hooks[entryPoint].forEach(function(hook) {
-                hook.call(DOMPurify, currentNode, cfg);
-            });
+            if(DOMPurify.hooks[entryPoint]){
+                DOMPurify.hooks[entryPoint].forEach(function(hook) {
+                    hook.call(DOMPurify, currentNode, cfg);
+                });
+            }
         };
 
         /* Feature check and untouched opt-out return */
@@ -478,12 +487,18 @@
         return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
     };
 
-
+    /**
+     * addHook
+     * Public method to add DOMPurify hooks
+     * 
+     * @param {Object} entryPoint
+     * @param {Object} hookFunction
+     */
     DOMPurify.addHook = function(entryPoint, hookFunction) {
 
-        hooks[entryPoint] = hooks[entryPoint] || [];
+        DOMPurify.hooks[entryPoint] = DOMPurify.hooks[entryPoint] || [];
         if (typeof hookFunction === 'function') {
-            hooks[entryPoint].push(hookFunction);
+            DOMPurify.hooks[entryPoint].push(hookFunction);
         }
     };
 
