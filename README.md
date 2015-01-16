@@ -112,7 +112,13 @@ We maintain a mailing list that notifies whenever a security-critical release of
 
 ## What's on the road-map?
 
-Still a lot of things although we have come far feature-wise. We're currently considering to build a CSS module, that cleans up inside `<style>` elements - and not only `style` attributes. Future versions will also, most likely, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
+We're currently building a hook API to enable developers to add their own sanitation hooks and thereby extend the DOMPurify functionality according to their needs. The state of this can be observed and contributed to in this branch:
+
+https://github.com/cure53/DOMPurify/tree/HOOK_API
+
+A very basic demo of how that works can be found here:
+
+https://github.com/cure53/DOMPurify/blob/HOOK_API/demos/hooks-demo.html
 
 ## Who contributed?
 
