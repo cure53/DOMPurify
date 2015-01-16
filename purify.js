@@ -344,10 +344,10 @@
                     if (tmp instanceof Attr) {
                         if(SANITIZE_DOM) {
                             if(tmp.name === 'id' 
-                                && (window[tmp.value] || document[tmp.value])) {
+                                && (tmp.value in window || tmp.value in document)) {
                                 clobbering = true;
                             }
-                            if(tmp.name === 'name' && document[tmp.value]){
+                            if(tmp.name === 'name' && tmp.value in document){
                                 clobbering = true;
                             }
                         }
