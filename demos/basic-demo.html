@@ -6,15 +6,19 @@
     <body>
         <!-- Our DIV to receive content -->
         <div id="sanitized"></div>
-        
+
         <!-- Now let's sanitize that content -->
         <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+
             // Specify dirty HTML
             var dirty = '<p>HELLO<iframe/\/src=JavScript:alert&lpar;1)></ifrAMe><br>goodbye</p>';
-            
+
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
-            sanitized.innerHTML = clean;
+            document.getElementById('sanitized').innerHTML = clean;
         </script>
     </body>
 </html>
