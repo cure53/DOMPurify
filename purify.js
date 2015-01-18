@@ -13,12 +13,12 @@
     'use strict';
 
     var DOMPurify = {};
-    DOMPurify.hooks = {};
+    var hooks = {};
 
     /**
      * sanitize
      * Public method providing core sanitation functionality
-     * 
+     *
      * @param {mixed}  dirty string or DOM
      * @param {Object} configuration object
      */
@@ -434,11 +434,11 @@
          * @param  {Node} currentNode
          */
         var _executeHook = function(entryPoint, currentNode) {
-            if(DOMPurify.hooks[entryPoint]){
-                DOMPurify.hooks[entryPoint].forEach(function(hook) {
-                    hook.call(DOMPurify, currentNode, cfg);
-                });
-            }
+            if (!hooks[entryPoint]) { return; }
+
+            hooks[entryPoint].forEach(function(hook) {
+                hook.call(DOMPurify, currentNode, cfg);
+            });
         };
 
         /* Feature check and untouched opt-out return */
@@ -490,16 +490,15 @@
     /**
      * addHook
      * Public method to add DOMPurify hooks
-     * 
-     * @param {Object} entryPoint
-     * @param {Object} hookFunction
+     *
+     * @param {String} entryPoint
+     * @param {Function} hookFunction
      */
     DOMPurify.addHook = function(entryPoint, hookFunction) {
 
-        DOMPurify.hooks[entryPoint] = DOMPurify.hooks[entryPoint] || [];
-        if (typeof hookFunction === 'function') {
-            DOMPurify.hooks[entryPoint].push(hookFunction);
-        }
+        if (typeof hookFunction !== 'function') { return; }
+        hooks[entryPoint] = hooks[entryPoint] || [];
+        hooks[entryPoint].push(hookFunction);
     };
 
     return DOMPurify;
