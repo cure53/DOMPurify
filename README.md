@@ -81,6 +81,12 @@ var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 // allow only <b> and <q> with style attributes (for whatever reason)
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
+// leave all as it is but forbid <style>
+var clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
+
+// leave all as it is but forbid style attributes
+var clean = DOMPurify.sanitize(dirty, {FORBID_ATTR: ['style']});
+
 // extend the existing array of allowed tags
 var clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 
@@ -142,8 +148,7 @@ We maintain a mailing list that notifies whenever a security-critical release of
 
 ## What's on the road-map?
 
-Still a lot of things although we have come far feature-wise. We're currently considering to build a CSS module, that cleans up inside `<style>` elements - and not only `style` attributes. Future versions will also, most likely, reliably prevent leakage via HTTP requests, proxy HTTP requests etc. etc.
-
+We recently implemented a Hook-API allowing developers to create their own DOMPurify plugins and customize its functionality without changing the core. Thus, we are looking forward for plugins and extensions - pull requests are welcome!
 
 ## Who contributed?
 

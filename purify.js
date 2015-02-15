@@ -116,6 +116,12 @@
             // XML
             'xlink:href','xml:id','xlink:title','xml:space'
         ];
+        
+        /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
+        var FORBID_ATTR = [];
+        
+        /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
+        var FORBID_TAGS = [];
 
         /* Decide if document with <html>... should be returned */
         var WHOLE_DOCUMENT = false;
@@ -164,6 +170,8 @@
             /* Set configuration parameters */
             'ALLOWED_ATTR'    in cfg ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
             'ALLOWED_TAGS'    in cfg ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
+            'FORBID_ATTR'     in cfg ? FORBID_ATTR     = cfg.FORBID_ATTR     : null;
+            'FORBID_TAGS'     in cfg ? FORBID_TAGS     = cfg.FORBID_TAGS     : null;            
             'ALLOW_DATA_ATTR' in cfg ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
             'SAFE_FOR_JQUERY' in cfg ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;
             'WHOLE_DOCUMENT'  in cfg ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
@@ -175,7 +183,7 @@
             /* Merge configuration parameters */
             cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
             cfg.ADD_TAGS ? ALLOWED_TAGS = ALLOWED_TAGS.concat(cfg.ADD_TAGS) : null;
-
+            
             /* Add #text in case KEEP_CONTENT is set to true */
             KEEP_CONTENT ? ALLOWED_TAGS.push('#text') : null;
 
@@ -291,6 +299,7 @@
          */
         var _sanitizeElements = function(currentNode) {
 
+            /* Execute a hook if present */
             _executeHook('beforeSantitizeElements', currentNode);
 
             /* Check if element is clobbered or can clobber */
@@ -308,6 +317,7 @@
             /* Now let's check the element's type and name */
             if (currentNode.nodeType === currentNode.COMMENT_NODE
                 || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
+                || FORBID_TAGS.indexOf(currentNode.nodeName.toLowerCase()) > -1
             ) {
                 /* Keep content for white-listed elements */
                 if (KEEP_CONTENT && currentNode.insertAdjacentHTML
@@ -328,6 +338,7 @@
                 currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
             }
 
+            /* Execute a hook if present */
             _executeHook('afterSantitizeElements', currentNode);
 
             return false;
@@ -345,14 +356,16 @@
          * @return  void
          */
         var _sanitizeAttributes = function(currentNode) {
+        
+            /* Execute a hook if present */
+            _executeHook('beforeSantitizeAttributes', currentNode);
+                    
             var regex = /^(\w+script|data):/gi,
                 clonedNode = currentNode.cloneNode(true),
                 tmp, clobbering;
 
             /* This needs to be extensive thanks to Webkit/Blink's behavior */
             var whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
-
-            _executeHook('beforeSantitizeAttributes', currentNode);
 
             /* Check if we have attributes; if not we might have a text node */
             if (!currentNode.attributes) { return; }
@@ -378,7 +391,8 @@
 
                 /* Safely handle attributes */
                 if (
-                    (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
+                    ((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 &&
+                      FORBID_ATTR.indexOf(tmp.name.toLowerCase()) === -1) ||
                     (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
 
                     /* Get rid of script and data URIs */
@@ -396,6 +410,7 @@
                 }
             }
 
+            /* Execute a hook if present */
             _executeHook('afterSantitizeAttributes', currentNode);
         };
 
@@ -408,6 +423,9 @@
         var _sanitizeShadowDOM = function(fragment) {
             var shadowNode;
             var shadowIterator = _createIterator(fragment);
+            
+            /* Execute a hook if present */
+            _executeHook('beforeSantitizeShadowDOM', currentNode);            
 
             while (shadowNode = shadowIterator.nextNode()) {
 
@@ -424,6 +442,9 @@
                 /* Check attributes, sanitize if necessary */
                 _sanitizeAttributes(shadowNode);
             }
+            
+            /* Execute a hook if present */
+            _executeHook('afterSantitizeShadowDOM', currentNode); 
         };
 
         /**
