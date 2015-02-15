@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>DOMPurify 0.4.5 "Sandworm" Testsuite</title>
+  <title>DOMPurify 0.6 "Honeybadger" Testsuite</title>
   <link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css">
 </head>
 <body>
@@ -128,6 +128,23 @@
             assert.equal( DOMPurify.sanitize( '<a>123<b>456<script>alert(1)<\/script></b></a>', {RETURN_DOM: true, WHOLE_DOCUMENT: true}).outerHTML, "<html><head></head><body><a>123<b>456</b></a></body></html>" );
         });
         
+        QUnit.test( 'Config-Flag tests: FORBID_TAGS', function(assert) {
+            //FORBID_TAGS
+            assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {FORBID_TAGS: ['b']}), "<a>123456</a>" );
+            assert.equal( DOMPurify.sanitize( '<a>123<b>456<script>alert(1)<\/script></b></a>789', {FORBID_TAGS: ['a', 'b']}), "123456789" );
+            assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {FORBID_TAGS: ['c']}), "<a>123<b>456</b></a>" );
+            assert.equal( DOMPurify.sanitize( '<a>123<b>456<script>alert(1)<\/script></b></a>789', {FORBID_TAGS: ['script', 'b']}), "<a>123456</a>789" );
+            assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {ADD_TAGS: ['b'], FORBID_TAGS: ['b']}), "<a>123456</a>" );
+        });        
+
+        QUnit.test( 'Config-Flag tests: FORBID_ATTR', function(assert) {
+            //FORBID_ATTR
+            assert.equal( DOMPurify.sanitize( '<a x="1">123<b>456</b></a>', {FORBID_ATTR: ['x']}), "<a>123<b>456</b></a>" );
+            assert.equal( DOMPurify.sanitize( '<a class="0" x="1">123<b y="1">456<script>alert(1)<\/script></b></a>789', {FORBID_ATTR: ['x', 'y']}), "<a class=\"0\">123<b>456</b></a>789" );
+            assert.equal( DOMPurify.sanitize( '<a y="1">123<b y="1" y="2">456</b></a>', {FORBID_ATTR: ['y']}), "<a>123<b>456</b></a>" );
+            assert.equal( DOMPurify.sanitize( '<a>123<b x="1">456<script y="1">alert(1)<\/script></b></a>789', {FORBID_ATTR: ['x', 'y']}), "<a>123<b>456</b></a>789" );
+        }); 
+                
         // XSS tests: Native DOM methods (alert() should not be called)
         QUnit
           .cases(xssTests)

@@ -1,10 +1,10 @@
 /* jshint boss: true */
-/* global Text */
+/* global Text, module */
 ;(function(root, factory) {
     'use strict';
-    if (typeof define === "function" && define.amd) {
+    if (typeof define === 'function' && define.amd) {
         define(factory);
-    } else if (typeof module !== "undefined") {
+    } else if (typeof module !== 'undefined') {
         module.exports = factory();
     } else {
         root.DOMPurify = factory();
@@ -13,6 +13,15 @@
     'use strict';
 
     var DOMPurify = {};
+    var hooks = {};
+
+    /**
+     * sanitize
+     * Public method providing core sanitation functionality
+     *
+     * @param {mixed}  dirty string or DOM
+     * @param {Object} configuration object
+     */
     DOMPurify.sanitize = function(dirty, cfg) {
 
         /**
@@ -107,6 +116,12 @@
             // XML
             'xlink:href','xml:id','xlink:title','xml:space'
         ];
+        
+        /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
+        var FORBID_ATTR = [];
+        
+        /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
+        var FORBID_TAGS = [];
 
         /* Decide if document with <html>... should be returned */
         var WHOLE_DOCUMENT = false;
@@ -122,7 +137,7 @@
 
         /* Keep element content when removing element? */
         var KEEP_CONTENT = true;
-        
+
         /* Tags to keep content from (when KEEP_CONTENT is true) */
         var CONTENT_TAGS = [
             'a','abbr','acronym','address','article','aside','b','bdi','bdo',
@@ -135,6 +150,8 @@
             'tfoot','th','thead','time','tr','tt','u','ul','var'
         ];
 
+        var DEBUG_OUTPUT = false;
+
         /* Ideally, do not touch anything below this line */
         /* ______________________________________________ */
 
@@ -144,59 +161,66 @@
          * @param  optional config literal
          */
         var _parseConfig = function(cfg) {
-            
+
             /* Shield configuration object from tampering */
-            if (typeof cfg !== 'object'){
+            if (typeof cfg !== 'object') {
                 cfg = {};
             }
-            
+
             /* Set configuration parameters */
             'ALLOWED_ATTR'    in cfg ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
             'ALLOWED_TAGS'    in cfg ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
+            'FORBID_ATTR'     in cfg ? FORBID_ATTR     = cfg.FORBID_ATTR     : null;
+            'FORBID_TAGS'     in cfg ? FORBID_TAGS     = cfg.FORBID_TAGS     : null;            
             'ALLOW_DATA_ATTR' in cfg ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
             'SAFE_FOR_JQUERY' in cfg ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;
             'WHOLE_DOCUMENT'  in cfg ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
             'RETURN_DOM'      in cfg ? RETURN_DOM      = cfg.RETURN_DOM      : null;
             'SANITIZE_DOM'    in cfg ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
             'KEEP_CONTENT'    in cfg ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
-            
+            'DEBUG_OUTPUT'    in cfg ? DEBUG_OUTPUT    = cfg.DEBUG_OUTPUT    : null;
+
             /* Merge configuration parameters */
             cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
             cfg.ADD_TAGS ? ALLOWED_TAGS = ALLOWED_TAGS.concat(cfg.ADD_TAGS) : null;
             
             /* Add #text in case KEEP_CONTENT is set to true */
             KEEP_CONTENT ? ALLOWED_TAGS.push('#text') : null;
+
+            // Prevent further manipulation of configuration.
+            // Not available in IE8, Safari 5, etc.
+            if (Object && 'freeze' in Object) { Object.freeze(cfg); }
         };
-        
+
        /**
          * _initDocument
-         * 
+         *
          * @param  a string of dirty markup
          * @return a DOM, filled with the dirty markup
          */
-        var _initDocument = function(dirty){
-            
+        var _initDocument = function(dirty) {
+
             /* Exit directly if we have nothing to do */
-            if (typeof dirty === 'string' && dirty.indexOf('<') === -1) { 
-                return dirty; 
+            if (typeof dirty === 'string' && dirty.indexOf('<') === -1) {
+                return dirty;
             }
-            
+
             /* Create documents to map markup to */
             var dom = document.implementation.createHTMLDocument('');
                 dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
                 dom.body.outerHTML = dirty;
-                
+
             /* Cover IE9's buggy outerHTML behavior */
-            if(dom.body === null) {
+            if (dom.body === null) {
                 dom = document.implementation.createHTMLDocument('');
                 dom.body.innerHTML = dirty;
-                if(dom.body.firstChild && dom.body.firstChild.nodeName
+                if (dom.body.firstChild && dom.body.firstChild.nodeName
                     && !WHOLE_DOCUMENT
                     && dom.body.firstChild.nodeName === 'STYLE'){
                     dom.body.removeChild(dom.body.firstChild);
                 }
             }
-    
+
             /* Work on whole document or just its body */
             var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
             if (
@@ -207,9 +231,9 @@
                 body = WHOLE_DOCUMENT
                     ? freshdom.getElementsByTagName.call(dom,'html')[0]
                     : freshdom.getElementsByTagName.call(dom,'body')[0];
-            }            
+            }
             return body;
-        };       
+        };
 
         /**
          * _createIterator
@@ -235,7 +259,7 @@
          * @return true if clobbered, false if safe
          */
         var _isClobbered = function(elm) {
-            if(elm instanceof Text) {
+            if (elm instanceof Text) {
                 return false;
             }
             if (
@@ -274,10 +298,13 @@
          * @return  true if node was killed, false if left alive
          */
         var _sanitizeElements = function(currentNode) {
-            
+
+            /* Execute a hook if present */
+            _executeHook('beforeSantitizeElements', currentNode);
+
             /* Check if element is clobbered or can clobber */
             if (_isClobbered(currentNode)) {
-                
+
                 /* Be harsh with clobbered content, element has to go! */
                 try{
                     currentNode.parentNode.removeChild(currentNode);
@@ -286,29 +313,34 @@
                 }
                 return true;
             }
-            
+
             /* Now let's check the element's type and name */
-            if(currentNode.nodeType === currentNode.COMMENT_NODE
+            if (currentNode.nodeType === currentNode.COMMENT_NODE
                 || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
+                || FORBID_TAGS.indexOf(currentNode.nodeName.toLowerCase()) > -1
             ) {
-                /* Keep content for white-listed elements */ 
-                if(KEEP_CONTENT && currentNode.insertAdjacentHTML
-                    && currentNode.nodeName.toLowerCase 
+                /* Keep content for white-listed elements */
+                if (KEEP_CONTENT && currentNode.insertAdjacentHTML
+                    && currentNode.nodeName.toLowerCase
                     && CONTENT_TAGS.indexOf(currentNode.nodeName.toLowerCase()) !== -1){
                     try {
                         currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                     } catch(e) {}
                 }
-                
+
                 /* Remove element if anything permits its presence */
                 currentNode.parentNode.removeChild(currentNode);
                 return true;
             }
-            
+
             /* Finally, convert markup to cover jQuery behavior */
             if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
                 currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
             }
+
+            /* Execute a hook if present */
+            _executeHook('afterSantitizeElements', currentNode);
+
             return false;
         };
 
@@ -324,54 +356,62 @@
          * @return  void
          */
         var _sanitizeAttributes = function(currentNode) {
+        
+            /* Execute a hook if present */
+            _executeHook('beforeSantitizeAttributes', currentNode);
+                    
             var regex = /^(\w+script|data):/gi,
                 clonedNode = currentNode.cloneNode(true),
                 tmp, clobbering;
-                
+
             /* This needs to be extensive thanks to Webkit/Blink's behavior */
             var whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
             /* Check if we have attributes; if not we might have a text node */
-            if(currentNode.attributes) {
+            if (!currentNode.attributes) { return; }
 
-                /* Go backwards over all attributes; safely remove bad ones */
-                for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
-                    
-                    tmp = clonedNode.attributes[attr];
-                    clobbering = false;
-                    currentNode.removeAttribute(currentNode.attributes[attr].name);
+            /* Go backwards over all attributes; safely remove bad ones */
+            for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
 
-                    if (tmp instanceof Attr) {
-                        if(SANITIZE_DOM) {
-                            if(tmp.name === 'id' 
-                                && (tmp.value in window || tmp.value in document)) {
-                                clobbering = true;
-                            }
-                            if(tmp.name === 'name' && tmp.value in document){
-                                clobbering = true;
-                            }
-                        }
-                        /* Safely handle attributes */
-                        if (
-                            (ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 ||
-                            (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
-                            
-                            /* Get rid of script and data URIs */
-                            && (!tmp.value.replace(whitespace,'').match(regex) 
-                            
-                                /* Keep image data URIs alive if src is allowed */
-                                || (tmp.name === 'src'
-                                    && tmp.value.indexOf('data:') === 0 
-                                    && currentNode.nodeName === 'IMG'))
-                                    
-                            /* Make sure attribute cannot clobber */                                   
-                            && !clobbering
-                        ) {
-                            currentNode.setAttribute(tmp.name, tmp.value);
-                        }
+                tmp = clonedNode.attributes[attr];
+                clobbering = false;
+                currentNode.removeAttribute(currentNode.attributes[attr].name);
+
+                if (!tmp instanceof Attr) { continue; }
+
+                if(SANITIZE_DOM) {
+                    if(tmp.name === 'id'
+                        && (tmp.value in window || tmp.value in document)) {
+                        clobbering = true;
                     }
+                    if(tmp.name === 'name' && tmp.value in document){
+                        clobbering = true;
+                    }
+                }
+
+                /* Safely handle attributes */
+                if (
+                    ((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 &&
+                      FORBID_ATTR.indexOf(tmp.name.toLowerCase()) === -1) ||
+                    (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
+
+                    /* Get rid of script and data URIs */
+                    && (!tmp.value.replace(whitespace,'').match(regex)
+
+                        /* Keep image data URIs alive if src is allowed */
+                        || (tmp.name === 'src'
+                            && tmp.value.indexOf('data:') === 0
+                            && currentNode.nodeName === 'IMG'))
+
+                    /* Make sure attribute cannot clobber */
+                    && !clobbering
+                ) {
+                    currentNode.setAttribute(tmp.name, tmp.value);
+                }
             }
-            }
+
+            /* Execute a hook if present */
+            _executeHook('afterSantitizeAttributes', currentNode);
         };
 
         /**
@@ -383,6 +423,9 @@
         var _sanitizeShadowDOM = function(fragment) {
             var shadowNode;
             var shadowIterator = _createIterator(fragment);
+            
+            /* Execute a hook if present */
+            _executeHook('beforeSantitizeShadowDOM', currentNode);            
 
             while (shadowNode = shadowIterator.nextNode()) {
 
@@ -399,24 +442,42 @@
                 /* Check attributes, sanitize if necessary */
                 _sanitizeAttributes(shadowNode);
             }
+            
+            /* Execute a hook if present */
+            _executeHook('afterSantitizeShadowDOM', currentNode); 
         };
-        
+
+        /**
+         * _executeHook
+         * Execute user configurable hooks
+         *
+         * @param  {String} entryPoint  Name of the hook's entry point
+         * @param  {Node} currentNode
+         */
+        var _executeHook = function(entryPoint, currentNode) {
+            if (!hooks[entryPoint]) { return; }
+
+            hooks[entryPoint].forEach(function(hook) {
+                hook.call(DOMPurify, currentNode, cfg);
+            });
+        };
+
         /* Feature check and untouched opt-out return */
-        if(typeof document.implementation.createHTMLDocument === 'undefined') {
+        if (typeof document.implementation.createHTMLDocument === 'undefined') {
             if (window.toStaticHTML !== 'undefined' && typeof dirty === 'string') {
                 return window.toStaticHTML(dirty);
             }
-            return dirty;    
-        }               
+            return dirty;
+        }
 
         /* Assign config vars */
         cfg ? _parseConfig(cfg) : null;
 
         /* Initialize the document to work on */
         var body = _initDocument(dirty);
-        
+
         /* Early exit in case document is empty */
-        if(typeof body !== 'object') {
+        if (typeof body !== 'object') {
             return body ? body : '';
         }
 
@@ -446,5 +507,20 @@
         }
         return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
     };
+
+    /**
+     * addHook
+     * Public method to add DOMPurify hooks
+     *
+     * @param {String} entryPoint
+     * @param {Function} hookFunction
+     */
+    DOMPurify.addHook = function(entryPoint, hookFunction) {
+
+        if (typeof hookFunction !== 'function') { return; }
+        hooks[entryPoint] = hooks[entryPoint] || [];
+        hooks[entryPoint].push(hookFunction);
+    };
+
     return DOMPurify;
 }));

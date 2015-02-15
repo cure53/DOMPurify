@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../purify.js"></script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true, multistr:true */
+            /* global DOMPurify */
+            'use strict';
+
+            // Specify dirty HTML
+            var dirty = '<p kitty-litter="yes" french-fries="no">HELLO</p>\
+                <style>*{x:expression(alert(1))}</style>\
+                <ying><yang><bang>123456</bang></ying></yang>\
+                <iframe/\/src=JavScript:alert&lpar;1)></ifrAMe><br>goodbye</p><h1>not me!</h1>';
+
+            // Specify a configuration directive
+            var config = {
+                ALLOWED_TAGS: ['p', '#text'], // only <P> and text nodes
+                KEEP_CONTENT: false, // remove content from non-white-listed nodes too
+                ADD_ATTR: ['kitty-litter'], // permit kitty-litter attributes
+                ADD_TAGS: ['ying', 'yang'], // permit additional custom tags
+                RETURN_DOM: true // return a document object instead of a string
+            };
+
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty, config);
+
+            // grab outerHTML from returned document
+            document.getElementById('sanitized').innerHTML = clean;
+        </script>
+    </body>
+</html>
