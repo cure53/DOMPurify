@@ -1,5 +1,10 @@
 [
     {
+        "title": "DOM CLobbering against an empty cookie",
+        "payload": "<img src=x name=cookie>",
+        "expected": "<img src=\"x\">"        
+    },
+    {
         "title": "JavaScript URIs using Unicode LS/PS I",
         "payload": "123<a href='\u2028javascript:alert(1)'>I am a dolphin!</a>",
         "expected": "123<a>I am a dolphin!</a>"        
@@ -52,7 +57,7 @@
     {
         "title": "onclick, onsubmit, onfocus; DOM clobbering: parentNode",
         "payload": "<div onclick=alert(0)><form onsubmit=alert(1)><input onfocus=alert(2) name=parentNode>123</form></div>",
-        "expected": "<div><form><input name=\"parentNode\">123</form></div>"
+        "expected": "<div><form><input>123</form></div>"
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: nodeName",
