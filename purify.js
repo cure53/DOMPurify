@@ -16,6 +16,12 @@
     var hooks = {};
 
     /**
+     * Version label, exposed for easier checks 
+     * if DOMPurfy is up to date or not
+     */
+    DOMPurify.version = '0.6.0';
+    
+    /**
      * sanitize
      * Public method providing core sanitation functionality
      *
