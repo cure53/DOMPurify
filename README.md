@@ -1,4 +1,4 @@
-# DOMPurify
+# DOMPurify [![NPM version](http://img.shields.io/npm/v/dompurify.svg)](https://www.npmjs.org/package/dompurify)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (9+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It simply does nothing there.
 
