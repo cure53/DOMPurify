@@ -470,7 +470,7 @@
 
         /* Feature check and untouched opt-out return */
         if (typeof document.implementation.createHTMLDocument === 'undefined') {
-            if (window.toStaticHTML !== 'undefined' && typeof dirty === 'string') {
+            if (typeof window.toStaticHTML === 'function' && typeof dirty === 'string') {
                 return window.toStaticHTML(dirty);
             }
             return dirty;
