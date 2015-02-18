@@ -392,11 +392,8 @@
                 }
 
                 if(SANITIZE_DOM) {
-                    if(tmp.name === 'id'
+                    if((tmp.name === 'id' || tmp.name === 'name')
                         && (tmp.value in window || tmp.value in document)) {
-                        clobbering = true;
-                    }
-                    if(tmp.name === 'name' && tmp.value in document){
                         clobbering = true;
                     }
                 }
