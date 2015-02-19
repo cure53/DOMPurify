@@ -404,7 +404,9 @@
                     /* Make sure attribute cannot clobber */
                     && !clobbering
                 ) {
-                    currentNode.setAttribute(tmp.name, tmp.value);
+                    try {
+                        currentNode.setAttribute(tmp.name, tmp.value);
+                    } catch (e) {}
                 }
             }
 
