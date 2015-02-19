@@ -461,7 +461,8 @@
         };
 
         /* Feature check and untouched opt-out return */
-        if (typeof document.implementation.createHTMLDocument === 'undefined') {
+        if (typeof document.implementation.createHTMLDocument === 'undefined'
+            || (typeof document.documentMode === 'number' && document.documentMode === 9)) {
             if (typeof window.toStaticHTML === 'function' && typeof dirty === 'string') {
                 return window.toStaticHTML(dirty);
             }
