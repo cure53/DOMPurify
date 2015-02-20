@@ -400,6 +400,7 @@
                     /* Make sure attribute cannot clobber */
                     && !clobbering
                 ) {
+                    /* Handle invalid data attributes safely by try-catching it and do nothing */
                     try {
                         currentNode.setAttribute(tmp.name, tmp.value);
                     } catch (e) {}
