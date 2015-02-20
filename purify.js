@@ -272,6 +272,8 @@
                 || typeof elm.removeAttributeNode !== 'function'
                 || typeof elm.removeChild !== 'function'
                 || typeof elm.attributes.item !== 'function'
+                || (elm.id === 'implementation' || elm.name === 'implementation')
+                || (elm.id === 'createNodeIterator' || elm.name === 'createNodeIterator')
             ) {
                 return true;
             }
@@ -373,12 +375,6 @@
                 currentNode.removeAttribute(currentNode.attributes[attr].name);
 
                 if (!tmp instanceof Attr) { continue; }
-                
-                /* Protect DOMPurify itself against clobbering attack */
-                if ((tmp.name === 'id' || tmp.name === 'name')
-                    && (tmp.value === 'implementation' || tmp.value === 'createNodeIterator')) {
-                    clobbering = true;
-                }
 
                 if(SANITIZE_DOM) {
                     if((tmp.name === 'id' || tmp.name === 'name')
