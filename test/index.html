@@ -61,6 +61,7 @@
         
         QUnit.test( 'Config-Flag tests: ALLOW_DATA_ATTR', function(assert) {
             // ALLOW_DATA_ATTR
+            assert.equal( DOMPurify.sanitize( '<a href="#" data-abc\"="foo">abc</a>', {ALLOW_DATA_ATTR: true}), "<a href=\"#\">abc</a>" );
             assert.equal( DOMPurify.sanitize( '<a href="#" data-abc="foo">abc</a>', {ALLOW_DATA_ATTR: false}), "<a href=\"#\">abc</a>" );
             assert.contains( DOMPurify.sanitize( '<a href="#" data-abc="foo">abc</a>', {ALLOW_DATA_ATTR: true}), 
                 ["<a data-abc=\"foo\" href=\"#\">abc</a>", "<a href=\"#\" data-abc=\"foo\">abc</a>"] 
@@ -99,6 +100,9 @@
         
         QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
             // SANITIZE_DOM
+            assert.equal( DOMPurify.sanitize( '<form name="window">', {SANITIZE_DOM: true}), "<form></form>" );
+            assert.equal( DOMPurify.sanitize( '<img src="x" name="implementation">', {SANITIZE_DOM: false}), "<img src=\"x\">" );
+            assert.equal( DOMPurify.sanitize( '<img src="x" name="createNodeIterator">', {SANITIZE_DOM: false}), "<img src=\"x\">" );
             assert.equal( DOMPurify.sanitize( '<img src="x" name="getElementById">', {SANITIZE_DOM: false}), "<img name=\"getElementById\" src=\"x\">" );
             assert.equal( DOMPurify.sanitize( '<img src="x" name="getElementById">', {SANITIZE_DOM: true}), "<img src=\"x\">" );
             assert.equal( DOMPurify.sanitize( '<a href="x" id="location">click</a>', {SANITIZE_DOM: true}), "<a href=\"x\">click</a>" );
