@@ -216,17 +216,6 @@
                 dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
                 dom.body.outerHTML = dirty;
 
-            /* Cover IE9's buggy outerHTML behavior */
-            if (dom.body === null) {
-                dom = document.implementation.createHTMLDocument('');
-                dom.body.innerHTML = dirty;
-                if (dom.body.firstChild && dom.body.firstChild.nodeName
-                    && !WHOLE_DOCUMENT
-                    && dom.body.firstChild.nodeName === 'STYLE'){
-                    dom.body.removeChild(dom.body.firstChild);
-                }
-            }
-
             /* Work on whole document or just its body */
             var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
             if (
@@ -283,6 +272,8 @@
                 || typeof elm.removeAttributeNode !== 'function'
                 || typeof elm.removeChild !== 'function'
                 || typeof elm.attributes.item !== 'function'
+                || (elm.id === 'implementation' || elm.name === 'implementation')
+                || (elm.id === 'createNodeIterator' || elm.name === 'createNodeIterator')
             ) {
                 return true;
             }
@@ -386,11 +377,8 @@
                 if (!tmp instanceof Attr) { continue; }
 
                 if(SANITIZE_DOM) {
-                    if(tmp.name === 'id'
+                    if((tmp.name === 'id' || tmp.name === 'name')
                         && (tmp.value in window || tmp.value in document)) {
-                        clobbering = true;
-                    }
-                    if(tmp.name === 'name' && tmp.value in document){
                         clobbering = true;
                     }
                 }
@@ -412,7 +400,10 @@
                     /* Make sure attribute cannot clobber */
                     && !clobbering
                 ) {
-                    currentNode.setAttribute(tmp.name, tmp.value);
+                    /* Handle invalid data attributes safely by try-catching it and do nothing */
+                    try {
+                        currentNode.setAttribute(tmp.name, tmp.value);
+                    } catch (e) {}
                 }
             }
 
@@ -469,8 +460,9 @@
         };
 
         /* Feature check and untouched opt-out return */
-        if (typeof document.implementation.createHTMLDocument === 'undefined') {
-            if (window.toStaticHTML !== 'undefined' && typeof dirty === 'string') {
+        if (typeof document.implementation.createHTMLDocument === 'undefined'
+            || (typeof document.documentMode === 'number' && document.documentMode === 9)) {
+            if (typeof window.toStaticHTML === 'function' && typeof dirty === 'string') {
                 return window.toStaticHTML(dirty);
             }
             return dirty;
