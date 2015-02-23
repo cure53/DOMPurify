@@ -121,6 +121,8 @@ DOMPurify allows you to augment its functionality by attaching one or more funct
 - `afterSantitizeElements`
 - `beforeSantitizeAttributes`
 - `afterSantitizeAttributes`
+- `beforeSantitizeShadowDOM`
+- `afterSantitizeShadowDOM`
 
 It passes the currently processed DOM node and the DOMPurify configuration the callback.
 
