@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../purify.js"></script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+            
+            var proxy = 'https://my.proxy.service/?';
+            
+            // Specify dirty HTML
+            var dirty = '<a href="http://evil.com/">CLICK</a>\
+                         <a href="http://evil.com/" target="jajaja">CLICK</a>\
+                         <svg><a href="http://evil.com/"><circle r=40></a></svg>\
+                         <map name="test"><area href="http://evil.com/" shape="rect" \
+                         coords="0,0,200,200"></area></map>\
+                         <math href="http://evil.com/">CLICKME</math>\
+                         ';
+            
+            // Add a hook to make all links point to a proxy
+            DOMPurify.addHook('afterSantitizeAttributes', function(node){
+                // set all elements owning href to href=proxy+esc(href)
+                if(node.hasAttribute('href')){
+                    node.setAttribute('href', proxy + escape(node.getAttribute('href')));
+                }
+            });
+
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerHTML = clean;
+        </script>
+    </body>
+</html>
