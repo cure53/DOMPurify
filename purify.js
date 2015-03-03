@@ -177,7 +177,7 @@
             'ALLOWED_ATTR'    in cfg ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
             'ALLOWED_TAGS'    in cfg ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
             'FORBID_ATTR'     in cfg ? FORBID_ATTR     = cfg.FORBID_ATTR     : null;
-            'FORBID_TAGS'     in cfg ? FORBID_TAGS     = cfg.FORBID_TAGS     : null;            
+            'FORBID_TAGS'     in cfg ? FORBID_TAGS     = cfg.FORBID_TAGS     : null;
             'ALLOW_DATA_ATTR' in cfg ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
             'SAFE_FOR_JQUERY' in cfg ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;
             'WHOLE_DOCUMENT'  in cfg ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
@@ -268,6 +268,7 @@
                 || typeof elm.nodeType !== 'number'
                 || typeof elm.COMMENT_NODE !== 'number'
                 || typeof elm.setAttribute !== 'function'
+                || typeof elm.hasAttribute !== 'function'
                 || typeof elm.cloneNode !== 'function'
                 || typeof elm.removeAttributeNode !== 'function'
                 || typeof elm.removeChild !== 'function'

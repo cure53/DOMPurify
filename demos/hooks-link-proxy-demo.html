@@ -19,6 +19,8 @@
             var dirty = '<a href="http://evil.com/">CLICK</a>\
                          <a href="http://evil.com/" target="jajaja">CLICK</a>\
                          <svg><a xlink:href="http://evil.com/"><circle r=40></a></svg>\
+                         <svg><a xlink:href="http://evil.com/" href="http://evil.com/"><circle r=40></a></svg>\
+                         <form action="http://evil.com/"><input type="submit"></form>\
                          <map name="test"><area href="http://evil.com/" shape="rect" \
                          coords="0,0,200,200"></area></map>\
                          <math href="http://evil.com/">CLICKME</math>\
@@ -26,15 +28,21 @@
             
             // Add a hook to make all links point to a proxy
             DOMPurify.addHook('afterSantitizeAttributes', function(node){
-                // set all elements owning href to href=proxy+esc(href)
+                // proxy form actions
+                if('action' in node){
+                    node.setAttribute('action', proxy 
+                        + encodeURIComponent(node.getAttribute('action')));
+                }
+                // proxy regular HTML links
                 if(node.hasAttribute('href')){
                     node.setAttribute('href', proxy 
-                        + escape(node.getAttribute('href')));
-                }
+                        + encodeURIComponent(node.getAttribute('href')));
+                }                
+                // proxy SVG/MathML links
                 if(node.hasAttribute('xlink:href')){
                     node.setAttribute('xlink:href', proxy 
-                        + escape(node.getAttribute('xlink:href')));
-                }
+                        + encodeURIComponent(node.getAttribute('xlink:href')));
+                } 
             });
 
             // Clean HTML string and write into our DIV
