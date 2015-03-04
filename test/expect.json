@@ -1,6 +1,12 @@
 [
+
     {
-        "title": "DOM CLobbering against an empty cookie",
+        "title": "DOM Clobbering against document.createElement() (see #47)",
+        "payload": "<img src=x name=createElement><img src=y id=createElement>",
+        "expected": "<img src=\"x\"><img src=\"y\">"        
+    },    
+    {
+        "title": "DOM CLlobbering against an empty cookie",
         "payload": "<img src=x name=cookie>",
         "expected": "<img src=\"x\">"        
     },

@@ -278,6 +278,7 @@
                 || typeof elm.removeAttributeNode !== 'function'
                 || typeof elm.removeChild !== 'function'
                 || typeof elm.attributes.item !== 'function'
+                || (elm.id === 'createElement' || elm.name === 'createElement')
                 || (elm.id === 'implementation' || elm.name === 'implementation')
                 || (elm.id === 'createNodeIterator' || elm.name === 'createNodeIterator')
             ) {
