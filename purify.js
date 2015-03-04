@@ -222,7 +222,12 @@
                 !(dom.body instanceof HTMLBodyElement) ||
                 !(dom.body instanceof HTMLHtmlElement)
             ) {
-                var freshdom = document.implementation.createHTMLDocument('');
+                if(typeof HTMLTemplateElement === 'function'){
+                    var freshdom = document.createElement('template').content
+                        .ownerDocument.implementation.createHTMLDocument();
+                } else {
+                    var freshdom = document.implementation.createHTMLDocument('');
+                }
                 body = WHOLE_DOCUMENT
                     ? freshdom.getElementsByTagName.call(dom,'html')[0]
                     : freshdom.getElementsByTagName.call(dom,'body')[0];
