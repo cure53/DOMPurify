@@ -24,6 +24,7 @@
                          <math href="?mathml">CLICKME</math>\
                          <math><mi href="?mathml">CLICKME</mi></math>\
                          <math><mi target="xxx" href="?mathml">CLICKME</mi></math>\
+                         <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="?bla"><circle r=40></a></svg>\
                          ';
             
             // Add a hook to make all links open a new window
@@ -33,7 +34,9 @@
                     node.setAttribute('target','_blank');
                 }
                 // set non-HTML/MathML links to xlink:show=new
-                if(!node.hasAttribute('target') && node.hasAttribute('href')){
+                if(!node.hasAttribute('target') 
+                    && (node.hasAttribute('xlink:href') 
+                        || node.hasAttribute('href'))){
                     node.setAttribute('xlink:show', 'new');
                 }
             });
