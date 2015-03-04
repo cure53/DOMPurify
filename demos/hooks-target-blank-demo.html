@@ -22,6 +22,8 @@
                          <map name="test"><area href="?area" shape="rect" \
                          coords="0,0,200,200"></area></map>\
                          <math href="?mathml">CLICKME</math>\
+                         <math><mi href="?mathml">CLICKME</mi></math>\
+                         <math><mi target="xxx" href="?mathml">CLICKME</mi></math>\
                          ';
             
             // Add a hook to make all links open a new window
@@ -30,8 +32,8 @@
                 if('target' in node){
                     node.setAttribute('target','_blank');
                 }
-                // set MathML links to xlink:show=new
-                if(node.tagName === 'math' && node.hasAttribute('href')){
+                // set non-HTML/MathML links to xlink:show=new
+                if(!node.hasAttribute('target') && node.hasAttribute('href')){
                     node.setAttribute('xlink:show', 'new');
                 }
             });
