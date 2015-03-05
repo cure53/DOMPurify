@@ -222,7 +222,10 @@
                 !(dom.body instanceof HTMLBodyElement) ||
                 !(dom.body instanceof HTMLHtmlElement)
             ) {
-                var freshdom = document.implementation.createHTMLDocument('');
+                var doc = (typeof HTMLTemplateElement === 'function') ?
+                    document.createElement('template').content.ownerDocument :
+                    document;
+                var freshdom = doc.implementation.createHTMLDocument('');
                 body = WHOLE_DOCUMENT
                     ? freshdom.getElementsByTagName.call(dom,'html')[0]
                     : freshdom.getElementsByTagName.call(dom,'body')[0];
@@ -273,6 +276,7 @@
                 || typeof elm.removeAttributeNode !== 'function'
                 || typeof elm.removeChild !== 'function'
                 || typeof elm.attributes.item !== 'function'
+                || (elm.id === 'createElement' || elm.name === 'createElement')
                 || (elm.id === 'implementation' || elm.name === 'implementation')
                 || (elm.id === 'createNodeIterator' || elm.name === 'createNodeIterator')
             ) {
