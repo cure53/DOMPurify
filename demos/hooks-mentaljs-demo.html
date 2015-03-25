@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../purify.js"></script>
+        <!-- dummy code block for MentalJS -->
+        <script>function MentalJS(input){ return '$mental$' + input}</script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+            
+            // Specify dirty HTML
+            var dirty = 'hello<script>alert(1)<\/script><img src="xyz" onload="alert(2)">goodbye';
+            
+            // allow script elements
+            var config = { 
+                ADD_TAGS: ['script'], 
+                ADD_ATTR: ['onclick', 'onmouseover', 'onload', 'onunload']
+            }            
+            
+            // Add a hook to sanitize all script content with MentalJS
+            DOMPurify.addHook('beforeSantitizeElements', function(node){
+                if(node.nodeName.toLowerCase() === 'script'){
+                    var script = node.textContent;
+                    var mental = MentalJS(script);
+                    node.textContent = mental;
+                }
+            });
+            
+            // Add a hook to sanitize all white-listed events with MentalJS
+            DOMPurify.addHook('beforeSantitizeAttributes', function(node){
+                if (!node.attributes) { return; }
+                for (var index = node.attributes.length-1; index >= 0; index--) {
+                    var attr = node.attributes[index];
+                    if(attr instanceof Attr && attr.name.match(/^on\w+/)) {
+                        attr.value = MentalJS(attr.value);
+                    }
+                }
+            });            
+
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty, config);
+            document.getElementById('sanitized').innerHTML = clean;
+        </script>
+    </body>
+</html>
