@@ -302,7 +302,7 @@
         var _sanitizeElements = function(currentNode) {
 
             /* Execute a hook if present */
-            _executeHook('beforeSantitizeElements', currentNode);
+            _executeHook('beforeSanitizeElements', currentNode);
 
             /* Check if element is clobbered or can clobber */
             if (_isClobbered(currentNode)) {
@@ -341,7 +341,7 @@
             }
 
             /* Execute a hook if present */
-            _executeHook('afterSantitizeElements', currentNode);
+            _executeHook('afterSanitizeElements', currentNode);
 
             return false;
         };
@@ -360,7 +360,7 @@
         var _sanitizeAttributes = function(currentNode) {
         
             /* Execute a hook if present */
-            _executeHook('beforeSantitizeAttributes', currentNode);
+            _executeHook('beforeSanitizeAttributes', currentNode);
                     
             var regex = /^(\w+script|data):/gi,
                 clonedNode = currentNode.cloneNode(true),
@@ -413,7 +413,7 @@
             }
 
             /* Execute a hook if present */
-            _executeHook('afterSantitizeAttributes', currentNode);
+            _executeHook('afterSanitizeAttributes', currentNode);
         };
 
         /**
@@ -427,7 +427,7 @@
             var shadowIterator = _createIterator(fragment);
             
             /* Execute a hook if present */
-            _executeHook('beforeSantitizeShadowDOM', currentNode);            
+            _executeHook('beforeSanitizeShadowDOM', currentNode);            
 
             while (shadowNode = shadowIterator.nextNode()) {
 
@@ -446,7 +446,7 @@
             }
             
             /* Execute a hook if present */
-            _executeHook('afterSantitizeShadowDOM', currentNode); 
+            _executeHook('afterSanitizeShadowDOM', currentNode); 
         };
 
         /**

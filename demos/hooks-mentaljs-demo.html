@@ -24,7 +24,7 @@
             }            
             
             // Add a hook to sanitize all script content with MentalJS
-            DOMPurify.addHook('beforeSantitizeElements', function(node){
+            DOMPurify.addHook('beforeSanitizeElements', function(node){
                 if(node.nodeName.toLowerCase() === 'script'){
                     var script = node.textContent;
                     var mental = MentalJS().parse(
@@ -35,7 +35,7 @@
             });
             
             // Add a hook to sanitize all white-listed events with MentalJS
-            DOMPurify.addHook('beforeSantitizeAttributes', function(node){
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
                 if (!node.attributes) { return; }
                 for (var index = node.attributes.length-1; index >= 0; index--) {
                     var attr = node.attributes[index];
