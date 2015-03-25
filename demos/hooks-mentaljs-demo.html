@@ -2,8 +2,7 @@
 <html>
     <head>
         <script src="../purify.js"></script>
-        <!-- dummy code block for MentalJS -->
-        <script>function MentalJS(input){ return '$mental$' + input}</script>
+        <script src="https://raw.githubusercontent.com/hackvertor/MentalJS/master/javascript/Mental.js"></script>
     </head>
     <body>
         <!-- Our DIV to receive content -->
@@ -28,7 +27,9 @@
             DOMPurify.addHook('beforeSantitizeElements', function(node){
                 if(node.nodeName.toLowerCase() === 'script'){
                     var script = node.textContent;
-                    var mental = MentalJS(script);
+                    var mental = MentalJS().parse(
+                        {options:{eval:false, dom:true}, code:script}
+                    );
                     node.textContent = mental;
                 }
             });
@@ -39,7 +40,10 @@
                 for (var index = node.attributes.length-1; index >= 0; index--) {
                     var attr = node.attributes[index];
                     if(attr instanceof Attr && attr.name.match(/^on\w+/)) {
-                        attr.value = MentalJS(attr.value);
+                        var script = attr.value;
+                        attr.value = MentalJS().parse(
+                            {options:{eval:false, dom:true}, code:script}
+                        );
                     }
                 }
             });            
