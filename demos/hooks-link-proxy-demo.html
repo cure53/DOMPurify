@@ -27,7 +27,7 @@
                          ';
             
             // Add a hook to make all links point to a proxy
-            DOMPurify.addHook('afterSantitizeAttributes', function(node){
+            DOMPurify.addHook('afterSanitizeAttributes', function(node){
                 // proxy form actions
                 if('action' in node){
                     node.setAttribute('action', proxy 

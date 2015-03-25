@@ -28,7 +28,7 @@
                          ';
             
             // Add a hook to make all links open a new window
-            DOMPurify.addHook('afterSantitizeAttributes', function(node){
+            DOMPurify.addHook('afterSanitizeAttributes', function(node){
                 // set all elements owning target to target=_blank
                 if('target' in node){
                     node.setAttribute('target','_blank');

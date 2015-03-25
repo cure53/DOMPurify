@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../purify.js"></script>
+        <script src="https://raw.githubusercontent.com/hackvertor/MentalJS/master/javascript/Mental.js"></script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+            
+            // Specify dirty HTML
+            var dirty = 'hello<script>alert(1)<\/script><img src="xyz" onload="alert(2)">goodbye';
+            
+            // allow script elements
+            var config = { 
+                ADD_TAGS: ['script'], 
+                ADD_ATTR: ['onclick', 'onmouseover', 'onload', 'onunload']
+            }            
+            
+            // Add a hook to sanitize all script content with MentalJS
+            DOMPurify.addHook('beforeSanitizeElements', function(node){
+                if(node.nodeName.toLowerCase() === 'script'){
+                    var script = node.textContent;
+                    var mental = MentalJS().parse(
+                        {options:{eval:false, dom:true}, code:script}
+                    );
+                    node.textContent = mental;
+                }
+            });
+            
+            // Add a hook to sanitize all white-listed events with MentalJS
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+                if (!node.attributes) { return; }
+                for (var index = node.attributes.length-1; index >= 0; index--) {
+                    var attr = node.attributes[index];
+                    if(attr instanceof Attr && attr.name.match(/^on\w+/)) {
+                        var script = attr.value;
+                        attr.value = MentalJS().parse(
+                            {options:{eval:false, dom:true}, code:script}
+                        );
+                    }
+                }
+            });            
+
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty, config);
+            document.getElementById('sanitized').innerHTML = clean;
+        </script>
+    </body>
+</html>
