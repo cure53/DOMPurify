@@ -118,10 +118,13 @@ var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 DOMPurify allows you to augment its functionality by attaching one or more functions with the `DOMPurify.addHook` method to one of the following hooks:
 
 - `beforeSanitizeElements`
+- `uponSanitizeElement`
 - `afterSanitizeElements`
 - `beforeSanitizeAttributes`
+- `uponSanitizeAttribute`
 - `afterSanitizeAttributes`
 - `beforeSanitizeShadowDOM`
+- `uponSanitizeShadowNode`
 - `afterSanitizeShadowDOM`
 
 It passes the currently processed DOM node and the DOMPurify configuration the callback.
@@ -129,7 +132,7 @@ It passes the currently processed DOM node and the DOMPurify configuration the c
 _Example_:
 
 ```javascript
-DOMPurify.addHook('beforeSanitizeElements', function(currentNode, config) {
+DOMPurify.addHook('beforeSanitizeElements', function(currentNode, data, config) {
     // Do something with the current node and return it
     return currentNode;
 });
