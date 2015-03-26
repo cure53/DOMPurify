@@ -127,7 +127,7 @@ DOMPurify allows you to augment its functionality by attaching one or more funct
 - `uponSanitizeShadowNode`
 - `afterSanitizeShadowDOM`
 
-It passes the currently processed DOM node and the DOMPurify configuration the callback.
+It passes the currently processed DOM node, when needed a literal with verified node and attribute data and the DOMPurify configuration to the callback. Check out the [MentalJS hook demo](https://github.com/cure53/DOMPurify/blob/master/demos/hooks-mentaljs-demo.html) to see how the API can be used nicely.
 
 _Example_:
 
