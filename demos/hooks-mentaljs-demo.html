@@ -2,6 +2,7 @@
 <html>
     <head>
         <script src="../purify.js"></script>
+        <!--  Grab the latest version of MentalJS -->
         <script src="https://raw.githubusercontent.com/hackvertor/MentalJS/master/javascript/Mental.js"></script>
     </head>
     <body>
@@ -15,7 +16,12 @@
             'use strict';
             
             // Specify dirty HTML
-            var dirty = 'hello<script>alert(1)<\/script><img src="xyz" onload="alert(2)">goodbye';
+            var dirty = 'hello<script>alert(1)<\/script>\
+                <img src="xyz" onload="alert(2)">goodbye\
+                <img src="xyz" onload="alert`3`">\
+                <script src=//evil.com><\/script>\
+                <script src=//evil.com>alert(4)<\/script>\
+                <svg><script xlink:href=//evil.com>alert(4)<\/script></svg>';
             
             // allow script elements
             var config = { 
@@ -27,10 +33,18 @@
             DOMPurify.addHook('beforeSanitizeElements', function(node){
                 if(node.nodeName.toLowerCase() === 'script'){
                     var script = node.textContent;
-                    var mental = MentalJS().parse(
-                        {options:{eval:false, dom:true}, code:script}
-                    );
-                    node.textContent = mental;
+                    if(!script || 'src' in node.attributes 
+                        || 'xlink:href' in node.attributes){
+                            return node.parentNode.removeChild(node)
+                    }
+                    try {
+                        var mental = MentalJS().parse(
+                            {options:{eval:false, dom:true}, code:script}
+                        );
+                        return node.textContent = mental;
+                    } catch(e) {
+                        return node.parentNode.removeChild(node);
+                    }
                 }
             });
             
@@ -41,9 +55,14 @@
                     var attr = node.attributes[index];
                     if(attr instanceof Attr && attr.name.match(/^on\w+/)) {
                         var script = attr.value;
-                        attr.value = MentalJS().parse(
-                            {options:{eval:false, dom:true}, code:script}
-                        );
+                        if(!script){node.removeAttribute(attr.name)}
+                        try {
+                            return attr.value = MentalJS().parse(
+                                {options:{eval:false, dom:true}, code:script}
+                            );
+                        } catch(e) {
+                            node.removeAttribute(attr.name);
+                        }
                     }
                 }
             });            
@@ -51,6 +70,7 @@
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty, config);
             document.getElementById('sanitized').innerHTML = clean;
+            console.log(clean);
         </script>
     </body>
 </html>
