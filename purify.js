@@ -302,7 +302,7 @@
         var _sanitizeElements = function(currentNode) {
 
             /* Execute a hook if present */
-            _executeHook('beforeSanitizeElements', currentNode);
+            _executeHook('beforeSanitizeElements', currentNode, null);
 
             /* Check if element is clobbered or can clobber */
             if (_isClobbered(currentNode)) {
@@ -317,14 +317,22 @@
             }
 
             /* Now let's check the element's type and name */
+            var tagName = currentNode.nodeName.toLowerCase();
+
+            /* Execute a hook if present */
+            _executeHook('uponSanitizeElement', currentNode, {
+                tagName: tagName
+            });
+
             if (currentNode.nodeType === currentNode.COMMENT_NODE
-                || ALLOWED_TAGS.indexOf(currentNode.nodeName.toLowerCase()) === -1
-                || FORBID_TAGS.indexOf(currentNode.nodeName.toLowerCase()) > -1
+                || ALLOWED_TAGS.indexOf(tagName) === -1
+                || FORBID_TAGS.indexOf(tagName) > -1
             ) {
+                
                 /* Keep content for white-listed elements */
                 if (KEEP_CONTENT && currentNode.insertAdjacentHTML
                     && currentNode.nodeName.toLowerCase
-                    && CONTENT_TAGS.indexOf(currentNode.nodeName.toLowerCase()) !== -1){
+                    && CONTENT_TAGS.indexOf(tagName) !== -1){
                     try {
                         currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                     } catch(e) {}
@@ -341,7 +349,7 @@
             }
 
             /* Execute a hook if present */
-            _executeHook('afterSanitizeElements', currentNode);
+            _executeHook('afterSanitizeElements', currentNode, null);
 
             return false;
         };
@@ -360,7 +368,7 @@
         var _sanitizeAttributes = function(currentNode) {
         
             /* Execute a hook if present */
-            _executeHook('beforeSanitizeAttributes', currentNode);
+            _executeHook('beforeSanitizeAttributes', currentNode, null);
                     
             var regex = /^(\w+script|data):/gi,
                 clonedNode = currentNode.cloneNode(true),
@@ -387,11 +395,17 @@
                         clobbering = true;
                     }
                 }
-
                 /* Safely handle attributes */
+                var attrName = tmp.name.toLowerCase();
+
+                /* Execute a hook if present */
+                _executeHook('uponSanitizeAttribute', currentNode, {
+                    attrName: attrName, attrValue: tmp.value, attr: tmp
+                });                
+
                 if (
-                    ((ALLOWED_ATTR.indexOf(tmp.name.toLowerCase()) > -1 &&
-                      FORBID_ATTR.indexOf(tmp.name.toLowerCase()) === -1) ||
+                    ((ALLOWED_ATTR.indexOf(attrName) > -1 &&
+                      FORBID_ATTR.indexOf(attrName) === -1) ||
                     (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
 
                     /* Get rid of script and data URIs */
@@ -405,7 +419,7 @@
                     /* Make sure attribute cannot clobber */
                     && !clobbering
                 ) {
-                    /* Handle invalid data attributes safely by try-catching it and do nothing */
+                    /* Handle invalid data attribute set by try-catching it */
                     try {
                         currentNode.setAttribute(tmp.name, tmp.value);
                     } catch (e) {}
@@ -413,7 +427,7 @@
             }
 
             /* Execute a hook if present */
-            _executeHook('afterSanitizeAttributes', currentNode);
+            _executeHook('afterSanitizeAttributes', currentNode, null);
         };
 
         /**
@@ -427,9 +441,12 @@
             var shadowIterator = _createIterator(fragment);
             
             /* Execute a hook if present */
-            _executeHook('beforeSanitizeShadowDOM', currentNode);            
+            _executeHook('beforeSanitizeShadowDOM', fragment, null);            
 
             while (shadowNode = shadowIterator.nextNode()) {
+                
+                /* Execute a hook if present */
+                _executeHook('uponSanitizeShadowNode', shadowNode, null);                 
 
                 /* Sanitize tags and elements */
                 if (_sanitizeElements(shadowNode)) {
@@ -446,7 +463,7 @@
             }
             
             /* Execute a hook if present */
-            _executeHook('afterSanitizeShadowDOM', currentNode); 
+            _executeHook('afterSanitizeShadowDOM', fragment, null); 
         };
 
         /**
@@ -456,11 +473,11 @@
          * @param  {String} entryPoint  Name of the hook's entry point
          * @param  {Node} currentNode
          */
-        var _executeHook = function(entryPoint, currentNode) {
+        var _executeHook = function(entryPoint, currentNode, data) {
             if (!hooks[entryPoint]) { return; }
 
             hooks[entryPoint].forEach(function(hook) {
-                hook.call(DOMPurify, currentNode, cfg);
+                hook.call(DOMPurify, currentNode, data, cfg);
             });
         };
 

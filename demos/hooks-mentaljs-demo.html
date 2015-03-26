@@ -31,8 +31,8 @@
             }            
             
             // Add a hook to sanitize all script content with MentalJS
-            DOMPurify.addHook('beforeSanitizeElements', function(node){
-                if(node.nodeName.toLowerCase() === 'script'){
+            DOMPurify.addHook('uponSanitizeElement', function(node, data){
+                if(data.tagName === 'script'){
                     var script = node.textContent;
                     if(!script || 'src' in node.attributes
                         || 'href' in node.attributes 
@@ -51,20 +51,16 @@
             });
             
             // Add a hook to sanitize all white-listed events with MentalJS
-            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
-                if (!node.attributes) { return; }
-                for (var index = node.attributes.length-1; index >= 0; index--) {
-                    var attr = node.attributes[index];
-                    if(attr instanceof Attr && attr.name.match(/^on\w+/)) {
-                        var script = attr.value;
-                        if(!script){node.removeAttribute(attr.name)}
-                        try {
-                            return attr.value = MentalJS().parse(
-                                {options:{eval:false, dom:true}, code:script}
-                            );
-                        } catch(e) {
-                            node.removeAttribute(attr.name);
-                        }
+            DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
+                if(data.attrName.match(/^on\w+/)) {
+                    var script = data.attrValue;
+                    if(!script){node.removeAttribute(data.attrName)}
+                    try {
+                        return data.attr.value = MentalJS().parse(
+                            {options:{eval:false, dom:true}, code:script}
+                        );
+                    } catch(e) {
+                        node.removeAttribute(data.attrName);
                     }
                 }
             });            
