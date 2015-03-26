@@ -3,7 +3,7 @@
     <head>
         <script src="../purify.js"></script>
         <!--  Grab the latest version of MentalJS -->
-        <script src="https://raw.githubusercontent.com/hackvertor/MentalJS/master/javascript/Mental.js"></script>
+        <script src="./lib/Mental.js"></script>
     </head>
     <body>
         <!-- Our DIV to receive content -->
@@ -21,7 +21,8 @@
                 <img src="xyz" onload="alert`3`">\
                 <script src=//evil.com><\/script>\
                 <script src=//evil.com>alert(4)<\/script>\
-                <svg><script xlink:href=//evil.com>alert(4)<\/script></svg>';
+                <svg><script xlink:href=//evil.com>alert(4)<\/script></svg>\
+                <svg><script href="//evil.com">123<\/script><p>';
             
             // allow script elements
             var config = { 
@@ -33,7 +34,8 @@
             DOMPurify.addHook('beforeSanitizeElements', function(node){
                 if(node.nodeName.toLowerCase() === 'script'){
                     var script = node.textContent;
-                    if(!script || 'src' in node.attributes 
+                    if(!script || 'src' in node.attributes
+                        || 'href' in node.attributes 
                         || 'xlink:href' in node.attributes){
                             return node.parentNode.removeChild(node)
                     }
@@ -70,7 +72,6 @@
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty, config);
             document.getElementById('sanitized').innerHTML = clean;
-            console.log(clean);
         </script>
     </body>
 </html>
