@@ -19,7 +19,7 @@
      * Version label, exposed for easier checks 
      * if DOMPurfy is up to date or not
      */
-    DOMPurify.version = '0.6.1';
+    DOMPurify.version = '0.6.2';
     
     /**
      * sanitize
