@@ -110,7 +110,7 @@
                 ["", "<form><input name=\"attributes\"></form>"] 
             );
             assert.contains( DOMPurify.sanitize( '<form><input name="attributes"></form>', {ADD_TAGS: ['form'], SANITIZE_DOM: true}), 
-                ["", "<form><input name=\"attributes\"></form>"] 
+                ["", "<form><input name=\"attributes\"></form>", "<form><input></form>"] 
             ); 
         });
         

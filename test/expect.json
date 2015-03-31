@@ -48,7 +48,7 @@
     {
         "title": "DOM clobbering XSS by @irsdl using attributes",
         "payload": "<form onmouseover='alert(1)'><input name=\"attributes\"><input name=\"attributes\">",
-        "expected": ""
+        "expected": ["", "<form><input><input></form>"]
     },
     {
         "title": "DOM clobbering: getElementById",
@@ -68,17 +68,17 @@
     {
         "title": "onsubmit, onfocus; DOM clobbering: nodeName",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeName>123</form>",
-        "expected": ""
+        "expected": ["", "<form><input>123</form>"]
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: nodeType",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeType>123</form>",
-        "expected": ""
+        "expected": ["", "<form><input>123</form>"]
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: children",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=children>123</form>",
-        "expected": ""
+        "expected": ["", "<form><input name=\"children\">123</form>"]
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: attributes",
@@ -501,7 +501,8 @@
         "payload": "<div id=\"46\"><div style=\"font-family:foo}color=red;\">XXX</div>//[\"'`-->]]>]</div>",
         "expected": [
                         "<div id=\"46\"><div style=\"font-family:foo}color=red;\">XXX</div>//[\"'`--&gt;]]&gt;]</div>",
-                        "<div id=\"46\"><div style=\"font-family: foo;\">XXX</div>//[\"'`--&gt;]]&gt;]</div>"
+                        "<div id=\"46\"><div style=\"font-family: foo;\">XXX</div>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"46\"><div>XXX</div>//[\"'`--&gt;]]&gt;]</div>"
                     ]
     },
     {
@@ -805,6 +806,7 @@
         "expected": [
                         "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect height=\"1000\" width=\"1000\" fill=\"white\"></rect></a>\n<rect style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\" fill=\"white\"></rect>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
                         "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"filter: url(&quot;#c&quot;); clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+                        "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"filter: url(#c); clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
                         "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>"
                     ]
     },
