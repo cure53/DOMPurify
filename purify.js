@@ -243,22 +243,23 @@
     var _initDocument = function(dirty) {
         /* Create documents to map markup to */
         var dom = document.implementation.createHTMLDocument('');
-            dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
-            dom.body.outerHTML = dirty;
+        var freshdom, doc;
+
+        /* Set content */
+        var body = dom.body;
+        body.parentNode.removeChild(body.parentNode.firstElementChild);
+        body.outerHTML = dirty;
 
         /* Work on whole document or just its body */
-        var body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
-        if (
-            !(dom.body instanceof HTMLBodyElement) ||
-            !(dom.body instanceof HTMLHtmlElement)
-        ) {
-            var doc = (typeof HTMLTemplateElement === 'function') ?
+        body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
+        if (!(body instanceof (WHOLE_DOCUMENT ? HTMLHtmlElement : HTMLBodyElement))) {
+            doc = (typeof HTMLTemplateElement === 'function') ?
                 document.createElement('template').content.ownerDocument :
                 document;
-            var freshdom = doc.implementation.createHTMLDocument('');
-            body = WHOLE_DOCUMENT
-                ? freshdom.getElementsByTagName.call(dom,'html')[0]
-                : freshdom.getElementsByTagName.call(dom,'body')[0];
+            freshdom = doc.implementation.createHTMLDocument('');
+            body = WHOLE_DOCUMENT ?
+                freshdom.getElementsByTagName.call(dom,'html')[0] :
+                freshdom.getElementsByTagName.call(dom,'body')[0];
         }
         return body;
     };
