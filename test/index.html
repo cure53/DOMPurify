@@ -183,6 +183,11 @@
               }, 100);
           });
 
+        // Check for isSupported property
+        QUnit.test( 'DOMPurify property tests', function(assert) {
+            assert.equal( typeof DOMPurify.isSupported, 'boolean' );
+        });
+
         // Fire it up!
         QUnit.start();
       });
