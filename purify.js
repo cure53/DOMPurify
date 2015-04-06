@@ -352,7 +352,7 @@
          * _sanitizeAttributes
          *
          * @protect attributes
-         * @protect removeAttribiuteNode
+         * @protect removeAttributeNode
          * @protect setAttribute
          * @protect cloneNode
          *
