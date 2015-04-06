@@ -156,8 +156,6 @@
             'tfoot','th','thead','time','tr','tt','u','ul','var'
         ];
 
-        var DEBUG_OUTPUT = false;
-
         /* Ideally, do not touch anything below this line */
         /* ______________________________________________ */
 
@@ -183,7 +181,6 @@
             'RETURN_DOM'      in cfg ? RETURN_DOM      = cfg.RETURN_DOM      : null;
             'SANITIZE_DOM'    in cfg ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
             'KEEP_CONTENT'    in cfg ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
-            'DEBUG_OUTPUT'    in cfg ? DEBUG_OUTPUT    = cfg.DEBUG_OUTPUT    : null;
 
             /* Merge configuration parameters */
             cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
