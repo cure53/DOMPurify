@@ -201,11 +201,6 @@
          * @return a DOM, filled with the dirty markup
          */
         var _initDocument = function(dirty) {
-            /* Exit directly if we have nothing to do */
-            if (typeof dirty === 'string' && dirty.indexOf('<') === -1) {
-                return dirty;
-            }
-
             /* Create documents to map markup to */
             var dom = document.implementation.createHTMLDocument('');
                 dom.body.parentNode.removeChild(dom.body.parentNode.firstElementChild);
@@ -479,12 +474,17 @@
         /* Assign config vars */
         cfg ? _parseConfig(cfg) : null;
 
+        /* Exit directly if we have nothing to do */
+        if (dirty.indexOf('<') === -1) {
+            return dirty;
+        }
+
         /* Initialize the document to work on */
         var body = _initDocument(dirty);
 
-        /* Early exit in case document is empty */
-        if (typeof body !== 'object') {
-            return body ? body : '';
+        /* Check we have a DOM node from the data */
+        if (!body) {
+            return RETURN_DOM ? null : '';
         }
 
         /* Get node iterator */
