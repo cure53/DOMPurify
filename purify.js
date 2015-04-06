@@ -15,6 +15,15 @@
     var DOMPurify = {};
     var hooks = {};
 
+    /* Add properties to a lookup table */
+    var _addToSet = function(set, array) {
+        var l = array.length;
+        while (l--) {
+            set[array[l]] = true;
+        }
+        return set;
+    };
+
     /**
      * Version label, exposed for easier checks
      * if DOMPurfy is up to date or not
@@ -43,7 +52,7 @@
          */
 
         /* allowed element names */
-        var ALLOWED_TAGS = [
+        var ALLOWED_TAGS = _addToSet({}, [
 
             // HTML
             'a','abbr','acronym','address','area','article','aside','audio','b',
@@ -76,13 +85,13 @@
 
             //Text
             '#text'
-        ];
+        ]);
 
         /* Decide if custom data attributes are okay */
         var ALLOW_DATA_ATTR = true;
 
         /* Allowed attribute names */
-        var ALLOWED_ATTR = [
+        var ALLOWED_ATTR = _addToSet({}, [
 
             // HTML
             'accept','action','align','alt','autocomplete','bgcolor','border',
@@ -128,13 +137,13 @@
 
             // XML
             'xlink:href','xml:id','xlink:title','xml:space'
-        ];
+        ]);
 
         /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
-        var FORBID_ATTR = [];
+        var FORBID_ATTR = {};
 
         /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
-        var FORBID_TAGS = [];
+        var FORBID_TAGS = {};
 
         /* Decide if document with <html>... should be returned */
         var WHOLE_DOCUMENT = false;
@@ -152,7 +161,7 @@
         var KEEP_CONTENT = true;
 
         /* Tags to keep content from (when KEEP_CONTENT is true) */
-        var CONTENT_TAGS = [
+        var CONTENT_TAGS = _addToSet({}, [
             'a','abbr','acronym','address','article','aside','b','bdi','bdo',
             'big','blink','blockquote','caption','center','cite','code','col',
             'dd','del','details','dfn','dir','div','dl','dt','em','figcaption',
@@ -161,7 +170,7 @@
             'output','p','pre','q','rp','rt','ruby','s','samp','section','small',
             'span','strike','strong','sub','summary','sup','table','tbody','td',
             'tfoot','th','thead','time','tr','tt','u','ul','var'
-        ];
+        ]);
 
         /* Ideally, do not touch anything below this line */
         /* ______________________________________________ */
@@ -178,23 +187,27 @@
             }
 
             /* Set configuration parameters */
-            'ALLOWED_ATTR'    in cfg ? ALLOWED_ATTR    = cfg.ALLOWED_ATTR    : null;
-            'ALLOWED_TAGS'    in cfg ? ALLOWED_TAGS    = cfg.ALLOWED_TAGS    : null;
-            'FORBID_ATTR'     in cfg ? FORBID_ATTR     = cfg.FORBID_ATTR     : null;
-            'FORBID_TAGS'     in cfg ? FORBID_TAGS     = cfg.FORBID_TAGS     : null;
-            'ALLOW_DATA_ATTR' in cfg ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR : null;
-            'SAFE_FOR_JQUERY' in cfg ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY : null;
-            'WHOLE_DOCUMENT'  in cfg ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT  : null;
-            'RETURN_DOM'      in cfg ? RETURN_DOM      = cfg.RETURN_DOM      : null;
-            'SANITIZE_DOM'    in cfg ? SANITIZE_DOM    = cfg.SANITIZE_DOM    : null;
-            'KEEP_CONTENT'    in cfg ? KEEP_CONTENT    = cfg.KEEP_CONTENT    : null;
+            'ALLOWED_ATTR'    in cfg ? ALLOWED_ATTR    = _addToSet({}, cfg.ALLOWED_ATTR) : null;
+            'ALLOWED_TAGS'    in cfg ? ALLOWED_TAGS    = _addToSet({}, cfg.ALLOWED_TAGS) : null;
+            'FORBID_ATTR'     in cfg ? FORBID_ATTR     = _addToSet({}, cfg.FORBID_ATTR)  : null;
+            'FORBID_TAGS'     in cfg ? FORBID_TAGS     = _addToSet({}, cfg.FORBID_TAGS)  : null;
+            'ALLOW_DATA_ATTR' in cfg ? ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR             : null;
+            'SAFE_FOR_JQUERY' in cfg ? SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY             : null;
+            'WHOLE_DOCUMENT'  in cfg ? WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT              : null;
+            'RETURN_DOM'      in cfg ? RETURN_DOM      = cfg.RETURN_DOM                  : null;
+            'SANITIZE_DOM'    in cfg ? SANITIZE_DOM    = cfg.SANITIZE_DOM                : null;
+            'KEEP_CONTENT'    in cfg ? KEEP_CONTENT    = cfg.KEEP_CONTENT                : null;
 
             /* Merge configuration parameters */
-            cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
-            cfg.ADD_TAGS ? ALLOWED_TAGS = ALLOWED_TAGS.concat(cfg.ADD_TAGS) : null;
+            if (cfg.ADD_TAGS) {
+                _addToSet(ALLOWED_TAGS, cfg.ADD_TAGS);
+            }
+            if (cfg.ADD_ATTR) {
+                _addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
+            }
 
             /* Add #text in case KEEP_CONTENT is set to true */
-            KEEP_CONTENT ? ALLOWED_TAGS.push('#text') : null;
+            if (KEEP_CONTENT) { ALLOWED_TAGS['#text'] = true; }
 
             // Prevent further manipulation of configuration.
             // Not available in IE8, Safari 5, etc.
@@ -320,12 +333,10 @@
             });
 
             /* Remove element if anything forbids its presence */
-            if (ALLOWED_TAGS.indexOf(tagName) === -1
-                || FORBID_TAGS.indexOf(tagName) > -1
-            ) {
+            if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
                 /* Keep content for white-listed elements */
                 if (KEEP_CONTENT && currentNode.insertAdjacentHTML
-                    && CONTENT_TAGS.indexOf(tagName) !== -1){
+                    && CONTENT_TAGS[tagName]){
                     try {
                         currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                     } catch (e) {}
@@ -393,9 +404,8 @@
                 });
 
                 if (
-                    ((ALLOWED_ATTR.indexOf(attrName) > -1 &&
-                      FORBID_ATTR.indexOf(attrName) === -1) ||
-                    (ALLOW_DATA_ATTR && /^data-[\w-]+/i.test(tmp.name)))
+                    ((ALLOWED_ATTR[attrName] && !FORBID_ATTR[attrName]) ||
+                     (ALLOW_DATA_ATTR && /^data-[\w-]+/i.test(tmp.name)))
 
                     /* Get rid of script and data URIs */
                     && (!isScriptOrData.test(tmp.value.replace(whitespace,''))
