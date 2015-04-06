@@ -321,8 +321,7 @@
             });
 
             /* Remove element if anything forbids its presence */
-            if (currentNode.nodeType === currentNode.COMMENT_NODE
-                || ALLOWED_TAGS.indexOf(tagName) === -1
+            if (ALLOWED_TAGS.indexOf(tagName) === -1
                 || FORBID_TAGS.indexOf(tagName) > -1
             ) {
                 /* Keep content for white-listed elements */
