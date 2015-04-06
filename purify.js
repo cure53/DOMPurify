@@ -25,7 +25,7 @@
      * sanitize
      * Public method providing core sanitation functionality
      *
-     * @param {mixed}  dirty string or DOM
+     * @param {String} dirty string
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
