@@ -22,6 +22,13 @@
     DOMPurify.version = '0.6.2';
 
     /**
+     * Expose whether this browser supports running the full DOMPurify.
+     */
+    DOMPurify.isSupported =
+        typeof document.implementation.createHTMLDocument !== 'undefined' &&
+        document.documentMode !== 9;
+
+    /**
      * sanitize
      * Public method providing core sanitation functionality
      *
@@ -462,9 +469,8 @@
             });
         };
 
-        /* Feature check and untouched opt-out return */
-        if (typeof document.implementation.createHTMLDocument === 'undefined'
-            || (typeof document.documentMode === 'number' && document.documentMode === 9)) {
+        /* Check we can run. Otherwise fall back or ignore */
+        if (!DOMPurify.isSupported) {
             if (typeof window.toStaticHTML === 'function' && typeof dirty === 'string') {
                 return window.toStaticHTML(dirty);
             }
