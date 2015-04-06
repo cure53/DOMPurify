@@ -364,7 +364,7 @@
             _executeHook('beforeSanitizeAttributes', currentNode, null);
 
             var regex = /^(\w+script|data):/gi,
-                clonedNode = currentNode.cloneNode(true),
+                clonedNode = currentNode.cloneNode(false),
                 tmp, clobbering;
 
             /* This needs to be extensive thanks to Webkit/Blink's behavior */
