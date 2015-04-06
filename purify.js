@@ -16,11 +16,11 @@
     var hooks = {};
 
     /**
-     * Version label, exposed for easier checks 
+     * Version label, exposed for easier checks
      * if DOMPurfy is up to date or not
      */
     DOMPurify.version = '0.6.2';
-    
+
     /**
      * sanitize
      * Public method providing core sanitation functionality
@@ -122,10 +122,10 @@
             // XML
             'xlink:href','xml:id','xlink:title','xml:space'
         ];
-        
+
         /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
         var FORBID_ATTR = [];
-        
+
         /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
         var FORBID_TAGS = [];
 
@@ -167,7 +167,6 @@
          * @param  optional config literal
          */
         var _parseConfig = function(cfg) {
-
             /* Shield configuration object from tampering */
             if (typeof cfg !== 'object') {
                 cfg = {};
@@ -189,7 +188,7 @@
             /* Merge configuration parameters */
             cfg.ADD_ATTR ? ALLOWED_ATTR = ALLOWED_ATTR.concat(cfg.ADD_ATTR) : null;
             cfg.ADD_TAGS ? ALLOWED_TAGS = ALLOWED_TAGS.concat(cfg.ADD_TAGS) : null;
-            
+
             /* Add #text in case KEEP_CONTENT is set to true */
             KEEP_CONTENT ? ALLOWED_TAGS.push('#text') : null;
 
@@ -205,7 +204,6 @@
          * @return a DOM, filled with the dirty markup
          */
         var _initDocument = function(dirty) {
-
             /* Exit directly if we have nothing to do */
             if (typeof dirty === 'string' && dirty.indexOf('<') === -1) {
                 return dirty;
@@ -300,18 +298,16 @@
          * @return  true if node was killed, false if left alive
          */
         var _sanitizeElements = function(currentNode) {
-
             /* Execute a hook if present */
             _executeHook('beforeSanitizeElements', currentNode, null);
 
             /* Check if element is clobbered or can clobber */
             if (_isClobbered(currentNode)) {
-
                 /* Be harsh with clobbered content, element has to go! */
-                try{
+                try {
                     currentNode.parentNode.removeChild(currentNode);
-                } catch(e){
-                    currentNode.outerHTML='';
+                } catch (e) {
+                    currentNode.outerHTML = '';
                 }
                 return true;
             }
@@ -328,14 +324,14 @@
                 || ALLOWED_TAGS.indexOf(tagName) === -1
                 || FORBID_TAGS.indexOf(tagName) > -1
             ) {
-                
+
                 /* Keep content for white-listed elements */
                 if (KEEP_CONTENT && currentNode.insertAdjacentHTML
                     && currentNode.nodeName.toLowerCase
                     && CONTENT_TAGS.indexOf(tagName) !== -1){
                     try {
                         currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
-                    } catch(e) {}
+                    } catch (e) {}
                 }
 
                 /* Remove element if anything permits its presence */
@@ -366,10 +362,9 @@
          * @return  void
          */
         var _sanitizeAttributes = function(currentNode) {
-        
             /* Execute a hook if present */
             _executeHook('beforeSanitizeAttributes', currentNode, null);
-                    
+
             var regex = /^(\w+script|data):/gi,
                 clonedNode = currentNode.cloneNode(true),
                 tmp, clobbering;
@@ -382,15 +377,14 @@
 
             /* Go backwards over all attributes; safely remove bad ones */
             for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
-
                 tmp = clonedNode.attributes[attr];
                 clobbering = false;
                 currentNode.removeAttribute(currentNode.attributes[attr].name);
 
                 if (!tmp instanceof Attr) { continue; }
 
-                if(SANITIZE_DOM) {
-                    if((tmp.name === 'id' || tmp.name === 'name')
+                if (SANITIZE_DOM) {
+                    if ((tmp.name === 'id' || tmp.name === 'name')
                         && (tmp.value in window || tmp.value in document)) {
                         clobbering = true;
                     }
@@ -401,7 +395,7 @@
                 /* Execute a hook if present */
                 _executeHook('uponSanitizeAttribute', currentNode, {
                     attrName: attrName, attrValue: tmp.value, attr: tmp
-                });                
+                });
 
                 if (
                     ((ALLOWED_ATTR.indexOf(attrName) > -1 &&
@@ -439,14 +433,13 @@
         var _sanitizeShadowDOM = function(fragment) {
             var shadowNode;
             var shadowIterator = _createIterator(fragment);
-            
+
             /* Execute a hook if present */
-            _executeHook('beforeSanitizeShadowDOM', fragment, null);            
+            _executeHook('beforeSanitizeShadowDOM', fragment, null);
 
             while (shadowNode = shadowIterator.nextNode()) {
-                
                 /* Execute a hook if present */
-                _executeHook('uponSanitizeShadowNode', shadowNode, null);                 
+                _executeHook('uponSanitizeShadowNode', shadowNode, null);
 
                 /* Sanitize tags and elements */
                 if (_sanitizeElements(shadowNode)) {
@@ -461,9 +454,9 @@
                 /* Check attributes, sanitize if necessary */
                 _sanitizeAttributes(shadowNode);
             }
-            
+
             /* Execute a hook if present */
-            _executeHook('afterSanitizeShadowDOM', fragment, null); 
+            _executeHook('afterSanitizeShadowDOM', fragment, null);
         };
 
         /**
@@ -536,7 +529,6 @@
      * @param {Function} hookFunction
      */
     DOMPurify.addHook = function(entryPoint, hookFunction) {
-
         if (typeof hookFunction !== 'function') { return; }
         hooks[entryPoint] = hooks[entryPoint] || [];
         hooks[entryPoint].push(hookFunction);
