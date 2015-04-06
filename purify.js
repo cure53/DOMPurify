@@ -320,11 +320,11 @@
                 tagName: tagName
             });
 
+            /* Remove element if anything forbids its presence */
             if (currentNode.nodeType === currentNode.COMMENT_NODE
                 || ALLOWED_TAGS.indexOf(tagName) === -1
                 || FORBID_TAGS.indexOf(tagName) > -1
             ) {
-
                 /* Keep content for white-listed elements */
                 if (KEEP_CONTENT && currentNode.insertAdjacentHTML
                     && currentNode.nodeName.toLowerCase
@@ -333,8 +333,6 @@
                         currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                     } catch (e) {}
                 }
-
-                /* Remove element if anything permits its presence */
                 currentNode.parentNode.removeChild(currentNode);
                 return true;
             }
