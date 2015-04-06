@@ -475,7 +475,7 @@
         cfg ? _parseConfig(cfg) : null;
 
         /* Exit directly if we have nothing to do */
-        if (dirty.indexOf('<') === -1) {
+        if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
             return dirty;
         }
 
