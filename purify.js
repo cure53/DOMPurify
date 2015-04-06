@@ -326,7 +326,6 @@
             ) {
                 /* Keep content for white-listed elements */
                 if (KEEP_CONTENT && currentNode.insertAdjacentHTML
-                    && currentNode.nodeName.toLowerCase
                     && CONTENT_TAGS.indexOf(tagName) !== -1){
                     try {
                         currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
