@@ -363,7 +363,7 @@
             /* Execute a hook if present */
             _executeHook('beforeSanitizeAttributes', currentNode, null);
 
-            var regex = /^(\w+script|data):/gi,
+            var isScriptOrData = /^(?:\w+script|data):/gi,
                 clonedNode = currentNode.cloneNode(false),
                 tmp, clobbering;
 
@@ -398,10 +398,10 @@
                 if (
                     ((ALLOWED_ATTR.indexOf(attrName) > -1 &&
                       FORBID_ATTR.indexOf(attrName) === -1) ||
-                    (ALLOW_DATA_ATTR && tmp.name.match(/^data-[\w-]+/i)))
+                    (ALLOW_DATA_ATTR && /^data-[\w-]+/i.test(tmp.name)))
 
                     /* Get rid of script and data URIs */
-                    && (!tmp.value.replace(whitespace,'').match(regex)
+                    && (!isScriptOrData.test(tmp.value.replace(whitespace,''))
 
                         /* Keep image data URIs alive if src is allowed */
                         || (tmp.name === 'src'
