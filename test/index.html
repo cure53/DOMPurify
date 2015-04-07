@@ -24,11 +24,11 @@
 
     // Don't start tests automatically
     QUnit.config.autostart = false;
-    
+
     QUnit.assert.contains = function( needle, haystack, message ) {
         var actual = haystack.indexOf(needle) > -1;
         QUnit.push(actual, actual, needle, message);
-    };    
+    };
 
     // Load assertions
     jQuery
@@ -40,44 +40,44 @@
         var xssTests = tests.filter( function( element ) {
           if ( /alert/.test( element.payload ) ) { return element; }
         });
-        
+
         // Sanitization tests
         QUnit
           .cases(tests)
           .test( 'Sanitization test', function(params, assert) {
               assert.contains( DOMPurify.sanitize( params.payload ), params.expected );
           });
-        
+
         // Config-Flag Tests
         QUnit.test( 'Config-Flag tests: KEEP_CONTENT + ALLOWED_TAGS / ALLOWED_ATTR', function(assert) {
             // KEEP_CONTENT + ALLOWED_TAGS / ALLOWED_ATTR
             assert.equal( DOMPurify.sanitize( '<iframe>Hello</iframe>', {KEEP_CONTENT: false} ), "");
-            assert.contains( DOMPurify.sanitize( '<a href="#">abc<b style="color:red">123</b><q class="cite">123</b></a>', {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style'], KEEP_CONTENT: true}), 
+            assert.contains( DOMPurify.sanitize( '<a href="#">abc<b style="color:red">123</b><q class="cite">123</b></a>', {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style'], KEEP_CONTENT: true}),
                 ["abc<b style=\"color:red\">123</b><q>123</q>", "abc<b style=\"color: red;\">123</b><q>123</q>"]
             );
             assert.equal( DOMPurify.sanitize( '<a href="#">abc<b style="color:red">123</b><q class="cite">123</b></a>', {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style'], KEEP_CONTENT: false}), "");
             assert.equal( DOMPurify.sanitize( '<a href="#">abc</a>', {ALLOWED_TAGS: ['b', 'q'], KEEP_CONTENT: false}), "");
         });
-        
+
         QUnit.test( 'Config-Flag tests: ALLOW_DATA_ATTR', function(assert) {
             // ALLOW_DATA_ATTR
             assert.equal( DOMPurify.sanitize( '<a href="#" data-abc\"="foo">abc</a>', {ALLOW_DATA_ATTR: true}), "<a href=\"#\">abc</a>" );
             assert.equal( DOMPurify.sanitize( '<a href="#" data-abc="foo">abc</a>', {ALLOW_DATA_ATTR: false}), "<a href=\"#\">abc</a>" );
-            assert.contains( DOMPurify.sanitize( '<a href="#" data-abc="foo">abc</a>', {ALLOW_DATA_ATTR: true}), 
-                ["<a data-abc=\"foo\" href=\"#\">abc</a>", "<a href=\"#\" data-abc=\"foo\">abc</a>"] 
+            assert.contains( DOMPurify.sanitize( '<a href="#" data-abc="foo">abc</a>', {ALLOW_DATA_ATTR: true}),
+                ["<a data-abc=\"foo\" href=\"#\">abc</a>", "<a href=\"#\" data-abc=\"foo\">abc</a>"]
             );
-            assert.contains( DOMPurify.sanitize( '<a href="#" data-abc-1-2-3="foo">abc</a>', {ALLOW_DATA_ATTR: true}), 
-                ["<a data-abc-1-2-3=\"foo\" href=\"#\">abc</a>", "<a href=\"#\" data-abc-1-2-3=\"foo\">abc</a>"]  
+            assert.contains( DOMPurify.sanitize( '<a href="#" data-abc-1-2-3="foo">abc</a>', {ALLOW_DATA_ATTR: true}),
+                ["<a data-abc-1-2-3=\"foo\" href=\"#\">abc</a>", "<a href=\"#\" data-abc-1-2-3=\"foo\">abc</a>"]
             );
             assert.equal( DOMPurify.sanitize( '<a href="#" data-""="foo">abc</a>', {ALLOW_DATA_ATTR: true}), "<a href=\"#\">abc</a>" );
-        });         
-        
+        });
+
         QUnit.test( 'Config-Flag tests: ADD_TAGS', function(assert) {
             // ADD_TAGS
             assert.equal( DOMPurify.sanitize( '<my-component>abc</my-component>', {ADD_TAGS: ['my-component']}), "<my-component>abc</my-component>" );
             assert.equal( DOMPurify.sanitize( '<my-ĸompønent>abc</my-ĸompønent>', {ADD_TAGS: ['my-ĸompønent']}), "<my-ĸompønent>abc</my-ĸompønent>" );
         });
-        
+
         QUnit.test( 'Config-Flag tests: ADD_TAGS + ADD_ATTR', function(assert) {
             // ADD_TAGS + ADD_ATTR
             assert.equal( DOMPurify.sanitize( '<my-component my-attr="foo">abc</my-component>', {ADD_TAGS: ['my-component']}), "<my-component>abc</my-component>" );
@@ -85,7 +85,7 @@
             assert.equal( DOMPurify.sanitize( '<my-ĸompønent my-æŧŧr="foo">abc</my-ĸompønent>', {ADD_TAGS: ['my-ĸompønent']}), "<my-ĸompønent>abc</my-ĸompønent>" );
             assert.equal( DOMPurify.sanitize( '<my-ĸompønent my-æŧŧr="foo">abc</my-ĸompønent>', {ADD_TAGS: ['my-ĸompønent'], ADD_ATTR: ['my-æŧŧr']}), "<my-ĸompønent my-æŧŧr=\"foo\">abc</my-ĸompønent>" );
         });
-        
+
         QUnit.test( 'Config-Flag tests: SAFE_FOR_JQUERY', function(assert) {
             //SAFE_FOR_JQUERY
             assert.equal( DOMPurify.sanitize( '<a>123</a><option><style><img src=x onerror=alert(1)>', {SAFE_FOR_JQUERY: false}), "<a>123</a><option><style><img src=x onerror=alert(1)></style></option>" );
@@ -97,7 +97,7 @@
             assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: false}), "<b><style><style/><img src=xx: onerror=alert(1)></style></b>" );
             assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: true}), "<b><style>&lt;style/>&lt;img src=xx: onerror=alert(1)></style></b>" );
         });
-        
+
         QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
             // SANITIZE_DOM
             assert.equal( DOMPurify.sanitize( '<form name="window">', {SANITIZE_DOM: true}), "<form></form>" );
@@ -106,32 +106,33 @@
             assert.equal( DOMPurify.sanitize( '<img src="x" name="getElementById">', {SANITIZE_DOM: false}), "<img name=\"getElementById\" src=\"x\">" );
             assert.equal( DOMPurify.sanitize( '<img src="x" name="getElementById">', {SANITIZE_DOM: true}), "<img src=\"x\">" );
             assert.equal( DOMPurify.sanitize( '<a href="x" id="location">click</a>', {SANITIZE_DOM: true}), "<a href=\"x\">click</a>" );
-            assert.contains( DOMPurify.sanitize( '<form><input name="attributes"></form>', {ADD_TAGS: ['form'], SANITIZE_DOM: false}), 
-                ["", "<form><input name=\"attributes\"></form>"] 
+            assert.contains( DOMPurify.sanitize( '<form><input name="attributes"></form>', {ADD_TAGS: ['form'], SANITIZE_DOM: false}),
+                ["", "<form><input name=\"attributes\"></form>"]
             );
-            assert.contains( DOMPurify.sanitize( '<form><input name="attributes"></form>', {ADD_TAGS: ['form'], SANITIZE_DOM: true}), 
-                ["", "<form><input name=\"attributes\"></form>", "<form><input></form>"] 
-            ); 
+            assert.contains( DOMPurify.sanitize( '<form><input name="attributes"></form>', {ADD_TAGS: ['form'], SANITIZE_DOM: true}),
+                ["", "<form><input name=\"attributes\"></form>", "<form><input></form>"]
+            );
         });
-        
+
         QUnit.test( 'Config-Flag tests: WHOLE_DOCUMENT', function(assert) {
             //WHOLE_DOCUMENT
             assert.equal( DOMPurify.sanitize( '123', {WHOLE_DOCUMENT: false}), "123" );
-            assert.equal( DOMPurify.sanitize( '123', {WHOLE_DOCUMENT: true}), "123" );
+            assert.equal( DOMPurify.sanitize( '123', {WHOLE_DOCUMENT: true}), "<html><head></head><body>123</body></html>" );
             assert.equal( DOMPurify.sanitize( '<style>*{color:red}</style>', {WHOLE_DOCUMENT: false}), "" );
             assert.equal( DOMPurify.sanitize( '<style>*{color:red}</style>', {WHOLE_DOCUMENT: true}), "<html><head><style>*{color:red}</style></head><body></body></html>" );
             assert.equal( DOMPurify.sanitize( '123<style>*{color:red}</style>', {WHOLE_DOCUMENT: false}), "123<style>*{color:red}</style>" );
             assert.equal( DOMPurify.sanitize( '123<style>*{color:red}</style>', {WHOLE_DOCUMENT: true}), "<html><head></head><body>123<style>*{color:red}</style></body></html>" );
         });
-        
+
         QUnit.test( 'Config-Flag tests: RETURN_DOM', function(assert) {
             //RETURN_DOM
             assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {RETURN_DOM: true}).outerHTML, "<body><a>123<b>456</b></a></body>" );
             assert.equal( DOMPurify.sanitize( '<a>123<b>456<script>alert(1)<\/script></b></a>', {RETURN_DOM: true}).outerHTML, "<body><a>123<b>456</b></a></body>" );
             assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {RETURN_DOM: true, WHOLE_DOCUMENT: true}).outerHTML, "<html><head></head><body><a>123<b>456</b></a></body></html>" );
             assert.equal( DOMPurify.sanitize( '<a>123<b>456<script>alert(1)<\/script></b></a>', {RETURN_DOM: true, WHOLE_DOCUMENT: true}).outerHTML, "<html><head></head><body><a>123<b>456</b></a></body></html>" );
+            assert.equal( DOMPurify.sanitize( '123', {RETURN_DOM: true}).outerHTML, "<body>123</body>" );
         });
-        
+
         QUnit.test( 'Config-Flag tests: FORBID_TAGS', function(assert) {
             //FORBID_TAGS
             assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {FORBID_TAGS: ['b']}), "<a>123456</a>" );
@@ -139,7 +140,7 @@
             assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {FORBID_TAGS: ['c']}), "<a>123<b>456</b></a>" );
             assert.equal( DOMPurify.sanitize( '<a>123<b>456<script>alert(1)<\/script></b></a>789', {FORBID_TAGS: ['script', 'b']}), "<a>123456</a>789" );
             assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {ADD_TAGS: ['b'], FORBID_TAGS: ['b']}), "<a>123456</a>" );
-        });        
+        });
 
         QUnit.test( 'Config-Flag tests: FORBID_ATTR', function(assert) {
             //FORBID_ATTR
@@ -147,8 +148,8 @@
             assert.equal( DOMPurify.sanitize( '<a class="0" x="1">123<b y="1">456<script>alert(1)<\/script></b></a>789', {FORBID_ATTR: ['x', 'y']}), "<a class=\"0\">123<b>456</b></a>789" );
             assert.equal( DOMPurify.sanitize( '<a y="1">123<b y="1" y="2">456</b></a>', {FORBID_ATTR: ['y']}), "<a>123<b>456</b></a>" );
             assert.equal( DOMPurify.sanitize( '<a>123<b x="1">456<script y="1">alert(1)<\/script></b></a>789', {FORBID_ATTR: ['x', 'y']}), "<a>123<b>456</b></a>789" );
-        }); 
-                
+        });
+
         // XSS tests: Native DOM methods (alert() should not be called)
         QUnit
           .cases(xssTests)
@@ -164,7 +165,7 @@
                 window.xssed = false;
               }, 100);
           });
-        
+
 
         // XSS tests: jQuery (alert() should not be called)
         QUnit
@@ -181,6 +182,11 @@
                 window.xssed = false;
               }, 100);
           });
+
+        // Check for isSupported property
+        QUnit.test( 'DOMPurify property tests', function(assert) {
+            assert.equal( typeof DOMPurify.isSupported, 'boolean' );
+        });
 
         // Fire it up!
         QUnit.start();
