@@ -1,0 +1,109 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../purify.js"></script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+
+            // Specify dirty HTML
+            var dirty = '<p>HELLO<iframe/\/src=JavScript:alert&lpar;1)></ifrAMe><br>goodbye</p>';
+
+            /**
+             * Add one hook, then remove it using removeHook()
+             */
+            // Add a hook to convert all text to capitals
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+                // Set text node content to uppercase
+                if(node.nodeName && node.nodeName === '#text') {
+                    node.textContent=node.textContent.toUpperCase();
+                }
+            });
+
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerHTML += clean;
+            
+            // now let's remove the hook again
+            console.log(DOMPurify.removeHook('beforeSanitizeAttributes'));
+            
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerHTML += clean;
+
+            /**
+             * Add three hooks, then remove two using removeHooks()
+             */
+            // Add a hook to convert all text to capitals
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+                // Set text node content to uppercase
+                if(node.nodeName && node.nodeName === '#text') {
+                    node.textContent=node.textContent.toUpperCase();
+                }
+            });
+            // Add a hook to convert all text to <BIG>
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+                // Set text node content to uppercase
+                if(node.nodeName && node.nodeName === '#text') {
+                    node.textContent=node.textContent.big();
+                }
+            });
+            // Add a hook to convert all text to <STRONG>
+            DOMPurify.addHook('beforeSanitizeElements', function(node){
+                // Set text node content to uppercase
+                if(node.nodeName && node.nodeName === '#text') {
+                    node.textContent=node.textContent.bold();
+                }
+            });
+            
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerHTML += clean;
+            
+            // now let's remove the hook again
+            console.log(DOMPurify.removeHooks('beforeSanitizeAttributes'));
+            
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerHTML += clean;
+            
+            /**
+             * Add two hooks, then remove them using removeAllHooks()
+             * 
+             * Keep in mind, we still have one from above, the .bold() hook
+             */
+            // Add a hook to convert all text to capitals
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+                // Set text node content to uppercase
+                if(node.nodeName && node.nodeName === '#text') {
+                    node.textContent=node.textContent.toUpperCase();
+                }
+            });
+            // Add a hook to convert all text to <BIG>
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+                // Set text node content to uppercase
+                if(node.nodeName && node.nodeName === '#text') {
+                    node.textContent=node.textContent.big();
+                }
+            });            
+            
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerHTML += clean;
+            
+            // now let's remove the hook again
+            console.log(DOMPurify.removeAllHooks());
+            
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerHTML += clean;
+        </script>
+    </body>
+</html>

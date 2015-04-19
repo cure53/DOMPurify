@@ -572,5 +572,38 @@
         hooks[entryPoint].push(hookFunction);
     };
 
+    /**
+     * removeHook
+     * Public method to remove a DOMPurify hook at a given entryPoint
+     * (pops it from the stack of hooks if more are present)
+     *
+     * @param {String} entryPoint
+     * @return void
+     */
+    DOMPurify.removeHook = function(entryPoint) {
+        hooks[entryPoint].pop();
+    };
+
+    /**
+     * removeHooks
+     * Public method to remove all DOMPurify hooks at a given entryPoint
+     *
+     * @param  {String} entryPoint
+     * @return void
+     */
+    DOMPurify.removeHooks = function(entryPoint) {
+        hooks[entryPoint] = [];
+    };
+
+    /**
+     * removeAllHooks
+     * Public method to remove all DOMPurify hooks
+     *
+     * @return void
+     */
+    DOMPurify.removeAllHooks = function() {
+        hooks = [];
+    };
+
     return DOMPurify;
 }));
