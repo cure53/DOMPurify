@@ -581,7 +581,7 @@
      * @return void
      */
     DOMPurify.removeHook = function(entryPoint) {
-        hooks[entryPoint].pop();
+        if (hooks[entryPoint]) {hooks[entryPoint].pop()}
     };
 
     /**
@@ -592,7 +592,7 @@
      * @return void
      */
     DOMPurify.removeHooks = function(entryPoint) {
-        hooks[entryPoint] = [];
+        if (hooks[entryPoint]) {hooks[entryPoint] = []}
     };
 
     /**
