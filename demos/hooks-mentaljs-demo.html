@@ -60,11 +60,11 @@
                 if(data.attrName.match(/^on\w+/)) {
                     var script = data.attrValue;
                     try {
-                        return data.attr.value = MentalJS().parse(
+                        return data.attrValue = MentalJS().parse(
                             {options:{eval:false, dom:true}, code:script}
                         );
                     } catch(e) {
-                        return data.attr.value = '';
+                        return data.attrValue = '';
                     }
                 }
             });            
