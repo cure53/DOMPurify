@@ -392,56 +392,68 @@
         /* Execute a hook if present */
         _executeHook('beforeSanitizeAttributes', currentNode, null);
 
-        var isScriptOrData = /^(?:\w+script|data):/gi,
-            clonedNode = currentNode.cloneNode(false),
-            tmp, clobbering;
-
-        /* This needs to be extensive thanks to Webkit/Blink's behavior */
-        var whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
+        var attributes = currentNode.attributes;
 
         /* Check if we have attributes; if not we might have a text node */
-        if (!currentNode.attributes) { return; }
+        if (!attributes) { return; }
+
+        var isScriptOrData = /^(?:\w+script|data):/gi,
+            /* This needs to be extensive thanks to Webkit/Blink's behavior */
+            whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g,
+            hookEvent = {
+                attrName: '',
+                attrValue: '',
+                keepAttr: true
+            },
+            l = attributes.length,
+            attr, name, value, lcName;
 
         /* Go backwards over all attributes; safely remove bad ones */
-        for (var attr = currentNode.attributes.length-1; attr >= 0; attr--) {
-            tmp = clonedNode.attributes[attr];
-            clobbering = false;
-            currentNode.removeAttribute(currentNode.attributes[attr].name);
-
-            if (!tmp instanceof Attr) { continue; }
-
-            if (SANITIZE_DOM) {
-                if ((tmp.name === 'id' || tmp.name === 'name')
-                    && (tmp.value in window || tmp.value in document)) {
-                    clobbering = true;
-                }
-            }
-            /* Safely handle attributes */
-            var attrName = tmp.name.toLowerCase();
+        while (l--) {
+            attr = attributes[l];
+            name = attr.name;
+            value = attr.value;
+            lcName = name.toLowerCase();
 
             /* Execute a hook if present */
-            _executeHook('uponSanitizeAttribute', currentNode, {
-                attrName: attrName, attrValue: tmp.value, attr: tmp
-            });
+            hookEvent.attrName = lcName;
+            hookEvent.attrValue = value;
+            hookEvent.keepAttr = true;
+            _executeHook('uponSanitizeAttribute', currentNode, hookEvent );
+            value = hookEvent.attrValue;
+
+            /* Remove attribute */
+            currentNode.removeAttribute(name);
+
+            /* Did the hooks approve of the attribute? */
+            if ( !hookEvent.keepAttr ) {
+                continue;
+            }
+
+            /* Make sure attribute cannot clobber */
+            if (SANITIZE_DOM &&
+                    (lcName === 'id' || lcName === 'name') &&
+                    (value in window || value in document)) {
+                continue;
+            }
 
             if (
-                ((ALLOWED_ATTR[attrName] && !FORBID_ATTR[attrName]) ||
-                 (ALLOW_DATA_ATTR && /^data-[\w-]+/i.test(tmp.name)))
-
+                /* Check the name is permitted */
+                (
+                 (ALLOWED_ATTR[lcName] && !FORBID_ATTR[lcName]) ||
+                 (ALLOW_DATA_ATTR && /^data-[\w-]+/.test(lcName))
+                ) &&
                 /* Get rid of script and data URIs */
-                && (!isScriptOrData.test(tmp.value.replace(whitespace,''))
-
-                    /* Keep image data URIs alive if src is allowed */
-                    || (tmp.name === 'src'
-                        && tmp.value.indexOf('data:') === 0
-                        && currentNode.nodeName === 'IMG'))
-
-                /* Make sure attribute cannot clobber */
-                && !clobbering
+                (
+                 !isScriptOrData.test(value.replace(whitespace,'')) ||
+                 /* Keep image data URIs alive if src is allowed */
+                 (lcName === 'src' && value.indexOf('data:') === 0 &&
+                  currentNode.nodeName === 'IMG')
+                )
             ) {
                 /* Handle invalid data attribute set by try-catching it */
                 try {
-                    currentNode.setAttribute(tmp.name, tmp.value);
+                    currentNode.setAttribute(name, value);
                 } catch (e) {}
             }
         }
