@@ -3,43 +3,43 @@
     {
         "title": "DOM Clobbering against document.createElement() (see #47)",
         "payload": "<img src=x name=createElement><img src=y id=createElement>",
-        "expected": "<img src=\"x\"><img src=\"y\">"        
-    },    
+        "expected": "<img src=\"x\"><img src=\"y\">"
+    },
     {
         "title": "DOM Clobbering against an empty cookie",
         "payload": "<img src=x name=cookie>",
-        "expected": "<img src=\"x\">"        
+        "expected": "<img src=\"x\">"
     },
     {
         "title": "JavaScript URIs using Unicode LS/PS I",
         "payload": "123<a href='\u2028javascript:alert(1)'>I am a dolphin!</a>",
-        "expected": "123<a>I am a dolphin!</a>"        
+        "expected": "123<a>I am a dolphin!</a>"
     },
     {
         "title": "JavaScript URIs using Unicode LS/PS II",
         "payload": "123<a href='\u2028javascript:alert(1)'>I am a dolphin too!</a>",
-        "expected": "123<a>I am a dolphin too!</a>"        
-    },    
+        "expected": "123<a>I am a dolphin too!</a>"
+    },
     {
         "title": "JavaScript URIs using Unicode Whitespace",
-        "payload": "123<a href=' javascript:alert(1)'>CLICK</a><a href='&#xA0javascript:alert(1)'>CLICK</a><a href='&#x1680;javascript:alert(1)'>CLICK</a><a href='&#x180E;javascript:alert(1)'>CLICK</a><a href='&#x2000;javascript:alert(1)'>CLICK</a><a href='&#x2001;javascript:alert(1)'>CLICK</a><a href='&#x2002;javascript:alert(1)'>CLICK</a><a href='&#x2003;javascript:alert(1)'>CLICK</a><a href='&#x2004;javascript:alert(1)'>CLICK</a><a href='&#x2005;javascript:alert(1)'>CLICK</a><a href='&#x2006;javascript:alert(1)'>CLICK</a><a href='&#x2006;javascript:alert(1)'>CLICK</a><a href='&#x2007;javascript:alert(1)'>CLICK</a><a href='&#x2008;javascript:alert(1)'>CLICK</a><a href='&#x2009;javascript:alert(1)'>CLICK</a><a href='&#x200A;javascript:alert(1)'>CLICK</a><a href='&#x200B;javascript:alert(1)'>CLICK</a><a href='&#x205f;javascript:alert(1)'>CLICK</a><a href='&#x3000;javascript:alert(1)'>CLICK</a>",        
-        "expected": "123<a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a>"        
-    },      
+        "payload": "123<a href=' javascript:alert(1)'>CLICK</a><a href='&#xA0javascript:alert(1)'>CLICK</a><a href='&#x1680;javascript:alert(1)'>CLICK</a><a href='&#x180E;javascript:alert(1)'>CLICK</a><a href='&#x2000;javascript:alert(1)'>CLICK</a><a href='&#x2001;javascript:alert(1)'>CLICK</a><a href='&#x2002;javascript:alert(1)'>CLICK</a><a href='&#x2003;javascript:alert(1)'>CLICK</a><a href='&#x2004;javascript:alert(1)'>CLICK</a><a href='&#x2005;javascript:alert(1)'>CLICK</a><a href='&#x2006;javascript:alert(1)'>CLICK</a><a href='&#x2006;javascript:alert(1)'>CLICK</a><a href='&#x2007;javascript:alert(1)'>CLICK</a><a href='&#x2008;javascript:alert(1)'>CLICK</a><a href='&#x2009;javascript:alert(1)'>CLICK</a><a href='&#x200A;javascript:alert(1)'>CLICK</a><a href='&#x200B;javascript:alert(1)'>CLICK</a><a href='&#x205f;javascript:alert(1)'>CLICK</a><a href='&#x3000;javascript:alert(1)'>CLICK</a>",
+        "expected": "123<a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a><a>CLICK</a>"
+    },
     {
         "title": "Image with data URI src",
         "payload": "<img src=data:image/jpeg,ab798ewqxbaudbuoibeqbla>",
-        "expected": "<img src=\"data:image/jpeg,ab798ewqxbaudbuoibeqbla\">"        
+        "expected": "<img src=\"data:image/jpeg,ab798ewqxbaudbuoibeqbla\">"
     },
     {
         "title": "Image with JavaScript URI src (DoS on Firefox)",
         "payload": "<img src='javascript:while(1){}'>",
-        "expected": "<img>"        
-    },    
+        "expected": "<img>"
+    },
     {
         "title": "Link with data URI href",
         "payload": "<a href=data:,evilnastystuff>clickme</a>",
-        "expected": "<a>clickme</a>"        
-    },    
+        "expected": "<a>clickme</a>"
+    },
     {
         "title": "Simple numbers",
         "payload": "123456",
@@ -986,5 +986,10 @@
                         "<div id=\"137\"><svg>\n<a xlink:href=\"?\">\n<circle r=\"400\"></circle>\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
                         "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:NS1=\"\" NS1:xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>"
                     ]
+    },
+    {
+        "title": "Removing name attr from img with id can crash Safari",
+        "payload": "<img name=\"bar\" id=\"foo\">",
+        "expected": "<img id=\"foo\" name=\"bar\">"
     }
 ]
