@@ -406,7 +406,7 @@
                 keepAttr: true
             },
             l = attributes.length,
-            attr, name, value, lcName;
+            attr, name, value, lcName, idAttr;
 
         /* Go backwards over all attributes; safely remove bad ones */
         while (l--) {
@@ -423,10 +423,24 @@
             value = hookEvent.attrValue;
 
             /* Remove attribute */
-            currentNode.removeAttribute(name);
+            // Safari (iOS + Mac), last tested v8.0.5, crashes if you try to
+            // remove a "name" attribute from an <img> tag that has an "id"
+            // attribute at the time.
+            if (lcName === 'name'  &&
+                    currentNode.nodeName === 'IMG' && currentNode.id) {
+                idAttr = attributes.id;
+                attributes = Array.prototype.slice.apply(attributes);
+                currentNode.removeAttribute('id');
+                currentNode.removeAttribute(name);
+                if (attributes.indexOf(idAttr) > l) {
+                    currentNode.setAttribute('id', idAttr.value);
+                }
+            } else {
+                currentNode.removeAttribute(name);
+            }
 
             /* Did the hooks approve of the attribute? */
-            if ( !hookEvent.keepAttr ) {
+            if (!hookEvent.keepAttr) {
                 continue;
             }
 
@@ -593,7 +607,9 @@
      * @return void
      */
     DOMPurify.removeHook = function(entryPoint) {
-        if (hooks[entryPoint]) {hooks[entryPoint].pop()}
+        if (hooks[entryPoint]) {
+            hooks[entryPoint].pop();
+        }
     };
 
     /**
@@ -604,7 +620,9 @@
      * @return void
      */
     DOMPurify.removeHooks = function(entryPoint) {
-        if (hooks[entryPoint]) {hooks[entryPoint] = []}
+        if (hooks[entryPoint]) {
+            hooks[entryPoint] = [];
+        }
     };
 
     /**

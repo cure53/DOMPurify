@@ -27,7 +27,7 @@
 
     QUnit.assert.contains = function( needle, haystack, message ) {
         var actual = haystack.indexOf(needle) > -1;
-        QUnit.push(actual, actual, needle, message);
+        QUnit.push(actual, needle, haystack, message);
     };
 
     // Load assertions
