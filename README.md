@@ -49,8 +49,11 @@ var clean = DOMPurify.sanitize(dirty);
 
 Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
 
+## What if I find a bypass?
 
-## Some samples please?
+If that happens, you probably qualify for a juicy bug bounty! The fine folks over at [FastMail](https://www.fastmail.com/) use DOMPurify for their services and added our library to their bug bounty scope. So, if you find a way to bypass or weaken DOMPurify, please have a look at their website and the [bug bounty info](https://www.fastmail.com/about/bugbounty.html).
+
+## Some purification samples please?
 
 How does purified markup look like? Well, [the demo](https://cure53.de/purify) shows it for a big bunch of nasty elements. But let's also show some smaller examples!
 
