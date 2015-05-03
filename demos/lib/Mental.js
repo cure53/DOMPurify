@@ -5775,7 +5775,7 @@
         }
     };
 
-    exports.version = "0.3.0";
+    exports.version = "0.3.5";
     exports.parse = function() {
         var js = MentalJS();
     };
@@ -5789,7 +5789,7 @@
                 allowedCSSProperties = ["azimuth", "background", "backgroundAttachment", "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundRepeat", "border", "borderCollapse", "borderColor", "borderSpacing", "borderStyle", "borderTop", "borderRight", "borderBottom", "borderLeft", "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor", "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle", "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth", "borderWidth", "bottom", "captionSide", "clear", "clip", "color", "content", "counterIncrement", "counterReset", "cue", "cueAfter", "cueBefore", "cursor", "direction", "display", "elevation", "emptyCells", "float", "font", "fontFamily", "fontSize", "fontSizeAdjust", "fontStretch", "fontStyle", "fontVariant", "fontWeight", "height", "left", "letterSpacing", "lineHeight", "listStyle", "listStyleImage", "listStylePosition", "listStyleType", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft", "markerOffset", "marks", "maxHeight", "maxWidth", "minHeight", "minWidth", "orphans", "outline", "outlineColor", "outlineStyle", "outlineWidth", "overflow", "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "page", "pageBreakAfter", "pageBreakBefore", "pageBreakInside", "pause", "pauseAfter", "pauseBefore", "pitch", "pitchRange", "playDuring", "position", "quotes", "richness", "right", "size", "speak", "speakHeader", "speakNumeral", "speakPunctuation", "speechRate", "stress", "tableLayout", "textAlign", "textDecoration", "textIndent", "textShadow", "textTransform", "top", "unicodeBidi", "verticalAlign", "visibility", "voiceFamily", "volume", "whiteSpace", "widows", "width", "wordSpacing", "zIndex"], 
                 setTimeoutIDS = {}, setIntervalIDS = {};
             this.init = init;
-            function init(config) {                               
+            function init(config) {                                                                                                            
                 M = {
                     O : function(obj) {
                         var keys = Object.keys(obj), key;
@@ -6313,7 +6313,7 @@
 
 
                 FUNCTION.constructor$ = FUNCTION;
-                Function$ = FUNCTION;
+                Function$ = FUNCTION;             
                 Boolean.constructor$ = Function$;
                 Boolean.prototype.constructor$ = Boolean;
                 Boolean$ = Boolean;
@@ -6376,7 +6376,7 @@
                 var SET_TIMEOUT = function(func, time) {
                     time = +time;
                     if ( typeof func !== 'function') {
-                        func = Function$(func);
+                        func = FUNCTION(func);
                     }
                     var id = +setTimeout(func, time);
                     setTimeoutIDS[id] = true;
@@ -6386,7 +6386,7 @@
                 var SET_INTERVAL = function(func, time) {
                     time = +time;
                     if ( typeof func !== 'function') {
-                        func = Function$(func);
+                        func = FUNCTION(func);
                     }
                     var id = +setInterval(func, time);
                     setIntervalIDS[id] = true;
@@ -6447,7 +6447,11 @@
                     set : function(len) {
                         this.length = len;
                     }
-                });                
+                });
+                
+                Object.preventExtensions(Object.prototype);
+                Object.preventExtensions(Array.prototype);
+                                
                 Object.defineProperties(window, {
                     'undefined$' : {
                         configurable : true,
@@ -6798,7 +6802,7 @@
                                 return document.documentElement.compareDocumentPosition.apply(document.documentElement, arguments)
                             }
                         }
-                    });
+                    });                                        
                     createSandboxedNode(Element.prototype);
                     createSandboxedNode(DocumentFragment.prototype);
                     Object.defineProperties(HTMLScriptElement.prototype, {
@@ -6851,7 +6855,7 @@
                                 return this.textContent;
                             },
                             set : function(textContent) {
-                                this.textContent = textConent;
+                                this.textContent = textContent;
                             }
                         },
                         'text$' : {
@@ -7005,6 +7009,11 @@
                             }
                         }
                     });
+                    
+                    Object.freeze(Element.prototype);
+                    Object.freeze(DocumentFragment.prototype);
+                    Object.freeze(HTMLScriptElement.prototype);
+                    Object.freeze(HTMLStyleElement.prototype);    
                 }
             };
 
@@ -7077,9 +7086,9 @@
                         var chr1 = code.charCodeAt(pos), chr2 = code.charAt(pos + 1), chr3 = code.charAt(pos + 2), chr4 = code.charAt(pos + 3), chr5 = code.charAt(pos + 4), hex;
                         if (chr1 !== 0x75) {
                             error("Invalid unicode escape. Expected u.");
-                        }
-                        hex = +('0x' + chr2 + chr3 + chr4 + chr5);
-                        if (hex === hex && hex !== hex) {
+                        }                     
+                        hex = +('0x' + chr2 + chr3 + chr4 + chr5);                        
+                        if ((hex === hex && hex !== hex) || /[^a-f0-9]/i.test(''+chr2+chr3+chr4+chr5)) {
                             error("Invalid unicode escape. Expected valid hex sequence.");
                         }
                         if (first) {
@@ -7533,7 +7542,7 @@
                         function number() {
                             while (pos < len) {
                                 chr = code.charCodeAt(pos);
-                                if (chr >= 0x31 && chr <= 0x39) {
+                                if (chr >= 0x31 && chr <= 0x39) {                                  
                                     states.zeroFirst = 0;
                                     if (states.e) {
                                         states.e = 2;
@@ -7570,10 +7579,7 @@
                                     if (states.dot || states.e) {
                                         break;
                                     }
-                                    states.dot = 1;
-                                    if (states.zeroFirst) {
-                                        states.output = states.output + '0';
-                                    }
+                                    states.dot = 1;                                    
                                 } else {
                                     cached = chr;
                                     break;
@@ -7643,7 +7649,8 @@
                             states.dot = 1;
                             states.dotFirst = 1;
                         } else if (chr === 0x30) {
-                            states.zeroFirst = 1;
+                            states.zeroFirst = 1; 
+                            states.output += '' + code.charAt(pos);                                                      
                         } else {
                             states.output = code.charAt(pos);
                         }
