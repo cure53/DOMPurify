@@ -96,16 +96,17 @@
     var DEFAULT_ALLOWED_ATTR = _addToSet({}, [
 
         // HTML
-        'accept','action','align','alt','autocomplete','bgcolor','border',
-        'checked','cite','class','color','cols','colspan','coords','datetime',
-        'default','dir','disabled','download','enctype','for','headers','height',
-        'hidden','high','href','hreflang','id','ismap','label','lang','list',
-        'loop', 'low','max','maxlength','media','method','min','multiple',
-        'name','novalidate','open','optimum','pattern','placeholder','poster',
-        'preload','pubdate','radiogroup','readonly','rel','required','rev',
-        'reversed','rows','rowspan','spellcheck','scope','selected','shape',
-        'size','span','srclang','start','src','step','style','summary','tabindex',
-        'title','type','usemap','valign','value','width','xmlns',
+        'accept','action','align','alt','autocomplete','background','bgcolor',
+        'border','cellpadding','cellspacing','checked','cite','class','color',
+        'cols','colspan','coords','datetime','default','dir','disabled',
+        'download','enctype','for','headers','height','hidden','high','href',
+        'hreflang','id','ismap','label','lang','list','loop', 'low','max',
+        'maxlength','media','method','min','multiple','name','novalidate',
+        'open','optimum','pattern','placeholder','poster','preload','pubdate',
+        'radiogroup','readonly','rel','required','rev','reversed','rows',
+        'rowspan','spellcheck','scope','selected','shape','size','span',
+        'srclang','start','src','step','style','summary','tabindex','title',
+        'type','usemap','valign','value','width','xmlns',
 
         // SVG
         'accent-height','accumulate','additivive','alignment-baseline',
