@@ -171,7 +171,7 @@
         'big','blink','blockquote','caption','center','cite','code','col',
         'dd','del','details','dfn','dir','div','dl','dt','em','figcaption',
         'figure','footer','h1','h2','h3','h4','h5','h6','header','i','ins',
-        'kbd','label','legend','li','main','mark','marquee','nav','ol',
+        'kbd','label','legend','li','main','mark','marquee','nav','ol', 'o:p',
         'output','p','pre','q','rp','rt','ruby','s','samp','section','small',
         'span','strike','strong','sub','summary','sup','table','tbody','td',
         'tfoot','th','thead','time','tr','tt','u','ul','var'
