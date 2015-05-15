@@ -184,6 +184,8 @@
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
 
+    var formElement = document.createElement('form');
+
     /**
      * _parseConfig
      *
@@ -448,7 +450,7 @@
             /* Make sure attribute cannot clobber */
             if (SANITIZE_DOM &&
                     (lcName === 'id' || lcName === 'name') &&
-                    (value in window || value in document)) {
+                    (value in window || value in document || value in formElement)) {
                 continue;
             }
 
