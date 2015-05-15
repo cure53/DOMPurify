@@ -26,8 +26,8 @@
     QUnit.config.autostart = false;
 
     QUnit.assert.contains = function( needle, haystack, message ) {
-        var actual = haystack.indexOf(needle) > -1;
-        QUnit.push(actual, needle, haystack, message);
+        var result = haystack.indexOf(needle) > -1;
+        QUnit.push(result, needle, haystack, message);
     };
 
     // Load assertions
@@ -45,7 +45,7 @@
         QUnit
           .cases(tests)
           .test( 'Sanitization test', function(params, assert) {
-              assert.contains( DOMPurify.sanitize( params.payload ), params.expected );
+              assert.contains( DOMPurify.sanitize( params.payload ), params.expected, 'Payload: ' + params.payload);
           });
 
         // Config-Flag Tests
