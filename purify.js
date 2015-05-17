@@ -1,24 +1,46 @@
-/* global Text, module */
-;(function(root, factory) {
+;(function(factory) {
     'use strict';
+    /* global window: false, define: false, module: false */
+    var root = typeof window === 'undefined' ? null : window;
+
     if (typeof define === 'function' && define.amd) {
-        define(factory);
+        define(function(){ return factory(root); });
     } else if (typeof module !== 'undefined') {
-        module.exports = factory();
+        module.exports = factory(root);
     } else {
-        root.DOMPurify = factory();
+        root.DOMPurify = factory(root);
     }
-}(this, function() {
+}(function factory(window) {
     'use strict';
 
-    var DOMPurify = {};
-    var hooks = {};
+    var DOMPurify = function(window) {
+        return factory(window);
+    };
 
     /**
      * Version label, exposed for easier checks
      * if DOMPurfy is up to date or not
      */
     DOMPurify.version = '0.6.3';
+
+    if (!window || !window.document || window.document.nodeType !== 9) {
+        // not running in a browser, provide a factory function
+        // so that you can pass your own Window
+        DOMPurify.isSupported = false;
+        return DOMPurify;
+    }
+
+    var document = window.document;
+    var HTMLHtmlElement = window.HTMLHtmlElement;
+    var DocumentFragment = window.DocumentFragment;
+    var HTMLBodyElement = window.HTMLBodyElement;
+    var HTMLCollection = window.HTMLCollection;
+    var HTMLTemplateElement = window.HTMLTemplateElement;
+    var NodeFilter = window.NodeFilter;
+    var NodeList = window.NodeList;
+    var Text = window.Text;
+
+    var hooks = {};
 
     /**
      * Expose whether this browser supports running the full DOMPurify.

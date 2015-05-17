@@ -188,6 +188,23 @@
             assert.equal( typeof DOMPurify.isSupported, 'boolean' );
         });
 
+        QUnit.test( 'DOMPurify custom window tests', function(assert) {
+            assert.strictEqual(typeof DOMPurify(null).version, 'string');
+            assert.strictEqual(DOMPurify(null).isSupported, false);
+            assert.strictEqual(DOMPurify(null).sanitize, undefined);
+
+            assert.strictEqual(typeof DOMPurify({}).version, 'string');
+            assert.strictEqual(DOMPurify({}).isSupported, false);
+            assert.strictEqual(DOMPurify({}).sanitize, undefined);
+
+            assert.strictEqual(typeof DOMPurify({document: 'not really a document'}).version, 'string');
+            assert.strictEqual(DOMPurify({document: 'not really a document'}).isSupported, false);
+            assert.strictEqual(DOMPurify({document: 'not really a document'}).sanitize, undefined);
+
+            assert.strictEqual(typeof DOMPurify(window).version, 'string');
+            assert.strictEqual(typeof DOMPurify(window).sanitize, 'function');
+        });
+
         // Fire it up!
         QUnit.start();
       });
