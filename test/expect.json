@@ -78,27 +78,27 @@
     {
         "title": "onsubmit, onfocus; DOM clobbering: children",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=children>123</form>",
-        "expected": ["", "<form><input name=\"children\">123</form>"]
+        "expected": ["", "<form><input>123</form>"]
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: attributes",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=attributes>123</form>",
-        "expected": ""
+        "expected": ["", "<form><input>123</form>"]
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: removeChild",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeChild>123</form>",
-        "expected": ""
+        "expected": ["", "<form><input>123</form>"]
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: removeAttributeNode",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeAttributeNode>123</form>",
-        "expected": ""
+        "expected": ["", "<form><input>123</form>"]
     },
     {
         "title": "onsubmit, onfocus; DOM clobbering: setAttribute",
         "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=setAttribute>123</form>",
-        "expected": ""
+        "expected": ["", "<form><input>123</form>"]
     },
     {
         "title": "&gt;style&lt;",
@@ -991,5 +991,15 @@
         "title": "Removing name attr from img with id can crash Safari",
         "payload": "<img name=\"bar\" id=\"foo\">",
         "expected": "<img id=\"foo\" name=\"bar\">"
+    },
+    {
+        "title": "DOM clobbering: submit",
+        "payload": "<input name=submit>123",
+        "expected": "<input>123"
+    },
+    {
+        "title": "DOM clobbering: acceptCharset",
+        "payload": "<input name=acceptCharset>123",
+        "expected": "<input>123"
     }
 ]
