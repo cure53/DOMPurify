@@ -1,4 +1,3 @@
-/* jshint boss: true */
 /* global Text, module */
 ;(function(root, factory) {
     'use strict';
@@ -490,7 +489,7 @@
         /* Execute a hook if present */
         _executeHook('beforeSanitizeShadowDOM', fragment, null);
 
-        while (shadowNode = shadowIterator.nextNode()) {
+        while ( (shadowNode = shadowIterator.nextNode()) ) {
             /* Execute a hook if present */
             _executeHook('uponSanitizeShadowNode', shadowNode, null);
 
@@ -564,7 +563,7 @@
         var nodeIterator = _createIterator(body);
 
         /* Now start iterating over the created document */
-        while (currentNode = nodeIterator.nextNode()) {
+        while ( (currentNode = nodeIterator.nextNode()) ) {
             /* Sanitize tags and elements */
             if (_sanitizeElements(currentNode)) {
                 continue;
