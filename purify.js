@@ -21,7 +21,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.6.3';
+    DOMPurify.version = '0.6.4';
 
     if (!window || !window.document || window.document.nodeType !== 9) {
         // not running in a browser, provide a factory function
