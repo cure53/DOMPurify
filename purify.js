@@ -118,12 +118,12 @@
 
         // HTML
         'accept','action','align','alt','autocomplete','background','bgcolor',
-        'border','cellpadding','cellspacing','checked','cite','class','color',
+        'border','cellpadding','cellspacing','checked','cite','class','clear','color',
         'cols','colspan','coords','datetime','default','dir','disabled',
-        'download','enctype','for','headers','height','hidden','high','href',
+        'download','enctype','face','for','headers','height','hidden','high','href',
         'hreflang','id','ismap','label','lang','list','loop', 'low','max',
-        'maxlength','media','method','min','multiple','name','novalidate',
-        'open','optimum','pattern','placeholder','poster','preload','pubdate',
+        'maxlength','media','method','min','multiple','name','noshade','novalidate',
+        'nowrap','open','optimum','pattern','placeholder','poster','preload','pubdate',
         'radiogroup','readonly','rel','required','rev','reversed','rows',
         'rowspan','spellcheck','scope','selected','shape','size','span',
         'srclang','start','src','step','style','summary','tabindex','title',
