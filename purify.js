@@ -36,8 +36,8 @@
     var HTMLBodyElement = window.HTMLBodyElement;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
+    var NamedNodeMap = window.NamedNodeMap;
     var Text = window.Text;
-    var toString = Object.prototype.toString;
 
     var hooks = {};
 
@@ -320,8 +320,7 @@
             || typeof elm.nodeName !== 'string'
             || typeof elm.textContent !== 'string'
             || typeof elm.removeChild !== 'function'
-            || !elm.attributes
-            || toString.call( elm.attributes ) !== '[object NamedNodeMap]'
+            || !(elm.attributes instanceof NamedNodeMap)
             || typeof elm.removeAttribute !== 'function'
             || typeof elm.setAttribute !== 'function'
             || elm.id === 'createElement' || elm.name === 'createElement'
