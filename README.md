@@ -99,8 +99,11 @@ var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 // prohibit HTML5 data attributes (default is true)
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 
-// return a DOM instead of an HTML string (default is false)
+// return a DOM HTMLBodyElement instead of an HTML string (default is false)
 var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
+
+// return a DOM DocumentFragment instead of an HTML string (default is false)
+var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
 
 // return entire document including <html> tags (default is false)
 var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});

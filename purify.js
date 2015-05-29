@@ -177,8 +177,13 @@
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
-    /* Decide if a DOM node or a string should be returned */
+    /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
+     * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
+     */
     var RETURN_DOM = false;
+
+    /* Decide if a DOM `DocumentFragment` should be returned, instead of a html string */
+    var RETURN_DOM_FRAGMENT = false;
 
     /* Output should be free from DOM clobbering attacks? */
     var SANITIZE_DOM = true;
@@ -226,12 +231,17 @@
             _addToSet({}, cfg.FORBID_TAGS) : {};
         FORBID_ATTR = 'FORBID_ATTR' in cfg ?
             _addToSet({}, cfg.FORBID_ATTR) : {};
-        ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
-        SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY  || false; // Default false
-        WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT   || false; // Default false
-        RETURN_DOM      = cfg.RETURN_DOM       || false; // Default false
-        SANITIZE_DOM    = cfg.SANITIZE_DOM    !== false; // Default true
-        KEEP_CONTENT    = cfg.KEEP_CONTENT    !== false; // Default true
+        ALLOW_DATA_ATTR     = cfg.ALLOW_DATA_ATTR     !== false; // Default true
+        SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     ||  false; // Default false
+        WHOLE_DOCUMENT      = cfg.WHOLE_DOCUMENT      ||  false; // Default false
+        RETURN_DOM          = cfg.RETURN_DOM          ||  false; // Default false
+        RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT ||  false; // Default false
+        SANITIZE_DOM        = cfg.SANITIZE_DOM        !== false; // Default true
+        KEEP_CONTENT        = cfg.KEEP_CONTENT        !== false; // Default true
+
+        if (RETURN_DOM_FRAGMENT) {
+            RETURN_DOM = true;
+        }
 
         /* Merge configuration parameters */
         if (cfg.ADD_TAGS) {
@@ -594,9 +604,23 @@
         }
 
         /* Return sanitized string or DOM */
+        var returnNode;
         if (RETURN_DOM) {
-            return body;
+
+            if (RETURN_DOM_FRAGMENT) {
+                returnNode = Object.getPrototypeOf(body.ownerDocument)
+                        .createDocumentFragment.call(body.ownerDocument);
+
+                while (body.firstChild) {
+                    returnNode.appendChild(body.firstChild);
+                }
+            } else {
+                returnNode = body;
+            }
+
+            return returnNode;
         }
+
         return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
     };
 
