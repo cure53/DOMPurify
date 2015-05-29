@@ -36,7 +36,7 @@
     var HTMLBodyElement = window.HTMLBodyElement;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
-    var NamedNodeMap = window.NamedNodeMap;
+    var AttributesType = document.body.attributes.constructor;
     var Text = window.Text;
 
     var hooks = {};
@@ -320,7 +320,7 @@
             || typeof elm.nodeName !== 'string'
             || typeof elm.textContent !== 'string'
             || typeof elm.removeChild !== 'function'
-            || !(elm.attributes instanceof NamedNodeMap)
+            || !(elm.attributes instanceof AttributesType)
             || typeof elm.removeAttribute !== 'function'
             || typeof elm.setAttribute !== 'function'
             || elm.id === 'createElement' || elm.name === 'createElement'
