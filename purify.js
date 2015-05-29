@@ -34,11 +34,10 @@
     var HTMLHtmlElement = window.HTMLHtmlElement;
     var DocumentFragment = window.DocumentFragment;
     var HTMLBodyElement = window.HTMLBodyElement;
-    var HTMLCollection = window.HTMLCollection;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
-    var NodeList = window.NodeList;
     var Text = window.Text;
+    var toString = Object.prototype.toString;
 
     var hooks = {};
 
@@ -316,24 +315,18 @@
             return false;
         }
         if (
-            (elm.children && !(elm.children instanceof HTMLCollection))
-            || (elm.attributes instanceof HTMLCollection)
-            || (elm.attributes instanceof NodeList)
+            (elm.outerHTML && typeof elm.outerHTML !== 'string')
             || (elm.insertAdjacentHTML && typeof elm.insertAdjacentHTML !== 'function')
-            || (elm.outerHTML && typeof elm.outerHTML !== 'string')
             || typeof elm.nodeName !== 'string'
             || typeof elm.textContent !== 'string'
-            || typeof elm.nodeType !== 'number'
-            || typeof elm.COMMENT_NODE !== 'number'
-            || typeof elm.setAttribute !== 'function'
-            || typeof elm.hasAttribute !== 'function'
-            || typeof elm.cloneNode !== 'function'
-            || typeof elm.removeAttributeNode !== 'function'
             || typeof elm.removeChild !== 'function'
-            || typeof elm.attributes.item !== 'function'
-            || (elm.id === 'createElement' || elm.name === 'createElement')
-            || (elm.id === 'implementation' || elm.name === 'implementation')
-            || (elm.id === 'createNodeIterator' || elm.name === 'createNodeIterator')
+            || !elm.attributes
+            || toString.call( elm.attributes ) !== '[object NamedNodeMap]'
+            || typeof elm.removeAttribute !== 'function'
+            || typeof elm.setAttribute !== 'function'
+            || elm.id === 'createElement' || elm.name === 'createElement'
+            || elm.id === 'implementation' || elm.name === 'implementation'
+            || elm.id === 'createNodeIterator' || elm.name === 'createNodeIterator'
         ) {
             return true;
         }
@@ -343,13 +336,11 @@
     /**
      * _sanitizeElements
      *
-     * @protect removeChild
-     * @protect nodeType
+     * @protect outerHTML
+     * @protect insertAdjacentHTML
      * @protect nodeName
      * @protect textContent
-     * @protect outerHTML
-     * @protect currentNode
-     * @protect insertAdjacentHTML
+     * @protect removeChild
      *
      * @param   node to check for permission to exist
      * @return  true if node was killed, false if left alive
@@ -405,9 +396,9 @@
      * _sanitizeAttributes
      *
      * @protect attributes
-     * @protect removeAttributeNode
+     * @protect nodeName
+     * @protect removeAttribute
      * @protect setAttribute
-     * @protect cloneNode
      *
      * @param   node to sanitize
      * @return  void
