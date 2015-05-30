@@ -140,7 +140,7 @@
         'letter-spacing','lighting-color','local','marker-end','marker-mid',
         'marker-start','max','mask','mode','min','operator','opacity','order',
         'overflow','paint-order','path','points','r','rx','ry','radius','restart',
-        'scale','seed','shape-rendering','stop-color','stop-opacity',
+        'scale','seed','shape-rendering','stop-color','stop-opacity', 'offset',
         'stroke-dasharray','stroke-dashoffset','stroke-linecap','stroke-linejoin',
         'stroke-miterlimit','stroke-opacity','stroke','stroke-width','transform',
         'text-anchor','text-decoration','text-rendering','u1','u2','viewbox',
