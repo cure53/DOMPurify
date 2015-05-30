@@ -36,7 +36,7 @@
     var HTMLBodyElement = window.HTMLBodyElement;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
-    var NamedNodeMap = window.NamedNodeMap;
+    var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
 
     var hooks = {};
