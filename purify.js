@@ -185,6 +185,12 @@
     /* Decide if a DOM `DocumentFragment` should be returned, instead of a html string */
     var RETURN_DOM_FRAGMENT = false;
 
+    /* If `RETURN_DOM` or `RETURN_DOM_FRAGMENT` is enabled, decide if the returned DOM
+     * `Node` is imported into the current `Document`. If this flag is not enabled the
+     * `Node` will belong (its ownerDocument) to a fresh `HTMLDocument`, created by
+     * DOMPurify. */
+    var RETURN_DOM_IMPORT = false;
+
     /* Output should be free from DOM clobbering attacks? */
     var SANITIZE_DOM = true;
 
@@ -236,6 +242,7 @@
         WHOLE_DOCUMENT      = cfg.WHOLE_DOCUMENT      ||  false; // Default false
         RETURN_DOM          = cfg.RETURN_DOM          ||  false; // Default false
         RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT ||  false; // Default false
+        RETURN_DOM_IMPORT   = cfg.RETURN_DOM_IMPORT   ||  false; // Default false
         SANITIZE_DOM        = cfg.SANITIZE_DOM        !== false; // Default true
         KEEP_CONTENT        = cfg.KEEP_CONTENT        !== false; // Default true
 
@@ -616,6 +623,15 @@
                 }
             } else {
                 returnNode = body;
+            }
+
+            if (RETURN_DOM_IMPORT) {
+                /* adoptNode() is not used because internal state is not reset
+                   (e.g. the past names map of a HTMLFormElement), this is safe
+                   in theory but we would rather not risk another attack vector.
+                   The state that is cloned by importNode() is explicitly defined
+                   by the specs. */
+                returnNode = document.importNode(document, returnNode, true);
             }
 
             return returnNode;

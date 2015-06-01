@@ -133,6 +133,16 @@
             assert.equal( DOMPurify.sanitize( '123', {RETURN_DOM: true}).outerHTML, "<body>123</body>" );
         });
 
+        QUnit.test( 'Config-Flag tests: RETURN_DOM_IMPORT', function(assert) {
+            //RETURN_DOM_IMPORT
+            assert.notEqual( DOMPurify.sanitize( '123', {RETURN_DOM         : true                          }).ownerDocument, document );
+            assert.notEqual( DOMPurify.sanitize( '123', {RETURN_DOM         : true, RETURN_DOM_IMPORT: false}).ownerDocument, document );
+            assert.equal   ( DOMPurify.sanitize( '123', {RETURN_DOM         : true, RETURN_DOM_IMPORT: true }).ownerDocument, document );
+            assert.notEqual( DOMPurify.sanitize( '123', {RETURN_DOM_FRAGMENT: true                          }).ownerDocument, document );
+            assert.notEqual( DOMPurify.sanitize( '123', {RETURN_DOM_FRAGMENT: true, RETURN_DOM_IMPORT: false}).ownerDocument, document );
+            assert.equal   ( DOMPurify.sanitize( '123', {RETURN_DOM_FRAGMENT: true, RETURN_DOM_IMPORT: true }).ownerDocument, document );
+        });
+
         QUnit.test( 'Config-Flag tests: RETURN_DOM_FRAGMENT', function(assert) {
             //RETURN_DOM_FRAGMENT
 
