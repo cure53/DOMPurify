@@ -230,6 +230,26 @@
             assert.strictEqual(typeof DOMPurify(window).version, 'string');
             assert.strictEqual(typeof DOMPurify(window).sanitize, 'function');
         });
+        QUnit.test( 'sanitize() should not throw if the original document is clobbered _after_ DOMPurify has been instantiated', function(assert) {
+                var evilNode = document.createElement('div');
+                evilNode.innerHTML = '<img id="implementation"><img id="createNodeIterator"><img id="importNode"><img id="createElement">';
+                document.body.appendChild(evilNode);
+                try {
+                        // tests implementation and createNodeIterator
+                        var resultPlain =  DOMPurify.sanitize('123');
+                        // tests importNode
+                        var resultImport = DOMPurify.sanitize( '123', {RETURN_DOM : true, RETURN_DOM_IMPORT: true });
+                        // tests createElement
+                        var resultBody = DOMPurify.sanitize( '123<img id="body">');
+                } finally {
+                        // clean up before doing the actual assertions, otherwise qunit/jquery/etc might blow up
+                        document.body.removeChild(evilNode);
+                }
+
+                assert.equal( resultPlain, '123' );
+                assert.equal( resultImport.ownerDocument, document );
+                assert.equal( resultBody, '123<img>' );
+        } );
 
         // Fire it up!
         QUnit.start();

@@ -31,6 +31,10 @@
     }
 
     var document = window.document;
+    var documentImplementation = document.implementation;
+    var createElement = document.createElement;
+    var createNodeIterator = document.createNodeIterator;
+    var importNode = document.importNode;
     var HTMLHtmlElement = window.HTMLHtmlElement;
     var DocumentFragment = window.DocumentFragment;
     var HTMLBodyElement = window.HTMLBodyElement;
@@ -45,7 +49,7 @@
      * Expose whether this browser supports running the full DOMPurify.
      */
     DOMPurify.isSupported =
-        typeof document.implementation.createHTMLDocument !== 'undefined' &&
+        typeof documentImplementation.createHTMLDocument !== 'undefined' &&
         document.documentMode !== 9;
 
     /* Add properties to a lookup table */
@@ -215,7 +219,7 @@
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
 
-    var formElement = document.createElement('form');
+    var formElement = createElement.call(document, 'form');
 
     /**
      * _parseConfig
@@ -282,7 +286,7 @@
      */
     var _initDocument = function(dirty) {
         /* Create documents to map markup to */
-        var dom = document.implementation.createHTMLDocument('');
+        var dom = documentImplementation.createHTMLDocument('');
         var freshdom, doc;
 
         /* Set content */
@@ -294,7 +298,7 @@
         body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
         if (!(body instanceof (WHOLE_DOCUMENT ? HTMLHtmlElement : HTMLBodyElement))) {
             doc = (typeof HTMLTemplateElement === 'function') ?
-                document.createElement('template').content.ownerDocument :
+                createElement.call(document, 'template').content.ownerDocument :
                 document;
             freshdom = doc.implementation.createHTMLDocument('');
             body = WHOLE_DOCUMENT ?
@@ -311,7 +315,8 @@
      * @return iterator instance
      */
     var _createIterator = function(doc) {
-        return document.createNodeIterator(
+        return createNodeIterator.call(
+            document,
             doc,
             NodeFilter.SHOW_ELEMENT
             | NodeFilter.SHOW_COMMENT
@@ -631,7 +636,7 @@
                    in theory but we would rather not risk another attack vector.
                    The state that is cloned by importNode() is explicitly defined
                    by the specs. */
-                returnNode = document.importNode(document, returnNode, true);
+                returnNode = importNode.call(document, returnNode, true);
             }
 
             return returnNode;
