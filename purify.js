@@ -31,17 +31,25 @@
     }
 
     var document = window.document;
-    var documentImplementation = document.implementation;
-    var createElement = document.createElement;
-    var createNodeIterator = document.createNodeIterator;
-    var importNode = document.importNode;
-    var HTMLHtmlElement = window.HTMLHtmlElement;
     var DocumentFragment = window.DocumentFragment;
-    var HTMLBodyElement = window.HTMLBodyElement;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
     var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
+
+    // As per issue #47, the web-components registry is inherited by a
+    // new document created via createHTMLDocument. As per the spec
+    // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
+    // a new empty registry is used when creating a template contents owner
+    // document, so we use that as our parent document to ensure nothing
+    // is inherited.
+    if (typeof HTMLTemplateElement === 'function') {
+        document = document.createElement('template').content.ownerDocument;
+    }
+    var implementation = document.implementation;
+    var createNodeIterator = document.createNodeIterator;
+    var getElementsByTagName = document.getElementsByTagName;
+    var importNode = document.importNode;
 
     var hooks = {};
 
@@ -49,7 +57,7 @@
      * Expose whether this browser supports running the full DOMPurify.
      */
     DOMPurify.isSupported =
-        typeof documentImplementation.createHTMLDocument !== 'undefined' &&
+        typeof implementation.createHTMLDocument !== 'undefined' &&
         document.documentMode !== 9;
 
     /* Add properties to a lookup table */
@@ -219,7 +227,7 @@
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
 
-    var formElement = createElement.call(document, 'form');
+    var formElement = document.createElement('form');
 
     /**
      * _parseConfig
@@ -285,27 +293,17 @@
      * @return a DOM, filled with the dirty markup
      */
     var _initDocument = function(dirty) {
-        /* Create documents to map markup to */
-        var dom = documentImplementation.createHTMLDocument('');
-        var freshdom, doc;
+        /* Create new document to parse markup to */
+        var doc = implementation.createHTMLDocument('');
 
         /* Set content */
-        var body = dom.body;
+        var body = doc.body;
         body.parentNode.removeChild(body.parentNode.firstElementChild);
         body.outerHTML = dirty;
 
         /* Work on whole document or just its body */
-        body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
-        if (!(body instanceof (WHOLE_DOCUMENT ? HTMLHtmlElement : HTMLBodyElement))) {
-            doc = (typeof HTMLTemplateElement === 'function') ?
-                createElement.call(document, 'template').content.ownerDocument :
-                document;
-            freshdom = doc.implementation.createHTMLDocument('');
-            body = WHOLE_DOCUMENT ?
-                freshdom.getElementsByTagName.call(dom,'html')[0] :
-                freshdom.getElementsByTagName.call(dom,'body')[0];
-        }
-        return body;
+        return getElementsByTagName.call(doc,
+            WHOLE_DOCUMENT ? 'html' : 'body')[0];
     };
 
     /**
@@ -314,10 +312,9 @@
      * @param  document/fragment to create iterator for
      * @return iterator instance
      */
-    var _createIterator = function(doc) {
-        return createNodeIterator.call(
-            document,
-            doc,
+    var _createIterator = function(root) {
+        return createNodeIterator.call( root.ownerDocument || root,
+            root,
             NodeFilter.SHOW_ELEMENT
             | NodeFilter.SHOW_COMMENT
             | NodeFilter.SHOW_TEXT,
@@ -345,9 +342,6 @@
             || !(elm.attributes instanceof NamedNodeMap)
             || typeof elm.removeAttribute !== 'function'
             || typeof elm.setAttribute !== 'function'
-            || elm.id === 'createElement' || elm.name === 'createElement'
-            || elm.id === 'implementation' || elm.name === 'implementation'
-            || elm.id === 'createNodeIterator' || elm.name === 'createNodeIterator'
         ) {
             return true;
         }
