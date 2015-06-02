@@ -31,6 +31,10 @@
     }
 
     var document = window.document;
+    var documentImplementation = document.implementation;
+    var createElement = document.createElement;
+    var createNodeIterator = document.createNodeIterator;
+    var importNode = document.importNode;
     var HTMLHtmlElement = window.HTMLHtmlElement;
     var DocumentFragment = window.DocumentFragment;
     var HTMLBodyElement = window.HTMLBodyElement;
@@ -45,7 +49,7 @@
      * Expose whether this browser supports running the full DOMPurify.
      */
     DOMPurify.isSupported =
-        typeof document.implementation.createHTMLDocument !== 'undefined' &&
+        typeof documentImplementation.createHTMLDocument !== 'undefined' &&
         document.documentMode !== 9;
 
     /* Add properties to a lookup table */
@@ -177,8 +181,19 @@
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
-    /* Decide if a DOM node or a string should be returned */
+    /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
+     * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
+     */
     var RETURN_DOM = false;
+
+    /* Decide if a DOM `DocumentFragment` should be returned, instead of a html string */
+    var RETURN_DOM_FRAGMENT = false;
+
+    /* If `RETURN_DOM` or `RETURN_DOM_FRAGMENT` is enabled, decide if the returned DOM
+     * `Node` is imported into the current `Document`. If this flag is not enabled the
+     * `Node` will belong (its ownerDocument) to a fresh `HTMLDocument`, created by
+     * DOMPurify. */
+    var RETURN_DOM_IMPORT = false;
 
     /* Output should be free from DOM clobbering attacks? */
     var SANITIZE_DOM = true;
@@ -204,7 +219,7 @@
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
 
-    var formElement = document.createElement('form');
+    var formElement = createElement.call(document, 'form');
 
     /**
      * _parseConfig
@@ -226,12 +241,18 @@
             _addToSet({}, cfg.FORBID_TAGS) : {};
         FORBID_ATTR = 'FORBID_ATTR' in cfg ?
             _addToSet({}, cfg.FORBID_ATTR) : {};
-        ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
-        SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY  || false; // Default false
-        WHOLE_DOCUMENT  = cfg.WHOLE_DOCUMENT   || false; // Default false
-        RETURN_DOM      = cfg.RETURN_DOM       || false; // Default false
-        SANITIZE_DOM    = cfg.SANITIZE_DOM    !== false; // Default true
-        KEEP_CONTENT    = cfg.KEEP_CONTENT    !== false; // Default true
+        ALLOW_DATA_ATTR     = cfg.ALLOW_DATA_ATTR     !== false; // Default true
+        SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     ||  false; // Default false
+        WHOLE_DOCUMENT      = cfg.WHOLE_DOCUMENT      ||  false; // Default false
+        RETURN_DOM          = cfg.RETURN_DOM          ||  false; // Default false
+        RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT ||  false; // Default false
+        RETURN_DOM_IMPORT   = cfg.RETURN_DOM_IMPORT   ||  false; // Default false
+        SANITIZE_DOM        = cfg.SANITIZE_DOM        !== false; // Default true
+        KEEP_CONTENT        = cfg.KEEP_CONTENT        !== false; // Default true
+
+        if (RETURN_DOM_FRAGMENT) {
+            RETURN_DOM = true;
+        }
 
         /* Merge configuration parameters */
         if (cfg.ADD_TAGS) {
@@ -265,7 +286,7 @@
      */
     var _initDocument = function(dirty) {
         /* Create documents to map markup to */
-        var dom = document.implementation.createHTMLDocument('');
+        var dom = documentImplementation.createHTMLDocument('');
         var freshdom, doc;
 
         /* Set content */
@@ -277,7 +298,7 @@
         body = WHOLE_DOCUMENT ? dom.body.parentNode : dom.body;
         if (!(body instanceof (WHOLE_DOCUMENT ? HTMLHtmlElement : HTMLBodyElement))) {
             doc = (typeof HTMLTemplateElement === 'function') ?
-                document.createElement('template').content.ownerDocument :
+                createElement.call(document, 'template').content.ownerDocument :
                 document;
             freshdom = doc.implementation.createHTMLDocument('');
             body = WHOLE_DOCUMENT ?
@@ -294,7 +315,8 @@
      * @return iterator instance
      */
     var _createIterator = function(doc) {
-        return document.createNodeIterator(
+        return createNodeIterator.call(
+            document,
             doc,
             NodeFilter.SHOW_ELEMENT
             | NodeFilter.SHOW_COMMENT
@@ -593,9 +615,32 @@
         }
 
         /* Return sanitized string or DOM */
+        var returnNode;
         if (RETURN_DOM) {
-            return body;
+
+            if (RETURN_DOM_FRAGMENT) {
+                returnNode = Object.getPrototypeOf(body.ownerDocument)
+                        .createDocumentFragment.call(body.ownerDocument);
+
+                while (body.firstChild) {
+                    returnNode.appendChild(body.firstChild);
+                }
+            } else {
+                returnNode = body;
+            }
+
+            if (RETURN_DOM_IMPORT) {
+                /* adoptNode() is not used because internal state is not reset
+                   (e.g. the past names map of a HTMLFormElement), this is safe
+                   in theory but we would rather not risk another attack vector.
+                   The state that is cloned by importNode() is explicitly defined
+                   by the specs. */
+                returnNode = importNode.call(document, returnNode, true);
+            }
+
+            return returnNode;
         }
+
         return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
     };
 
