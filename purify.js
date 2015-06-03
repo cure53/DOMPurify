@@ -336,15 +336,12 @@
         if (elm instanceof Text || elm instanceof Comment) {
             return false;
         }
-        if (
-            (elm.outerHTML && typeof elm.outerHTML !== 'string')
-            || (elm.insertAdjacentHTML && typeof elm.insertAdjacentHTML !== 'function')
-            || typeof elm.nodeName !== 'string'
-            || typeof elm.textContent !== 'string'
-            || typeof elm.removeChild !== 'function'
-            || !(elm.attributes instanceof NamedNodeMap)
-            || typeof elm.removeAttribute !== 'function'
-            || typeof elm.setAttribute !== 'function'
+        if (  typeof elm.nodeName !== 'string'
+           || typeof elm.textContent !== 'string'
+           || typeof elm.removeChild !== 'function'
+           || !(elm.attributes instanceof NamedNodeMap)
+           || typeof elm.removeAttribute !== 'function'
+           || typeof elm.setAttribute !== 'function'
         ) {
             return true;
         }
@@ -354,8 +351,6 @@
     /**
      * _sanitizeElements
      *
-     * @protect outerHTML
-     * @protect insertAdjacentHTML
      * @protect nodeName
      * @protect textContent
      * @protect removeChild
@@ -389,8 +384,8 @@
         /* Remove element if anything forbids its presence */
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
             /* Keep content for white-listed elements */
-            if (KEEP_CONTENT && currentNode.insertAdjacentHTML
-                && CONTENT_TAGS[tagName]){
+            if (KEEP_CONTENT && CONTENT_TAGS[tagName]
+                    && typeof currentNode.insertAdjacentHTML === 'function' ){
                 try {
                     currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                 } catch (e) {}
