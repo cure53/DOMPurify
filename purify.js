@@ -458,7 +458,7 @@
             // remove a "name" attribute from an <img> tag that has an "id"
             // attribute at the time.
             if (lcName === 'name'  &&
-                    currentNode.nodeName === 'IMG' && currentNode.id) {
+                    currentNode.nodeName === 'IMG' && attributes.id) {
                 idAttr = attributes.id;
                 attributes = Array.prototype.slice.apply(attributes);
                 currentNode.removeAttribute('id');
