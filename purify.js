@@ -313,7 +313,7 @@
      * @return iterator instance
      */
     var _createIterator = function(root) {
-        return createNodeIterator.call( root.ownerDocument || root,
+        return createNodeIterator.call(root.ownerDocument || root,
             root,
             NodeFilter.SHOW_ELEMENT
             | NodeFilter.SHOW_COMMENT
