@@ -31,11 +31,13 @@
     }
 
     var document = window.document;
+    var originalDocument = document;
     var DocumentFragment = window.DocumentFragment;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
     var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
+    var Comment = window.Comment;
 
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
@@ -49,7 +51,8 @@
     var implementation = document.implementation;
     var createNodeIterator = document.createNodeIterator;
     var getElementsByTagName = document.getElementsByTagName;
-    var importNode = document.importNode;
+    var createDocumentFragment = document.createDocumentFragment;
+    var importNode = originalDocument.importNode;
 
     var hooks = {};
 
@@ -313,7 +316,7 @@
      * @return iterator instance
      */
     var _createIterator = function(root) {
-        return createNodeIterator.call( root.ownerDocument || root,
+        return createNodeIterator.call(root.ownerDocument || root,
             root,
             NodeFilter.SHOW_ELEMENT
             | NodeFilter.SHOW_COMMENT
@@ -330,18 +333,15 @@
      * @return true if clobbered, false if safe
      */
     var _isClobbered = function(elm) {
-        if (elm instanceof Text) {
+        if (elm instanceof Text || elm instanceof Comment) {
             return false;
         }
-        if (
-            (elm.outerHTML && typeof elm.outerHTML !== 'string')
-            || (elm.insertAdjacentHTML && typeof elm.insertAdjacentHTML !== 'function')
-            || typeof elm.nodeName !== 'string'
-            || typeof elm.textContent !== 'string'
-            || typeof elm.removeChild !== 'function'
-            || !(elm.attributes instanceof NamedNodeMap)
-            || typeof elm.removeAttribute !== 'function'
-            || typeof elm.setAttribute !== 'function'
+        if (  typeof elm.nodeName !== 'string'
+           || typeof elm.textContent !== 'string'
+           || typeof elm.removeChild !== 'function'
+           || !(elm.attributes instanceof NamedNodeMap)
+           || typeof elm.removeAttribute !== 'function'
+           || typeof elm.setAttribute !== 'function'
         ) {
             return true;
         }
@@ -351,8 +351,6 @@
     /**
      * _sanitizeElements
      *
-     * @protect outerHTML
-     * @protect insertAdjacentHTML
      * @protect nodeName
      * @protect textContent
      * @protect removeChild
@@ -386,8 +384,8 @@
         /* Remove element if anything forbids its presence */
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
             /* Keep content for white-listed elements */
-            if (KEEP_CONTENT && currentNode.insertAdjacentHTML
-                && CONTENT_TAGS[tagName]){
+            if (KEEP_CONTENT && CONTENT_TAGS[tagName]
+                    && typeof currentNode.insertAdjacentHTML === 'function' ){
                 try {
                     currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                 } catch (e) {}
@@ -457,7 +455,7 @@
             // remove a "name" attribute from an <img> tag that has an "id"
             // attribute at the time.
             if (lcName === 'name'  &&
-                    currentNode.nodeName === 'IMG' && currentNode.id) {
+                    currentNode.nodeName === 'IMG' && attributes.id) {
                 idAttr = attributes.id;
                 attributes = Array.prototype.slice.apply(attributes);
                 currentNode.removeAttribute('id');
@@ -613,8 +611,7 @@
         if (RETURN_DOM) {
 
             if (RETURN_DOM_FRAGMENT) {
-                returnNode = Object.getPrototypeOf(body.ownerDocument)
-                        .createDocumentFragment.call(body.ownerDocument);
+                returnNode = createDocumentFragment.call(body.ownerDocument);
 
                 while (body.firstChild) {
                     returnNode.appendChild(body.firstChild);
@@ -629,7 +626,7 @@
                    in theory but we would rather not risk another attack vector.
                    The state that is cloned by importNode() is explicitly defined
                    by the specs. */
-                returnNode = importNode.call(document, returnNode, true);
+                returnNode = importNode.call(originalDocument, returnNode, true);
             }
 
             return returnNode;
