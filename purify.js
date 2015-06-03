@@ -36,6 +36,7 @@
     var NodeFilter = window.NodeFilter;
     var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
+    var Comment = window.Comment;
 
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
@@ -330,7 +331,7 @@
      * @return true if clobbered, false if safe
      */
     var _isClobbered = function(elm) {
-        if (elm instanceof Text) {
+        if (elm instanceof Text || elm instanceof Comment) {
             return false;
         }
         if (
