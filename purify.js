@@ -31,6 +31,7 @@
     }
 
     var document = window.document;
+    var originalDocument = document;
     var DocumentFragment = window.DocumentFragment;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
@@ -50,7 +51,8 @@
     var implementation = document.implementation;
     var createNodeIterator = document.createNodeIterator;
     var getElementsByTagName = document.getElementsByTagName;
-    var importNode = document.importNode;
+    var createDocumentFragment = document.createDocumentFragment;
+    var importNode = originalDocument.importNode;
 
     var hooks = {};
 
@@ -614,8 +616,7 @@
         if (RETURN_DOM) {
 
             if (RETURN_DOM_FRAGMENT) {
-                returnNode = Object.getPrototypeOf(body.ownerDocument)
-                        .createDocumentFragment.call(body.ownerDocument);
+                returnNode = createDocumentFragment.call(body.ownerDocument);
 
                 while (body.firstChild) {
                     returnNode.appendChild(body.firstChild);
@@ -630,7 +631,7 @@
                    in theory but we would rather not risk another attack vector.
                    The state that is cloned by importNode() is explicitly defined
                    by the specs. */
-                returnNode = importNode.call(document, returnNode, true);
+                returnNode = importNode.call(originalDocument, returnNode, true);
             }
 
             return returnNode;
