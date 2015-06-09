@@ -151,7 +151,7 @@
         'display','divisor','dur','elevation','end','fill','fill-opacity',
         'fill-rule','filter','flood-color','flood-opacity','font-family',
         'font-size','font-size-adjust','font-stretch','font-style','font-variant',
-        'front-weight','image-rendering','in','in2','k1','k2','k3','k4','kerning',
+        'font-weight','image-rendering','in','in2','k1','k2','k3','k4','kerning',
         'letter-spacing','lighting-color','local','marker-end','marker-mid',
         'marker-start','max','mask','mode','min','offset','operator','opacity',
         'order','overflow','paint-order','path','points','r','rx','ry','radius',
