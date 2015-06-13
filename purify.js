@@ -212,16 +212,9 @@
     /* Keep element content when removing element? */
     var KEEP_CONTENT = true;
 
-    /* Tags to keep content from (when KEEP_CONTENT is true) */
-    var CONTENT_TAGS = _addToSet({}, [
-        'a','abbr','acronym','address','article','aside','b','bdi','bdo',
-        'big','blink','blockquote','caption','center','cite','code','col',
-        'dd','del','details','dfn','dir','div','dl','dt','em','figcaption',
-        'figure','footer','h1','h2','h3','h4','h5','h6','header','i','ins',
-        'kbd','label','legend','li','main','mark','marquee','nav','ol', 'o:p',
-        'output','p','pre','q','rp','rt','ruby','s','samp','section','small',
-        'span','strike','strong','sub','summary','sup','table','tbody','td',
-        'tfoot','th','thead','time','tr','tt','u','ul','var'
+    /* Tags to ignore content of when KEEP_CONTENT is true */
+    var FORBID_CONTENTS = _addToSet({}, [
+        'head', 'script', 'style'
     ]);
 
     /* Keep a reference to config to pass to hooks */
@@ -383,9 +376,9 @@
 
         /* Remove element if anything forbids its presence */
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
-            /* Keep content for white-listed elements */
-            if (KEEP_CONTENT && CONTENT_TAGS[tagName]
-                    && typeof currentNode.insertAdjacentHTML === 'function' ){
+            /* Keep content except for black-listed elements */
+            if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]
+                    && typeof currentNode.insertAdjacentHTML === 'function') {
                 try {
                     currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                 } catch (e) {}
