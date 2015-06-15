@@ -214,7 +214,7 @@
 
     /* Tags to ignore content of when KEEP_CONTENT is true */
     var FORBID_CONTENTS = _addToSet({}, [
-        'head', 'script', 'style'
+        'audio', 'head', 'math', 'script', 'style', 'svg', 'video'
     ]);
 
     /* Keep a reference to config to pass to hooks */
