@@ -34,8 +34,7 @@ require(['dompurify'], function(DOMPurify) {
 });
 ```
 
-You can also grab the files straight from NPM:  
-_(Note: DOMPurify [doesn't work in Node.js yet](https://github.com/cure53/DOMPurify/issues/29), but runs fine with [Browserify](http://browserify.org/).)_
+You can also grab the files straight from npm (requires either [io.js](https://iojs.org) or [Browserify](http://browserify.org/), **Node.js 0.x is not supported**):  
 
 ```bash
 npm install dompurify
