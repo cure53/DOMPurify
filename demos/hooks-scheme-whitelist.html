@@ -34,26 +34,32 @@
                          <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="telnet:1.1.1.1"><circle r=40></a></svg>\
                          ';
             
+            // allowed URI schemes
+            var whitelist = ['http', 'https', 'ftp'];
+            
+            // build fitting regex
+            var regex = RegExp('^('+whitelist.join('|')+'):', 'gim');
+            
             // Add a hook to make all links open a new window
             DOMPurify.addHook('afterSanitizeAttributes', function(node){
                 // check all href attributes for safety (http:/https:/ftp:)
                 if(node.hasAttribute('href')){
                     var href = node.getAttribute('href');
-                    if(!href.match(/^(https?|ftp):/)){
+                    if(!href.match(regex)){
                         node.removeAttribute('href');
                     }
                 }
-             // check all action attributes for safety (http:/https:/ftp:)
+                // check all action attributes for safety (http:/https:/ftp:)
                 if(node.hasAttribute('action')){
                     var action = node.getAttribute('action');
-                    if(!action.match(/^(https?|ftp):/)){
+                    if(!action.match(regex)){
                         node.removeAttribute('action');
                     }
                 }
-             // check all xlink:href attributes for safety (http:/https:/ftp:)
+                // check all xlink:href attributes for safety (http:/https:/ftp:)
                 if(node.hasAttribute('xlink:href')){
                     var xhref = node.getAttribute('xlink:href');
-                    if(!xhref.match(/^(https?|ftp):/)){
+                    if(!xhref.match(regex)){
                         node.removeAttribute('xlink:href');
                     }
                 }
