@@ -32,34 +32,38 @@
                          <math><mi target="xxx" href="aim:1111111?call">INSECURE</mi></math>\
                          <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="https://test.com/"><circle r=40></a></svg>\
                          <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="telnet:1.1.1.1"><circle r=40></a></svg>\
-                         ';
-            
+                         <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="?secure"><circle r=40></a></svg>';
+
             // allowed URI schemes
             var whitelist = ['http', 'https', 'ftp'];
-            
+
             // build fitting regex
             var regex = RegExp('^('+whitelist.join('|')+'):', 'gim');
-            
+
             // Add a hook to enforce URI scheme whitelist
             DOMPurify.addHook('afterSanitizeAttributes', function(node){
+
+                // build an anchor to map URLs to
+                var anchor = document.createElement('a');
+
                 // check all href attributes for validity
                 if(node.hasAttribute('href')){
-                    var href = node.getAttribute('href');
-                    if(!href.match(regex)){
+                    anchor.href  = node.getAttribute('href');
+                    if(!anchor.protocol.match(regex)){
                         node.removeAttribute('href');
                     }
                 }
                 // check all action attributes for validity
                 if(node.hasAttribute('action')){
-                    var action = node.getAttribute('action');
-                    if(!action.match(regex)){
+                    anchor.href  = node.getAttribute('action');
+                    if(!anchor.protocol.match(regex)){
                         node.removeAttribute('action');
                     }
                 }
-                // check all xlink:href attributes validity
+                // check all xlink:href attributes for validity
                 if(node.hasAttribute('xlink:href')){
-                    var xhref = node.getAttribute('xlink:href');
-                    if(!xhref.match(regex)){
+                    anchor.href  = node.getAttribute('xlink:href');
+                    if(!anchor.protocol.match(regex)){
                         node.removeAttribute('xlink:href');
                     }
                 }
