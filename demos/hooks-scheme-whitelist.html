@@ -42,21 +42,21 @@
             
             // Add a hook to enforce URI scheme whitelist
             DOMPurify.addHook('afterSanitizeAttributes', function(node){
-                // check all href attributes for safety (http:/https:/ftp:)
+                // check all href attributes for validity
                 if(node.hasAttribute('href')){
                     var href = node.getAttribute('href');
                     if(!href.match(regex)){
                         node.removeAttribute('href');
                     }
                 }
-                // check all action attributes for safety (http:/https:/ftp:)
+                // check all action attributes for validity
                 if(node.hasAttribute('action')){
                     var action = node.getAttribute('action');
                     if(!action.match(regex)){
                         node.removeAttribute('action');
                     }
                 }
-                // check all xlink:href attributes for safety (http:/https:/ftp:)
+                // check all xlink:href attributes validity
                 if(node.hasAttribute('xlink:href')){
                     var xhref = node.getAttribute('xlink:href');
                     if(!xhref.match(regex)){
