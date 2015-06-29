@@ -40,7 +40,7 @@
             // build fitting regex
             var regex = RegExp('^('+whitelist.join('|')+'):', 'gim');
             
-            // Add a hook to make all links open a new window
+            // Add a hook to enforce URI scheme whitelist
             DOMPurify.addHook('afterSanitizeAttributes', function(node){
                 // check all href attributes for safety (http:/https:/ftp:)
                 if(node.hasAttribute('href')){
