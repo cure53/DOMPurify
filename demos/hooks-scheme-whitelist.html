@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../purify.js"></script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+            
+            // Specify dirty HTML
+            var dirty = '<a href="foo:?a">INSECURE</a>\
+                         <a href="ftp://abc.de?a"">SECURE</a>\
+                         <a href="https://abc.de?a"">SECURE</a>\
+                         <a href="?a"">SECURE</a>\
+                         <svg><a href="ms-appx://some/app/test.html"><circle r=40></a></svg>\
+                         <svg><a href="http://benign.com/"><circle r=40></a></svg>\
+                         <svg><a href="#123"><circle r=40></a></svg>\
+                         <form action="?form"><input type="submit"></form>\
+                         <form action="bingweather:?lat=1&long=2"><input type="submit"></form>\
+                         <img src="404" width="200" height="200" usemap="#test"><map name="test"><area href="skype://123456?call" shape="rect" coords="0,0,200,200"></area></map>\
+                         <img src="404" width="200" height="200" usemap="#test"><map name="test"><area href="http://test.com/" shape="rect" coords="0,0,200,200"></area></map>\
+                         <math href="http://test.com/">SECURE</math>\
+                         <math href="calculator:">INSECURE</math>\
+                         <math><mi target="xxx" href="http://test.com/">SECURE</mi></math>\
+                         <math><mi href="javascript:alert(1)">INSECURE</mi></math>\
+                         <math><mi target="xxx" href="aim:1111111?call">INSECURE</mi></math>\
+                         <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="https://test.com/"><circle r=40></a></svg>\
+                         <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="telnet:1.1.1.1"><circle r=40></a></svg>\
+                         ';
+            
+            // Add a hook to make all links open a new window
+            DOMPurify.addHook('afterSanitizeAttributes', function(node){
+                // check all href attributes for safety (http:/https:/ftp:)
+                if(node.hasAttribute('href')){
+                    var href = node.getAttribute('href');
+                    if(!href.match(/^(https?|ftp):/)){
+                        node.removeAttribute('href');
+                    }
+                }
+             // check all action attributes for safety (http:/https:/ftp:)
+                if(node.hasAttribute('action')){
+                    var action = node.getAttribute('action');
+                    if(!action.match(/^(https?|ftp):/)){
+                        node.removeAttribute('action');
+                    }
+                }
+             // check all xlink:href attributes for safety (http:/https:/ftp:)
+                if(node.hasAttribute('xlink:href')){
+                    var xhref = node.getAttribute('xlink:href');
+                    if(!xhref.match(/^(https?|ftp):/)){
+                        node.removeAttribute('xlink:href');
+                    }
+                }
+            });
+
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerHTML = clean;
+        </script>
+    </body>
+</html>
