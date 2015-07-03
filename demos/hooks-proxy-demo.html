@@ -44,13 +44,11 @@
                     // check all style attributevalues and proxy them
                     if(node.hasAttribute('style')){
                         var styles = node.style
-                        var regex  = /^(url\("?)/gim;
-                        for(var i=0; i<=styles.length; i++) {
-                            
-                            // this works well on Gecko and Blink, Trident however double-proxies for background
-                            if(node.style[styles[i]] && regex.test(node.style[styles[i]])) {
-                                var url = node.style[styles[i]].replace(regex, '$1'+proxy) 
-                                node.style[styles[i]]=url;
+                        var regex  = /^(url\("?)/im;
+                        for(var prop=styles.length; prop>=0; prop--) {
+                            if(node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
+                                var url = node.style[styles[prop]].replace(regex, '$1'+proxy)
+                                node.style[styles[prop]]=url;
                             }
                         }
                     }                     
@@ -157,6 +155,8 @@
             %Body Background
             -->
             <body background="https://leaking.via/body-background">
+            
+            <p style="color:red; background: blue url(https://html5sec.org/test.gif)">hello</p>
             
             <!-- 
             %Links & Maps
