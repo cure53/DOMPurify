@@ -1,0 +1,367 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../purify.js"></script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+            window.onload = function(){
+            
+                // Specify dirty HTML
+                var dirty = document.getElementById('payload').value;;
+    
+                // Add a hook to enforce URI scheme whitelist
+                DOMPurify.addHook('afterSanitizeAttributes', function(node){
+                    // do nothing yet                               
+                });
+    
+                // Clean HTML string and write into our DIV
+                var clean = DOMPurify.sanitize(dirty);
+                document.getElementById('sanitized').innerHTML = clean;
+            }
+        </script>
+        
+        <!--  Here we cage our payload in a TEXTAREA -->
+        <textarea id="payload">
+            <!DOCTYPE html SYSTEM "https://leaking.via/doctype">
+            <html xmlns="http://www.w3.org/1999/xhtml" manifest="https://leaking.via/html-manifest">
+            <head>
+            
+            <!--
+            %Base (check manually)
+            -->
+            <base href="https://leaking.via/base-href/">
+            
+            <!--
+            %MSIE Imports
+            -->
+            <?IMPORT namespace="myNS" implementation="https://leaking.via/import-implementation" ?>
+            <IMPORT namespace="myNS" implementation="https://leaking.via/import-implementation-2" />
+            
+            <!--
+            %Redirects
+            -->
+            <meta http-equiv="refresh" content="10; url=http://leaking.via/meta-refresh">
+            
+            <!--  
+            %CSP
+            -->
+            <meta http-equiv="Content-Security-Policy" content="script-src 'self'; report-uri http://leaking.via/meta-csp-report-uri">
+            <meta http-equiv="Content-Security-Policy-Report-Only" content="script-src 'self'; report-uri http://leaking.via/meta-csp-report-uri-2">
+            
+            <!-- 
+            %Reading View
+            -->
+            <meta name="copyright" content="<img src='https://leaking.via/meta-name-copyright-reading-view'>">
+            <meta name="displaydate" content="<img src='https://leaking.via/meta-name-displaydate-reading-view'>">
+            <meta property="og:site_name" content="<img src='https://leaking.via/meta-property-reading-view'>">
+            
+            <!-- 
+            %Links 
+            -->
+            <link rel="stylesheet" href="https://leaking.via/link-stylesheet" />
+            <link rel="icon" href="https://leaking.via/link-icon" />
+            <link rel="canonical" href="https://leaking.via/link-canonical" />
+            <link rel="shortcut icon" href="https://leaking.via/link-shortcut-icon" />
+            <link rel="import" href="https://leaking.via/link-import" />
+            <link rel="dns-prefetch" href="https://leaking.via/link-dns-prefetch" />
+            <link rel="preconnect" href="https://leaking.via/link-preconnect">
+            <link rel="prefetch" href="https://leaking.via/link-prefetch" />
+            <link rel="preload" href="https://leaking.via/link-preload" />
+            <link rel="prerender" href="https://leaking.via/link-prerender" />
+            
+            <link rel="search" href="https://leaking.via/link-search" />
+            <!--
+            Note that OpenSearch description URLs are ignored in Chrome if this file isn't placed in the webroot.
+            Also, in Chrome, you won't see the request in the developer tools because the request happens in the privileged browser process.
+            Use a network sniffer to detect it.
+            -->
+            
+            <link rel="alternate" href="https://leaking.via/link-alternate" />
+            <link rel="alternate" type="application/atom+xml" href="https://leaking.via/link-alternate-atom" /> 
+            <link rel="alternate stylesheet" href="https://leaking.via/link-alternate-stylesheet" />
+            <link rel="appendix" href="https://leaking.via/link-appendix" />
+            <link rel="apple-touch-icon-precomposed" href="https://leaking.via/link-apple-touch-icon-precomposed">
+            <link rel="apple-touch-icon" href="https://leaking.via/link-apple-touch-icon">
+            <link rel="archives" href="https://leaking.via/link-archives" />
+            <link rel="author" href="https://leaking.via/link-author" />
+            <link rel="bookmark" href="https://leaking.via/link-bookmark" />
+            <link rel="chapter" href="https://leaking.via/link-chapter" />
+            <link rel="contents" href="https://leaking.via/link-contents" />
+            <link rel="copyright" href="https://leaking.via/link-copyright" />
+            <link rel="entry-content" href="https://leaking.via/link-entry-content" />
+            <link rel="external" href="https://leaking.via/link-external" />
+            <link rel="feedurl" href="https://leaking.via/link-feedurl" />
+            <link rel="first" href="https://leaking.via/link-first" />
+            <link rel="glossary" href="https://leaking.via/link-glossary" />
+            <link rel="help" href="https://leaking.via/link-help" />
+            <link rel="index" href="https://leaking.via/link-index" />
+            <link rel="last" href="https://leaking.via/link-last" />
+            <link rel="manifest" href="https://leaking.via/link-manifest" />
+            <link rel="next" href="https://leaking.via/link-next" />
+            <link rel="offline" href="https://leaking.via/link-offline" />
+            <link rel="pingback" href="https://leaking.via/link-pingback" />
+            <link rel="prev" href="https://leaking.via/link-prev" />
+            <link rel="search" type="application/opensearchdescription+xml" href="https://leaking.via/link-search-2" title="Search" /> 
+            <link rel="sidebar" href="https://leaking.via/link-sidebar" />
+            <link rel="start" href="https://leaking.via/link-start" />
+            <link rel="section" href="https://leaking.via/link-section" />
+            <link rel="subsection" href="https://leaking.via/link-subsection" />
+            <link rel="subresource" href="https://leaking.via/link-subresource">
+            <link rel="tag" href="https://leaking.via/link-tag" />
+            <link rel="up" href="https://leaking.via/link-up" />
+            </head>
+            
+            <!--
+            %Body Background
+            -->
+            <body background="https://leaking.via/body-background">
+            
+            <!-- 
+            %Links & Maps
+            -->
+            <a ping="http://leaking.via/a-ping" href="#">You have to click me</a>
+            <img src="data:;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw" width="150" height="150" usemap="#map">
+            <map name="map">
+              <area ping="http://leaking.via/area-ping" shape="rect" coords="0,0,150,150" href="#">
+            </map> 
+            <!-- 
+            The ping attribute allows to send a HTTP request to an external IP or domain, 
+            even if the link's HREF points somewhere else. The link has to be clicked though 
+            
+            https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-ping
+            -->
+            
+            <!--
+            %Table Background
+            -->
+            <table background="https://leaking.via/table-background">
+                <tr>
+                    <td background="https://leaking.via/td-background"></td>
+                </tr>
+            </table>
+            
+            <!--
+            %Images
+            -->
+            <img src="https://leaking.via/img-src">
+            <img dynsrc="https://leaking.via/img-dynsrc">
+            <img lowsrc="https://leaking.via/img-lowsrc">
+            <img src="data:image/svg+xml,<svg%20xmlns='%68ttp:%2f/www.w3.org/2000/svg'%20xmlns:xlink='%68ttp:%2f/www.w3.org/1999/xlink'><image%20xlink:hr%65f='%68ttp:%2f/leaking.via/svg-via-data'></image></svg>">
+            
+            <image src="https://leaking.via/image-src">
+            <image href="https://leaking.via/image-href">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <image href="https://leaking.via/svg-image-href">
+            <image xlink:href="https://leaking.via/svg-image-xlink-href">
+            </svg>
+            
+            <picture>
+                <source srcset="https://leaking.via/picture-source-srcset">
+            </picture>
+            <picture>
+                <img srcset="https://leaking.via/picture-img-srcset">
+            </picture>
+            <img srcset=",,,,,https://leaking.via/img-srcset">
+            
+            <img src="#" longdesc="https://leaking.via/img-longdesc">
+            <!-- longdesc works on Firefox but requires right-click, "View Description" -->
+            
+            <!--
+            %Forms
+            -->
+            <form action="https://leaking.via/form-action"></form>
+            <form id="test"></form><button form="test" formaction="https://leaking.via/button-formaction">CLICKME</button>
+            <input type="image" src="https://leaking.via/input-src" name="test" value="test">
+            <isindex src="https://leaking.via/isindex" type="image">
+            
+            <!--
+            %Media
+            -->
+            <bgsound src="https://leaking.via/bgsound-src"></bgsound>
+            <video src="https://leaking.via/video-src">
+              <track kind="subtitles" label="English subtitles" src="https://leaking.via/track-src" srclang="en" default></track>
+            </video>
+            <video controls>
+              <source src="https://leaking.via/video-source-src" type="video/mp4">
+            </video>
+            <audio controls>
+              <source src="https://leaking.via/audio-source-src" type="video/mp4">
+            </audio>
+            <video poster="https://leaking.via/video-poster" src="https://leaking.via/video-poster-2"></video>
+            
+            <!--
+            %Object & Embed
+            -->
+            <object data="https://leaking.via/object-data"></object>
+            <object type="text/x-scriptlet" data="https://leaking.via/object-data-x-scriptlet"></object>
+            <object movie="https://leaking.via/object-movie" type="application/x-shockwave-flash"></object>
+            <object movie="https://leaking.via/object-movie">
+                <param name="type" value="application/x-shockwave-flash"></param>
+            </object>
+            <object codebase="https://leaking.via/object-codebase"></object>
+            <embed src="https://leaking.via/embed-src"></embed>
+            <embed code="https://leaking.via/embed-code"></embed>
+            <object classid="clsid:333C7BC4-460F-11D0-BC04-0080C7055A83">
+                <param name="DataURL" value="http://leaking.via/object-param-dataurl">
+            </object>
+            
+            
+            <!--
+            %Script
+            -->
+            <script src="https://leaking.via/script-src"></script>
+            <svg><script href="https://leaking.via/svg-script-href"></script></svg>
+            <svg><script xlink:href="https://leaking.via/svg-script-xlink-href"></script></svg>
+            
+            <!--
+            %Frames
+            -->
+            <iframe src="https://leaking.via/iframe-src"></iframe>
+            <iframe src="data:image/svg+xml,<svg%20xmlns='%68ttp:%2f/www.w3.org/2000/svg'%20xmlns:xlink='%68ttp:%2f/www.w3.org/1999/xlink'><image%20xlink:hr%65f='%68ttps:%2f/leaking.via/svg-via-data'></image></svg>"></iframe>
+            <iframe srcdoc="<img src=https://leaking.via/iframe-srcdoc-img-src>"></iframe>
+            <frameset>
+                <frame src="https://leaking.via/frame-src"></frame>
+            </frameset>
+            <iframe src="view-source:https://leaking.via/iframe-src-viewsource"></iframe>
+            
+            
+            <!--
+            %CSS
+            -->
+            <style>
+                @import 'https://leaking.via/css-import-string';
+                @import url(https://leaking.via/css-import-url);
+            </style>
+            <style>
+                a:after {content: url(https://leaking.via/css-after-content)}
+                a::after {content: url(https://leaking.via/css-after-content-2)}
+                a:before {content: url(https://leaking.via/css-before-content)}
+                a::before {content: url(https://leaking.via/css-before-content-2)}    
+            </style>
+            <a href="#">ABC</a>
+            <style>
+                big {
+                    list-style: url(https://leaking.via/css-list-style);
+                    list-style-image: url(https://leaking.via/css-list-style-image);
+                    background: url(https://leaking.via/css-background);
+                    background-image: url(https://leaking.via/css-background-image);
+                    border-image: url(https://leaking.via/css-border-image);
+                    border-image-source: url(https://leaking.via/css-border-image-source);
+                    shape-outside: url(https://leaking.via/css-shape-outside);
+                    cursor: url(https://leaking.via/css-cursor), auto;
+                }
+            </style>
+            <big>DEF</big>
+            <style>
+                @font-face {
+                    font-family: leak;
+                    src: url(https://leaking.via/css-font-face-src);
+                }
+                big {
+                    font-family: leak;
+                }
+            </style>
+            <big>GHI</big>
+            <svg>
+                <style>
+                    circle {
+                        fill: url(https://leaking.via/svg-css-fill#foo);
+                        mask: url(https://leaking.via/svg-css-mask#foo);
+                        filter: url(https://leaking.via/svg-css-filter#foo);
+                        clip-path: url(https://leaking.via/svg-css-clip-path#foo);
+                    }
+                </style>
+                <circle r="40"></circle>
+            </svg>
+            
+            <!--
+            %Inline CSS
+            -->
+            <b style="
+                    list-style: url(https://leaking.via/inline-css-list-style);
+                    list-style-image: url&#40;https://leaking.via/inline-css-list-style-image&#41;;
+                    background: url&#x28;https://leaking.via/inline-css-background&#x29;;
+                    background-image: url&lpar;https://leaking.via/inline-css-background-image&rpar;;
+                    border-image: url(https://leaking.via/inline-css-list-style-image);
+                    border-image-source: url(https://leaking.via/inline-css-border-image-source);
+                    shape-outside: url(https://leaking.via/inline-css-shape-outside);
+                    cursor: url(https://leaking.via/inline-css-cursor), auto;
+            ">JKL</b>
+            
+            <svg>
+            <circle style="
+                    fill: url(https://leaking.via/svg-inline-css-fill#foo);
+                    mask: url(https://leaking.via/svg-inline-css-mask#foo);
+                    filter: url(https://leaking.via/svg-inline-css-filter#foo);
+                    clip-path: url(https://leaking.via/svg-inline-css-clip-path#foo);
+            "></circle>
+            </svg>
+            
+            <!-- 
+            %Exotic Inline CSS
+            -->
+            <div style="background: url() url() url() url() url(https://leaking.via/inline-css-multiple-backgrounds);"></div>
+            <div style="behavior: url('https://leaking.via/inline-css-behavior');"></div>
+            <div style="-ms-behavior: url('https://leaking.via/inline-css-behavior-2');"></div>
+            <div style="background-image: image('https://leaking.via/inline-css-image-function')"></div>
+            <div style="filter:progid:DXImageTransform.Microsoft.AlphaImageLoader( src='https://leaking.via/inline-css-filter-alpha', sizingMethod='scale');" ></div>
+            <div style="filter:progid:DXImageTransform.Microsoft.ICMFilter(colorSpace='https://leaking.via/inline-css-filter-icm')"></div>
+            
+            <!--
+            %Applet
+            -->
+            <applet code="Test" codebase="https://leaking.via/applet-codebase"></applet>
+            <applet code="Test" archive="https://leaking.via/applet-archive"></applet>
+            <applet code="Test" object="https://leaking.via/applet-object"></applet>
+            
+            <!--
+            %SVG
+            -->
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+              <defs>
+                <linearGradient id="Gradient">
+                  <stop offset="0" stop-color="white" stop-opacity="0" />
+                  <stop offset="1" stop-color="white" stop-opacity="1" />
+                </linearGradient>
+                <mask id="Mask">
+                  <rect x="0" y="0" width="200" height="200" fill="url(https://leaking.via/svg-fill)"  />
+                </mask>
+              </defs>
+              <rect x="0" y="0" width="200" height="200" fill="green" />
+              <rect x="0" y="0" width="200" height="200" fill="red" mask="url(https://leaking.via/svg-mask)" />
+            </svg>
+            
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <image xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <set attributeName="xlink:href" begin="0s" to="https://leaking.via/svg-image-set" />
+                </image>
+            </svg>
+            
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <image xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <animate attributeName="xlink:href" begin="0s" from="#" to="https://leaking.via/svg-image-animate" />
+                </image>
+            </svg>
+            
+            <!--
+            %XSLT Stylesheets
+            -->
+            <?xml-stylesheet type="text/xsl" href="https://leaking.via/xslt-stylesheet" ?>
+            
+            <!--
+            %Data Islands
+            -->
+            <xml src="https://leaking.via/xml-src" id="xml"></xml>
+            <div datasrc="#xml" datafld="$text" dataformatas="html"></div>
+            </textarea>
+    </body>
+</html>
