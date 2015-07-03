@@ -23,7 +23,7 @@
                 // What do we allow? Not much for now. But it's tight.
                 var config = {
                         FORBID_TAGS: ['style', 'svg'], 
-                        FORBID_ATTR: ['style', 'background', 'poster']
+                        FORBID_ATTR: ['background', 'poster']
                 };
     
                 // Add a hook to enforce URI scheme whitelist
@@ -32,7 +32,28 @@
                     // check all src attributes and proxy them
                     if(node.hasAttribute('src')){
                         node.setAttribute('src', proxy+escape(node.getAttribute('src')));
-                    }                             
+                    } 
+                    // check all action attributes and proxy them
+                    if(node.hasAttribute('action')){
+                        node.setAttribute('action', proxy+escape(node.getAttribute('action')));
+                    } 
+                    // check all href attributes and proxy them
+                    if(node.hasAttribute('href')){
+                        node.setAttribute('href', proxy+escape(node.getAttribute('href')));
+                    } 
+                    // check all style attributevalues and proxy them
+                    if(node.hasAttribute('style')){
+                        var styles = node.style
+                        var regex  = /^(url\("?)/gim;
+                        for(var i=0; i<=styles.length; i++) {
+                            
+                            // this works well on Gecko and Blink, Trident however double-proxies for background
+                            if(node.style[styles[i]] && regex.test(node.style[styles[i]])) {
+                                var url = node.style[styles[i]].replace(regex, '$1'+proxy) 
+                                node.style[styles[i]]=url;
+                            }
+                        }
+                    }                     
                 });
     
                 // Clean HTML string and write into our DIV
