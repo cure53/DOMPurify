@@ -15,15 +15,28 @@
             window.onload = function(){
             
                 // Specify dirty HTML
-                var dirty = document.getElementById('payload').value;;
+                var dirty = document.getElementById('payload').value;
+                
+                // Specify proxy URL
+                var proxy = 'https://my.proxy/?url='; 
+                
+                // What do we allow? Not much for now. But it's tight.
+                var config = {
+                        FORBID_TAGS: ['style', 'svg'], 
+                        FORBID_ATTR: ['style', 'background', 'poster']
+                };
     
                 // Add a hook to enforce URI scheme whitelist
                 DOMPurify.addHook('afterSanitizeAttributes', function(node){
-                    // do nothing yet                               
+                    
+                    // check all src attributes and proxy them
+                    if(node.hasAttribute('src')){
+                        node.setAttribute('src', proxy+escape(node.getAttribute('src')));
+                    }                             
                 });
     
                 // Clean HTML string and write into our DIV
-                var clean = DOMPurify.sanitize(dirty);
+                var clean = DOMPurify.sanitize(dirty, config);
                 document.getElementById('sanitized').innerHTML = clean;
             }
         </script>
