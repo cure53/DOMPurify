@@ -22,9 +22,34 @@
                 
                 // What do we allow? Not much for now. But it's tight.
                 var config = {
-                        FORBID_TAGS: ['style', 'svg'], 
+                        FORBID_TAGS: ['svg'],
                         FORBID_ATTR: ['background', 'poster']
                 };
+
+                DOMPurify.addHook('uponSanitizeElement', function (node) {
+                    if (node.nodeName.toLowerCase() == 'style') {
+
+                        var sheet = node.sheet;
+                        var i = 0;
+                        var output = [];
+                        for (var rule=sheet.cssRules.length-1; rule>=0; rule--) {
+                            if (sheet.cssRules[rule].type === CSSStyleRule.STYLE_RULE) {
+                                var regex  = /^(url\("?)(?!data:)/gim;
+                                var styles = sheet.cssRules[rule].style
+
+                                for (var prop=styles.length-1; prop>=0; prop--) {
+                                    var url = styles[styles[prop]].replace(regex, '$1'+proxy);
+                                    styles[styles[prop]]=url;
+                                }
+
+                                output.unshift(sheet.cssRules[rule].cssText);
+                            }
+                        }
+
+                        node.innerHTML = output.join("\n");
+                    }
+
+                });
     
                 // Add a hook to enforce URI scheme whitelist
                 DOMPurify.addHook('afterSanitizeAttributes', function(node){
@@ -43,8 +68,8 @@
                     } 
                     // check all style attribute values and proxy them
                     if(node.hasAttribute('style')){
-                        var styles = node.style
-                        var regex  = /^(url\("?)/gim;
+                        var styles = node.style;
+                        var regex  = /^(url\("?)(?!data:)/gim;
                         for(var prop=styles.length; prop>=0; prop--) {
                             if(node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
                                 var url = node.style[styles[prop]].replace(regex, '$1'+proxy)
