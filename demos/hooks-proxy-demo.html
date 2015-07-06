@@ -41,10 +41,10 @@
                     if(node.hasAttribute('href')){
                         node.setAttribute('href', proxy+escape(node.getAttribute('href')));
                     } 
-                    // check all style attributevalues and proxy them
+                    // check all style attribute values and proxy them
                     if(node.hasAttribute('style')){
                         var styles = node.style
-                        var regex  = /^(url\("?)/im;
+                        var regex  = /^(url\("?)/gim;
                         for(var prop=styles.length; prop>=0; prop--) {
                             if(node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
                                 var url = node.style[styles[prop]].replace(regex, '$1'+proxy)
