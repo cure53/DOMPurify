@@ -328,10 +328,11 @@
                 a::before {content: url(https://leaking.via/css-before-content-2)}    
             </style>
             <style>
-                a::after {content: "bypass" url(https://leaking.via/css-after-content-2)}
-                a::before {content: "bypass" url(https://leaking.via/css-before-content-2)}    
+                b::after {content: "bypass" url(https://leaking.via/css-after-content-3)}
+                b::before {content: "bypass" url(https://leaking.via/css-before-content-3)}    
             </style>            
             <a href="#">ABC</a>
+            <b>DEF</b>
             <style>
                 big {
                     list-style: url(https://leaking.via/css-list-style);
