@@ -28,7 +28,7 @@
                 };
 
                 // specify the regex to detect external content
-                var regex = /^(url\("?)(?!data:)/gim;
+                var regex = /(url\("?)(?!data:)/gim;
 
                 // Add a hook to enforce proxy for leaky CSS rules
                 DOMPurify.addHook('uponSanitizeElement', function (node, data) {
