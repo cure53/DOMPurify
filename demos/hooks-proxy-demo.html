@@ -13,45 +13,56 @@
             /* global DOMPurify */
             'use strict';
             window.onload = function(){
-            
+
                 // Specify dirty HTML
                 var dirty = document.getElementById('payload').value;
-                
+
                 // Specify proxy URL
                 var proxy = 'https://my.proxy/?url='; 
-                
+
                 // What do we allow? Not much for now. But it's tight.
                 var config = {
-                        FORBID_TAGS: ['svg'],
-                        FORBID_ATTR: ['background', 'poster']
+                        FORBID_TAGS:    ['svg'],
+                        FORBID_ATTR:    ['background', 'poster'],
+                        WHOLE_DOCUMENT: true
                 };
 
-                DOMPurify.addHook('uponSanitizeElement', function (node) {
-                    if (node.nodeName.toLowerCase() == 'style') {
+                // specify the regex to detect external content
+                var regex = /^(url\("?)(?!data:)/gim;
 
-                        var sheet = node.sheet;
-                        var i = 0;
+                // Add a hook to enforce proxy for leaky CSS rules
+                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
+                    if (data.tagName === 'style') {
                         var output = [];
-                        for (var rule=sheet.cssRules.length-1; rule>=0; rule--) {
-                            if (sheet.cssRules[rule].type === CSSStyleRule.STYLE_RULE) {
-                                var regex  = /^(url\("?)(?!data:)/gim;
-                                var styles = sheet.cssRules[rule].style
-
-                                for (var prop=styles.length-1; prop>=0; prop--) {
-                                    var url = styles[styles[prop]].replace(regex, '$1'+proxy);
-                                    styles[styles[prop]]=url;
+                        for (var index=node.sheet.cssRules.length-1; index>=0; index--) {
+                            var rule = node.sheet.cssRules[index];
+                            // we only accept rules with selectors, no @-rules (yet)
+                            if(rule.selectorText){
+                                // we re-write each CSS rule to remove invalid CSS
+                                output.push(rule.selectorText + '{')
+                                if(rule.style && rule.type === 1) {
+                                    var styles = rule.style
+                                    for (var prop=styles.length-1; prop>=0; prop--) {
+                                        if(styles[styles[prop]]){
+                                            var url = styles[styles[prop]].replace(regex, '$1'+proxy);
+                                            styles[styles[prop]]=url;
+                                        }
+                                        output.push(styles[prop]+':'+styles[styles[prop]]+';')
+                                    }
                                 }
-
-                                output.unshift(sheet.cssRules[rule].cssText);
+                                output.push('}');
                             }
                         }
-
-                        node.innerHTML = output.join("\n");
+                        // re-add CSS if any is left
+                        if(output.length) {
+                            node.textContent = output.join("\n");
+                        } else {
+                            node.parentNode.removeChild(node);
+                        }
                     }
-
                 });
-    
-                // Add a hook to enforce URI scheme whitelist
+
+                // Add a hook to enforce proxy for all HTTP leaks incl. inline CSS
                 DOMPurify.addHook('afterSanitizeAttributes', function(node){
                     
                     // check all src attributes and proxy them
@@ -69,16 +80,25 @@
                     // check all style attribute values and proxy them
                     if(node.hasAttribute('style')){
                         var styles = node.style;
-                        var regex  = /^(url\("?)(?!data:)/gim;
-                        for(var prop=styles.length; prop>=0; prop--) {
+                        var output = [];
+                        for(var prop=styles.length-1; prop>=0; prop--) {
+                            // we re-write each property-value pair to remove invalid CSS
                             if(node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
                                 var url = node.style[styles[prop]].replace(regex, '$1'+proxy)
                                 node.style[styles[prop]]=url;
                             }
+                            output.push(styles[prop]+':'+node.style[styles[prop]]+';');
                         }
-                    }                     
+                        // re-add styles in case any are left
+                        if(output.length) {
+                            node.setAttribute('style', output.join(""));    
+                        } else {
+                            node.removeAttribute('style');
+                        }
+                        
+                    }
                 });
-    
+
                 // Clean HTML string and write into our DIV
                 var clean = DOMPurify.sanitize(dirty, config);
                 document.getElementById('sanitized').innerHTML = clean;
@@ -90,6 +110,7 @@
             <!DOCTYPE html SYSTEM "https://leaking.via/doctype">
             <html xmlns="http://www.w3.org/1999/xhtml" manifest="https://leaking.via/html-manifest">
             <head>
+            <style>*{color:red; behavior: url(/foo.htc)}</style>
             
             <!--
             %Base (check manually)
