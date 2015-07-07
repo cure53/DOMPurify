@@ -33,7 +33,8 @@
                 // Add a hook to enforce proxy for leaky CSS rules
                 DOMPurify.addHook('uponSanitizeElement', function (node, data) {
                     if (data.tagName === 'style') {
-                        var output = [];
+                        var output  = [];
+                        var counter = 0;
                         for (var index=node.sheet.cssRules.length-1; index>=0; index--) {
                             var rule = node.sheet.cssRules[index];
                             // we only accept rules with selectors, no @-rules (yet)
@@ -47,14 +48,17 @@
                                             var url = styles[styles[prop]].replace(regex, '$1'+proxy);
                                             styles[styles[prop]]=url;
                                         }
-                                        output.push(styles[prop]+':'+styles[styles[prop]]+';')
+                                        if(styles[styles[prop]]) {
+                                            output.push(styles[prop]+':'+styles[styles[prop]]+';');
+                                        }
                                     }
                                 }
                                 output.push('}');
+                                counter+=2;
                             }
                         }
                         // re-add CSS if any is left
-                        if(output.length) {
+                        if(output.length > counter) {
                             node.textContent = output.join("\n");
                         } else {
                             node.parentNode.removeChild(node);
@@ -110,7 +114,6 @@
             <!DOCTYPE html SYSTEM "https://leaking.via/doctype">
             <html xmlns="http://www.w3.org/1999/xhtml" manifest="https://leaking.via/html-manifest">
             <head>
-            <style>*{color:red; behavior: url(/foo.htc)}</style>
             
             <!--
             %Base (check manually)
@@ -201,8 +204,6 @@
             %Body Background
             -->
             <body background="https://leaking.via/body-background">
-            
-            <p style="color:red; background: blue url(https://html5sec.org/test.gif)">hello</p>
             
             <!-- 
             %Links & Maps
@@ -327,12 +328,7 @@
                 a:before {content: url(https://leaking.via/css-before-content)}
                 a::before {content: url(https://leaking.via/css-before-content-2)}    
             </style>
-            <style>
-                b::after {content: "bypass" url(https://leaking.via/css-after-content-3)}
-                b::before {content: "bypass" url(https://leaking.via/css-before-content-3)}    
-            </style>            
             <a href="#">ABC</a>
-            <b>DEF</b>
             <style>
                 big {
                     list-style: url(https://leaking.via/css-list-style);
@@ -367,6 +363,22 @@
                 </style>
                 <circle r="40"></circle>
             </svg>
+            <s foo="https://leaking.via/css-attr-notation">JKL</s>
+            <style>
+                s {
+                  --leak: url(https://leaking.via/css-variables);
+                }
+                s {
+                  background: var(--leak);
+                }
+                s::after {
+                  content: attr(foo url);
+                }    
+                s::before {
+                  content: attr(notpresent, url(https://leaking.via/css-attr-fallback));
+                }
+            </style>
+            
             
             <!--
             %Inline CSS
@@ -447,6 +459,7 @@
             -->
             <xml src="https://leaking.via/xml-src" id="xml"></xml>
             <div datasrc="#xml" datafld="$text" dataformatas="html"></div>
-            </textarea>
+
+        </textarea>
     </body>
 </html>
