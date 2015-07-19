@@ -23,7 +23,6 @@
                 // What do we allow? Not much for now. But it's tight.
                 var config = {
                         FORBID_TAGS:    ['svg'],
-                        FORBID_ATTR:    ['background', 'poster'],
                         WHOLE_DOCUMENT: true
                 };
 
@@ -113,20 +112,34 @@
                     }
                 });
 
+                function proxyAttribute(url) {
+                    if (url.slice(0, 5) == "data:") {
+                        return url;
+                     } else {
+                        return proxy+escape(url)
+                    }
+                }
+
                 // Add a hook to enforce proxy for all HTTP leaks incl. inline CSS
                 DOMPurify.addHook('afterSanitizeAttributes', function(node){
                     
                     // check all src attributes and proxy them
                     if(node.hasAttribute('src')){
-                        node.setAttribute('src', proxy+escape(node.getAttribute('src')));
+                        node.setAttribute('src', proxyAttribute(node.getAttribute('src')));
+                    } 
+                    if(node.hasAttribute('background')){
+                        node.setAttribute('background', proxyAttribute(node.getAttribute('background')));
+                    } 
+                    if(node.hasAttribute('poster')){
+                        node.setAttribute('poster', proxyAttribute(node.getAttribute('poster')));
                     } 
                     // check all action attributes and proxy them
                     if(node.hasAttribute('action')){
-                        node.setAttribute('action', proxy+escape(node.getAttribute('action')));
+                        node.setAttribute('action', proxyAttribute(node.getAttribute('action')));
                     } 
                     // check all href attributes and proxy them
                     if(node.hasAttribute('href')){
-                        node.setAttribute('href', proxy+escape(node.getAttribute('href')));
+                        node.setAttribute('href', proxyAttribute(node.getAttribute('href')));
                     } 
                     // check all style attribute values and proxy them
                     if(node.hasAttribute('style')){
