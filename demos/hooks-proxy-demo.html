@@ -29,86 +29,75 @@
                 // specify the regex to detect external content
                 var regex = /(url\("?)(?!data:)/gim;
 
-                // Add a hook to enforce proxy for leaky CSS rules
-                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
-                    if (data.tagName === 'style') {
-                        var output  = [];
-                        var counter = 0;
-
-                        function addStyles(styles) {
-                            for (var prop=styles.length-1; prop>=0; prop--) {
-                                if(styles[styles[prop]]){
-                                    var url = styles[styles[prop]].replace(regex, '$1'+proxy);
-                                    styles[styles[prop]]=url;
-                                }
-                                if(styles[styles[prop]]) {
-                                    output.push(styles[prop]+':'+styles[styles[prop]]+';');
-                                }
-                            }
+                function addStyles(output, styles) {
+                    for (var prop=styles.length-1; prop>=0; prop--) {
+                        if(styles[styles[prop]]){
+                            var url = styles[styles[prop]].replace(regex, '$1'+proxy);
+                            styles[styles[prop]]=url;
                         }
+                        if(styles[styles[prop]]) {
+                            output.push(styles[prop]+':'+styles[styles[prop]]+';');
+                        }
+                    }
+                }
 
-                        function addCSSRules(cssRules) {
+                function addCSSRules(output, cssRules) {
 
-                          for (var index=cssRules.length-1; index>=0; index--) {
-                              var rule = cssRules[index];
-                              // we only accept rules with selectors, no @-rules (yet)
-                              if (rule.type == 1 && rule.selectorText){
-                                  // we re-write each CSS rule to remove invalid CSS
-                                  output.push(rule.selectorText + '{')
-                                  if (rule.style) {
-                                    addStyles(rule.style)
-                                  }
-                                  output.push('}');
-                                  counter += 2;
+                  for (var index=cssRules.length-1; index>=0; index--) {
+                      var rule = cssRules[index];
+                      // we only accept rules with selectors, no @-rules (yet)
+                      if (rule.type == 1 && rule.selectorText){
+                          // we re-write each CSS rule to remove invalid CSS
+                          output.push(rule.selectorText + '{')
+                          if (rule.style) {
+                            addStyles(output, rule.style)
+                          }
+                          output.push('}');
 
-                              } else if (rule.type == 5 && rule.cssText.slice(0, 12) == "@font-face {") {
-                                  output.push('@font-face {');
-                                  if (rule.style) {
-                                    addStyles(rule.style)
-                                  }
-                                  output.push('}');
-                                  counter += 2;
+                      } else if (rule.type == 5 && rule.cssText.slice(0, 12) == "@font-face {") {
+                          output.push('@font-face {');
+                          if (rule.style) {
+                            addStyles(output, rule.style)
+                          }
+                          output.push('}');
 
-                              } else if (rule.type == 4 && rule.media && rule.media.mediaText) {
-                                  output.push('@media ' + rule.media.mediaText + '{');
+                      } else if (rule.type == 4 && rule.media && rule.media.mediaText) {
+                          output.push('@media ' + rule.media.mediaText + '{');
 
-                                  addCSSRules(rule.cssRules)
+                          addCSSRules(output, rule.cssRules)
 
-                                  output.push('}');
-                                  counter+=2;
-                              } else if (rule.type == 7 && rule.name) {
-                                  output.push('@keyframes ' + rule.name + '{');
+                          output.push('}');
+                      } else if (rule.type == 7 && rule.name) {
+                          output.push('@keyframes ' + rule.name + '{');
 
-                                  for (var i=rule.cssRules.length-1;i>=0;i--) {
-                                      var frame = rule.cssRules[i];
+                          for (var i=rule.cssRules.length-1;i>=0;i--) {
+                              var frame = rule.cssRules[i];
 
-                                      if (frame.type == 8 && frame.keyText) {
-                                          output.push(frame.keyText + '{');
+                              if (frame.type == 8 && frame.keyText) {
+                                  output.push(frame.keyText + '{');
 
-                                          if (frame.style) {
-                                              addStyles(frame.style);
-                                          }
-
-                                          output.push('}');
-                                          counter += 2;
-                                      }
+                                  if (frame.style) {
+                                      addStyles(output, frame.style);
                                   }
 
                                   output.push('}');
-                                  counter += 2
                               }
                           }
 
-                        }
+                          output.push('}');
+                      }
+                  }
+                }
 
-                        addCSSRules(node.sheet.cssRules);
+                // Add a hook to enforce proxy for leaky CSS rules
+                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
 
-                        // re-add CSS if any is left
-                        if(output.length > counter) {
-                            node.textContent = output.join("\n");
-                        } else {
-                            node.parentNode.removeChild(node);
-                        }
+                    if (data.tagName === 'style') {
+                        var output  = [];
+
+                        addCSSRules(output, node.sheet.cssRules);
+
+                        node.textContent = output.join("\n");
                     }
                 });
 
