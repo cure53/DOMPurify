@@ -38,24 +38,31 @@
                         for (var index=node.sheet.cssRules.length-1; index>=0; index--) {
                             var rule = node.sheet.cssRules[index];
                             // we only accept rules with selectors, no @-rules (yet)
-                            if(rule.selectorText){
+                            if (rule.type == 1 && rule.selectorText){
                                 // we re-write each CSS rule to remove invalid CSS
                                 output.push(rule.selectorText + '{')
-                                if(rule.style && rule.type === 1) {
-                                    var styles = rule.style
-                                    for (var prop=styles.length-1; prop>=0; prop--) {
-                                        if(styles[styles[prop]]){
-                                            var url = styles[styles[prop]].replace(regex, '$1'+proxy);
-                                            styles[styles[prop]]=url;
-                                        }
-                                        if(styles[styles[prop]]) {
-                                            output.push(styles[prop]+':'+styles[styles[prop]]+';');
-                                        }
+                                counter += 1;
+                            } else if (rule.type == 5 && rule.cssText.slice(0, 12) == "@font-face {") {
+                                output.push('@font-face {')
+                                counter += 1;
+                            } else {
+                                  continue
+                            }
+
+                            if(rule.style) {
+                                var styles = rule.style
+                                for (var prop=styles.length-1; prop>=0; prop--) {
+                                    if(styles[styles[prop]]){
+                                        var url = styles[styles[prop]].replace(regex, '$1'+proxy);
+                                        styles[styles[prop]]=url;
+                                    }
+                                    if(styles[styles[prop]]) {
+                                        output.push(styles[prop]+':'+styles[styles[prop]]+';');
                                     }
                                 }
-                                output.push('}');
-                                counter+=2;
                             }
+                            output.push('}');
+                            counter+=1;
                         }
                         // re-add CSS if any is left
                         if(output.length > counter) {
