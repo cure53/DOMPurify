@@ -77,6 +77,26 @@
 
                                   output.push('}');
                                   counter+=2;
+                              } else if (rule.type == 7 && rule.name) {
+                                  output.push('@keyframes ' + rule.name + '{');
+
+                                  for (var i=rule.cssRules.length-1;i>=0;i--) {
+                                      var frame = rule.cssRules[i];
+
+                                      if (frame.type == 8 && frame.keyText) {
+                                          output.push(frame.keyText + '{');
+
+                                          if (frame.style) {
+                                              addStyles(frame.style);
+                                          }
+
+                                          output.push('}');
+                                          counter += 2;
+                                      }
+                                  }
+
+                                  output.push('}');
+                                  counter += 2
                               }
                           }
 
@@ -286,8 +306,10 @@
             <!--
             %Forms
             -->
-            <form action="https://leaking.via/form-action"></form>
-            <form id="test"></form><button form="test" formaction="https://leaking.via/button-formaction">CLICKME</button>
+            <form action="https://leaking.via/form-action">
+              <button form="test" formaction="https://leaking.via/button-formaction">CLICKME</button>
+            </form>
+            <form id="test"></form>
             <input type="image" src="https://leaking.via/input-src" name="test" value="test">
             <isindex src="https://leaking.via/isindex" type="image">
             
@@ -410,7 +432,14 @@
               @media all, not print and not monochrome, (min-width: 1px) {
                 body {
                   background: url(https://leaking.via/css-media-query);
+                  -webkit-animation: rotate-a-bit;
+                  -webkit-animation-duration: 1s;
                 }
+              }
+
+              @-webkit-keyframes rotate-a-bit {
+                0% { transform: translate(0deg); background: url(https://leaking.via/keyframe-0) }
+                100% { transform: rotate(0deg); background: url(https://leaking.via/keyframe-100) }
               }
             </style>
             
