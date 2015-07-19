@@ -35,35 +35,55 @@
                     if (data.tagName === 'style') {
                         var output  = [];
                         var counter = 0;
-                        for (var index=node.sheet.cssRules.length-1; index>=0; index--) {
-                            var rule = node.sheet.cssRules[index];
-                            // we only accept rules with selectors, no @-rules (yet)
-                            if (rule.type == 1 && rule.selectorText){
-                                // we re-write each CSS rule to remove invalid CSS
-                                output.push(rule.selectorText + '{')
-                                counter += 1;
-                            } else if (rule.type == 5 && rule.cssText.slice(0, 12) == "@font-face {") {
-                                output.push('@font-face {')
-                                counter += 1;
-                            } else {
-                                  continue
-                            }
 
-                            if(rule.style) {
-                                var styles = rule.style
-                                for (var prop=styles.length-1; prop>=0; prop--) {
-                                    if(styles[styles[prop]]){
-                                        var url = styles[styles[prop]].replace(regex, '$1'+proxy);
-                                        styles[styles[prop]]=url;
-                                    }
-                                    if(styles[styles[prop]]) {
-                                        output.push(styles[prop]+':'+styles[styles[prop]]+';');
-                                    }
+                        function addStyles(styles) {
+                            for (var prop=styles.length-1; prop>=0; prop--) {
+                                if(styles[styles[prop]]){
+                                    var url = styles[styles[prop]].replace(regex, '$1'+proxy);
+                                    styles[styles[prop]]=url;
+                                }
+                                if(styles[styles[prop]]) {
+                                    output.push(styles[prop]+':'+styles[styles[prop]]+';');
                                 }
                             }
-                            output.push('}');
-                            counter+=1;
                         }
+
+                        function addCSSRules(cssRules) {
+
+                          for (var index=cssRules.length-1; index>=0; index--) {
+                              var rule = cssRules[index];
+                              // we only accept rules with selectors, no @-rules (yet)
+                              if (rule.type == 1 && rule.selectorText){
+                                  // we re-write each CSS rule to remove invalid CSS
+                                  output.push(rule.selectorText + '{')
+                                  if (rule.style) {
+                                    addStyles(rule.style)
+                                  }
+                                  output.push('}');
+                                  counter += 2;
+
+                              } else if (rule.type == 5 && rule.cssText.slice(0, 12) == "@font-face {") {
+                                  output.push('@font-face {');
+                                  if (rule.style) {
+                                    addStyles(rule.style)
+                                  }
+                                  output.push('}');
+                                  counter += 2;
+
+                              } else if (rule.type == 4 && rule.media && rule.media.mediaText) {
+                                  output.push('@media ' + rule.media.mediaText + '{');
+
+                                  addCSSRules(rule.cssRules)
+
+                                  output.push('}');
+                                  counter+=2;
+                              }
+                          }
+
+                        }
+
+                        addCSSRules(node.sheet.cssRules);
+
                         // re-add CSS if any is left
                         if(output.length > counter) {
                             node.textContent = output.join("\n");
@@ -384,6 +404,14 @@
                 s::before {
                   content: attr(notpresent, url(https://leaking.via/css-attr-fallback));
                 }
+            </style>
+
+            <style>
+              @media all, not print and not monochrome, (min-width: 1px) {
+                body {
+                  background: url(https://leaking.via/css-media-query);
+                }
+              }
             </style>
             
             
