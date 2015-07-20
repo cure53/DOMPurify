@@ -68,7 +68,6 @@ DOMPurify.sanitize('<TABLE><tr><td>HELLO</tr></TABL>'); // becomes <table><tbody
 DOMPurify.sanitize('<UL><li><A HREF=//google.com>click</UL>'); // becomes <ul><li><a href="//google.com">click</a></li></ul>
 ```
 
-
 ## What is supported?
 
 DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` methods.
@@ -125,7 +124,7 @@ var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 // discard an element's content when the element is removed (default is true)
 var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 ```
-
+There is even [more examples here](https://github.com/cure53/DOMPurify/tree/master/demos#what-it-this), showing how you can run, customize and configure DOMPurify to fit your needs.
 
 ## Hooks
 
