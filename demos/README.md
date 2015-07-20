@@ -4,7 +4,7 @@ This is a collection of demos of how to use DOMPurify. When run without any addi
 
 This collection of demos shows to same code for several different ways you can use DOMPurify. Please feel free to suggest additional demos if needed. All demos we have collected so far will be shown and explained below.
 
-### Basic Demo
+### Basic Demo [Link](basic-demo.html)
 
 This is the most basic of all demos. It shows how you user DOMPurify and that's it. No configuration, no hooks, no extras.
 
@@ -14,7 +14,7 @@ This is the relevant code:
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Config Demo
+### Config Demo [Link](config-demo.html)
 
 This demo shows how to use the configuration object the right way. In this demo, we only permit `<p>` elements and we want to preserve their text, but not the content of nested elements inside the `<p>`.
 
@@ -28,7 +28,7 @@ var config = { ALLOWED_TAGS: ['p', '#text'], KEEP_CONTENT: false };
 var clean = DOMPurify.sanitize(dirty, config);
 ```
 
-### Advanced Config Demo
+### Advanced Config Demo [Link](advanced-config-demo.html)
 
 This demo shows, how we can use the configuration object to instruct DOMPurify to be more specific with what is to be permitted and what s not. We want to permit `<p>` elements and the fictional `<ying>` and `<yang>` tag. We also want to allow the `kitty-litter` attribute because why not - and make sure that a `document`-object is returned after sanitation - and not a plain string. 
 
@@ -47,7 +47,7 @@ var config = {
 var clean = DOMPurify.sanitize(dirty, config);
 ```
 
-### Hooks Demo
+### Hooks Demo [Link]()
 
 DOMPurify allows you to use hooks. Hooks are basically scripts that can hook into certain parts of the DOMPurify code flow and do stuff. Stuff that you like to be done. By using hooks, you can literally make DOMPurify do whatever. To show you, how powerful and easy to use hooks are, we created some demos for you. Like this one, that essentially renders all tag content to be in capitals.
 
@@ -65,7 +65,7 @@ DOMPurify.addHook('beforeSanitizeAttributes', function(node){
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Add hooks and remove hooks
+### Add hooks and remove hooks [Link]()
 
 A DOMPurify hook can also be removed in case you first need it and then you want to get rid of it right afterwards. This demo shows how you do that with ease and elegance.
 
@@ -89,7 +89,7 @@ console.log(DOMPurify.removeHook('beforeSanitizeAttributes'));
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Hook to open all links in a new window
+### Hook to open all links in a new window [Link]()
 
 This hook is an important one and used quite commonly. It is made to assure that all elements that can function as a link will open the linked page in a new tab or window. This is often of great importance in web mailers and other tools, where a click on a link is not supposed to navigate the original page but rather open another window or tab.
 
@@ -113,7 +113,7 @@ DOMPurify.addHook('afterSanitizeAttributes', function(node){
 var clean = DOMPurify.sanitize(dirty);
 ``` 
 
-### Hook to white-list safe URI Schemes
+### Hook to white-list safe URI Schemes [Link]()
 
 Depending on where you show your sanitized HTML, different URI schemes might cause trouble. And in most situations, you only want to allow HTTP and HTTPS - but not any of those fancy URI schemes supported on mobile devices or even on the desktop with Windows 10. This hook demo shows how to easily make sure only HTTP and HTTP URIs are permitted while all others are eliminated for good.
 
@@ -160,7 +160,7 @@ DOMPurify.addHook('afterSanitizeAttributes', function(node){
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Hook to allow and sand-box all JavaScript
+### Hook to allow and sand-box all JavaScript [Link]()
 
 Okay, now this is real witch-craft! Imagine you want users to submit JavaScript but it should be sand-boxed. With a hook, you can actually do that. What we are doing here is permitting all JavaScript and event handlers, but take their contents and sand-box it using Gareth Heyes' [MentalJS](https://github.com/hackvertor/MentalJS) library. The hook shows how do to this safely. 
 
@@ -211,3 +211,173 @@ DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
 // Clean HTML string and write into our DIV
 var clean = DOMPurify.sanitize(dirty, config);
 ```   
+
+### Hook to proxy all links [Link]()
+
+DOMPurify itself permits links to all resources that don't cause XSS. That includes pretty much all URI schemes and of course HTTP and HTTPS links. Yet, often, preventing XSS is not everything you want to do. And a common use case for a sanitizer is to also proxy all existing links on a website to make sure a de-referrer is used or the website owner has more control over what links are pointing where - to avoid referrer leaks, attacks using window.opener and alike. This hook shows, how all out-bound links can easily be proxied for maximum safety. 
+
+This is the relevant code:
+```javascript
+// Add a hook to make all links point to a proxy
+DOMPurify.addHook('afterSanitizeAttributes', function(node){
+    // proxy form actions
+    if('action' in node){
+        node.setAttribute('action', proxy 
+            + encodeURIComponent(node.getAttribute('action')));
+    }
+    // proxy regular HTML links
+    if(node.hasAttribute('href')){
+        node.setAttribute('href', proxy 
+            + encodeURIComponent(node.getAttribute('href')));
+    }                
+    // proxy SVG/MathML links
+    if(node.hasAttribute('xlink:href')){
+        node.setAttribute('xlink:href', proxy 
+            + encodeURIComponent(node.getAttribute('xlink:href')));
+    } 
+});
+
+// Clean HTML string and write into our DIV
+var clean = DOMPurify.sanitize(dirty);
+```
+
+### Hook to proxy all HTTP leaks including CSS [Link]()
+
+Now this is a hook you don't talk about on your first date. This monster has the purpose of proxying **all** known HTTP leaks including the ones hidden in CSS. It proxies HTML, CSS rules, in-line styles, `@media` rules, `@font-face` rules and `@keyframes`. It further eliminates `@charset` and `@import` as they both help carrying out XSS attacks. This hook is supposed to be a comprehensive demo on how to cover each and every HTTP leak. That's why the amount of code is a bit higher than usual.
+
+When ever you want to reliably filter HTML and CSS using DOMPurify, this is the way to go. 
+
+This is the relevant code:
+```javascript
+// Specify proxy URL
+var proxy = 'https://my.proxy/?url='; 
+
+// What do we allow? Not much for now. But it's tight.
+var config = {
+        FORBID_TAGS:    ['svg'],
+        WHOLE_DOCUMENT: true
+};
+
+// Specify attributes to proxy
+var attributes = ['action', 'background', 'href', 'poster', 'src']
+
+// specify the regex to detect external content
+var regex = /(url\("?)(?!data:)/gim;
+
+/**
+ *  Take CSS property-value pairs and proxy URLs in values,
+ *  then add the styles to an array of property-value pairs
+ */
+function addStyles(output, styles) {
+    for (var prop=styles.length-1; prop>=0; prop--) {
+        if(styles[styles[prop]]){
+            var url = styles[styles[prop]].replace(regex, '$1'+proxy);
+            styles[styles[prop]]=url;
+        }
+        if(styles[styles[prop]]) {
+            output.push(styles[prop]+':'+styles[styles[prop]]+';');
+        }
+    }
+}
+
+/**
+ * Take CSS rules and analyze them, proxy URLs via addStyles(),
+ * then create matching CSS text for later application to the DOM
+ */
+function addCSSRules(output, cssRules) {
+    for (var index=cssRules.length-1; index>=0; index--) {
+        var rule = cssRules[index];
+        // check for rules with selector
+        if (rule.type == 1 && rule.selectorText){
+            output.push(rule.selectorText + '{')
+            if (rule.style) {
+                addStyles(output, rule.style)
+            }
+            output.push('}');
+        // check for @media rules
+        } else if (rule.type === rule.MEDIA_RULE) {
+            output.push('@media ' + rule.media.mediaText + '{');
+            addCSSRules(output, rule.cssRules)
+            output.push('}');
+        // check for @font-face rules
+        } else if (rule.type === rule.FONT_FACE_RULE) {
+            output.push('@font-face {');
+            if (rule.style) {
+                addStyles(output, rule.style)
+            }
+            output.push('}');
+        // check for @keyframes rules
+        } else if (rule.type === rule.KEYFRAMES_RULE) {
+            output.push('@keyframes ' + rule.name + '{');
+            for (var i=rule.cssRules.length-1;i>=0;i--) {
+                var frame = rule.cssRules[i];
+                if (frame.type === 8 && frame.keyText) {
+                    output.push(frame.keyText + '{');
+                    if (frame.style) {
+                        addStyles(output, frame.style);
+                    }
+                    output.push('}');
+                }
+            }
+            output.push('}');
+        }
+    }
+}
+
+/**
+ * Proxy a URL in case it's not a Data URI
+ */
+function proxyAttribute(url) {
+    if (/^data:image\//.test(url)) {
+        return url;
+     } else {
+        return proxy+escape(url)
+    }
+}
+
+// Add a hook to enforce proxy for leaky CSS rules
+DOMPurify.addHook('uponSanitizeElement', function (node, data) {
+    if (data.tagName === 'style') {
+        var output  = [];
+        addCSSRules(output, node.sheet.cssRules);
+        node.textContent = output.join("\n");
+    }
+});
+
+// Add a hook to enforce proxy for all HTTP leaks incl. inline CSS
+DOMPurify.addHook('afterSanitizeAttributes', function(node){
+
+    // Check all src attributes and proxy them
+    for(var i = 0; i<=attributes.length-1; i++){
+        if(node.hasAttribute(attributes[i])){
+            node.setAttribute(attributes[i], proxyAttribute(
+                    node.getAttribute(attributes[i]))
+            );
+        }
+    }
+
+    // Check all style attribute values and proxy them
+    if(node.hasAttribute('style')){
+        var styles = node.style;
+        var output = [];
+        for(var prop=styles.length-1; prop>=0; prop--) {
+            // we re-write each property-value pair to remove invalid CSS
+            if(node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
+                var url = node.style[styles[prop]].replace(regex, '$1'+proxy)
+                node.style[styles[prop]]=url;
+            }
+            output.push(styles[prop]+':'+node.style[styles[prop]]+';');
+        }
+        // re-add styles in case any are left
+        if(output.length) {
+            node.setAttribute('style', output.join(""));    
+        } else {
+            node.removeAttribute('style');
+        }
+        
+    }
+});
+
+// Clean HTML string and write into our DIV
+var clean = DOMPurify.sanitize(dirty, config);
+```
