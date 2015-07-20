@@ -26,9 +26,16 @@
                         WHOLE_DOCUMENT: true
                 };
 
+                // Specify attributes to proxy
+                var attributes = ['action', 'background', 'href', 'poster', 'src']
+
                 // specify the regex to detect external content
                 var regex = /(url\("?)(?!data:)/gim;
 
+                /**
+                 *  Take CSS property-value pairs and proxy URLs in values,
+                 *  then add the styles to an array of property-value pairs
+                 */
                 function addStyles(output, styles) {
                     for (var prop=styles.length-1; prop>=0; prop--) {
                         if(styles[styles[prop]]){
@@ -41,96 +48,83 @@
                     }
                 }
 
+                /**
+                 * Take CSS rules and analyze them, proxy URLs via addStyles(),
+                 * then create matching CSS text for later application to the DOM
+                 */
                 function addCSSRules(output, cssRules) {
-
-                  for (var index=cssRules.length-1; index>=0; index--) {
-                      var rule = cssRules[index];
-                      // we only accept rules with selectors, no @-rules (yet)
-                      if (rule.type == 1 && rule.selectorText){
-                          // we re-write each CSS rule to remove invalid CSS
-                          output.push(rule.selectorText + '{')
-                          if (rule.style) {
-                            addStyles(output, rule.style)
-                          }
-                          output.push('}');
-
-                      } else if (rule.type == 5 && rule.cssText.slice(0, 12) == "@font-face {") {
-                          output.push('@font-face {');
-                          if (rule.style) {
-                            addStyles(output, rule.style)
-                          }
-                          output.push('}');
-
-                      } else if (rule.type == 4 && rule.media && rule.media.mediaText) {
-                          output.push('@media ' + rule.media.mediaText + '{');
-
-                          addCSSRules(output, rule.cssRules)
-
-                          output.push('}');
-                      } else if (rule.type == 7 && rule.name) {
-                          output.push('@keyframes ' + rule.name + '{');
-
-                          for (var i=rule.cssRules.length-1;i>=0;i--) {
-                              var frame = rule.cssRules[i];
-
-                              if (frame.type == 8 && frame.keyText) {
-                                  output.push(frame.keyText + '{');
-
-                                  if (frame.style) {
-                                      addStyles(output, frame.style);
-                                  }
-
-                                  output.push('}');
-                              }
-                          }
-
-                          output.push('}');
-                      }
-                  }
+                    for (var index=cssRules.length-1; index>=0; index--) {
+                        var rule = cssRules[index];
+                        // check for rules with selector
+                        if (rule.type == 1 && rule.selectorText){
+                            output.push(rule.selectorText + '{')
+                            if (rule.style) {
+                                addStyles(output, rule.style)
+                            }
+                            output.push('}');
+                        // check for @media rules
+                        } else if (rule.type === rule.MEDIA_RULE) {
+                            output.push('@media ' + rule.media.mediaText + '{');
+                            addCSSRules(output, rule.cssRules)
+                            output.push('}');
+                        // check for @font-face rules
+                        } else if (rule.type === rule.FONT_FACE_RULE) {
+                            output.push('@font-face {');
+                            if (rule.style) {
+                                addStyles(output, rule.style)
+                            }
+                            output.push('}');
+                        // check for @keyframes rules
+                        } else if (rule.type === rule.KEYFRAMES_RULE) {
+                            output.push('@keyframes ' + rule.name + '{');
+                            for (var i=rule.cssRules.length-1;i>=0;i--) {
+                                var frame = rule.cssRules[i];
+                                if (frame.type === 8 && frame.keyText) {
+                                    output.push(frame.keyText + '{');
+                                    if (frame.style) {
+                                        addStyles(output, frame.style);
+                                    }
+                                    output.push('}');
+                                }
+                            }
+                            output.push('}');
+                        }
+                    }
                 }
 
-                // Add a hook to enforce proxy for leaky CSS rules
-                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
-
-                    if (data.tagName === 'style') {
-                        var output  = [];
-
-                        addCSSRules(output, node.sheet.cssRules);
-
-                        node.textContent = output.join("\n");
-                    }
-                });
-
+                /**
+                 * Proxy a URL in case it's not a Data URI
+                 */
                 function proxyAttribute(url) {
-                    if (url.slice(0, 5) == "data:") {
+                    if (/^data:image\//.test(url)) {
                         return url;
                      } else {
                         return proxy+escape(url)
                     }
                 }
 
+                // Add a hook to enforce proxy for leaky CSS rules
+                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
+                    if (data.tagName === 'style') {
+                        var output  = [];
+                        addCSSRules(output, node.sheet.cssRules);
+                        node.textContent = output.join("\n");
+                    }
+                });
+
                 // Add a hook to enforce proxy for all HTTP leaks incl. inline CSS
                 DOMPurify.addHook('afterSanitizeAttributes', function(node){
-                    
-                    // check all src attributes and proxy them
-                    if(node.hasAttribute('src')){
-                        node.setAttribute('src', proxyAttribute(node.getAttribute('src')));
-                    } 
-                    if(node.hasAttribute('background')){
-                        node.setAttribute('background', proxyAttribute(node.getAttribute('background')));
-                    } 
-                    if(node.hasAttribute('poster')){
-                        node.setAttribute('poster', proxyAttribute(node.getAttribute('poster')));
-                    } 
-                    // check all action attributes and proxy them
-                    if(node.hasAttribute('action')){
-                        node.setAttribute('action', proxyAttribute(node.getAttribute('action')));
-                    } 
-                    // check all href attributes and proxy them
-                    if(node.hasAttribute('href')){
-                        node.setAttribute('href', proxyAttribute(node.getAttribute('href')));
-                    } 
-                    // check all style attribute values and proxy them
+
+                    // Check all src attributes and proxy them
+                    for(var i = 0; i<=attributes.length-1; i++){
+                        if(node.hasAttribute(attributes[i])){
+                            node.setAttribute(attributes[i], proxyAttribute(
+                                    node.getAttribute(attributes[i]))
+                            );
+                        }
+                    }
+
+                    // Check all style attribute values and proxy them
                     if(node.hasAttribute('style')){
                         var styles = node.style;
                         var output = [];
@@ -438,7 +432,11 @@
                   -webkit-animation-duration: 1s;
                 }
               }
-
+              
+              @media some garbage {
+                more garbage;
+              }
+              
               @-webkit-keyframes rotate-a-bit {
                 0% { transform: translate(0deg); background: url(https://leaking.via/keyframe-0) }
                 100% { transform: rotate(0deg); background: url(https://leaking.via/keyframe-100) }
