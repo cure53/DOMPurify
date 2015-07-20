@@ -6,7 +6,7 @@ This collection of demos shows to same code for several different ways you can u
 
 ### Basic Demo [Link](basic-demo.html)
 
-This is the most basic of all demos. It shows how you user DOMPurify and that's it. No configuration, no hooks, no extras.
+This is the most basic of all demos. It shows how you user DOMPurify and that's it. No configuration, no hooks, no extras. Just DOMPurify running with default settings.
 
 This is the relevant code:
 ```javascript
@@ -30,7 +30,7 @@ var clean = DOMPurify.sanitize(dirty, config);
 
 ### Advanced Config Demo [Link](advanced-config-demo.html)
 
-This demo shows, how we can use the configuration object to instruct DOMPurify to be more specific with what is to be permitted and what s not. We want to permit `<p>` elements and the fictional `<ying>` and `<yang>` tag. We also want to allow the `kitty-litter` attribute because why not - and make sure that a `document`-object is returned after sanitation - and not a plain string. 
+This demo shows, how we can use the configuration object to instruct DOMPurify to be more specific with what is to be permitted and what s not. We want to permit `<p>` elements and the fictional `<ying>` and `<yang>` tag. We also want to allow the `kitty-litter` attribute because why not - and make sure that a `document`-object is returned after sanitation - and not a plain string.
 
 This is the relevant code:
 ```javascript
@@ -47,7 +47,7 @@ var config = {
 var clean = DOMPurify.sanitize(dirty, config);
 ```
 
-### Hooks Demo [Link]()
+### Hooks Demo [Link](hooks-demo.html)
 
 DOMPurify allows you to use hooks. Hooks are basically scripts that can hook into certain parts of the DOMPurify code flow and do stuff. Stuff that you like to be done. By using hooks, you can literally make DOMPurify do whatever. To show you, how powerful and easy to use hooks are, we created some demos for you. Like this one, that essentially renders all tag content to be in capitals.
 
@@ -65,7 +65,7 @@ DOMPurify.addHook('beforeSanitizeAttributes', function(node){
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Add hooks and remove hooks [Link]()
+### Add hooks and remove hooks [Link](hooks-removal-demo.html)
 
 A DOMPurify hook can also be removed in case you first need it and then you want to get rid of it right afterwards. This demo shows how you do that with ease and elegance.
 
@@ -89,7 +89,7 @@ console.log(DOMPurify.removeHook('beforeSanitizeAttributes'));
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Hook to open all links in a new window [Link]()
+### Hook to open all links in a new window [Link](hooks-target-blank-demo.html)
 
 This hook is an important one and used quite commonly. It is made to assure that all elements that can function as a link will open the linked page in a new tab or window. This is often of great importance in web mailers and other tools, where a click on a link is not supposed to navigate the original page but rather open another window or tab.
 
@@ -113,11 +113,11 @@ DOMPurify.addHook('afterSanitizeAttributes', function(node){
 var clean = DOMPurify.sanitize(dirty);
 ``` 
 
-### Hook to white-list safe URI Schemes [Link]()
+### Hook to white-list safe URI Schemes [Link](hooks-scheme-whitelist.html)
 
-Depending on where you show your sanitized HTML, different URI schemes might cause trouble. And in most situations, you only want to allow HTTP and HTTPS - but not any of those fancy URI schemes supported on mobile devices or even on the desktop with Windows 10. This hook demo shows how to easily make sure only HTTP and HTTP URIs are permitted while all others are eliminated for good.
+Depending on where you show your sanitized HTML, different URI schemes might cause trouble. And in most situations, you only want to allow HTTP and HTTPS - but not any of those fancy URI schemes supported on mobile devices or even on the desktop with Windows 10. This hook demo shows how to easily make sure only HTTP, HTTPS and FTP URIs are permitted while all others are eliminated for good.
 
-Note that you might want to be more thorough, if not only links but also backgrounds and other attributes should be covered. We have an example later on to cover all these too.
+Note that you might want to be more thorough, if not only links but also backgrounds and other attributes should be covered. We have an example later on to [cover all these too](hooks-proxy-demo.html).
 
 This is the relevant code:
 ```javascript
@@ -160,9 +160,9 @@ DOMPurify.addHook('afterSanitizeAttributes', function(node){
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Hook to allow and sand-box all JavaScript [Link]()
+### Hook to allow and sand-box all JavaScript [Link](hooks-mentaljs-demo.html)
 
-Okay, now this is real witch-craft! Imagine you want users to submit JavaScript but it should be sand-boxed. With a hook, you can actually do that. What we are doing here is permitting all JavaScript and event handlers, but take their contents and sand-box it using Gareth Heyes' [MentalJS](https://github.com/hackvertor/MentalJS) library. The hook shows how do to this safely. 
+Okay, now this is real witch-craft! Imagine you want users to submit JavaScript but it should be sand-boxed. With a hook, you can actually do that. What we are doing here is permitting all JavaScript and event handlers, but take their contents and sand-box it using Gareth Heyes' amazing [MentalJS](https://github.com/hackvertor/MentalJS) library. The hook shows how do to this safely. 
 
 Be careful though, this is playing with fire. If you want to use this in production, better give us a quick ping to see if all is really working as desired.
 
@@ -212,7 +212,7 @@ DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
 var clean = DOMPurify.sanitize(dirty, config);
 ```   
 
-### Hook to proxy all links [Link]()
+### Hook to proxy all links [Link](hooks-link-proxy-demo.html)
 
 DOMPurify itself permits links to all resources that don't cause XSS. That includes pretty much all URI schemes and of course HTTP and HTTPS links. Yet, often, preventing XSS is not everything you want to do. And a common use case for a sanitizer is to also proxy all existing links on a website to make sure a de-referrer is used or the website owner has more control over what links are pointing where - to avoid referrer leaks, attacks using window.opener and alike. This hook shows, how all out-bound links can easily be proxied for maximum safety. 
 
@@ -241,11 +241,11 @@ DOMPurify.addHook('afterSanitizeAttributes', function(node){
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Hook to proxy all HTTP leaks including CSS [Link]()
+### Hook to proxy all HTTP leaks including CSS [Link](hooks-proxy-demo.html)
 
-Now this is a hook you don't talk about on your first date. This monster has the purpose of proxying **all** known HTTP leaks including the ones hidden in CSS. It proxies HTML, CSS rules, in-line styles, `@media` rules, `@font-face` rules and `@keyframes`. It further eliminates `@charset` and `@import` as they both help carrying out XSS attacks. This hook is supposed to be a comprehensive demo on how to cover each and every HTTP leak. That's why the amount of code is a bit higher than usual.
+Now this is a hook you don't talk about on your first date. This monster has the purpose of proxying **all** known [HTTP leaks](https://github.com/cure53/HTTPLeaks) including the ones hidden in CSS. It proxies HTML, CSS rules, in-line styles, `@media` rules, `@font-face` rules and `@keyframes`. It further eliminates `@charset` and `@import` as they both help carrying out XSS attacks. This hook is supposed to be a comprehensive demo on how to cover each and every HTTP leak. That's why the amount of code is a bit higher than usual.
 
-When ever you want to reliably filter HTML and CSS using DOMPurify, this is the way to go. 
+When ever you want to reliably filter HTML and CSS using DOMPurify, this is the way to go. How to try the demo? Run the HTML file linked above in your browser and have a look at the network tab of your favorite debugger. You will see that all external resources are proxied. If not then you found a bug.
 
 This is the relevant code:
 ```javascript
