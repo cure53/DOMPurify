@@ -1,6 +1,6 @@
-## What it this?
+## What is this?
 
-This is a collection of demos of how to use DOMPurify. When run without any additional configuration parameters, DOMPurify will reliably protect against XSS and DOM Clobbering attacks. But there is a lot of more things this library can do. For example proxy all HTTP resources, enhance accessibility, prevent links to open in the same window and more.
+This is a collection of demos of how to use DOMPurify. When run without any additional configuration parameters, DOMPurify will reliably protect against XSS and DOM Clobbering attacks. But there is a lot of more things this library can do. For example proxy all HTTP resources, enhance accessibility, prevent links to open in the same window, allow and sand-box JavaScript and more.
 
 This collection of demos shows to same code for several different ways you can use DOMPurify. Please feel free to suggest additional demos if needed. All demos we have collected so far will be shown and explained below.
 
