@@ -23,63 +23,112 @@
                 // What do we allow? Not much for now. But it's tight.
                 var config = {
                         FORBID_TAGS:    ['svg'],
-                        FORBID_ATTR:    ['background', 'poster'],
                         WHOLE_DOCUMENT: true
                 };
 
                 // specify the regex to detect external content
                 var regex = /(url\("?)(?!data:)/gim;
 
-                // Add a hook to enforce proxy for leaky CSS rules
-                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
-                    if (data.tagName === 'style') {
-                        var output  = [];
-                        var counter = 0;
-                        for (var index=node.sheet.cssRules.length-1; index>=0; index--) {
-                            var rule = node.sheet.cssRules[index];
-                            // we only accept rules with selectors, no @-rules (yet)
-                            if(rule.selectorText){
-                                // we re-write each CSS rule to remove invalid CSS
-                                output.push(rule.selectorText + '{')
-                                if(rule.style && rule.type === 1) {
-                                    var styles = rule.style
-                                    for (var prop=styles.length-1; prop>=0; prop--) {
-                                        if(styles[styles[prop]]){
-                                            var url = styles[styles[prop]].replace(regex, '$1'+proxy);
-                                            styles[styles[prop]]=url;
-                                        }
-                                        if(styles[styles[prop]]) {
-                                            output.push(styles[prop]+':'+styles[styles[prop]]+';');
-                                        }
-                                    }
-                                }
-                                output.push('}');
-                                counter+=2;
-                            }
+                function addStyles(output, styles) {
+                    for (var prop=styles.length-1; prop>=0; prop--) {
+                        if(styles[styles[prop]]){
+                            var url = styles[styles[prop]].replace(regex, '$1'+proxy);
+                            styles[styles[prop]]=url;
                         }
-                        // re-add CSS if any is left
-                        if(output.length > counter) {
-                            node.textContent = output.join("\n");
-                        } else {
-                            node.parentNode.removeChild(node);
+                        if(styles[styles[prop]]) {
+                            output.push(styles[prop]+':'+styles[styles[prop]]+';');
                         }
                     }
+                }
+
+                function addCSSRules(output, cssRules) {
+
+                  for (var index=cssRules.length-1; index>=0; index--) {
+                      var rule = cssRules[index];
+                      // we only accept rules with selectors, no @-rules (yet)
+                      if (rule.type == 1 && rule.selectorText){
+                          // we re-write each CSS rule to remove invalid CSS
+                          output.push(rule.selectorText + '{')
+                          if (rule.style) {
+                            addStyles(output, rule.style)
+                          }
+                          output.push('}');
+
+                      } else if (rule.type == 5 && rule.cssText.slice(0, 12) == "@font-face {") {
+                          output.push('@font-face {');
+                          if (rule.style) {
+                            addStyles(output, rule.style)
+                          }
+                          output.push('}');
+
+                      } else if (rule.type == 4 && rule.media && rule.media.mediaText) {
+                          output.push('@media ' + rule.media.mediaText + '{');
+
+                          addCSSRules(output, rule.cssRules)
+
+                          output.push('}');
+                      } else if (rule.type == 7 && rule.name) {
+                          output.push('@keyframes ' + rule.name + '{');
+
+                          for (var i=rule.cssRules.length-1;i>=0;i--) {
+                              var frame = rule.cssRules[i];
+
+                              if (frame.type == 8 && frame.keyText) {
+                                  output.push(frame.keyText + '{');
+
+                                  if (frame.style) {
+                                      addStyles(output, frame.style);
+                                  }
+
+                                  output.push('}');
+                              }
+                          }
+
+                          output.push('}');
+                      }
+                  }
+                }
+
+                // Add a hook to enforce proxy for leaky CSS rules
+                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
+
+                    if (data.tagName === 'style') {
+                        var output  = [];
+
+                        addCSSRules(output, node.sheet.cssRules);
+
+                        node.textContent = output.join("\n");
+                    }
                 });
+
+                function proxyAttribute(url) {
+                    if (url.slice(0, 5) == "data:") {
+                        return url;
+                     } else {
+                        return proxy+escape(url)
+                    }
+                }
 
                 // Add a hook to enforce proxy for all HTTP leaks incl. inline CSS
                 DOMPurify.addHook('afterSanitizeAttributes', function(node){
                     
                     // check all src attributes and proxy them
                     if(node.hasAttribute('src')){
-                        node.setAttribute('src', proxy+escape(node.getAttribute('src')));
+                        node.setAttribute('src', proxyAttribute(node.getAttribute('src')));
+                    } 
+                    if(node.hasAttribute('background')){
+                        node.setAttribute('background', proxyAttribute(node.getAttribute('background')));
+                    } 
+                    if(node.hasAttribute('poster')){
+                        node.setAttribute('poster', proxyAttribute(node.getAttribute('poster')));
                     } 
                     // check all action attributes and proxy them
                     if(node.hasAttribute('action')){
-                        node.setAttribute('action', proxy+escape(node.getAttribute('action')));
+                        node.setAttribute('action', proxyAttribute(node.getAttribute('action')));
                     } 
                     // check all href attributes and proxy them
                     if(node.hasAttribute('href')){
-                        node.setAttribute('href', proxy+escape(node.getAttribute('href')));
+                        node.setAttribute('href', proxyAttribute(node.getAttribute('href')));
                     } 
                     // check all style attribute values and proxy them
                     if(node.hasAttribute('style')){
@@ -259,8 +308,10 @@
             <!--
             %Forms
             -->
-            <form action="https://leaking.via/form-action"></form>
-            <form id="test"></form><button form="test" formaction="https://leaking.via/button-formaction">CLICKME</button>
+            <form action="https://leaking.via/form-action">
+              <button form="test" formaction="https://leaking.via/button-formaction">CLICKME</button>
+            </form>
+            <form id="test"></form>
             <input type="image" src="https://leaking.via/input-src" name="test" value="test">
             <isindex src="https://leaking.via/isindex" type="image">
             
@@ -377,6 +428,21 @@
                 s::before {
                   content: attr(notpresent, url(https://leaking.via/css-attr-fallback));
                 }
+            </style>
+
+            <style>
+              @media all, not print and not monochrome, (min-width: 1px) {
+                body {
+                  background: url(https://leaking.via/css-media-query);
+                  -webkit-animation: rotate-a-bit;
+                  -webkit-animation-duration: 1s;
+                }
+              }
+
+              @-webkit-keyframes rotate-a-bit {
+                0% { transform: translate(0deg); background: url(https://leaking.via/keyframe-0) }
+                100% { transform: rotate(0deg); background: url(https://leaking.via/keyframe-100) }
+              }
             </style>
             
             
