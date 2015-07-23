@@ -476,7 +476,10 @@
                 /* Check the name is permitted */
                 (
                  (ALLOWED_ATTR[lcName] && !FORBID_ATTR[lcName]) ||
-                 (ALLOW_DATA_ATTR && /^data-[\w-]+/.test(lcName))
+                 /* Allow potentially valid data-* attributes
+                    * At least one character after "-" (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
+                    * XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804) */
+                 (ALLOW_DATA_ATTR && /^data-[\w.\u00B7-\uFFFF-]/.test(lcName))
                 ) &&
                 /* Get rid of script and data URIs */
                 (
@@ -486,7 +489,7 @@
                   currentNode.nodeName === 'IMG')
                 )
             ) {
-                /* Handle invalid data attribute set by try-catching it */
+                /* Handle invalid data-* attribute set by try-catching it */
                 try {
                     currentNode.setAttribute(name, value);
                 } catch (e) {}
