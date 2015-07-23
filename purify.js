@@ -383,7 +383,12 @@
                     currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                 } catch (e) {}
             }
-            currentNode.parentNode.removeChild(currentNode);
+            /* Force removal */
+            try {
+                currentNode.parentNode.removeChild(currentNode);
+            } catch (e) {
+                currentNode.outerHTML = '';
+            }
             return true;
         }
 
