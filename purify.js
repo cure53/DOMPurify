@@ -283,6 +283,19 @@
     };
 
    /**
+     * _forceRemove
+     *
+     * @param  a DOM node
+     */
+    var _forceRemove = function(node) {
+        try {
+            node.parentNode.removeChild(node);
+        } catch (e) {
+            node.outerHTML = '';
+        }
+    };
+
+   /**
      * _initDocument
      *
      * @param  a string of dirty markup
@@ -357,12 +370,7 @@
 
         /* Check if element is clobbered or can clobber */
         if (_isClobbered(currentNode)) {
-            /* Be harsh with clobbered content, element has to go! */
-            try {
-                currentNode.parentNode.removeChild(currentNode);
-            } catch (e) {
-                currentNode.outerHTML = '';
-            }
+            _forceRemove(currentNode);
             return true;
         }
 
@@ -383,12 +391,7 @@
                     currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
                 } catch (e) {}
             }
-            /* Force removal */
-            try {
-                currentNode.parentNode.removeChild(currentNode);
-            } catch (e) {
-                currentNode.outerHTML = '';
-            }
+            _forceRemove(currentNode);
             return true;
         }
 
