@@ -418,10 +418,7 @@
         /* Check if we have attributes; if not we might have a text node */
         if (!attributes) { return; }
 
-        var isScriptOrData = /^(?:\w+script|data):/gi,
-            /* This needs to be extensive thanks to Webkit/Blink's behavior */
-            whitespace = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g,
-            hookEvent = {
+        var hookEvent = {
                 attrName: '',
                 attrValue: '',
                 keepAttr: true
@@ -479,11 +476,11 @@
                  /* Allow potentially valid data-* attributes
                     * At least one character after "-" (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
                     * XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804) */
-                 (ALLOW_DATA_ATTR && /^data-[\w.\u00B7-\uFFFF-]/.test(lcName))
+                 (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName))
                 ) &&
                 /* Get rid of script and data URIs */
                 (
-                 !isScriptOrData.test(value.replace(whitespace,'')) ||
+                 !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,'')) ||
                  /* Keep image data URIs alive if src is allowed */
                  (lcName === 'src' && value.indexOf('data:') === 0 &&
                   currentNode.nodeName === 'IMG')
@@ -499,6 +496,10 @@
         /* Execute a hook if present */
         _executeHook('afterSanitizeAttributes', currentNode, null);
     };
+    var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
+    var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
+    /* This needs to be extensive thanks to Webkit/Blink's behavior */
+    var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
     /**
      * _sanitizeShadowDOM
