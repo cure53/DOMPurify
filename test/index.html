@@ -57,6 +57,7 @@
             );
             assert.equal( DOMPurify.sanitize( '<a href="#">abc<b style="color:red">123</b><q class="cite">123</b></a>', {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style'], KEEP_CONTENT: false}), "");
             assert.equal( DOMPurify.sanitize( '<a href="#">abc</a>', {ALLOWED_TAGS: ['b', 'q'], KEEP_CONTENT: false}), "");
+            assert.equal( DOMPurify.sanitize( '<form><input name="parentNode"></form>', {ALLOWED_TAGS: ['input'], KEEP_CONTENT: true}), "<input>" );
         });
 
         QUnit.test( 'Config-Flag tests: ALLOW_DATA_ATTR', function(assert) {
