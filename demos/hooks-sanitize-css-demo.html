@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../purify.js"></script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+            window.onload = function(){
+
+                // Specify dirty HTML
+                var dirty = document.getElementById('payload').value;
+
+                // We can allow all (default elements) but SVG
+                var config = {
+                    FORBID_TAGS: ['svg'] // SVG is not yet supported. Too messy.
+                };
+
+                // Specify CSS property whitelist
+                var allowed_properties = [
+                    'color', 
+                    'background',
+                    'border', 
+                    'padding', 
+                    'margin',
+                    'font-family',
+                    'content',
+                    'padding'
+                ];
+
+                // Specify if CSS functions are permitted
+                var allow_css_functions = true;
+
+                /**
+                 *  Take CSS property-value pairs and validate against white-list,
+                 *  then add the styles to an array of property-value pairs
+                 */
+                function validateStyles(output, styles) {
+                    // Validate regular CSS properties
+                    for(var prop in styles) {
+                        if(typeof styles[prop] === 'string'){
+                            if(styles[prop] && allowed_properties.indexOf(prop) > -1) {
+                               if(allow_css_functions || !/\w+\(/.test(styles[prop])) {
+                                    output.push(prop + ':' + styles[prop] +';');
+                                }
+                            }
+                        }
+                    }
+                }
+
+                /**
+                 * Take CSS rules and analyze them, create string wrapper to
+                 * apply them to the DOM later on. Note that only selector rules 
+                 * are supported right now
+                 */
+                function addCSSRules(output, cssRules) {
+                    for (var index=cssRules.length-1; index>=0; index--) {
+                        var rule = cssRules[index];
+                        // check for rules with selector
+                        if (rule.type == 1 && rule.selectorText){
+                            output.push(rule.selectorText + '{')
+                            if (rule.style) {
+                                validateStyles(output, rule.style)
+                            }
+                            output.push('}');
+                        }
+                    }
+                }
+
+                // Add a hook to enforce CSS element sanitization
+                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
+                    if (data.tagName === 'style') {
+                        var output  = [];
+                        addCSSRules(output, node.sheet.cssRules);
+                        node.textContent = output.join("\n");
+                    }
+                });
+
+                // Add a hook to enforce CSS attribute sanitization
+                DOMPurify.addHook('afterSanitizeAttributes', function(node){
+
+                    // Nasty hack to fix baseURI + CSS problems in Chrome
+                    if(!node.ownerDocument.baseURI){
+                        var base = document.createElement('base');
+                        base.href = document.baseURI;
+                        node.ownerDocument.head.appendChild(base);
+                    }
+
+                    // Check all style attribute values and validate them
+                    if(node.hasAttribute('style')){
+                        var output = [];
+                        validateStyles(output, node.style);
+                        // re-add styles in case any are left
+                        if(output.length) {
+                            node.setAttribute('style', output.join(""));
+                        } else {
+                            node.removeAttribute('style');
+                        }
+                    }
+                });
+
+                // Clean HTML string and write into our DIV
+                var clean = DOMPurify.sanitize(dirty, config);
+                document.getElementById('sanitized').innerHTML = clean;
+            }
+        </script>
+        
+        <!--  Here we cage our payload in a TEXTAREA -->
+        <textarea id="payload">
+
+            <a href="#" style="border:1ps solid blue;color:red;background:url(/images/test.gif)">ABC</a>
+            <style>
+                big {
+                    list-style: url(https://leaking.via/css-list-style);
+                    list-style-image: url(https://leaking.via/css-list-style-image);
+                    background: url(https://leaking.via/css-background);
+                    background-image: url(https://leaking.via/css-background-image);
+                    border-image: url(https://leaking.via/css-border-image);
+                    border-image-source: url(https://leaking.via/css-border-image-source);
+                    shape-outside: url(https://leaking.via/css-shape-outside);
+                    cursor: url(https://leaking.via/css-cursor), auto;
+                    color:red;
+                }
+            </style>
+            <big>DEF</big>
+            <svg>
+                <style>
+                    circle {
+                        fill: green;
+                        mask: url(https://leaking.via/svg-css-mask#foo);
+                        filter: url(https://leaking.via/svg-css-filter#foo);
+                        clip-path: url(https://leaking.via/svg-css-clip-path#foo);
+                    }
+                </style>
+                <circle r="40"></circle>
+            </svg>
+            <style>
+                @media all, not print and not monochrome, (min-width: 1px) {
+                  body {
+                    background: url(https://leaking.via/css-media-query);
+                    font-family: expression(alert('url()'));
+                    -webkit-animation: rotate-a-bit;
+                    -webkit-animation-duration: 1s;
+                  }
+                }
+                @font-face {
+                    font-family: leak;
+                    src: url(test.woff);
+                }
+                strong {
+                    font-family: leak;
+                    color:blue;
+                    background: url("/images/test.gif");
+                }
+                strong:after {
+                    content: 'hola!';
+                }
+            </style>
+            <strong>GHI</strong>            
+        </textarea>
+    </body>
+</html>
