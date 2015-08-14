@@ -19,7 +19,7 @@
     "secure"
   ],
   "license": {
-    "type": "MPL",
+    "type": "MPL-2.0 OR Apache-2.0",
     "url": "https://github.com/cure53/DOMPurify/blob/master/LICENSE"
   },
   "ignore": [
