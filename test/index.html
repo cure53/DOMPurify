@@ -213,7 +213,7 @@
         QUnit.test( 'DOMPurify property tests', function(assert) {
             assert.equal( typeof DOMPurify.isSupported, 'boolean' );
         });
-
+        // Test with a custom window object
         QUnit.test( 'DOMPurify custom window tests', function(assert) {
             assert.strictEqual(typeof DOMPurify(null).version, 'string');
             assert.strictEqual(DOMPurify(null).isSupported, false);
@@ -230,26 +230,40 @@
             assert.strictEqual(typeof DOMPurify(window).version, 'string');
             assert.strictEqual(typeof DOMPurify(window).sanitize, 'function');
         });
+        // Test to prevent security issues with pre-clobbered DOM
         QUnit.test( 'sanitize() should not throw if the original document is clobbered _after_ DOMPurify has been instantiated', function(assert) {
-                var evilNode = document.createElement('div');
-                evilNode.innerHTML = '<img id="implementation"><img id="createNodeIterator"><img id="importNode"><img id="createElement">';
-                document.body.appendChild(evilNode);
-                try {
-                        // tests implementation and createNodeIterator
-                        var resultPlain =  DOMPurify.sanitize('123');
-                        // tests importNode
-                        var resultImport = DOMPurify.sanitize( '123', {RETURN_DOM : true, RETURN_DOM_IMPORT: true });
-                        // tests createElement
-                        var resultBody = DOMPurify.sanitize( '123<img id="body">');
-                } finally {
-                        // clean up before doing the actual assertions, otherwise qunit/jquery/etc might blow up
-                        document.body.removeChild(evilNode);
-                }
+            var evilNode = document.createElement('div');
+            evilNode.innerHTML = '<img id="implementation"><img id="createNodeIterator"><img id="importNode"><img id="createElement">';
+            document.body.appendChild(evilNode);
+            try {
+                    // tests implementation and createNodeIterator
+                    var resultPlain =  DOMPurify.sanitize('123');
+                    // tests importNode
+                    var resultImport = DOMPurify.sanitize( '123', {RETURN_DOM : true, RETURN_DOM_IMPORT: true });
+                    // tests createElement
+                    var resultBody = DOMPurify.sanitize( '123<img id="body">');
+            } finally {
+                    // clean up before doing the actual assertions, otherwise qunit/jquery/etc might blow up
+                    document.body.removeChild(evilNode);
+            }
 
-                assert.equal( resultPlain, '123' );
-                assert.equal( resultImport.ownerDocument, document );
-                assert.equal( resultBody, '123<img>' );
+            assert.equal( resultPlain, '123' );
+            assert.equal( resultImport.ownerDocument, document );
+            assert.equal( resultBody, '123<img>' );
         } );
+        // Test to check against a hang in MSIE (#89)
+        QUnit.test( 'sanitize() should not hang on MSIE when hook changes textContent', function(assert) {
+            DOMPurify.addHook('afterSanitizeElements', function(node) {
+                if (node.nodeType && node.nodeType === document.TEXT_NODE) {
+                    node.textContent = 'foo';
+                }
+                return node;
+            });
+            var dirty = '<div><p>This is a beatufiul text</p><p>This is too</p></div>';
+            var modified = '<div><p>foo</p><p>foo</p></div>';
+            assert.equal(modified, DOMPurify.sanitize(dirty));
+            DOMPurify.removeHooks('afterSanitizeElements')
+        } );        
 
         // Fire it up!
         QUnit.start();
