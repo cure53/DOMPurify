@@ -593,10 +593,17 @@
 
         /* Get node iterator */
         var currentNode;
+        var oldNode;
         var nodeIterator = _createIterator(body);
 
         /* Now start iterating over the created document */
         while ( (currentNode = nodeIterator.nextNode()) ) {
+        	
+            /* Fix IE's strange behavior with manipulated textNodes #89 */ 
+            if (currentNode === oldNode) {
+                continue;
+            }  	
+
             /* Sanitize tags and elements */
             if (_sanitizeElements(currentNode)) {
                 continue;
@@ -609,6 +616,8 @@
 
             /* Check attributes, sanitize if necessary */
             _sanitizeAttributes(currentNode);
+            
+            oldNode = currentNode;
         }
 
         /* Return sanitized string or DOM */
