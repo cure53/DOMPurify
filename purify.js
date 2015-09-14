@@ -587,7 +587,7 @@
         /* Now start iterating over the created document */
         while ( (currentNode = nodeIterator.nextNode()) ) {
         	
-        	/* Fix IE's strange behavior with manipulated textNodes #89 */ 
+            /* Fix IE's strange behavior with manipulated textNodes #89 */ 
             if (currentNode === oldNode) {
                 continue;
             }  	
