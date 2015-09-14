@@ -195,7 +195,8 @@
         "expected": [
                         "<img><img>@mmrupp<img><svg></svg>",
                         "<img><img>@mmrupp<img name=\"firstElementChild\"><svg></svg>",
-                        "<img><img>@mmrupp<img name=\"firstElementChild\"><svg xmlns=\"http://www.w3.org/2000/svg\" />"
+                        "<img><img>@mmrupp<img name=\"firstElementChild\"><svg xmlns=\"http://www.w3.org/2000/svg\" />",
+                        "<img><img>@mmrupp<img><svg xmlns=\"http://www.w3.org/2000/svg\" />"
                     ]
     },
     {
@@ -741,14 +742,18 @@
         "payload": "<div id=\"94\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<handler xmlns:ev=\"http://www.w3.org/2001/xml-events\" ev:event=\"load\">alert(94)</handler>\n</svg>//[\"'`-->]]>]</div>",
         "expected": [
             "<div id=\"94\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-            "<div id=\"94\"><svg xmlns=\"http://www.w3.org/2000/svg\">\nalert(94)\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+            "<div id=\"94\"><svg xmlns=\"http://www.w3.org/2000/svg\">\nalert(94)\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+            "<div id=\"94\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+            
         ]
     },
     {
         "payload": "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<feImage>\n<set attributeName=\"xlink:href\" to=\"data:image/svg+xml;charset=utf-8;base64,\nPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxzY3JpcHQ%2BYWxlcnQoMSk8L3NjcmlwdD48L3N2Zz4NCg%3D%3D\"/>\n</feImage>\n</svg>//[\"'`-->]]>]</div>",
         "expected": [
             "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-            "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+            "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+            "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+            
         ]
     },
     {
@@ -901,10 +906,11 @@
         "expected": "<div id=\"124\"> // Safari 5.0, Chrome 9, 10\n // Safari 5.0//[\"'`--&gt;]]&gt;]</div>"
     },
     {
-        "payload": "<div id=\"125\"><?xml version=\"1.0\"?>\n<?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?>\n<!DOCTYPE doc [\n<!ATTLIST xsl:stylesheet\n  id    ID    #REQUIRED>]>\n<svg xmlns=\"http://www.w3.org/2000/svg\">\n    <xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n        <xsl:template match=\"/\">\n            <iframe xmlns=\"http://www.w3.org/1999/xhtml\" src=\"javascript:alert(125)\"></iframe>\n        </xsl:template>\n    </xsl:stylesheet>\n    <circle fill=\"red\" r=\"40\"></circle>\n</svg>//[\"'`-->]]>]</div>",
+        "payload": "<div id=\"125\"><?xml version=\"1.0\"?><?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?><!DOCTYPE doc [<!ATTLIST xsl:stylesheet  id    ID    #REQUIRED>]><svg xmlns=\"http://www.w3.org/2000/svg\">    <xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">        <xsl:template match=\"/\">            <iframe xmlns=\"http://www.w3.org/1999/xhtml\" src=\"javascript:alert(125)\"></iframe>        </xsl:template>    </xsl:stylesheet>    <circle fill=\"red\" r=\"40\"></circle></svg>//[\"'`-->]]>]</div>",
         "expected": [
-            "<div id=\"125\">\n\n]&gt;\n<svg xmlns=\"http://www.w3.org/2000/svg\">\n    \n    <circle r=\"40\" fill=\"red\"></circle>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-            "<div id=\"125\">\n\n]&gt;\n<svg xmlns=\"http://www.w3.org/2000/svg\">\n    \n        \n            \n        \n    \n    <circle r=\"40\" fill=\"red\"></circle>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+            "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">        <circle r=\"40\" fill=\"red\"></circle></svg>//[\"'`--&gt;]]&gt;]</div>",
+            "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">                                        <circle r=\"40\" fill=\"red\"></circle></svg>//[\"'`--&gt;]]&gt;]</div>",
+            "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">        <circle fill=\"red\" r=\"40\" /></svg>//[\"'`--&gt;]]&gt;]</div>"
         ]
     },
     {
@@ -915,7 +921,10 @@
         "payload": "<div id=\"127\"><svg xmlns=\"http://www.w3.org/2000/svg\" id=\"x\">\n<listener event=\"load\" handler=\"#y\" xmlns=\"http://www.w3.org/2001/xml-events\" observer=\"x\"/>\n<handler id=\"y\">alert(127)</handler>\n</svg>//[\"'`-->]]>]</div>",
         "expected": [
             "<div id=\"127\"><svg id=\"x\" xmlns=\"http://www.w3.org/2000/svg\">\n\nalert(127)\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-            "<div id=\"127\"><svg id=\"x\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+            "<div id=\"127\"><svg id=\"x\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+            "<div id=\"127\"><svg xmlns=\"http://www.w3.org/2000/svg\" id=\"x\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+
+            
         ]
     },
     {
@@ -1002,7 +1011,10 @@
     {
         "title": "Removing name attr from img with id can crash Safari",
         "payload": "<img name=\"bar\" id=\"foo\">",
-        "expected": "<img id=\"foo\" name=\"bar\">"
+        "expected": [
+            "<img id=\"foo\" name=\"bar\">",
+            "<img name=\"bar\">"
+        ]
     },
     {
         "title": "DOM clobbering: submit",
