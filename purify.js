@@ -600,7 +600,7 @@
         while ( (currentNode = nodeIterator.nextNode()) ) {
         	
             /* Fix IE's strange behavior with manipulated textNodes #89 */ 
-            if (currentNode === oldNode) {
+            if (currentNode.nodeType === 3 && currentNode === oldNode) {
                 continue;
             }  	
 
