@@ -1,11 +1,14 @@
-# DOMPurify [![NPM version](http://img.shields.io/npm/v/dompurify.svg)](https://www.npmjs.org/package/dompurify)
+# DOMPurify [![Bower version](https://badge.fury.io/bo/dompurify.svg)](http://badge.fury.io/bo/dompurify)[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify)
+
+[![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
+
+[![Build Status](https://travis-ci.org/cure53/DOMPurify.svg?branch=master)](https://travis-ci.org/tdeekens/DOMPurify)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
 It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Spartan, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It simply does nothing there.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model)
-
 
 ## What does it do?
 
@@ -14,7 +17,7 @@ DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with s
 
 ## How do I use it?
 
-It's easy. Just include DOMPurify on your website. 
+It's easy. Just include DOMPurify on your website.
 
 ```html
 <script type="text/javascript" src="purify.js"></script>
@@ -170,6 +173,6 @@ We recently implemented a Hook-API allowing developers to create their own DOMPu
 
 ## Who contributed?
 
-Several people need to be listed here! [@garethheyes](https://twitter.com/garethheyes) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same. 
+Several people need to be listed here! [@garethheyes](https://twitter.com/garethheyes) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same.
 
 Big thanks also go to [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)! Further, thanks [@neilj](https://twitter.com/neilj) for his code review and countless small optimizations, fixes and beautifications.
