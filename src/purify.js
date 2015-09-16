@@ -598,11 +598,11 @@
 
         /* Now start iterating over the created document */
         while ( (currentNode = nodeIterator.nextNode()) ) {
-        	
-            /* Fix IE's strange behavior with manipulated textNodes #89 */ 
+
+            /* Fix IE's strange behavior with manipulated textNodes #89 */
             if (currentNode.nodeType === 3 && currentNode === oldNode) {
                 continue;
-            }  	
+            }
 
             /* Sanitize tags and elements */
             if (_sanitizeElements(currentNode)) {
@@ -616,7 +616,7 @@
 
             /* Check attributes, sanitize if necessary */
             _sanitizeAttributes(currentNode);
-            
+
             oldNode = currentNode;
         }
 

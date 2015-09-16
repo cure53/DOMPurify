@@ -3,12 +3,23 @@
     "build-demo": "node scripts/build-demo.js",
     "qunit": "node scripts/server.js",
     "jshint": "node node_modules/jshint/bin/jshint purify.js || true",
-    "test": "npm run jshint;npm run qunit"
+    "test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --single-run"
   },
   "devDependencies": {
-    "qunitjs": "^1.14.0",
+    "jshint": "^2.4.4",
+    "json-loader": "^0.5.2",
+    "karma": "^0.13.9",
+    "karma-browserstack-launcher": "^0.1.4",
+    "karma-chrome-launcher": "^0.2.0",
+    "karma-firefox-launcher": "^0.1.6",
+    "karma-fixture": "^0.2.5",
+    "karma-html2js-preprocessor": "^0.1.0",
+    "karma-json-fixtures-preprocessor": "0.0.5",
+    "karma-qunit": "^0.1.5",
+    "karma-webpack": "^1.7.0",
     "qunit-parameterize": "^0.4.0",
-    "jshint": "^2.4.4"
+    "qunitjs": "^1.14.0",
+    "webpack": "^1.12.1"
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
