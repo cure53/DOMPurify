@@ -38,6 +38,7 @@
     var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
     var Comment = window.Comment;
+    var DOMParser = window.DOMParser;
 
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
@@ -48,7 +49,6 @@
     if (typeof HTMLTemplateElement === 'function') {
         document = document.createElement('template').content.ownerDocument;
     }
-    var implementation = document.implementation;
     var createNodeIterator = document.createNodeIterator;
     var getElementsByTagName = document.getElementsByTagName;
     var createDocumentFragment = document.createDocumentFragment;
@@ -60,8 +60,7 @@
      * Expose whether this browser supports running the full DOMPurify.
      */
     DOMPurify.isSupported =
-        typeof implementation.createHTMLDocument !== 'undefined' &&
-        document.documentMode !== 9;
+        typeof DOMParser !== 'undefined' && document.documentMode !== 9;
 
     /* Add properties to a lookup table */
     var _addToSet = function(set, array) {
@@ -302,13 +301,8 @@
      * @return a DOM, filled with the dirty markup
      */
     var _initDocument = function(dirty) {
-        /* Create new document to parse markup to */
-        var doc = implementation.createHTMLDocument('');
 
-        /* Set content */
-        var body = doc.body;
-        body.parentNode.removeChild(body.parentNode.firstElementChild);
-        body.outerHTML = dirty;
+        var doc = new DOMParser().parseFromString(dirty, "text/html");
 
         /* Work on whole document or just its body */
         return getElementsByTagName.call(doc,

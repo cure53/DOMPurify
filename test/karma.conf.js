@@ -78,6 +78,14 @@ module.exports = function(config) {
         browser: 'firefox',
         os_version: 'Yosemite'
       },
+      bs_yosemite_safari8: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'OS X',
+        browser_version: '8.0',
+        browser: 'safari',
+        os_version: 'Yosemite'
+      },
       bs_win81_opera31: {
         base: 'BrowserStack',
         device: null,
