@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <script src="../purify.js"></script>
+        <script src="../src/purify.js"></script>
         <!--  Grab the latest version of MentalJS -->
         <script src="./lib/Mental.js"></script>
     </head>
@@ -14,10 +14,10 @@
             /* jshint globalstrict:true */
             /* global DOMPurify */
             'use strict';
-            
+
             // Initialize MentalJS
             MentalJS().init({dom: true});
-            
+
             // Specify dirty HTML
             var dirty = 'abc<script>alert(1)<\/script>\
                 <img src="xyz" onload="alert(2)">\
@@ -28,19 +28,19 @@
                 <script src=//evil.com>alert(5)<\/script>\
                 <svg><script xlink:href=//evil.com>alert(6)<\/script></svg>\
                 <svg><script href="//evil.com">123<\/script><p>';
-            
+
             // allow script elements
-            var config = { 
-                ADD_TAGS: ['script'], 
+            var config = {
+                ADD_TAGS: ['script'],
                 ADD_ATTR: ['onclick', 'onmouseover', 'onload', 'onunload']
-            }            
-            
+            }
+
             // Add a hook to sanitize all script content with MentalJS
             DOMPurify.addHook('uponSanitizeElement', function(node, data){
                 if(data.tagName === 'script'){
                     var script = node.textContent;
                     if(!script || 'src' in node.attributes
-                        || 'href' in node.attributes 
+                        || 'href' in node.attributes
                         || 'xlink:href' in node.attributes){
                             return node.parentNode.removeChild(node)
                     }
@@ -54,7 +54,7 @@
                     }
                 }
             });
-            
+
             // Add a hook to sanitize all white-listed events with MentalJS
             DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
                 if(data.attrName.match(/^on\w+/)) {
@@ -67,7 +67,7 @@
                         return data.attrValue = '';
                     }
                 }
-            });            
+            });
 
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty, config);

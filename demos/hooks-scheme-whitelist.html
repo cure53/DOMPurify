@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <script src="../purify.js"></script>
+        <script src="../src/purify.js"></script>
     </head>
     <body>
         <!-- Our DIV to receive content -->
@@ -12,7 +12,7 @@
             /* jshint globalstrict:true */
             /* global DOMPurify */
             'use strict';
-            
+
             // Specify dirty HTML
             var dirty = '<a href="foo:?a">INSECURE</a>\
                          <a href="ftp://abc.de?a"">SECURE</a>\
