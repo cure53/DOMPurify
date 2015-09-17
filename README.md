@@ -1,8 +1,6 @@
-# DOMPurify [![Bower version](https://badge.fury.io/bo/dompurify.svg)](http://badge.fury.io/bo/dompurify)[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify)
+# DOMPurify [![Bower version](https://badge.fury.io/bo/dompurify.svg)](http://badge.fury.io/bo/dompurify) · [![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) · [![Build Status](https://travis-ci.org/cure53/DOMPurify.svg?branch=master)](https://travis-ci.org/tdeekens/DOMPurify)
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
-
-[![Build Status](https://travis-ci.org/cure53/DOMPurify.svg?branch=master)](https://travis-ci.org/tdeekens/DOMPurify)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
