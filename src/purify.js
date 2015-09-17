@@ -302,13 +302,10 @@
      * @return a DOM, filled with the dirty markup
      */
     var _initDocument = function(dirty) {
-        /* Create new document to parse markup to */
-        var doc = implementation.createHTMLDocument('');
 
-        /* Set content */
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(dirty, "text/html");
         var body = doc.body;
-        body.parentNode.removeChild(body.parentNode.firstElementChild);
-        body.outerHTML = dirty;
 
         /* Work on whole document or just its body */
         return getElementsByTagName.call(doc,
