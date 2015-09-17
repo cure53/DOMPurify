@@ -2,7 +2,7 @@
   "scripts": {
     "build-demo": "node scripts/build-demo.js",
     "qunit": "node scripts/server.js",
-    "jshint": "node node_modules/jshint/bin/jshint purify.js || true",
+    "jshint": "node node_modules/jshint/bin/jshint src/purify.js || true",
     "test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --single-run"
   },
   "devDependencies": {
