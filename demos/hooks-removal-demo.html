@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <script src="../purify.js"></script>
+        <script src="../src/purify.js"></script>
     </head>
     <body>
         <!-- Our DIV to receive content -->
@@ -30,10 +30,10 @@
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML += clean;
-            
+
             // now let's remove the hook again
             console.log(DOMPurify.removeHook('beforeSanitizeAttributes'));
-            
+
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML += clean;
@@ -62,21 +62,21 @@
                     node.textContent=node.textContent.bold();
                 }
             });
-            
+
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML += clean;
-            
+
             // now let's remove the hook again
             console.log(DOMPurify.removeHooks('beforeSanitizeAttributes'));
-            
+
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML += clean;
-            
+
             /**
              * Add two hooks, then remove them using removeAllHooks()
-             * 
+             *
              * Keep in mind, we still have one from above, the .bold() hook
              */
             // Add a hook to convert all text to capitals
@@ -92,15 +92,15 @@
                 if(node.nodeName && node.nodeName === '#text') {
                     node.textContent=node.textContent.big();
                 }
-            });            
-            
+            });
+
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML += clean;
-            
+
             // now let's remove the hook again
             console.log(DOMPurify.removeAllHooks());
-            
+
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML += clean;

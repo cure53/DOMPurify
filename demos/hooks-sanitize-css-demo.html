@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <script src="../purify.js"></script>
+        <script src="../src/purify.js"></script>
     </head>
     <body>
         <!-- Our DIV to receive content -->
@@ -24,10 +24,10 @@
 
                 // Specify CSS property whitelist
                 var allowed_properties = [
-                    'color', 
+                    'color',
                     'background',
-                    'border', 
-                    'padding', 
+                    'border',
+                    'padding',
                     'margin',
                     'font-family',
                     'content',
@@ -56,7 +56,7 @@
 
                 /**
                  * Take CSS rules and analyze them, create string wrapper to
-                 * apply them to the DOM later on. Note that only selector rules 
+                 * apply them to the DOM later on. Note that only selector rules
                  * are supported right now
                  */
                 function addCSSRules(output, cssRules) {
@@ -110,7 +110,7 @@
                 document.getElementById('sanitized').innerHTML = clean;
             }
         </script>
-        
+
         <!--  Here we cage our payload in a TEXTAREA -->
         <textarea id="payload">
 
@@ -162,7 +162,7 @@
                     content: 'hola!';
                 }
             </style>
-            <strong>GHI</strong>            
+            <strong>GHI</strong>
         </textarea>
     </body>
 </html>
