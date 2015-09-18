@@ -4,7 +4,7 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Spartan, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It simply does nothing there.
+It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Spartan, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It simply does nothing there. Our automated tests cover 8 different browsers right now.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model)
 
