@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-        <script src="../purify.js"></script>
+        <script src="../src/purify.js"></script>
     </head>
     <body>
         <!-- Our DIV to receive content -->
@@ -12,9 +12,9 @@
             /* jshint globalstrict:true */
             /* global DOMPurify */
             'use strict';
-            
+
             var proxy = 'https://my.proxy.service/?';
-            
+
             // Specify dirty HTML
             var dirty = '<a href="http://evil.com/">CLICK</a>\
                          <a href="http://evil.com/" target="jajaja">CLICK</a>\
@@ -25,24 +25,24 @@
                          coords="0,0,200,200"></area></map>\
                          <math href="http://evil.com/">CLICKME</math>\
                          ';
-            
+
             // Add a hook to make all links point to a proxy
             DOMPurify.addHook('afterSanitizeAttributes', function(node){
                 // proxy form actions
                 if('action' in node){
-                    node.setAttribute('action', proxy 
+                    node.setAttribute('action', proxy
                         + encodeURIComponent(node.getAttribute('action')));
                 }
                 // proxy regular HTML links
                 if(node.hasAttribute('href')){
-                    node.setAttribute('href', proxy 
+                    node.setAttribute('href', proxy
                         + encodeURIComponent(node.getAttribute('href')));
-                }                
+                }
                 // proxy SVG/MathML links
                 if(node.hasAttribute('xlink:href')){
-                    node.setAttribute('xlink:href', proxy 
+                    node.setAttribute('xlink:href', proxy
                         + encodeURIComponent(node.getAttribute('xlink:href')));
-                } 
+                }
             });
 
             // Clean HTML string and write into our DIV

@@ -12,13 +12,12 @@ DOMPurify is written by security people who have vast background in web attacks 
 
 DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with string full of dirty HTML and it will return a string with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
 
-
 ## How do I use it?
 
 It's easy. Just include DOMPurify on your website.
 
 ```html
-<script type="text/javascript" src="purify.js"></script>
+<script type="text/javascript" src="src/purify.js"></script>
 ```
 
 Afterwards you can sanitize strings by executing the following code:
@@ -26,6 +25,8 @@ Afterwards you can sanitize strings by executing the following code:
 ```javascript
 var clean = DOMPurify.sanitize(dirty);
 ```
+
+The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you. But keep in mind, if you use the sanitized HTML with jQuery's very insecure `elm.html()` method, then the `SAFE_FOR_JQUERY` flag has to be set to make sure it's safe! Other than that, all is fine.
 
 If you're using an [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) module loader like [Require.js](http://requirejs.org/), you can load this script asynchronously as well:
 
@@ -46,7 +47,6 @@ var DOMPurify = require('dompurify');
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-
 ## Is there a demo?
 
 Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
@@ -64,7 +64,6 @@ DOMPurify.sanitize('<img src=x onerror=alert(1)//>'); // becomes <img src="x">
 DOMPurify.sanitize('<svg><g/onload=alert(2)//<p>'); // becomes <svg><g></g></svg>
 DOMPurify.sanitize('<p>abc<iframe/\/src=jAva&Tab;script:alert(3)>def'); // becomes <p>abc</p>
 DOMPurify.sanitize('<math><mi//xlink:href="data:x,<script>alert(4)</script>">'); // becomes <math></math>
-
 DOMPurify.sanitize('<TABLE><tr><td>HELLO</tr></TABL>'); // becomes <table><tbody><tr><td>HELLO</td></tr></tbody></table>
 DOMPurify.sanitize('<UL><li><A HREF=//google.com>click</UL>'); // becomes <ul><li><a href="//google.com">click</a></li></ul>
 ```
@@ -152,10 +151,9 @@ DOMPurify.addHook('beforeSanitizeElements', function(currentNode, data, config) 
 });
 ```
 
+## Continuous Integration
 
-## Unit tests
-
-To run the test suite, you need [Node.js](http://nodejs.org/download/) first. Install the dependencies with `npm install`, then start the test server with `npm test`. You can run the tests in your browser from **http://localhost:8000/test/**.
+We are currently using Travis CI in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://travis-ci.org/cure53/DOMPurify
 
 
 ## Security Mailing List
@@ -167,7 +165,7 @@ We maintain a mailing list that notifies whenever a security-critical release of
 
 ## What's on the road-map?
 
-We recently implemented a Hook-API allowing developers to create their own DOMPurify plugins and customize its functionality without changing the core. Thus, we are looking forward for plugins and extensions - pull requests are welcome!
+We recently implemented a Hook-API allowing developers to create their own DOMPurify plugins and customize its functionality without changing the core. Thus, we are looking forward for plugins and extensions - pull requests are welcome! Oh, and we will increase the amount of browsers and HTML-mappings in our automates tests to make sure nothing slips through. 
 
 ## Who contributed?
 
