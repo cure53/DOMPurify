@@ -6,6 +6,7 @@ module.exports = function(config) {
     files: [
       'bower_components/jQuery/dist/jquery.js',
       'node_modules/qunit-parameterize/qunit-parameterize.js',
+      'test/config/setup.js',
       'test/**/*.spec.js'
     ],
 
@@ -32,7 +33,8 @@ module.exports = function(config) {
         alias: {},
         modulesDirectories: [
           'test',
-          'src'
+          'src',
+          'dist'
         ],
         extensions: ['', '.js', '.json']
       },

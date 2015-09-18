@@ -4,10 +4,12 @@
     "qunit": "node scripts/server.js",
     "jshint": "node node_modules/jshint/bin/jshint src/purify.js || true",
     "minify": "scripts/minify.sh",
-    "test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --single-run"
+    "test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --single-run",
+    "local-test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --browsers Chrome --single-run"
   },
   "pre-commit": [
     "jshint",
+    "local-test",
     "minify"
   ],
   "devDependencies": {
