@@ -439,12 +439,12 @@
         if (!attributes) { return; }
 
         var hookEvent = {
-                attrName: '',
-                attrValue: '',
-                keepAttr: true
-            },
-            l = attributes.length,
-            attr, name, value, lcName, idAttr;
+            attrName: '',
+            attrValue: '',
+            keepAttr: true
+        },
+        l = attributes.length,
+        attr, name, value, lcName, idAttr;
 
         /* Go backwards over all attributes; safely remove bad ones */
         while (l--) {
