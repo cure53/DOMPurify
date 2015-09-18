@@ -93,6 +93,22 @@ module.exports = function(config) {
         browser_version: '31',
         browser: 'opera',
         os_version: '8.1'
+      },
+      bs_win81_opera31: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '16.0',
+        browser: 'firefox',
+        os_version: '8.1'
+      ,
+      bs_win81_opera31: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '22.0',
+        browser: 'chrome',
+        os_version: '8.1'
       }
     },
 
