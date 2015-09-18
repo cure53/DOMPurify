@@ -304,17 +304,18 @@
     var _initDocument = function(dirty) {
 
         /* Create a HTML document using DOMParser */
+        var doc;
         try {
-            var doc = new DOMParser().parseFromString(dirty, "text/html");
+            doc = new DOMParser().parseFromString(dirty, "text/html");
         } catch (e) {}
 
         if (!doc){
-            var doc = implementation.createHTMLDocument('');
+            doc = implementation.createHTMLDocument('');
             var body = doc.body;
             body.parentNode.removeChild(body.parentNode.firstElementChild);
             body.outerHTML = dirty;
         }
-        
+
         /* Work on whole document or just its body */
         if (typeof doc.getElementsByTagName === 'function'){
             return doc.getElementsByTagName(
@@ -577,10 +578,11 @@
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
-        
         /* Return empty string if no input is given */
-        return '';
-        
+        if (!dirty) {
+            return '';
+        }
+
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
             if (typeof window.toStaticHTML === 'function' && typeof dirty === 'string') {
