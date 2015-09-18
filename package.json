@@ -3,8 +3,13 @@
     "build-demo": "node scripts/build-demo.js",
     "qunit": "node scripts/server.js",
     "jshint": "node node_modules/jshint/bin/jshint src/purify.js || true",
+    "minify": "scripts/minify.sh",
     "test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --single-run"
   },
+  "pre-commit": [
+    "jshint",
+    "minify"
+  ],
   "devDependencies": {
     "jshint": "^2.4.4",
     "json-loader": "^0.5.2",
@@ -17,8 +22,10 @@
     "karma-json-fixtures-preprocessor": "0.0.5",
     "karma-qunit": "^0.1.5",
     "karma-webpack": "^1.7.0",
+    "pre-commit": "^1.1.1",
     "qunit-parameterize": "^0.4.0",
     "qunitjs": "^1.14.0",
+    "uglify-js": "^2.4.24",
     "webpack": "^1.12.1"
   },
   "name": "dompurify",

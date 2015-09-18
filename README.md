@@ -16,8 +16,16 @@ DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with s
 
 It's easy. Just include DOMPurify on your website.
 
+### Using the unminified development version
+
 ```html
 <script type="text/javascript" src="src/purify.js"></script>
+```
+
+### Using the minified and tested production version (source-map available)
+
+```html
+<script type="text/javascript" src="dist/purify.min.js"></script>
 ```
 
 Afterwards you can sanitize strings by executing the following code:
@@ -165,7 +173,7 @@ We maintain a mailing list that notifies whenever a security-critical release of
 
 ## What's on the road-map?
 
-We recently implemented a Hook-API allowing developers to create their own DOMPurify plugins and customize its functionality without changing the core. Thus, we are looking forward for plugins and extensions - pull requests are welcome! Oh, and we will increase the amount of browsers and HTML-mappings in our automates tests to make sure nothing slips through. 
+We recently implemented a Hook-API allowing developers to create their own DOMPurify plugins and customize its functionality without changing the core. Thus, we are looking forward for plugins and extensions - pull requests are welcome! Oh, and we will increase the amount of browsers and HTML-mappings in our automates tests to make sure nothing slips through.
 
 ## Who contributed?
 
