@@ -309,6 +309,7 @@
             doc = new DOMParser().parseFromString(dirty, "text/html");
         } catch (e) {}
 
+        /* Some browsers throw, some browsers return null for the code above */
         if (!doc){
             doc = implementation.createHTMLDocument('');
             var body = doc.body;
