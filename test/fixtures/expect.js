@@ -476,7 +476,8 @@ module.exports = [{
       "payload": "<div id=\"61\"><div style=\"3\t\u0006f\n\u00006c\f\u000006F\nR:\u0000072 Ed;color\u0000\bla:yellow\u0000\bla;col\u0000\u0000 \u00A0or:blue;\">XXX</div>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"61\"><div style=\"3\t\u0006f\n\uFFFD6c\f\uFFFD06F\nR:\uFFFD072 Ed;color\uFFFD\bla:yellow\uFFFD\bla;col\uFFFD\uFFFD &nbsp;or:blue;\">XXX</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"61\"><div>XXX</div>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"61\"><div>XXX</div>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"61\"></div>"
       ]
   }, {
       "payload": "<div id=\"62\"><!-- IE 6-8 -->\n<x '=\"foo\"><x foo='><img src=x onerror=alert(62)//'>\n<!-- IE 6-9 -->\n<! '=\"foo\"><x foo='><img src=x onerror=alert(2)//'>\n<? '=\"foo\"><x foo='><img src=x onerror=alert(3)//'>//[\"'`-->]]>]</div>",
@@ -636,12 +637,16 @@ module.exports = [{
       "expected": "<div id=\"100\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"101\"><a href=\"[a]java[b]script[c]:alert(101)\">XXX</a>//[\"'`-->]]>]</div>",
-      "expected": "<div id=\"101\"><a href=\"[a]java[b]script[c]:alert(101)\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
+      "expected": [
+           "<div id=\"101\"><a href=\"[a]java[b]script[c]:alert(101)\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
+           "<div id=\"101\"><a href=\"[a]java[b]script[c]:alert%28101%29\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
+      ]
   }, {
       "payload": "<div id=\"102\"><img src=\"x` `<script>alert(102)</script>\"` `>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"102\"><img src=\"x` `&lt;script&gt;alert(102)&lt;/script&gt;\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"102\"><img src=\"x` `<script>alert(102)</script>\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"102\"><img src=\"x` `<script>alert(102)</script>\">//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"102\"><img src=\"x%60%20%60%3Cscript%3Ealert%28102%29%3C/script%3E\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"103\"><script>history.pushState(0,0,'/i/am/somewhere_else');</script>//[\"'`-->]]>]</div><div id=\"104\"><svg xmlns=\"http://www.w3.org/2000/svg\" id=\"foo\">\n<x xmlns=\"http://www.w3.org/2001/xml-events\" event=\"load\" observer=\"foo\" handler=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Chandler%20xml%3Aid%3D%22bar%22%20type%3D%22application%2Fecmascript%22%3E alert(104) %3C%2Fhandler%3E%0A%3C%2Fsvg%3E%0A#bar\"/>\n</svg>//[\"'`-->]]>]</div>",
@@ -666,7 +671,8 @@ module.exports = [{
       "payload": "<div id=\"108\"><!-- IE 5-8 standards mode -->\n<a href=http://foo.bar/#x=`y></a><img alt=\"`><img src=xx:x onerror=alert(108)></a>\">\n<!-- IE 5-9 standards mode -->\n<!a foo=x=`y><img alt=\"`><img src=xx:x onerror=alert(2)//\">\n<?a foo=x=`y><img alt=\"`><img src=xx:x onerror=alert(3)//\">//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`&gt;&lt;img src=xx:x onerror=alert(108)&gt;&lt;/a&gt;\">\n\n<img alt=\"`&gt;&lt;img src=xx:x onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx:x onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`><img src=xx:x onerror=alert(108)></a>\">\n\n<img alt=\"`><img src=xx:x onerror=alert(2)//\">\n<img alt=\"`><img src=xx:x onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`><img src=xx:x onerror=alert(108)></a>\">\n\n<img alt=\"`><img src=xx:x onerror=alert(2)//\">\n<img alt=\"`><img src=xx:x onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"108\">\n<a href=\"http://foo.bar/#x=%60y\"></a><img alt=\"`&gt;&lt;img src=xx:x onerror=alert(108)&gt;&lt;/a&gt;\">\n\n<img alt=\"`&gt;&lt;img src=xx:x onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx:x onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\"/></a>\n<rect  fill=\"white\" style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\"/>\n</svg>//[\"'`-->]]>]</div>",
