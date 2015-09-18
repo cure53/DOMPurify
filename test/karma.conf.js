@@ -101,7 +101,7 @@ module.exports = function(config) {
         browser_version: '16.0',
         browser: 'firefox',
         os_version: '8.1'
-      ,
+      },
       bs_win81_chrome_22: {
         base: 'BrowserStack',
         device: null,
