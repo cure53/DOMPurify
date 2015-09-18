@@ -32,6 +32,7 @@
 
     var document = window.document;
     var originalDocument = document;
+    var implementation = document.implementation;
     var DocumentFragment = window.DocumentFragment;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
@@ -303,11 +304,25 @@
     var _initDocument = function(dirty) {
 
         /* Create a HTML document using DOMParser */
-        var doc = new DOMParser().parseFromString(dirty, "text/html");
+        try {
+            var doc = new DOMParser().parseFromString(dirty, "text/html");
+        } catch (e) {}
 
+        if (!doc){
+            var doc = implementation.createHTMLDocument('');
+            var body = doc.body;
+            body.parentNode.removeChild(body.parentNode.firstElementChild);
+            body.outerHTML = dirty;
+        }
+        
         /* Work on whole document or just its body */
-        return getElementsByTagName.call(doc,
-            WHOLE_DOCUMENT ? 'html' : 'body')[0];
+        if (typeof doc.getElementsByTagName === 'function'){
+            return doc.getElementsByTagName(
+                WHOLE_DOCUMENT ? 'html' : 'body')[0];
+        } else {
+            return getElementsByTagName.call(doc, 
+                WHOLE_DOCUMENT ? 'html' : 'body')[0];    
+        }
     };
 
     /**

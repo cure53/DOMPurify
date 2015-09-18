@@ -94,19 +94,19 @@ module.exports = function(config) {
         browser: 'opera',
         os_version: '8.1'
       },
-      bs_win81_firefox_16: {
+      bs_win81_firefox_15: {
         base: 'BrowserStack',
         device: null,
         os: 'Windows',
-        browser_version: '16.0',
+        browser_version: '15.0',
         browser: 'firefox',
         os_version: '8.1'
-      },
-      bs_win81_chrome_30: {
+      }
+      bs_win81_chrome_22: {
         base: 'BrowserStack',
         device: null,
         os: 'Windows',
-        browser_version: '30.0',
+        browser_version: '22.0',
         browser: 'chrome',
         os_version: '8.1'
       }
@@ -119,8 +119,8 @@ module.exports = function(config) {
       'bs_yosemite_firefox_40',
       'bs_yosemite_safari_8',
       'bs_win81_opera_31',
-      'bs_win81_firefox_16',
-      'bs_win81_chrome_30'
+      'bs_win81_firefox_15',
+      'bs_win81_chrome_22'
     ],
 
     plugins: [
