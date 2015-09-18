@@ -577,6 +577,10 @@
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
+        
+        /* Return empty string if no input is given */
+        return '';
+        
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
             if (typeof window.toStaticHTML === 'function' && typeof dirty === 'string') {
