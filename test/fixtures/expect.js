@@ -368,13 +368,15 @@ module.exports = [{
       "payload": "<div id=\"38\"><comment><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`-->]]>]</div><div id=\"39\"><!-- up to Opera 11.52, FF 3.6.28 -->",
       "expected": [
           "<div id=\"38\"><img src=\"&lt;/comment&gt;&lt;img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
-          "<div id=\"38\"><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>"
+          "<div id=\"38\"><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
+          "<div id=\"38\"><img src=\"%3C/comment%3E%3Cimg%20src=x%20onerror=alert%2838%29//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>"
       ]
   }, {
       "payload": "<![><img src=\"]><img src=x onerror=alert(39)//\">",
       "expected": [
           "<img src=\"]&gt;&lt;img src=x onerror=alert(39)//\">",
-          "<img src=\"]><img src=x onerror=alert(39)//\">"
+          "<img src=\"]><img src=x onerror=alert(39)//\">",
+          "<img src=\"]%3E%3Cimg%20src=x%20onerror=alert%2839%29//\">"
       ]
   }, {
       "payload": "<!-- IE9+, FF4+, Opera 11.60+, Safari 4.0.4+, GC7+  -->\n<svg><![CDATA[><image xlink:href=\"]]><img src=xx:x onerror=alert(2)//\"></svg>//[\"'`-->]]>]</div>",
@@ -400,7 +402,10 @@ module.exports = [{
       ]
   }, {
       "payload": "<div id=\"42\"><head><base href=\"javascript://\"/></head><body><a href=\"/. /,alert(42)//#\">XXX</a></body>//[\"'`-->]]>]</div>",
-      "expected": "<div id=\"42\"><a href=\"/. /,alert(42)//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
+      "expected": [
+            "<div id=\"42\"><a href=\"/. /,alert(42)//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
+            "<div id=\"42\"><a href=\"/.%20/,alert%2842%29//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
+      ]
   }, {
       "payload": "<div id=\"43\"><?xml version=\"1.0\" standalone=\"no\"?>",
       "expected": "<div id=\"43\"></div>"
