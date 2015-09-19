@@ -9,8 +9,8 @@
   },
   "pre-commit": [
     "jshint",
-    "local-test",
-    "minify"
+    "minify",
+    "local-test"
   ],
   "devDependencies": {
     "jshint": "^2.4.4",
