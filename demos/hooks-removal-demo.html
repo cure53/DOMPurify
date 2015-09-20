@@ -22,8 +22,8 @@
             // Add a hook to convert all text to capitals
             DOMPurify.addHook('beforeSanitizeAttributes', function(node){
                 // Set text node content to uppercase
-                if(node.nodeName && node.nodeName === '#text') {
-                    node.textContent=node.textContent.toUpperCase();
+                if (node.nodeName && node.nodeName === '#text') {
+                    node.textContent = node.textContent.toUpperCase();
                 }
             });
 
@@ -44,22 +44,22 @@
             // Add a hook to convert all text to capitals
             DOMPurify.addHook('beforeSanitizeAttributes', function(node){
                 // Set text node content to uppercase
-                if(node.nodeName && node.nodeName === '#text') {
-                    node.textContent=node.textContent.toUpperCase();
+                if (node.nodeName && node.nodeName === '#text') {
+                    node.textContent = node.textContent.toUpperCase();
                 }
             });
             // Add a hook to convert all text to <BIG>
             DOMPurify.addHook('beforeSanitizeAttributes', function(node){
                 // Set text node content to uppercase
                 if(node.nodeName && node.nodeName === '#text') {
-                    node.textContent=node.textContent.big();
+                    node.textContent = node.textContent.big();
                 }
             });
             // Add a hook to convert all text to <STRONG>
             DOMPurify.addHook('beforeSanitizeElements', function(node){
                 // Set text node content to uppercase
-                if(node.nodeName && node.nodeName === '#text') {
-                    node.textContent=node.textContent.bold();
+                if (node.nodeName && node.nodeName === '#text') {
+                    node.textContent = node.textContent.bold();
                 }
             });
 
@@ -80,17 +80,17 @@
              * Keep in mind, we still have one from above, the .bold() hook
              */
             // Add a hook to convert all text to capitals
-            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node) {
                 // Set text node content to uppercase
-                if(node.nodeName && node.nodeName === '#text') {
-                    node.textContent=node.textContent.toUpperCase();
+                if (node.nodeName && node.nodeName === '#text') {
+                    node.textContent = node.textContent.toUpperCase();
                 }
             });
             // Add a hook to convert all text to <BIG>
-            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+            DOMPurify.addHook('beforeSanitizeAttributes', function(node) {
                 // Set text node content to uppercase
-                if(node.nodeName && node.nodeName === '#text') {
-                    node.textContent=node.textContent.big();
+                if (node.nodeName && node.nodeName === '#text') {
+                    node.textContent = node.textContent.big();
                 }
             });
 

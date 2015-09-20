@@ -37,13 +37,13 @@
                  *  then add the styles to an array of property-value pairs
                  */
                 function addStyles(output, styles) {
-                    for (var prop=styles.length-1; prop>=0; prop--) {
-                        if(styles[styles[prop]]){
-                            var url = styles[styles[prop]].replace(regex, '$1'+proxy);
-                            styles[styles[prop]]=url;
+                    for (var prop = styles.length-1; prop >= 0; prop--) {
+                        if (styles[styles[prop]]) {
+                            var url = styles[styles[prop]].replace(regex, '$1' + proxy);
+                            styles[styles[prop]] = url;
                         }
-                        if(styles[styles[prop]]) {
-                            output.push(styles[prop]+':'+styles[styles[prop]]+';');
+                        if (styles[styles[prop]]) {
+                            output.push(styles[prop] + ':' + styles[styles[prop]] + ';');
                         }
                     }
                 }
@@ -56,7 +56,7 @@
                     for (var index=cssRules.length-1; index>=0; index--) {
                         var rule = cssRules[index];
                         // check for rules with selector
-                        if (rule.type == 1 && rule.selectorText){
+                        if (rule.type == 1 && rule.selectorText) {
                             output.push(rule.selectorText + '{')
                             if (rule.style) {
                                 addStyles(output, rule.style)
@@ -113,31 +113,31 @@
                 });
 
                 // Add a hook to enforce proxy for all HTTP leaks incl. inline CSS
-                DOMPurify.addHook('afterSanitizeAttributes', function(node){
+                DOMPurify.addHook('afterSanitizeAttributes', function(node) {
 
                     // Check all src attributes and proxy them
-                    for(var i = 0; i<=attributes.length-1; i++){
-                        if(node.hasAttribute(attributes[i])){
+                    for(var i = 0; i <= attributes.length-1; i++) {
+                        if (node.hasAttribute(attributes[i])) {
                             node.setAttribute(attributes[i], proxyAttribute(
-                                    node.getAttribute(attributes[i]))
+                                node.getAttribute(attributes[i]))
                             );
                         }
                     }
 
                     // Check all style attribute values and proxy them
-                    if(node.hasAttribute('style')){
+                    if (node.hasAttribute('style')) {
                         var styles = node.style;
                         var output = [];
-                        for(var prop=styles.length-1; prop>=0; prop--) {
+                        for (var prop = styles.length-1; prop >= 0; prop--) {
                             // we re-write each property-value pair to remove invalid CSS
-                            if(node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
+                            if (node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
                                 var url = node.style[styles[prop]].replace(regex, '$1'+proxy)
-                                node.style[styles[prop]]=url;
+                                node.style[styles[prop]] = url;
                             }
-                            output.push(styles[prop]+':'+node.style[styles[prop]]+';');
+                            output.push(styles[prop] + ':' + node.style[styles[prop]] + ';');
                         }
                         // re-add styles in case any are left
-                        if(output.length) {
+                        if (output.length) {
                             node.setAttribute('style', output.join(""));
                         } else {
                             node.removeAttribute('style');

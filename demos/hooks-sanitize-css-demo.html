@@ -43,10 +43,10 @@
                  */
                 function validateStyles(output, styles) {
                     // Validate regular CSS properties
-                    for(var prop in styles) {
-                        if(typeof styles[prop] === 'string'){
-                            if(styles[prop] && allowed_properties.indexOf(prop) > -1) {
-                               if(allow_css_functions || !/\w+\(/.test(styles[prop])) {
+                    for (var prop in styles) {
+                        if (typeof styles[prop] === 'string') {
+                            if (styles[prop] && allowed_properties.indexOf(prop) > -1) {
+                               if (allow_css_functions || !/\w+\(/.test(styles[prop])) {
                                     output.push(prop + ':' + styles[prop] +';');
                                 }
                             }
@@ -60,10 +60,10 @@
                  * are supported right now
                  */
                 function addCSSRules(output, cssRules) {
-                    for (var index=cssRules.length-1; index>=0; index--) {
+                    for (var index = cssRules.length-1; index >= 0; index--) {
                         var rule = cssRules[index];
                         // check for rules with selector
-                        if (rule.type == 1 && rule.selectorText){
+                        if (rule.type == 1 && rule.selectorText) {
                             output.push(rule.selectorText + '{')
                             if (rule.style) {
                                 validateStyles(output, rule.style)
@@ -74,7 +74,7 @@
                 }
 
                 // Add a hook to enforce CSS element sanitization
-                DOMPurify.addHook('uponSanitizeElement', function (node, data) {
+                DOMPurify.addHook('uponSanitizeElement', function(node, data) {
                     if (data.tagName === 'style') {
                         var output  = [];
                         addCSSRules(output, node.sheet.cssRules);
@@ -83,21 +83,19 @@
                 });
 
                 // Add a hook to enforce CSS attribute sanitization
-                DOMPurify.addHook('afterSanitizeAttributes', function(node){
-
+                DOMPurify.addHook('afterSanitizeAttributes', function(node) {
                     // Nasty hack to fix baseURI + CSS problems in Chrome
-                    if(!node.ownerDocument.baseURI){
+                    if (!node.ownerDocument.baseURI) {
                         var base = document.createElement('base');
                         base.href = document.baseURI;
                         node.ownerDocument.head.appendChild(base);
                     }
-
                     // Check all style attribute values and validate them
-                    if(node.hasAttribute('style')){
+                    if (node.hasAttribute('style')) {
                         var output = [];
                         validateStyles(output, node.style);
                         // re-add styles in case any are left
-                        if(output.length) {
+                        if (output.length) {
                             node.setAttribute('style', output.join(""));
                         } else {
                             node.removeAttribute('style');

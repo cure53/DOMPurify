@@ -36,34 +36,48 @@
             }
 
             // Add a hook to sanitize all script content with MentalJS
-            DOMPurify.addHook('uponSanitizeElement', function(node, data){
-                if(data.tagName === 'script'){
+            DOMPurify.addHook('uponSanitizeElement', function(node, data) {
+                if (data.tagName === 'script') {
                     var script = node.textContent;
-                    if(!script || 'src' in node.attributes
+                    if (!script || 'src' in node.attributes
                         || 'href' in node.attributes
-                        || 'xlink:href' in node.attributes){
+                        || 'xlink:href' in node.attributes) {
                             return node.parentNode.removeChild(node)
                     }
                     try {
+                        // Pass scripts to MentalJS
                         var mental = MentalJS().parse(
-                            {options:{eval:false, dom:true}, code:script}
+                            {
+                                options: {
+                                    eval: false, 
+                                    dom:true
+                                }, 
+                             code:script
+                            }
                         );
                         return node.textContent = mental;
-                    } catch(e) {
+                    } catch (e) {
                         return node.parentNode.removeChild(node);
                     }
                 }
             });
 
             // Add a hook to sanitize all white-listed events with MentalJS
-            DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
-                if(data.attrName.match(/^on\w+/)) {
+            DOMPurify.addHook('uponSanitizeAttribute', function(node, data) {
+                if (data.attrName.match(/^on\w+/)) {
                     var script = data.attrValue;
                     try {
+                        // Pass scripts to MentalJS
                         return data.attrValue = MentalJS().parse(
-                            {options:{eval:false, dom:true}, code:script}
+                            { 
+                                options: { 
+                                    eval: false, 
+                                    dom: true
+                                }, 
+                                code: script 
+                            }
                         );
-                    } catch(e) {
+                    } catch (e) {
                         return data.attrValue = '';
                     }
                 }

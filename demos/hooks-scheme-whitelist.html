@@ -47,23 +47,23 @@
                 var anchor = document.createElement('a');
 
                 // check all href attributes for validity
-                if(node.hasAttribute('href')){
+                if (node.hasAttribute('href')) {
                     anchor.href  = node.getAttribute('href');
-                    if(anchor.protocol && !anchor.protocol.match(regex)){
+                    if (anchor.protocol && !anchor.protocol.match(regex)) {
                         node.removeAttribute('href');
                     }
                 }
                 // check all action attributes for validity
-                if(node.hasAttribute('action')){
+                if (node.hasAttribute('action')) {
                     anchor.href  = node.getAttribute('action');
-                    if(anchor.protocol && !anchor.protocol.match(regex)){
+                    if (anchor.protocol && !anchor.protocol.match(regex)) {
                         node.removeAttribute('action');
                     }
                 }
                 // check all xlink:href attributes for validity
-                if(node.hasAttribute('xlink:href')){
+                if (node.hasAttribute('xlink:href')) {
                     anchor.href  = node.getAttribute('xlink:href');
-                    if(anchor.protocol && !anchor.protocol.match(regex)){
+                    if (anchor.protocol && !anchor.protocol.match(regex)) {
                         node.removeAttribute('xlink:href');
                     }
                 }

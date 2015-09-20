@@ -27,19 +27,19 @@
                          ';
 
             // Add a hook to make all links point to a proxy
-            DOMPurify.addHook('afterSanitizeAttributes', function(node){
+            DOMPurify.addHook('afterSanitizeAttributes', function(node) {
                 // proxy form actions
-                if('action' in node){
+                if ('action' in node) {
                     node.setAttribute('action', proxy
                         + encodeURIComponent(node.getAttribute('action')));
                 }
                 // proxy regular HTML links
-                if(node.hasAttribute('href')){
+                if (node.hasAttribute('href')) {
                     node.setAttribute('href', proxy
                         + encodeURIComponent(node.getAttribute('href')));
                 }
                 // proxy SVG/MathML links
-                if(node.hasAttribute('xlink:href')){
+                if (node.hasAttribute('xlink:href')) {
                     node.setAttribute('xlink:href', proxy
                         + encodeURIComponent(node.getAttribute('xlink:href')));
                 }

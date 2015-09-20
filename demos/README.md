@@ -54,10 +54,10 @@ DOMPurify allows you to use hooks. Hooks are basically scripts that can hook int
 This is the relevant code:
 ```javascript
 // Add a hook to convert all text to capitals
-DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+DOMPurify.addHook('beforeSanitizeAttributes', function(node) {
     // Set text node content to uppercase
-    if(node.nodeName && node.nodeName === '#text') {
-        node.textContent=node.textContent.toUpperCase();
+    if (node.nodeName && node.nodeName === '#text') {
+        node.textContent = node.textContent.toUpperCase();
     }
 });
 
@@ -72,10 +72,10 @@ A DOMPurify hook can also be removed in case you first need it and then you want
 This is the relevant code:
 ```javascript
 // Add a hook to convert all text to capitals
-DOMPurify.addHook('beforeSanitizeAttributes', function(node){
+DOMPurify.addHook('beforeSanitizeAttributes', function(node) {
     // Set text node content to uppercase
-    if(node.nodeName && node.nodeName === '#text') {
-        node.textContent=node.textContent.toUpperCase();
+    if (node.nodeName && node.nodeName === '#text') {
+        node.textContent = node.textContent.toUpperCase();
     }
 });
 
@@ -96,15 +96,15 @@ This hook is an important one and used quite commonly. It is made to assure that
 This is the relevant code:
 ```javascript
 // Add a hook to make all links open a new window
-DOMPurify.addHook('afterSanitizeAttributes', function(node){
+DOMPurify.addHook('afterSanitizeAttributes', function(node) {
     // set all elements owning target to target=_blank
-    if('target' in node){
+    if ('target' in node) {
         node.setAttribute('target','_blank');
     }
     // set non-HTML/MathML links to xlink:show=new
-    if(!node.hasAttribute('target') 
+    if (!node.hasAttribute('target') 
         && (node.hasAttribute('xlink:href') 
-            || node.hasAttribute('href'))){
+            || node.hasAttribute('href'))) {
         node.setAttribute('xlink:show', 'new');
     }
 });
@@ -125,32 +125,32 @@ This is the relevant code:
 var whitelist = ['http', 'https', 'ftp'];
 
 // build fitting regex
-var regex = RegExp('^('+whitelist.join('|')+'):', 'gim');
+var regex = RegExp('^(' + whitelist.join('|') + '):', 'gim');
 
 // Add a hook to enforce URI scheme whitelist
-DOMPurify.addHook('afterSanitizeAttributes', function(node){
+DOMPurify.addHook('afterSanitizeAttributes', function(node) {
 
     // build an anchor to map URLs to
     var anchor = document.createElement('a');
 
     // check all href attributes for validity
-    if(node.hasAttribute('href')){
+    if (node.hasAttribute('href')) {
         anchor.href  = node.getAttribute('href');
-        if(anchor.protocol && !anchor.protocol.match(regex)){
+        if (anchor.protocol && !anchor.protocol.match(regex)) {
             node.removeAttribute('href');
         }
     }
     // check all action attributes for validity
-    if(node.hasAttribute('action')){
+    if (node.hasAttribute('action')) {
         anchor.href  = node.getAttribute('action');
-        if(anchor.protocol && !anchor.protocol.match(regex)){
+        if (anchor.protocol && !anchor.protocol.match(regex)) {
             node.removeAttribute('action');
         }
     }
     // check all xlink:href attributes for validity
-    if(node.hasAttribute('xlink:href')){
+    if (node.hasAttribute('xlink:href')) {
         anchor.href  = node.getAttribute('xlink:href');
-        if(anchor.protocol && !anchor.protocol.match(regex)){
+        if (anchor.protocol && !anchor.protocol.match(regex)) {
             node.removeAttribute('xlink:href');
         }
     }
@@ -175,17 +175,23 @@ var config = {
 }            
 
 // Add a hook to sanitize all script content with MentalJS
-DOMPurify.addHook('uponSanitizeElement', function(node, data){
-    if(data.tagName === 'script'){
+DOMPurify.addHook('uponSanitizeElement', function(node, data) {
+    if (data.tagName === 'script') {
         var script = node.textContent;
-        if(!script || 'src' in node.attributes
+        if (!script || 'src' in node.attributes
             || 'href' in node.attributes 
-            || 'xlink:href' in node.attributes){
+            || 'xlink:href' in node.attributes) {
                 return node.parentNode.removeChild(node)
         }
         try {
             var mental = MentalJS().parse(
-                {options:{eval:false, dom:true}, code:script}
+                {
+                    options: {
+                        eval: false, 
+                        dom:true
+                    }, 
+                 code:script
+                }
             );
             return node.textContent = mental;
         } catch(e) {
@@ -195,12 +201,18 @@ DOMPurify.addHook('uponSanitizeElement', function(node, data){
 });
 
 // Add a hook to sanitize all white-listed events with MentalJS
-DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
-    if(data.attrName.match(/^on\w+/)) {
+DOMPurify.addHook('uponSanitizeAttribute', function(node, data) {
+    if (data.attrName.match(/^on\w+/)) {
         var script = data.attrValue;
         try {
             return data.attrValue = MentalJS().parse(
-                {options:{eval:false, dom:true}, code:script}
+                {
+                    options: {
+                        eval: false, 
+                        dom:true
+                    }, 
+                 code:script
+                }
             );
         } catch(e) {
             return data.attrValue = '';
@@ -219,19 +231,19 @@ DOMPurify itself permits links to all resources that don't cause XSS. That inclu
 This is the relevant code:
 ```javascript
 // Add a hook to make all links point to a proxy
-DOMPurify.addHook('afterSanitizeAttributes', function(node){
+DOMPurify.addHook('afterSanitizeAttributes', function(node) {
     // proxy form actions
-    if('action' in node){
+    if ('action' in node) {
         node.setAttribute('action', proxy 
             + encodeURIComponent(node.getAttribute('action')));
     }
     // proxy regular HTML links
-    if(node.hasAttribute('href')){
+    if (node.hasAttribute('href')) {
         node.setAttribute('href', proxy 
             + encodeURIComponent(node.getAttribute('href')));
     }                
     // proxy SVG/MathML links
-    if(node.hasAttribute('xlink:href')){
+    if (node.hasAttribute('xlink:href')) {
         node.setAttribute('xlink:href', proxy 
             + encodeURIComponent(node.getAttribute('xlink:href')));
     } 
@@ -269,13 +281,13 @@ var regex = /(url\("?)(?!data:)/gim;
  *  then add the styles to an array of property-value pairs
  */
 function addStyles(output, styles) {
-    for (var prop=styles.length-1; prop>=0; prop--) {
-        if(styles[styles[prop]]){
-            var url = styles[styles[prop]].replace(regex, '$1'+proxy);
-            styles[styles[prop]]=url;
+    for (var prop = styles.length-1; prop >= 0; prop--) {
+        if (styles[styles[prop]]) {
+            var url = styles[styles[prop]].replace(regex, '$1' + proxy);
+            styles[styles[prop]] = url;
         }
-        if(styles[styles[prop]]) {
-            output.push(styles[prop]+':'+styles[styles[prop]]+';');
+        if (styles[styles[prop]]) {
+            output.push(styles[prop] + ':' + styles[styles[prop]] + ';');
         }
     }
 }
@@ -285,10 +297,10 @@ function addStyles(output, styles) {
  * then create matching CSS text for later application to the DOM
  */
 function addCSSRules(output, cssRules) {
-    for (var index=cssRules.length-1; index>=0; index--) {
+    for (var index = cssRules.length-1; index >= 0; index--) {
         var rule = cssRules[index];
         // check for rules with selector
-        if (rule.type == 1 && rule.selectorText){
+        if (rule.type == 1 && rule.selectorText) {
             output.push(rule.selectorText + '{')
             if (rule.style) {
                 addStyles(output, rule.style)
@@ -309,7 +321,7 @@ function addCSSRules(output, cssRules) {
         // check for @keyframes rules
         } else if (rule.type === rule.KEYFRAMES_RULE) {
             output.push('@keyframes ' + rule.name + '{');
-            for (var i=rule.cssRules.length-1;i>=0;i--) {
+            for (var i=rule.cssRules.length-1; i>=0; i--) {
                 var frame = rule.cssRules[i];
                 if (frame.type === 8 && frame.keyText) {
                     output.push(frame.keyText + '{');
@@ -336,7 +348,7 @@ function proxyAttribute(url) {
 }
 
 // Add a hook to enforce proxy for leaky CSS rules
-DOMPurify.addHook('uponSanitizeElement', function (node, data) {
+DOMPurify.addHook('uponSanitizeElement', function(node, data) {
     if (data.tagName === 'style') {
         var output  = [];
         addCSSRules(output, node.sheet.cssRules);
@@ -345,31 +357,31 @@ DOMPurify.addHook('uponSanitizeElement', function (node, data) {
 });
 
 // Add a hook to enforce proxy for all HTTP leaks incl. inline CSS
-DOMPurify.addHook('afterSanitizeAttributes', function(node){
+DOMPurify.addHook('afterSanitizeAttributes', function(node) {
 
     // Check all src attributes and proxy them
-    for(var i = 0; i<=attributes.length-1; i++){
-        if(node.hasAttribute(attributes[i])){
+    for(var i = 0; i <= attributes.length-1; i++) {
+        if (node.hasAttribute(attributes[i])) {
             node.setAttribute(attributes[i], proxyAttribute(
-                    node.getAttribute(attributes[i]))
+                node.getAttribute(attributes[i]))
             );
         }
     }
 
     // Check all style attribute values and proxy them
-    if(node.hasAttribute('style')){
+    if (node.hasAttribute('style')) {
         var styles = node.style;
         var output = [];
-        for(var prop=styles.length-1; prop>=0; prop--) {
+        for(var prop = styles.length-1; prop >= 0; prop--) {
             // we re-write each property-value pair to remove invalid CSS
-            if(node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
-                var url = node.style[styles[prop]].replace(regex, '$1'+proxy)
-                node.style[styles[prop]]=url;
+            if (node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
+                var url = node.style[styles[prop]].replace(regex, '$1' + proxy)
+                node.style[styles[prop]] = url;
             }
-            output.push(styles[prop]+':'+node.style[styles[prop]]+';');
+            output.push(styles[prop] + ':' + node.style[styles[prop]] + ';');
         }
         // re-add styles in case any are left
-        if(output.length) {
+        if (output.length) {
             node.setAttribute('style', output.join(""));    
         } else {
             node.removeAttribute('style');
