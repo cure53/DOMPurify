@@ -303,17 +303,17 @@
      * @return a DOM, filled with the dirty markup
      */
     var _initDocument = function(dirty) {
-
         /* Create a HTML document using DOMParser */
-        var doc;
+        var doc, body;
         try {
             doc = new DOMParser().parseFromString(dirty, "text/html");
         } catch (e) {}
 
-        /* Some browsers throw, some browsers return null for the code above */
+        /* Some browsers throw, some browsers return null for the code above
+           DOMParser with text/html support is only in very recent browsers. */
         if (!doc){
             doc = implementation.createHTMLDocument('');
-            var body = doc.body;
+            body = doc.body;
             body.parentNode.removeChild(body.parentNode.firstElementChild);
             body.outerHTML = dirty;
         }
@@ -323,8 +323,8 @@
             return doc.getElementsByTagName(
                 WHOLE_DOCUMENT ? 'html' : 'body')[0];
         } else {
-            return getElementsByTagName.call(doc, 
-                WHOLE_DOCUMENT ? 'html' : 'body')[0];    
+            return getElementsByTagName.call(doc,
+                WHOLE_DOCUMENT ? 'html' : 'body')[0];
         }
     };
 
@@ -443,9 +443,9 @@
             attrName: '',
             attrValue: '',
             keepAttr: true
-        },
-        l = attributes.length,
-        attr, name, value, lcName, idAttr;
+        };
+        var l = attributes.length;
+        var attr, name, value, lcName, idAttr;
 
         /* Go backwards over all attributes; safely remove bad ones */
         while (l--) {
