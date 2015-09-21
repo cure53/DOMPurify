@@ -32,7 +32,6 @@
 
     var document = window.document;
     var originalDocument = document;
-    var implementation = document.implementation;
     var DocumentFragment = window.DocumentFragment;
     var HTMLTemplateElement = window.HTMLTemplateElement;
     var NodeFilter = window.NodeFilter;
@@ -50,6 +49,7 @@
     if (typeof HTMLTemplateElement === 'function') {
         document = document.createElement('template').content.ownerDocument;
     }
+    var implementation = document.implementation;
     var createNodeIterator = document.createNodeIterator;
     var getElementsByTagName = document.getElementsByTagName;
     var createDocumentFragment = document.createDocumentFragment;
