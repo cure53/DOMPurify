@@ -580,9 +580,8 @@
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
-        /* Return empty string if no input is given */
         if (!dirty) {
-            return '';
+            dirty = '';
         }
 
         /* Check we can run. Otherwise fall back or ignore */
