@@ -61,7 +61,8 @@
      * Expose whether this browser supports running the full DOMPurify.
      */
     DOMPurify.isSupported =
-        typeof DOMParser !== 'undefined' && document.documentMode !== 9;
+        typeof implementation.createHTMLDocument !== 'undefined' &&
+        document.documentMode !== 9;
 
     /* Add properties to a lookup table */
     var _addToSet = function(set, array) {
