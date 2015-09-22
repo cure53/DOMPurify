@@ -2,13 +2,13 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>DOMPurify 0.6.7 "Sandhopper"</title>
+        <title>DOMPurify 0.7 "Gravity"</title>
         <script src="https://rawgithub.com/cure53/DOMPurify/master/src/purify.js"></script>
         <!-- we don't actually need it - just to demo and test the $(html) sanitation -->
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     </head>
     <body>
-        <h4>DOMPurify 0.6.7 "Sandhopper"</h4>
+        <h4>DOMPurify 0.7 "Gravity"</h4>
         <p>
         This is the demo for <a href="https://github.com/cure53/DOMPurify">DOMPurify</a>, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML.
         The textarea below contains sample-payload - you can also add your own. Watch it sanitize on the console or in the Iframe below.
