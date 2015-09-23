@@ -88,10 +88,10 @@ module.exports = [{
       "expected": "<p>hello</p>"
   }, {
       "title": "mXSS Variation I",
-      "payload": "<listing>&lt;img onerror=\"alert(1);//\" src=1&gt;<t t></listing>",
+      "payload": "<listing>&lt;img onerror=\"alert(1);//\" src=x:x&gt;<t t></listing>",
       "expected": [
-        "&lt;img onerror=\"alert(1);//\" src=1&gt;",
-        "<img src=\"1\">"
+        "&lt;img onerror=\"alert(1);//\" src=x:x&gt;",
+        "<img src=\"x:x\">"
       ]
   }, {
       "title": "mXSS Variation II",
