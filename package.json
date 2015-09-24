@@ -5,13 +5,13 @@
     "jshint": "node node_modules/jshint/bin/jshint src/purify.js || true",
     "minify": "scripts/minify.sh",
     "amend-minified": "scripts/amend-minified.sh",
-    "test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --single-run",
+    "test": "npm run jshint && npm run-script ci-test",
+    "ci-test": "[ \"${TRAVIS_PULL_REQUEST}\" = \"false\" ] && ./node_modules/.bin/karma start test/karma.conf.js --single-run || true",
     "local-test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --browsers Chrome --single-run"
   },
   "pre-commit": [
     "jshint",
     "minify",
-    "local-test",
     "amend-minified"
   ],
   "devDependencies": {
