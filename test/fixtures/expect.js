@@ -543,7 +543,7 @@ module.exports = [{
       "payload": "<div id=\"78\"><?xml-stylesheet type=\"text/xsl\" href=\"#\"?><img xmlns=\"x-schema:test.xdr\"/>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"78\"><img xmlns=\"x-schema:test.xdr\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
-      "payload": "<div id=\"79\"><object allowscriptaccess=\"always\" data=\"test.swf\"></object>//[\"'`-->]]>]</div>",
+      "payload": "<div id=\"79\"><object allowscriptaccess=\"always\" data=\"x:x\"></object>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"79\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"80\"><style>*{x:\uFF45\uFF58\uFF50\uFF52\uFF45\uFF53\uFF53\uFF49\uFF4F\uFF4E(alert(80))}</style>//[\"'`-->]]>]</div>",
