@@ -566,17 +566,17 @@ module.exports = [{
   }, {
       "payload": "<div id=\"86\"><body oninput=alert(86)><input autofocus>//[\"'`-->]]>]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"javascript:alert(87)\"><rect width=\"1000\" height=\"1000\" fill=\"white\"/></a>\n</svg>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a><rect fill=\"white\" height=\"1000\" width=\"1000\"></rect></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" height=\"1000\" width=\"1000\"></rect></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<animation xlink:href=\"javascript:alert(88)\"/>\n<animation xlink:href=\"data:text/xml,%3Csvg xmlns='http://www.w3.org/2000/svg' onload='alert(88)'%3E%3C/svg%3E\"/>\n\n<image xlink:href=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' onload='alert(88)'%3E%3C/svg%3E\"/>\n\n<foreignObject xlink:href=\"javascript:alert(88)\"/>\n<foreignObject xlink:href=\"data:text/xml,%3Cscript xmlns='http://www.w3.org/1999/xhtml'%3Ealert(88)%3C/script%3E\"/>\n\n</svg>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n<image></image>\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"88\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n<image></image>\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"88\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"88\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
