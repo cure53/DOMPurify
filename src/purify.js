@@ -175,7 +175,7 @@
         'voffset',
 
         // XML
-        'xlink:href','xml:id','xlink:title','xml:space'
+        'xlink:href','xml:id','xlink:title','xml:space','xmlns:xlink'
     ]);
 
     /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
