@@ -616,7 +616,8 @@ module.exports = [{
           "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"96\"><iframe src=mhtml:http://html5sec.org/test.html!xss.html></iframe>\n<iframe src=mhtml:http://html5sec.org/test.gif!xss.html></iframe>//[\"'`-->]]>]</div>",
