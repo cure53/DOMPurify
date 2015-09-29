@@ -7,7 +7,7 @@
     "amend-minified": "scripts/amend-minified.sh",
     "test": "npm run jshint && npm run-script ci-test",
     "ci-test": "[ \"${TRAVIS_PULL_REQUEST}\" = \"false\" ] && ./node_modules/.bin/karma start test/karma.conf.js --single-run || false",
-    "local-test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --browsers Chrome --single-run"
+    "local-test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --browsers Firefox,Chrome --single-run"
   },
   "pre-commit": [
     "jshint",
