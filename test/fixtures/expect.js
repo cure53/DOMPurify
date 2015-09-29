@@ -800,7 +800,8 @@ module.exports = [{
           "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</form></div>",
           "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"133\"><!-- `<img/src=xx:xx onerror=alert(133)//--!>//[\"'`-->]]>]</div>",
