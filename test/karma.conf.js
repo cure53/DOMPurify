@@ -125,6 +125,11 @@ module.exports = function(config) {
       'bs_win81_chrome_22'
     ],
 
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 1,
+    browserNoActivityTimeout: 240000,
+    captureTimeout: 240000,
+
     plugins: [
       'karma-webpack',
       'karma-mocha-reporter',
