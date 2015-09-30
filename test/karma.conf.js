@@ -15,7 +15,7 @@ module.exports = function(config) {
       'test/**/*.js': ['webpack']
     },
 
-    reporters: ['mocha'],
+    reporters: ['progress'],
 
     exclude: [],
     port: 9876,
@@ -132,7 +132,6 @@ module.exports = function(config) {
 
     plugins: [
       'karma-webpack',
-      'karma-mocha-reporter',
       'karma-chrome-launcher',
       'karma-browserstack-launcher',
       'karma-firefox-launcher',

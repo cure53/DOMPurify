@@ -25,7 +25,6 @@
     "karma-fixture": "^0.2.5",
     "karma-html2js-preprocessor": "^0.1.0",
     "karma-json-fixtures-preprocessor": "0.0.5",
-    "karma-mocha-reporter": "^1.1.1",
     "karma-qunit": "^0.1.5",
     "karma-webpack": "^1.7.0",
     "pre-commit": "^1.1.1",
