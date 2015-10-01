@@ -163,6 +163,7 @@ DOMPurify.addHook('beforeSanitizeElements', function(currentNode, data, config) 
 
 We are currently using Travis CI in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://travis-ci.org/cure53/DOMPurify
 
+You can further run local tests by executing `npm run-script local-test` or, in case you have a BrowserStack account with automation available, run the tests using `npm run-script ci-test`.
 
 ## Security Mailing List
 
