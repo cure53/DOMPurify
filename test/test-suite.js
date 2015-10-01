@@ -4,6 +4,7 @@ module.exports = function(DOMPurify, tests, xssTests) {
     .test( 'Sanitization test', function(params, assert) {
         assert.contains( DOMPurify.sanitize( params.payload ), params.expected, 'Payload: ' + params.payload);
     });
+  
   // Config-Flag Tests
   QUnit.test( 'Config-Flag tests: KEEP_CONTENT + ALLOWED_TAGS / ALLOWED_ATTR', function(assert) {
       // KEEP_CONTENT + ALLOWED_TAGS / ALLOWED_ATTR
@@ -152,6 +153,36 @@ module.exports = function(DOMPurify, tests, xssTests) {
           window.xssed = false;
         }, 100);
     });
+  // document.write tests to handle FF's strange behavior
+  QUnit
+    .cases(xssTests)
+    .asyncTest('XSS test: document.write() into iframe', function(params, assert) {
+        var iframe = document.createElement('iframe');
+        iframe.src='about:blank';
+        iframe.onload=function(){
+            QUnit.start();
+            iframe.contentDocument.write('<script>window.alert=function(){top.xssed=true;}</script>' + DOMPurify.sanitize( params.payload ));
+            assert.notEqual( window.xssed, true, 'alert() was called from document.write()' );
+            window.xssed = false;
+            iframe.parentNode.removeChild(iframe);
+        }
+        document.body.appendChild(iframe);  
+  });
+  // cross-check that document.write into iframe works properly
+  QUnit
+    .asyncTest('XSS test: document.write() into iframe', function(assert) {
+        window.xssed = false;
+        var iframe = document.createElement('iframe');
+        iframe.src='about:blank';
+        iframe.onload=function(){
+            QUnit.start();
+            iframe.contentDocument.write('<script>window.alert=function(){parent.xssed=true;}</script><script>alert(1);</script>' );
+            assert.equal( window.xssed, true, 'alert() was called but not detected' );
+            window.xssed = false;
+            iframe.parentNode.removeChild(iframe);
+        }
+        document.body.appendChild(iframe);
+  }); 
   // Check for isSupported property
   QUnit.test( 'DOMPurify property tests', function(assert) {
       assert.equal( typeof DOMPurify.isSupported, 'boolean' );
