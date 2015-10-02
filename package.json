@@ -6,7 +6,7 @@
     "minify": "scripts/minify.sh",
     "amend-minified": "scripts/amend-minified.sh",
     "test": "npm run jshint && npm run-script travis-ci",
-    "travis-ci": "[ \"${TRAVIS_PULL_REQUEST}\" = \"false\" ] && ./node_modules/.bin/karma start test/karma.conf.js --single-run || false",
+    "travis-ci": "[ \"${TRAVIS_PULL_REQUEST}\" = \"false\" ] && ./node_modules/.bin/karma start test/karma.conf.js --log-level warn --reporters dots --single-run || false",
     "ci-test": "./node_modules/.bin/karma start test/karma.conf.js --single-run",
     "local-test": "npm run jshint;./node_modules/.bin/karma start test/karma.conf.js --browsers Firefox,Chrome --single-run"
   },
