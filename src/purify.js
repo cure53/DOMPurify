@@ -396,9 +396,6 @@
         /* Now let's check the element's type and name */
         var tagName = currentNode.nodeName.toLowerCase();
 
-        /* Get the element's text content */
-        var content = currentNode.textContent;
-
         /* Execute a hook if present */
         _executeHook('uponSanitizeElement', currentNode, {
             tagName: tagName
@@ -424,6 +421,8 @@
 
         /* Sanitize element content to be template-safe */
         if(currentNode.nodeType === 3 && SAFE_FOR_TEMPLATES) {
+            /* Get the element's text content */
+            var content = currentNode.textContent;
             content = content.replace(MUSTACHE_EXPR, ' ');
             content = content.replace(ERB_EXPR, ' ');
             currentNode.textContent = content;
