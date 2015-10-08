@@ -62,6 +62,14 @@ module.exports = function(DOMPurify, tests, xssTests) {
       //SAFE_FOR_TEMPLATES
       assert.equal( DOMPurify.sanitize( '<a>123{{456}}<b><style><% alert(1) %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b><style> </style>456</b></a>" );
       assert.equal( DOMPurify.sanitize( '<a data-bind="style: alert(1)"></a>', {SAFE_FOR_TEMPLATES: true}), "<a></a>" );
+      assert.equal( DOMPurify.sanitize( '<a data-harmless=""></a>', {SAFE_FOR_TEMPLATES: true, ALLOW_DATA_ATTR: true}), "<a></a>" );
+      assert.equal( DOMPurify.sanitize( '<a data-harmless=""></a>', {SAFE_FOR_TEMPLATES: false, ALLOW_DATA_ATTR: false}), "<a></a>" );
+      assert.equal( DOMPurify.sanitize( '<a>{{123}}{{456}}<b><style><% alert(1) %><% 123 %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a>  <b><style>  </style>456</b></a>" );
+      assert.equal( DOMPurify.sanitize( '<a>{{123}}abc{{456}}<b><style><% alert(1) %>def<% 123 %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a> abc <b><style> def </style>456</b></a>" );
+      assert.equal( DOMPurify.sanitize( '<a>123{{45{{6}}<b><style><% alert(1)%> %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b><style> </style>456</b></a>" );
+      assert.equal( DOMPurify.sanitize( '<a>123{{45}}6}}<b><style><% <%alert(1) %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b><style> </style>456</b></a>" );
+      assert.equal( DOMPurify.sanitize( '<a>123{{<b>456}}</b><style><% alert(1) %></style>456</a>', {SAFE_FOR_TEMPLATES: true}), "<a>123{{<b>456}}</b><style> </style>456</a>" );
+      assert.equal( DOMPurify.sanitize( '<b>{{<form><img src=x name=textContent></form>}}</b>', {SAFE_FOR_TEMPLATES: true}), "<b></b>" );
   }); 
   QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
       // SANITIZE_DOM
