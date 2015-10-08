@@ -420,7 +420,8 @@
         }
 
         /* Sanitize element content to be template-safe */
-        if(currentNode.nodeType === 3 && SAFE_FOR_TEMPLATES) {
+        if((currentNode.nodeType === 3 || !currentNode.firstElementChild) 
+                && SAFE_FOR_TEMPLATES) {
             /* Get the element's text content */
             var content = currentNode.textContent;
             content = content.replace(MUSTACHE_EXPR, ' ');
