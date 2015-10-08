@@ -3,20 +3,35 @@
     <head>
         <meta charset="UTF-8">
         <title>DOMPurify 0.7.1 "Excalibur"</title>
-        <script src="https://rawgithub.com/cure53/DOMPurify/master/src/purify.js"></script>
+        <script src="purify.js"></script>
         <!-- we don't actually need it - just to demo and test the $(html) sanitation -->
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script>
+            if(typeof console === 'undefined') {console={}; console.log=function(){}}
+            window.onload = function(){
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://cdn.rawgit.com/cure53/DOMPurify/master/test/fixtures/expect.js');
+                xhr.onload = function(){
+                    var data=JSON.parse(xhr.responseText.slice(17, -2));
+                    x.value = '<!-- I am ready now, click one of the buttons! -->\r\n';
+                    for(i in data) {
+                        x.value+=data[i].payload+"\r\n\r\n";
+                    }
+                }
+                xhr.send(null);
+            }
+        </script>
     </head>
     <body>
         <h4>DOMPurify 0.7.1 "Excalibur"</h4>
         <p>
-        This is the demo for <a href="https://github.com/cure53/DOMPurify">DOMPurify</a>, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML.
+            <a href="http://badge.fury.io/bo/dompurify"><img style="max-width:100%;" alt="Bower version" src="https://badge.fury.io/bo/dompurify.svg"></a> · <a href="http://badge.fury.io/js/dompurify"><img style="max-width:100%;" alt="npm version" src="https://badge.fury.io/js/dompurify.svg"></a> · <a href="https://travis-ci.org/cure53/DOMPurify"><img style="max-width:100%;" alt="Build Status" src="https://travis-ci.org/cure53/DOMPurify.svg?branch=master"></a>
+        </p>
+        <p>
+        This is the demo for <a href="https://github.com/cure53/DOMPurify">DOMPurify</a>, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML. 
         The textarea below contains sample-payload - you can also add your own. Watch it sanitize on the console or in the Iframe below.
         </p>
         <hr>
-        <p>
-            Timings: <code id="timing"> </code>
-        </p>
         <button onclick="
             var tx1 = Date.now();
             var xss = DOMPurify.sanitize(x.value);
@@ -47,14 +62,14 @@
             timing.innerHTML=t+'ms '+timing.innerHTML
         ">Sanitize textarea value, then use $(elm).html()</button>
         <hr>
-        <!-- rendered test data goes in here -->
+        <p>
+            Timings: <code id="timing"> </code>
+        </p>
+        <p><label for="x">Dirty HTML</label></p>
+        <textarea placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:100px"><!-- Loading Test-Vectors ... --></textarea>
+        <p><label for="y">Clean HTML</label></p>
+        <textarea placeholder="Here be the sanitized markup to inspect!" id="y" style="width:95%;height:100px"></textarea>
+        <p><label for="ifr">Clean DOM</label></p>
         <iframe src="about:blank" id="ifr" style="width:95%;height:100px"></iframe>
-        <textarea placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:200px"><!--
-        The following block of HTML is a collection of test cases, attack vectors and hard-to-process HTML chunks.
-        DOMPurify will take the whole bunch and sanitize it. If you don't see an "alert" pop up afterwards, it means it worked :)
-        -->
-
-        <%- examples %></textarea>
-        <textarea placeholder="Here be the sanitized markup to inspect!" id="y" style="width:95%;height:200px"></textarea>
     </body>
 </html>
