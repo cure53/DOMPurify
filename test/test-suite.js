@@ -57,6 +57,7 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<option><iframe></select><b><script>alert(1)<\/script>', {SAFE_FOR_JQUERY: true, KEEP_CONTENT: false}), "<option></option>" );
       assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: false}), "<b><style><style/><img src=xx: onerror=alert(1)></style></b>" );
       assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: true}), "<b><style>&lt;style/>&lt;img src=xx: onerror=alert(1)></style></b>" );
+      assert.equal( DOMPurify.sanitize( '<template><s>000</s></template>', {SAFE_FOR_JQUERY: true}), "<template><s>000</s></template>" );
   });
   QUnit.test( 'Config-Flag tests: SAFE_FOR_TEMPLATES', function(assert) {
       //SAFE_FOR_TEMPLATES
