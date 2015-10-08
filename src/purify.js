@@ -420,8 +420,7 @@
         }
 
         /* Sanitize element content to be template-safe */
-        if((currentNode.nodeType === 3 || !currentNode.firstElementChild) 
-                && SAFE_FOR_TEMPLATES) {
+        if(currentNode.nodeType === 3 && SAFE_FOR_TEMPLATES) {
             /* Get the element's text content */
             var content = currentNode.textContent;
             content = content.replace(MUSTACHE_EXPR, ' ');
@@ -547,8 +546,8 @@
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
     var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
-    var MUSTACHE_EXPR = /\{\{.*?\}\}/gm;
-    var ERB_EXPR = /<%.*?%>/gm;
+    var MUSTACHE_EXPR = /\{\{.*|.*\}\}/gm;
+    var ERB_EXPR = /<%.*|.*%>/gm;
 
     /**
      * _sanitizeShadowDOM

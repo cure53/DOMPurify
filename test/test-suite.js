@@ -69,7 +69,8 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a>123{{45{{6}}<b><style><% alert(1)%> %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b><style>  %></style>456</b></a>" );
       assert.equal( DOMPurify.sanitize( '<a>123{{45}}6}}<b><style><% <%alert(1) %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 6}}<b><style> </style>456</b></a>" );
       assert.equal( DOMPurify.sanitize( '<a>123{{<b>456}}</b><style><% alert(1) %></style>456</a>', {SAFE_FOR_TEMPLATES: true}), "<a>123{{<b>456}}</b><style> </style>456</a>" );
-      assert.equal( DOMPurify.sanitize( '<b>{{evil<form><img src=x name=textContent></form>}}</b>', {SAFE_FOR_TEMPLATES: true}), "<b></b>" );
+      assert.equal( DOMPurify.sanitize( '<b>{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}</b>', {SAFE_FOR_TEMPLATES: true}), "<b></b>" );
+      assert.equal( DOMPurify.sanitize( '<b>he{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}ya</b>', {SAFE_FOR_TEMPLATES: true}), "<b>he  ya</b>" );
   }); 
   QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
       // SANITIZE_DOM
