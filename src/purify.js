@@ -190,7 +190,12 @@
     /* Output should be safe for jQuery's $() factory? */
     var SAFE_FOR_JQUERY = false;
 
-    /* Decide if document with <html>... should be returned */
+    /* Output should be safe for common template engines.
+     * This means, DOMPurify removes data attributes, mustaches and ERB 
+     */
+    var SAFE_FOR_TEMPLATES = false;
+
+     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
     /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
@@ -248,6 +253,7 @@
             _addToSet({}, cfg.FORBID_ATTR) : {};
         ALLOW_DATA_ATTR     = cfg.ALLOW_DATA_ATTR     !== false; // Default true
         SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     ||  false; // Default false
+        SAFE_FOR_TEMPLATES  = cfg.SAFE_FOR_TEMPLATES  ||  false; // Default false
         WHOLE_DOCUMENT      = cfg.WHOLE_DOCUMENT      ||  false; // Default false
         RETURN_DOM          = cfg.RETURN_DOM          ||  false; // Default false
         RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT ||  false; // Default false
@@ -390,6 +396,9 @@
         /* Now let's check the element's type and name */
         var tagName = currentNode.nodeName.toLowerCase();
 
+        /* Get the element's text content */
+        var content = currentNode.textContent;
+
         /* Execute a hook if present */
         _executeHook('uponSanitizeElement', currentNode, {
             tagName: tagName
@@ -408,9 +417,16 @@
             return true;
         }
 
-        /* Finally, convert markup to cover jQuery behavior */
+        /* Convert markup to cover jQuery behavior */
         if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
             currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
+        }
+
+        /* Sanitize element content to be template-safe */
+        if(currentNode.nodeType === 3 && SAFE_FOR_TEMPLATES) {
+            content = content.replace(MUSTACHE_EXPR, ' ');
+            content = content.replace(ERB_EXPR, ' ');
+            currentNode.textContent = content;
         }
 
         /* Execute a hook if present */
@@ -497,7 +513,7 @@
                  /* Allow potentially valid data-* attributes
                     * At least one character after "-" (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
                     * XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804) */
-                 (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName))
+                 (!SAFE_FOR_TEMPLATES && ALLOW_DATA_ATTR && DATA_ATTR.test(lcName))
                 ) &&
                 /* Get rid of script and data URIs */
                 (
@@ -509,9 +525,18 @@
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
                 try {
+
+                    /* Sanitize attribute content to be template-safe */
+                    if (SAFE_FOR_TEMPLATES) {
+                        value = value.replace(MUSTACHE_EXPR, ' ');
+                        value = value.replace(ERB_EXPR, ' ');
+                        currentNode.setAttribute(name, value);
+                    }
                     currentNode.setAttribute(name, value);
                 } catch (e) {}
             }
+
+
         }
 
         /* Execute a hook if present */
@@ -521,6 +546,8 @@
     var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
     var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
+    var MUSTACHE_EXPR = /(\{\{).*(\}\})/gm;
+    var ERB_EXPR = /<%.*%>/gm;
 
     /**
      * _sanitizeShadowDOM

@@ -58,6 +58,11 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: false}), "<b><style><style/><img src=xx: onerror=alert(1)></style></b>" );
       assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: true}), "<b><style>&lt;style/>&lt;img src=xx: onerror=alert(1)></style></b>" );
   });
+  QUnit.test( 'Config-Flag tests: SAFE_FOR_TEMPLATES', function(assert) {
+      //SAFE_FOR_TEMPLATES
+      assert.equal( DOMPurify.sanitize( '<a>123{{456}}<b><style><% alert(1) %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b><style> </style>456</b></a>" );
+      assert.equal( DOMPurify.sanitize( '<a data-bind="style: alert(1)"></a>', {SAFE_FOR_TEMPLATES: true}), "<a></a>" );
+  }); 
   QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
       // SANITIZE_DOM
       assert.equal( DOMPurify.sanitize( '<form name="window">', {SANITIZE_DOM: true}), "<form></form>" );
