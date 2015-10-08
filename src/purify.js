@@ -188,7 +188,7 @@
     var ALLOW_DATA_ATTR = true;
 
     /* Output should be safe for jQuery's $() factory? */
-    var SAFE_FOR_JQUERY = false;
+    var SAFE_FOR_JQUERY = true;
 
     /* Output should be safe for common template engines.
      * This means, DOMPurify removes data attributes, mustaches and ERB 
@@ -252,7 +252,7 @@
         FORBID_ATTR = 'FORBID_ATTR' in cfg ?
             _addToSet({}, cfg.FORBID_ATTR) : {};
         ALLOW_DATA_ATTR     = cfg.ALLOW_DATA_ATTR     !== false; // Default true
-        SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     ||  false; // Default false
+        SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     !== false; // Default true
         SAFE_FOR_TEMPLATES  = cfg.SAFE_FOR_TEMPLATES  ||  false; // Default false
         WHOLE_DOCUMENT      = cfg.WHOLE_DOCUMENT      ||  false; // Default false
         RETURN_DOM          = cfg.RETURN_DOM          ||  false; // Default false
