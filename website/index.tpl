@@ -8,19 +8,22 @@
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
     </head>
     <body>
-        <h4>DOMPurify 0.7.0 "Excalibur"</h4>
+        <h4>DOMPurify 0.7.1 "Excalibur"</h4>
         <p>
         This is the demo for <a href="https://github.com/cure53/DOMPurify">DOMPurify</a>, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML.
         The textarea below contains sample-payload - you can also add your own. Watch it sanitize on the console or in the Iframe below.
         </p>
         <hr>
+        <p>
+            Timings: <code id="timing"> </code>
+        </p>
         <button onclick="
             var tx1 = Date.now();
             var xss = DOMPurify.sanitize(x.value);
             console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
             console.log(xss);
             y.value=xss;
-            document.title=t+'ms'
+            timing.innerHTML=t+'ms '+timing.innerHTML
         ">Sanitize textarea value, then write result to console</button>
         <button onclick="
             var ifr = document.getElementById('ifr');
@@ -31,7 +34,7 @@
             ifr.contentDocument.write(xss);
             y.value=xss;
             ifr.contentDocument.close();
-            document.title=t+'ms'
+            timing.innerHTML=t+'ms '+timing.innerHTML
         ">Sanitize textarea value, then write result to DOM</button>
         <button title="This might not work with the large default payload. Better try with smaller, realistic values" onclick="
             var ifr = document.getElementById('ifr');
@@ -41,7 +44,7 @@
             $(ifr.contentDocument.body).html(xss);
             y.value=$(ifr.contentDocument.body).html();
             ifr.contentDocument.close();
-            document.title=t+'ms'
+            timing.innerHTML=t+'ms '+timing.innerHTML
         ">Sanitize textarea value, then use $(elm).html()</button>
         <hr>
         <!-- rendered test data goes in here -->
