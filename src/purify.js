@@ -415,7 +415,8 @@
         }
 
         /* Convert markup to cover jQuery behavior */
-        if (SAFE_FOR_JQUERY && !currentNode.firstElementChild) {
+        if (SAFE_FOR_JQUERY && !currentNode.firstElementChild 
+                && !currentNode.content.firstElementChild) {
             currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
         }
 
