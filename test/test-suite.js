@@ -150,9 +150,8 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a>123<b x="1">456<script y="1">alert(1)<\/script></b></a>789', {FORBID_ATTR: ['x', 'y']}), "<a>123<b>456</b></a>789" );
   });
   QUnit.test( 'Test dirty being an array', function(assert) {
-      //FORBID_ATTR
       assert.equal( DOMPurify.sanitize( ['<a>123<b>456</b></a>']), "<a>123<b>456</b></a>" );
-      assert.equal( DOMPurify.sanitize( ['<img src=', 'x onerror=alert(1)>'], ), "" );
+      assert.equal( DOMPurify.sanitize( ['<img src=', 'x onerror=alert(1)>']), "<img src=\",x\">" );
   });  
   // XSS tests: Native DOM methods (alert() should not be called)
   QUnit
