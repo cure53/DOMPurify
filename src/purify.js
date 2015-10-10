@@ -608,8 +608,14 @@
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
+        /* Return early if nothing to sanitize is given */
         if (!dirty) {
-            dirty = '';
+            return '';
+        }
+        
+        /* Stringify, in case dirty is an array */
+        if (dirty instanceof Array) {
+            dirty = dirty.toString();
         }
 
         /* Check we can run. Otherwise fall back or ignore */

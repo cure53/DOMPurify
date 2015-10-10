@@ -58,7 +58,9 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: false}), "<b><style><style/><img src=xx: onerror=alert(1)></style></b>" );
       assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: true}), "<b><style>&lt;style/>&lt;img src=xx: onerror=alert(1)></style></b>" );
       assert.equal( DOMPurify.sanitize( '1<template><s>000</s></template>2', {SAFE_FOR_JQUERY: true}), "1<template><s>000</s></template>2" );
-      assert.equal( DOMPurify.sanitize( '<template><s>000</s></template>', {SAFE_FOR_JQUERY: true}), "" );
+      assert.contains( DOMPurify.sanitize( '<template><s>000</s></template>', {SAFE_FOR_JQUERY: true}), 
+              ["", "<template><s>000</s></template>"] 
+      );
   });
   QUnit.test( 'Config-Flag tests: SAFE_FOR_TEMPLATES', function(assert) {
       //SAFE_FOR_TEMPLATES
@@ -147,6 +149,11 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a y="1">123<b y="1" y="2">456</b></a>', {FORBID_ATTR: ['y']}), "<a>123<b>456</b></a>" );
       assert.equal( DOMPurify.sanitize( '<a>123<b x="1">456<script y="1">alert(1)<\/script></b></a>789', {FORBID_ATTR: ['x', 'y']}), "<a>123<b>456</b></a>789" );
   });
+  QUnit.test( 'Test dirty being an array', function(assert) {
+      //FORBID_ATTR
+      assert.equal( DOMPurify.sanitize( ['<a>123<b>456</b></a>']), "<a>123<b>456</b></a>" );
+      assert.equal( DOMPurify.sanitize( ['<img src=', 'x onerror=alert(1)>'], ), "" );
+  });  
   // XSS tests: Native DOM methods (alert() should not be called)
   QUnit
     .cases(xssTests)
