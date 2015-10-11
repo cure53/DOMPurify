@@ -79,6 +79,7 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.contains( DOMPurify.sanitize( '<b>he{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}ya</b>', {SAFE_FOR_TEMPLATES: true}), 
           ["<b>he  ya</b>", "<b>he </b>"] // Investigate on Safari 8! 
       );
+      assert.equal( DOMPurify.sanitize( '<a>123<% <b>456}}</b><style>{{ alert(1) }}</style>456 %></a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b> </b><style> </style> </a>" );
   }); 
   QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
       // SANITIZE_DOM
