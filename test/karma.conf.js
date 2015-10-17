@@ -130,7 +130,8 @@ module.exports = function(config) {
       'bs_yosemite_safari_8',
       'bs_win81_opera_31',
       'bs_win7_firefox_12',
-      'bs_win81_chrome_22'
+      'bs_win81_chrome_22',
+      'bs_win10_edge_12'
     ],
 
     browserDisconnectTimeout: 10000,
