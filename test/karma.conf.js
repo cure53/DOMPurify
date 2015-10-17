@@ -111,6 +111,14 @@ module.exports = function(config) {
         browser_version: '22.0',
         browser: 'chrome',
         os_version: '8.1'
+      },
+      bs_win10_edge_12: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '12.0',
+        browser: 'edge',
+        os_version: '10'
       }
     },
 
