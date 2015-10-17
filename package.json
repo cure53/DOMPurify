@@ -19,7 +19,7 @@
     "jshint": "^2.4.4",
     "json-loader": "^0.5.2",
     "karma": "^0.13.9",
-    "karma-browserstack-launcher": "^0.1.4",
+    "karma-browserstack-launcher": "git://github.com/shirish87/karma-browserstack-launcher.git#global_poll",
     "karma-chrome-launcher": "^0.2.0",
     "karma-firefox-launcher": "^0.1.6",
     "karma-fixture": "^0.2.5",
