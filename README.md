@@ -184,4 +184,4 @@ Several people need to be listed here! [@garethheyes](https://twitter.com/gareth
 
 Big thanks also go to [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)! Further, thanks [@neilj](https://twitter.com/neilj) for his code review and countless small optimizations, fixes and beautifications. Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack.
 
-And last but not least, thanks to [BrowserStack](https://browserstack.com) for supporting this project with their services for free!
+And last but not least, thanks to [BrowserStack](https://browserstack.com) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
