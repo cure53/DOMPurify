@@ -579,7 +579,7 @@ module.exports = [{
           "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n<image></image>\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n<image />\n\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"89\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<set attributeName=\"onmouseover\" to=\"alert(89)\"/>\n<animate attributeName=\"onunload\" to=\"alert(89)\"/>\n</svg>//[\"'`-->]]>]</div>",
