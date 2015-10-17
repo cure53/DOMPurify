@@ -491,6 +491,12 @@
                     currentNode.setAttribute('id', idAttr.value);
                 }
             } else {
+                // This avoids a crash in Safari v9.0 with double-ids.
+                // The trick is to first set the id to be empty and then to 
+                // remove the attriubute
+                if (name === 'id') {
+                    currentNode.setAttribute(name, '');
+                }
                 currentNode.removeAttribute(name);
             }
 
