@@ -80,7 +80,7 @@ DOMPurify.sanitize('<UL><li><A HREF=//google.com>click</UL>'); // becomes <ul><l
 
 ## What is supported?
 
-DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` methods.
+DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` methods but requires the `SAFE_FOR_JQUERY` flag for that - see below.
 
 
 ## Can I configure it?
@@ -88,6 +88,12 @@ DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the `/demos` folder to see a bunch of examples on how you can customize DOMPurify.
 
 ```javascript
+// make output safe for usage in jQuery's $()/html() method (default is false)
+var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
+
+// strip {{ ... }} and <% ... %> to make output safe for template systems
+var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
+
 // allow only <b>
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 
@@ -124,9 +130,6 @@ document.body.appendChild(clean);
 
 // return entire document including <html> tags (default is false)
 var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
-
-// make output safe for usage in jQuery's $()/html() method (default is false)
-var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
 
 // disable DOM Clobbering protection on output (default is true, handle with care!)
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
