@@ -72,7 +72,7 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a>123{{45}}6}}<b><style><% <%alert(1) %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a> <b><style> </style>456</b></a>" );
       assert.equal( DOMPurify.sanitize( '<a>123{{<b>456}}</b><style><% alert(1) %></style>456</a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b> </b><style> </style>456</a>" );
       assert.contains( DOMPurify.sanitize( '<b>{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}</b>', {SAFE_FOR_TEMPLATES: true}), 
-          ["<b>  </b>", "<b> </b>"] 
+          ["<b>  </b>", "<b> </b>", "<b> <form><img src=\"x\"></form> </b>"] 
       );
       assert.contains( DOMPurify.sanitize( '<b>he{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}ya</b>', {SAFE_FOR_TEMPLATES: true}), 
           ["<b>he  ya</b>", "<b>he </b>", "<b>he <form><img src=\"x\"></form> ya</b>"] // Investigate on Safari 8! 
