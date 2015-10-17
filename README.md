@@ -85,7 +85,7 @@ DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows
 
 ## Can I configure it?
 
-Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [https://github.com/cure53/DOMPurify/tree/master/demos](`/demos`) folder to see a bunch of examples on how you can [https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this](customize DOMPurify).
+Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/master/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this).
 
 ```javascript
 // make output safe for usage in jQuery's $()/html() method (default is false)
