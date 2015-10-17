@@ -626,7 +626,7 @@
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof window.toStaticHTML === 'function' && typeof dirty === 'string') {
+            if (typeof window.toStaticHTML === 'object' && typeof dirty === 'string') {
                 return window.toStaticHTML(dirty);
             }
             return dirty;
