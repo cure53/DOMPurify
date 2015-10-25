@@ -157,12 +157,12 @@
         'letter-spacing','lighting-color','local','marker-end','marker-mid',
         'marker-start','max','mask','mode','min','offset','operator','opacity',
         'order','overflow','paint-order','path','points','r','rx','ry','radius',
-        'restart','scale','seed','shape-rendering','stop-color','stop-opacity',
-        'stroke-dasharray','stroke-dashoffset','stroke-linecap','stroke-linejoin',
-        'stroke-miterlimit','stroke-opacity','stroke','stroke-width','transform',
-        'text-anchor','text-decoration','text-rendering','u1','u2','viewbox',
-        'visibility','word-spacing','wrap','writing-mode','x','x1','x2','y',
-        'y1','y2','z',
+        'restart','scale','seed','shape-rendering','spreadmethod','stop-color',
+        'stop-opacity','stroke-dasharray','stroke-dashoffset','stroke-linecap',
+        'stroke-linejoin','stroke-miterlimit','stroke-opacity','stroke','stroke-width',
+        'transform','text-anchor','text-decoration','text-rendering','u1','u2',
+        'viewbox','visibility','word-spacing','wrap','writing-mode','x','x1','x2',
+        'y','y1','y2','z',
 
         // MathML
         'accent','accentunder','bevelled','close','columnsalign','columnlines',
