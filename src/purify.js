@@ -152,7 +152,7 @@
         'display','divisor','dur','elevation','end','fill','fill-opacity',
         'fill-rule','filter','flood-color','flood-opacity','font-family',
         'font-size','font-size-adjust','font-stretch','font-style','font-variant',
-        'font-weight','fx', 'fy','gradientUnits','gradientTransform',
+        'font-weight','fx', 'fy','gradientunits','gradienttransform',
         'image-rendering','in','in2','k1','k2','k3','k4','kerning',
         'letter-spacing','lighting-color','local','marker-end','marker-mid',
         'marker-start','max','mask','mode','min','offset','operator','opacity',
