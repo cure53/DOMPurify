@@ -379,6 +379,9 @@
         return false;
     };
 
+    var MUSTACHE_EXPR = /\{\{.*|.*\}\}/gm;
+    var ERB_EXPR = /<%.*|.*%>/gm;
+
     /**
      * _sanitizeElements
      *
@@ -440,6 +443,11 @@
 
         return false;
     };
+
+    var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
+    var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
+    /* This needs to be extensive thanks to Webkit/Blink's behavior */
+    var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
     /**
      * _sanitizeAttributes
@@ -554,13 +562,6 @@
         /* Execute a hook if present */
         _executeHook('afterSanitizeAttributes', currentNode, null);
     };
-    var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
-    var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
-    /* This needs to be extensive thanks to Webkit/Blink's behavior */
-    var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
-
-    var MUSTACHE_EXPR = /\{\{.*|.*\}\}/gm;
-    var ERB_EXPR = /<%.*|.*%>/gm;
 
     /**
      * _sanitizeShadowDOM
