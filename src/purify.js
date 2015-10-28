@@ -424,13 +424,13 @@
         }
 
         /* Convert markup to cover jQuery behavior */
-        if (SAFE_FOR_JQUERY && !currentNode.firstElementChild 
-                && (!currentNode.content || !currentNode.content.firstElementChild)) {
+        if (SAFE_FOR_JQUERY && !currentNode.firstElementChild &&
+                (!currentNode.content || !currentNode.content.firstElementChild)) {
             currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
         }
 
         /* Sanitize element content to be template-safe */
-        if(currentNode.nodeType === 3 && SAFE_FOR_TEMPLATES) {
+        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
             /* Get the element's text content */
             var content = currentNode.textContent;
             content = content.replace(MUSTACHE_EXPR, ' ');
@@ -549,7 +549,6 @@
                     if (SAFE_FOR_TEMPLATES) {
                         value = value.replace(MUSTACHE_EXPR, ' ');
                         value = value.replace(ERB_EXPR, ' ');
-                        currentNode.setAttribute(name, value);
                     }
                     currentNode.setAttribute(name, value);
                 } catch (e) {}
