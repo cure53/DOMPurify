@@ -621,15 +621,15 @@
         if (!dirty) {
             return '';
         }
-        
-        /* Stringify, in case dirty is an array */
-        if (dirty instanceof Array) {
+
+        /* Stringify, in case dirty is an array or other object */
+        if (typeof dirty !== 'string') {
             dirty = dirty.toString();
         }
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof window.toStaticHTML === 'object' && typeof dirty === 'string') {
+            if (typeof window.toStaticHTML === 'object') {
                 return window.toStaticHTML(dirty);
             }
             return dirty;
