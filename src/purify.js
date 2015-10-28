@@ -318,7 +318,7 @@
         /* Create a HTML document using DOMParser */
         var doc, body;
         try {
-            doc = new DOMParser().parseFromString(dirty, "text/html");
+            doc = new DOMParser().parseFromString(dirty, 'text/html');
         } catch (e) {}
 
         /* Some browsers throw, some browsers return null for the code above
