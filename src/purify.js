@@ -197,11 +197,11 @@
     var SAFE_FOR_JQUERY = false;
 
     /* Output should be safe for common template engines.
-     * This means, DOMPurify removes data attributes, mustaches and ERB 
+     * This means, DOMPurify removes data attributes, mustaches and ERB
      */
     var SAFE_FOR_TEMPLATES = false;
 
-     /* Decide if document with <html>... should be returned */
+    /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
     /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
@@ -318,7 +318,7 @@
         /* Create a HTML document using DOMParser */
         var doc, body;
         try {
-            doc = new DOMParser().parseFromString(dirty, "text/html");
+            doc = new DOMParser().parseFromString(dirty, 'text/html');
         } catch (e) {}
 
         /* Some browsers throw, some browsers return null for the code above
@@ -379,6 +379,9 @@
         return false;
     };
 
+    var MUSTACHE_EXPR = /\{\{.*|.*\}\}/gm;
+    var ERB_EXPR = /<%.*|.*%>/gm;
+
     /**
      * _sanitizeElements
      *
@@ -421,13 +424,13 @@
         }
 
         /* Convert markup to cover jQuery behavior */
-        if (SAFE_FOR_JQUERY && !currentNode.firstElementChild 
-                && (!currentNode.content || !currentNode.content.firstElementChild)) {
+        if (SAFE_FOR_JQUERY && !currentNode.firstElementChild &&
+                (!currentNode.content || !currentNode.content.firstElementChild)) {
             currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
         }
 
         /* Sanitize element content to be template-safe */
-        if(currentNode.nodeType === 3 && SAFE_FOR_TEMPLATES) {
+        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
             /* Get the element's text content */
             var content = currentNode.textContent;
             content = content.replace(MUSTACHE_EXPR, ' ');
@@ -440,6 +443,11 @@
 
         return false;
     };
+
+    var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
+    var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
+    /* This needs to be extensive thanks to Webkit/Blink's behavior */
+    var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
     /**
      * _sanitizeAttributes
@@ -498,7 +506,7 @@
                 }
             } else {
                 // This avoids a crash in Safari v9.0 with double-ids.
-                // The trick is to first set the id to be empty and then to 
+                // The trick is to first set the id to be empty and then to
                 // remove the attriubute
                 if (name === 'id') {
                     currentNode.setAttribute(name, '');
@@ -537,30 +545,19 @@
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
                 try {
-
                     /* Sanitize attribute content to be template-safe */
                     if (SAFE_FOR_TEMPLATES) {
                         value = value.replace(MUSTACHE_EXPR, ' ');
                         value = value.replace(ERB_EXPR, ' ');
-                        currentNode.setAttribute(name, value);
                     }
                     currentNode.setAttribute(name, value);
                 } catch (e) {}
             }
-
-
         }
 
         /* Execute a hook if present */
         _executeHook('afterSanitizeAttributes', currentNode, null);
     };
-    var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
-    var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
-    /* This needs to be extensive thanks to Webkit/Blink's behavior */
-    var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
-
-    var MUSTACHE_EXPR = /\{\{.*|.*\}\}/gm;
-    var ERB_EXPR = /<%.*|.*%>/gm;
 
     /**
      * _sanitizeShadowDOM
@@ -620,19 +617,21 @@
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
-        /* Return early if nothing to sanitize is given */
+        /* Make sure we have a string to sanitize.
+           DO NOT return early, as this will return the wrong type if
+           the user has requested a DOM object rather than a string */
         if (!dirty) {
-            return '';
+            dirty = '';
         }
-        
-        /* Stringify, in case dirty is an array */
-        if (dirty instanceof Array) {
+
+        /* Stringify, in case dirty is an array or other object */
+        if (typeof dirty !== 'string') {
             dirty = dirty.toString();
         }
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof window.toStaticHTML === 'object' && typeof dirty === 'string') {
+            if (typeof window.toStaticHTML === 'object') {
                 return window.toStaticHTML(dirty);
             }
             return dirty;
