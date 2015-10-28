@@ -197,11 +197,11 @@
     var SAFE_FOR_JQUERY = false;
 
     /* Output should be safe for common template engines.
-     * This means, DOMPurify removes data attributes, mustaches and ERB 
+     * This means, DOMPurify removes data attributes, mustaches and ERB
      */
     var SAFE_FOR_TEMPLATES = false;
 
-     /* Decide if document with <html>... should be returned */
+    /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
     /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
@@ -506,7 +506,7 @@
                 }
             } else {
                 // This avoids a crash in Safari v9.0 with double-ids.
-                // The trick is to first set the id to be empty and then to 
+                // The trick is to first set the id to be empty and then to
                 // remove the attriubute
                 if (name === 'id') {
                     currentNode.setAttribute(name, '');
@@ -545,7 +545,6 @@
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
                 try {
-
                     /* Sanitize attribute content to be template-safe */
                     if (SAFE_FOR_TEMPLATES) {
                         value = value.replace(MUSTACHE_EXPR, ' ');
@@ -555,8 +554,6 @@
                     currentNode.setAttribute(name, value);
                 } catch (e) {}
             }
-
-
         }
 
         /* Execute a hook if present */
