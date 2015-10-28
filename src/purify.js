@@ -617,9 +617,11 @@
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
-        /* Return early if nothing to sanitize is given */
+        /* Make sure we have a string to sanitize.
+           DO NOT return early, as this will return the wrong type if
+           the user has requested a DOM object rather than a string */
         if (!dirty) {
-            return '';
+            dirty = '';
         }
 
         /* Stringify, in case dirty is an array or other object */
