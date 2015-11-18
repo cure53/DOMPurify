@@ -631,7 +631,8 @@
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof window.toStaticHTML === 'object') {
+            if (typeof window.toStaticHTML === 'object' 
+                || typeof window.toStaticHTML === 'function') {
                 return window.toStaticHTML(dirty);
             }
             return dirty;
