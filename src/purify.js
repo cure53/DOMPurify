@@ -550,7 +550,10 @@
                  !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,'')) ||
                  /* Keep image data URIs alive if src is allowed */
                  (lcName === 'src' && value.indexOf('data:') === 0 &&
-                  currentNode.nodeName === 'IMG')
+                  (currentNode.nodeName === 'AUDIO' ||
+                    currentNode.nodeName === 'IMG' ||
+                    currentNode.nodeName === 'SOURCE' ||
+                    currentNode.nodeName === 'VIDEO'))
                 )
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
