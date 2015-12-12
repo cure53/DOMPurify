@@ -1,7 +1,7 @@
 module.exports = [{
       "title": "src Attributes for IMG, AUDIO, VIDEO and SOURCE (see #131)",
-      "payload": "<img src=\"data:,123\"><audio src=\"data:,456\"><video src=\"data:,789\"><source src=\"data:,012\"><div src=\"data:,345\">",
-      "expected": "<img src=\"data:,123\"><audio src=\"data:,456\"><video src=\"data:,789\"><source src=\"data:,012\"><div></div>"
+      "payload": "<img src=\"data:,123\"><audio src=\"data:,456\"></audio><video src=\"data:,789\"></video><source src=\"data:,012\"><div src=\"data:,345\">",
+      "expected": "<img src=\"data:,123\"><audio src=\"data:,456\"></audio><video src=\"data:,789\"></video><source src=\"data:,012\"><div></div>"
   }, 
      {
       "title": "DOM Clobbering against document.createElement() (see #47)",
