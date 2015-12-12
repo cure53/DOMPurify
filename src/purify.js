@@ -211,6 +211,10 @@
      */
     var SAFE_FOR_TEMPLATES = false;
 
+    /* Specify template detection regex for SAFE_FOR_TEMPLATES mode */
+    var MUSTACHE_EXPR = /\{\{.*|.*\}\}/gm;
+    var ERB_EXPR = /<%.*|.*%>/gm;
+
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
@@ -237,6 +241,11 @@
     /* Tags to ignore content of when KEEP_CONTENT is true */
     var FORBID_CONTENTS = _addToSet({}, [
         'audio', 'head', 'math', 'script', 'style', 'svg', 'video'
+    ]);
+
+    /* Tags that are safe for data: URIs */
+    var DATA_URI_TAGS = _addToSet({}, [
+        'audio', 'video', 'img', 'source'
     ]);
 
     /* Keep a reference to config to pass to hooks */
@@ -388,9 +397,6 @@
         }
         return false;
     };
-
-    var MUSTACHE_EXPR = /\{\{.*|.*\}\}/gm;
-    var ERB_EXPR = /<%.*|.*%>/gm;
 
     /**
      * _sanitizeElements
@@ -550,10 +556,7 @@
                  !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,'')) ||
                  /* Keep image data URIs alive if src is allowed */
                  (lcName === 'src' && value.indexOf('data:') === 0 &&
-                  (currentNode.nodeName === 'AUDIO' ||
-                    currentNode.nodeName === 'IMG' ||
-                    currentNode.nodeName === 'SOURCE' ||
-                    currentNode.nodeName === 'VIDEO'))
+                  (DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]))
                 )
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
