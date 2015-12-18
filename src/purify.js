@@ -445,12 +445,6 @@
             currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
         }
 
-        /* Prevent attacks using SVG context-flips */
-        if (!SAFE_FOR_JQUERY && !currentNode.firstElementChild &&
-                (!currentNode.content || !currentNode.content.firstElementChild)) {
-            currentNode.innerHTML = currentNode.textContent.replace(/<!--/g, '&lt;!--');
-        }
-
         /* Sanitize element content to be template-safe */
         if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
             /* Get the element's text content */
