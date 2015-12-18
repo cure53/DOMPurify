@@ -566,6 +566,7 @@
                         value = value.replace(MUSTACHE_EXPR, ' ');
                         value = value.replace(ERB_EXPR, ' ');
                     }
+                    value = value.replace(/>/gm, '&gt;');
                     currentNode.setAttribute(name, value);
                 } catch (e) {}
             }
