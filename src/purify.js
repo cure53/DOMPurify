@@ -248,6 +248,12 @@
         'audio', 'video', 'img', 'source'
     ]);
 
+    /* Attributes safe for values like "javascript:" */
+    var URI_SAFE_ATTRIBUTES = _addToSet({}, [
+        'alt','class','for','id','label','name','pattern','placeholder',
+        'summary','title','value'
+    ]);
+
     /* Keep a reference to config to pass to hooks */
     var CONFIG = null;
 
@@ -556,7 +562,9 @@
                  !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,'')) ||
                  /* Keep image data URIs alive if src is allowed */
                  (lcName === 'src' && value.indexOf('data:') === 0 &&
-                  (DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]))
+                  (DATA_URI_TAGS[currentNode.nodeName.toLowerCase()])) ||
+                 /* Keep URI-like values for safe attributes */
+                 (URI_SAFE_ATTRIBUTES[lcName])
                 )
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */

@@ -1,4 +1,10 @@
-module.exports = [{
+module.exports = [
+     {
+      "title": "safe usage of URI-like attribute values (see #135)",
+      "payload": "<b href=\"javascript:alert(1)\" title=\"javascript:alert(2)\"></b>",
+      "expected": "<b title=\"javascript:alert(2)\"></b>"
+  },
+     {
       "title": "src Attributes for IMG, AUDIO, VIDEO and SOURCE (see #131)",
       "payload": "<img src=\"data:,123\"><audio src=\"data:,456\"></audio><video src=\"data:,789\"></video><source src=\"data:,012\"><div src=\"data:,345\">",
       "expected": "<img src=\"data:,123\"><audio src=\"data:,456\"></audio><video src=\"data:,789\"></video><source src=\"data:,012\"><div></div>"
