@@ -211,10 +211,6 @@
      */
     var SAFE_FOR_TEMPLATES = false;
 
-    /* Specify template detection regex for SAFE_FOR_TEMPLATES mode */
-    var MUSTACHE_EXPR = /\{\{.*|.*\}\}/gm;
-    var ERB_EXPR = /<%.*|.*%>/gm;
-
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
@@ -241,17 +237,6 @@
     /* Tags to ignore content of when KEEP_CONTENT is true */
     var FORBID_CONTENTS = _addToSet({}, [
         'audio', 'head', 'math', 'script', 'style', 'svg', 'video'
-    ]);
-
-    /* Tags that are safe for data: URIs */
-    var DATA_URI_TAGS = _addToSet({}, [
-        'audio', 'video', 'img', 'source'
-    ]);
-
-    /* Attributes safe for values like "javascript:" */
-    var URI_SAFE_ATTRIBUTES = _addToSet({}, [
-        'alt','class','for','id','label','name','pattern','placeholder',
-        'summary','title','value'
     ]);
 
     /* Keep a reference to config to pass to hooks */
@@ -348,7 +333,7 @@
 
         /* Some browsers throw, some browsers return null for the code above
            DOMParser with text/html support is only in very recent browsers. */
-        if (!doc){
+        if (!doc) {
             doc = implementation.createHTMLDocument('');
             body = doc.body;
             body.parentNode.removeChild(body.parentNode.firstElementChild);
@@ -356,13 +341,12 @@
         }
 
         /* Work on whole document or just its body */
-        if (typeof doc.getElementsByTagName === 'function'){
+        if (typeof doc.getElementsByTagName === 'function') {
             return doc.getElementsByTagName(
                 WHOLE_DOCUMENT ? 'html' : 'body')[0];
-        } else {
-            return getElementsByTagName.call(doc,
-                WHOLE_DOCUMENT ? 'html' : 'body')[0];
         }
+        return getElementsByTagName.call(doc,
+            WHOLE_DOCUMENT ? 'html' : 'body')[0];
     };
 
     /**
@@ -403,6 +387,8 @@
         }
         return false;
     };
+    var MUSTACHE_EXPR = /\{\{[\s\S]*|[\s\S]*\}\}/g;
+    var ERB_EXPR = /<%[\s\S]*|[\s\S]*%>/g;
 
     /**
      * _sanitizeElements
@@ -415,6 +401,7 @@
      * @return  true if node was killed, false if left alive
      */
     var _sanitizeElements = function(currentNode) {
+        var content, tagName;
         /* Execute a hook if present */
         _executeHook('beforeSanitizeElements', currentNode, null);
 
@@ -425,7 +412,7 @@
         }
 
         /* Now let's check the element's type and name */
-        var tagName = currentNode.nodeName.toLowerCase();
+        tagName = currentNode.nodeName.toLowerCase();
 
         /* Execute a hook if present */
         _executeHook('uponSanitizeElement', currentNode, {
@@ -454,7 +441,7 @@
         /* Sanitize element content to be template-safe */
         if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
             /* Get the element's text content */
-            var content = currentNode.textContent;
+            content = currentNode.textContent;
             content = content.replace(MUSTACHE_EXPR, ' ');
             content = content.replace(ERB_EXPR, ' ');
             currentNode.textContent = content;
@@ -467,7 +454,7 @@
     };
 
     var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
-    var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
+    var IS_ALLOWED_URI = /^(?:[\W\d]|(?:mailto|tel|(?:http|ftp)s?):|(?=([a-z]+))\1(?!:))/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
     var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
@@ -483,22 +470,21 @@
      * @return  void
      */
     var _sanitizeAttributes = function(currentNode) {
+        var hookEvent, l, attr, name, value, lcName, idAttr;
+        var attributes = currentNode.attributes;
+
         /* Execute a hook if present */
         _executeHook('beforeSanitizeAttributes', currentNode, null);
-
-        var attributes = currentNode.attributes;
 
         /* Check if we have attributes; if not we might have a text node */
         if (!attributes) { return; }
 
-        var hookEvent = {
+        hookEvent = {
             attrName: '',
             attrValue: '',
             keepAttr: true
         };
-        var l = attributes.length;
-        var attr, name, value, lcName, idAttr;
-
+        l = attributes.length;
         /* Go backwards over all attributes; safely remove bad ones */
         while (l--) {
             attr = attributes[l];
@@ -559,12 +545,10 @@
                 ) &&
                 /* Get rid of script and data URIs */
                 (
-                 !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,'')) ||
+                 IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,'')) ||
                  /* Keep image data URIs alive if src is allowed */
                  (lcName === 'src' && value.indexOf('data:') === 0 &&
-                  (DATA_URI_TAGS[currentNode.nodeName.toLowerCase()])) ||
-                 /* Keep URI-like values for safe attributes */
-                 (URI_SAFE_ATTRIBUTES[lcName])
+                  currentNode.nodeName === 'IMG')
                 )
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
@@ -641,6 +625,7 @@
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
+        var body, currentNode, oldNode, nodeIterator, returnNode;
         /* Make sure we have a string to sanitize.
            DO NOT return early, as this will return the wrong type if
            the user has requested a DOM object rather than a string */
@@ -648,14 +633,26 @@
             dirty = '';
         }
 
-        /* Stringify, in case dirty is an array or other object */
+        /* Stringify, in case dirty is an object */
         if (typeof dirty !== 'string') {
-            dirty = dirty.toString();
+            if (Object.prototype.hasOwnProperty.call(dirty, 'toString')) {
+                if (dirty instanceof String ||
+                        Object.prototype.toString.call(dirty) === '[object String]') {
+                    dirty = String.prototype.toString.call(dirty);
+                } else if (dirty instanceof Array ||
+                               (Array.isArray && Array.isArray(dirty))) {
+                    dirty = Array.prototype.toString.call(dirty);
+                } else {
+                    dirty = Object.prototype.toString.call(dirty);
+                }
+            } else {
+                dirty = dirty.toString();
+            }
         }
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof window.toStaticHTML === 'object' 
+            if (typeof window.toStaticHTML === 'object'
                 || typeof window.toStaticHTML === 'function') {
                 return window.toStaticHTML(dirty);
             }
@@ -671,7 +668,7 @@
         }
 
         /* Initialize the document to work on */
-        var body = _initDocument(dirty);
+        body = _initDocument(dirty);
 
         /* Check we have a DOM node from the data */
         if (!body) {
@@ -679,9 +676,7 @@
         }
 
         /* Get node iterator */
-        var currentNode;
-        var oldNode;
-        var nodeIterator = _createIterator(body);
+        nodeIterator = _createIterator(body);
 
         /* Now start iterating over the created document */
         while ( (currentNode = nodeIterator.nextNode()) ) {
@@ -708,7 +703,6 @@
         }
 
         /* Return sanitized string or DOM */
-        var returnNode;
         if (RETURN_DOM) {
 
             if (RETURN_DOM_FRAGMENT) {
