@@ -483,12 +483,11 @@
      * @return  void
      */
     var _sanitizeAttributes = function(currentNode) {
-        /* Execute a hook if present */
-        var hookEvent, l, attr, name, value, lcName, idAttr;
-        var attributes = currentNode.attributes;
-
+        var attr, name, value, lcName, idAttr, attributes, hookEvent, l;
         /* Execute a hook if present */
         _executeHook('beforeSanitizeAttributes', currentNode, null);
+
+        attributes = currentNode.attributes;
 
         /* Check if we have attributes; if not we might have a text node */
         if (!attributes) { return; }
@@ -499,6 +498,7 @@
             keepAttr: true
         };
         l = attributes.length;
+
         /* Go backwards over all attributes; safely remove bad ones */
         while (l--) {
             attr = attributes[l];
@@ -668,7 +668,7 @@
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof window.toStaticHTML === 'object'
+            if (typeof window.toStaticHTML === 'object' 
                 || typeof window.toStaticHTML === 'function') {
                 return window.toStaticHTML(dirty);
             }
