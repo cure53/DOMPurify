@@ -633,6 +633,13 @@
         });
     };
 
+    /**
+     * sanitize
+     * Public method providing core sanitation functionality
+     *
+     * @param {String} dirty string
+     * @param {Object} configuration object
+     */
     DOMPurify.sanitize = function(dirty, cfg) {
         var body, currentNode, oldNode, nodeIterator, returnNode;
         /* Make sure we have a string to sanitize.
