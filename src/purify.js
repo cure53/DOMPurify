@@ -467,7 +467,7 @@
     };
 
     var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
-    var IS_ALLOWED_URI = /^(?:[\W\d]|(?:mailto|tel|(?:http|ftp)s?):|(?=([a-z]+))\1(?!:))/i;
+    var IS_ALLOWED_URI = /^(?:[^a-z]|(?:(?:f|ht)tps?|mailto|tel):|[a-z]+(?:[^a-z:]|$))/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
     var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
@@ -651,16 +651,8 @@
 
         /* Stringify, in case dirty is an object */
         if (typeof dirty !== 'string') {
-            if (Object.prototype.hasOwnProperty.call(dirty, 'toString')) {
-                if (dirty instanceof String ||
-                        Object.prototype.toString.call(dirty) === '[object String]') {
-                    dirty = String.prototype.toString.call(dirty);
-                } else if (dirty instanceof Array ||
-                               (Array.isArray && Array.isArray(dirty))) {
-                    dirty = Array.prototype.toString.call(dirty);
-                } else {
-                    dirty = Object.prototype.toString.call(dirty);
-                }
+            if (typeof dirty.toString !== 'function') {
+                throw TypeError('toString is not a function');
             } else {
                 dirty = dirty.toString();
             }
