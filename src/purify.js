@@ -652,7 +652,7 @@
         /* Stringify, in case dirty is an object */
         if (typeof dirty !== 'string') {
             if (typeof dirty.toString !== 'function') {
-                throw TypeError('toString is not a function');
+                throw new TypeError('toString is not a function');
             } else {
                 dirty = dirty.toString();
             }
