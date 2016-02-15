@@ -845,12 +845,12 @@ module.exports = [
           "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n\n</template>\n//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
-      "payload": "<div id=\"136\"><form action=\"\" method=\"post\">\n<input name=\"username\" value=\"admin\" />\n<input name=\"password\" type=\"password\" value=\"secret\" />\n<input name=\"injected\" value=\"injected\" dirname=\"password\" />\n<input type=\"submit\">\n</form>//[\"'`-->]]>]</div>",
+      "payload": "<div id=\"136\"><form action=\"x\" method=\"post\">\n<input name=\"username\" value=\"admin\" />\n<input name=\"password\" type=\"password\" value=\"secret\" />\n<input name=\"injected\" value=\"injected\" dirname=\"password\" />\n<input type=\"submit\">\n</form>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"136\"><form method=\"post\" action=\"\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" type=\"password\" name=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n</form>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"136\"><form method=\"post\" action=\"\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" type=\"password\" name=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n//[\"'`--&gt;]]&gt;]</form></div>",
-          "<div id=\"136\"><form method=\"post\" action=\"\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" name=\"password\" type=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n</form>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"136\"><form action=\"\" method=\"post\">\n<input name=\"username\" value=\"admin\">\n<input name=\"password\" type=\"password\" value=\"secret\">\n<input name=\"injected\" value=\"injected\">\n<input type=\"submit\" value=\"Submit Query\">\n</form>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"136\"><form method=\"post\" action=\"x\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" type=\"password\" name=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n</form>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"136\"><form method=\"post\" action=\"x\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" type=\"password\" name=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n//[\"'`--&gt;]]&gt;]</form></div>",
+          "<div id=\"136\"><form method=\"post\" action=\"x\">\n<input value=\"admin\" name=\"username\">\n<input value=\"secret\" name=\"password\" type=\"password\">\n<input value=\"injected\" name=\"injected\">\n<input type=\"submit\">\n</form>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"136\"><form action=\"x\" method=\"post\">\n<input name=\"username\" value=\"admin\">\n<input name=\"password\" type=\"password\" value=\"secret\">\n<input name=\"injected\" value=\"injected\">\n<input type=\"submit\" value=\"Submit Query\">\n</form>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "SVG",
