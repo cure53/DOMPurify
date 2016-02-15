@@ -251,7 +251,7 @@
     /* Attributes safe for values like "javascript:" */
     var URI_SAFE_ATTRIBUTES = _addToSet({}, [
         'alt','class','for','id','label','name','pattern','placeholder',
-        'summary','title','value'
+        'summary','title','value','style'
     ]);
 
     /* Keep a reference to config to pass to hooks */
