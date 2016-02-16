@@ -1,5 +1,10 @@
 module.exports = [
      {
+      "title": "Bypass from @filedescriptor when template scrubbing is activated",
+      "payload": "<a href=\"}}javascript:alert(1)\"></a>",
+      "expected": "<a></a>"
+  },
+     {
       "title": "safe usage of URI-like attribute values (see #135)",
       "payload": "<b href=\"javascript:alert(1)\" title=\"javascript:alert(2)\"></b>",
       "expected": "<b title=\"javascript:alert(2)\"></b>"

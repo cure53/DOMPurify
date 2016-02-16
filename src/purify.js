@@ -548,6 +548,12 @@
                 continue;
             }
 
+            /* Sanitize attribute content to be template-safe */
+            if (SAFE_FOR_TEMPLATES) {
+                value = value.replace(MUSTACHE_EXPR, ' ');
+                value = value.replace(ERB_EXPR, ' ');
+            }
+
             if (
                 /* Check the name is permitted */
                 (
@@ -569,11 +575,6 @@
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
                 try {
-                    /* Sanitize attribute content to be template-safe */
-                    if (SAFE_FOR_TEMPLATES) {
-                        value = value.replace(MUSTACHE_EXPR, ' ');
-                        value = value.replace(ERB_EXPR, ' ');
-                    }
                     currentNode.setAttribute(name, value);
                 } catch (e) {}
             }
