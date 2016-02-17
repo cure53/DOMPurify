@@ -292,6 +292,10 @@
         SANITIZE_DOM        = cfg.SANITIZE_DOM        !== false; // Default true
         KEEP_CONTENT        = cfg.KEEP_CONTENT        !== false; // Default true
 
+        if (SAFE_FOR_TEMPLATES) {
+            ALLOW_DATA_ATTR = false;
+        }
+
         if (RETURN_DOM_FRAGMENT) {
             RETURN_DOM = true;
         }
@@ -467,7 +471,7 @@
     };
 
     var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
-    var IS_ALLOWED_URI = /^(?:[^a-z]|(?=([a-z+.-]+))\1(?!:)|(?:mailto|tel|(?:ht|f)tps?):)/i;
+    var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
     var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
@@ -556,22 +560,21 @@
 
             if (
                 /* Check the name is permitted */
-                (
-                 (ALLOWED_ATTR[lcName] && !FORBID_ATTR[lcName]) ||
-                 /* Allow potentially valid data-* attributes
-                    * At least one character after "-" (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
-                    * XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804) */
-                 (!SAFE_FOR_TEMPLATES && ALLOW_DATA_ATTR && DATA_ATTR.test(lcName))
-                ) &&
-                /* Get rid of script and data URIs */
-                (
-                 IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,'')) ||
-                 /* Keep image data URIs alive if src is allowed */
-                 (lcName === 'src' && value.indexOf('data:') === 0 &&
-                  (DATA_URI_TAGS[currentNode.nodeName.toLowerCase()])) ||
-                 /* Keep URI-like values for safe attributes */
-                 (URI_SAFE_ATTRIBUTES[lcName])
-                )
+                (ALLOWED_ATTR[lcName] && !FORBID_ATTR[lcName] && (
+                  /* Check no script, data or unknown possibly unsafe URI
+                     unless we know URI values are safe for that attribute */
+                  URI_SAFE_ATTRIBUTES[lcName] ||
+                  IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,'')) ||
+                  /* Keep image data URIs alive if src is allowed */
+                  (lcName === 'src' && value.indexOf('data:') === 0 &&
+                   DATA_URI_TAGS[currentNode.nodeName.toLowerCase()])
+                )) ||
+                /* Allow potentially valid data-* attributes:
+                 * At least one character after "-" (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
+                 * XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
+                 * We don't need to check the value; it's always URI safe.
+                 */
+                 (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName))
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
                 try {
@@ -661,7 +664,7 @@
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof window.toStaticHTML === 'object' 
+            if (typeof window.toStaticHTML === 'object'
                 || typeof window.toStaticHTML === 'function') {
                 return window.toStaticHTML(dirty);
             }
