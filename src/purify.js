@@ -471,7 +471,7 @@
     };
 
     var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
-    var IS_ALLOWED_URI = /^(?:[^a-z]|(?=([a-z+.-]+))\1(?!:)|(?:mailto|tel|(?:ht|f)tps?):)/i;
+    var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
     var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
