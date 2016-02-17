@@ -292,6 +292,10 @@
         SANITIZE_DOM        = cfg.SANITIZE_DOM        !== false; // Default true
         KEEP_CONTENT        = cfg.KEEP_CONTENT        !== false; // Default true
 
+        if (SAFE_FOR_TEMPLATES) {
+            ALLOW_DATA_ATTR = false;
+        }
+
         if (RETURN_DOM_FRAGMENT) {
             RETURN_DOM = true;
         }
@@ -570,8 +574,7 @@
                  * XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
                  * We don't need to check the value; it's always URI safe.
                  */
-                 (!SAFE_FOR_TEMPLATES &&
-                   ALLOW_DATA_ATTR && DATA_ATTR.test(lcName))
+                 (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName))
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
                 try {
