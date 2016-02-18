@@ -260,4 +260,14 @@ module.exports = function(DOMPurify, tests, xssTests) {
       assert.equal(modified, DOMPurify.sanitize(dirty));
       DOMPurify.removeHooks('afterSanitizeElements')
   } );
+  QUnit.test( 'sanitize() should allow unknown protocols when ALLOW_UNKNOWN_PROTOCOLS is true', function (assert) {
+      var dirty = '<div><a href="spotify:track:12345"><img src="cid:1234567"></a></div>';
+      assert.equal(dirty, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));
+  } );
+
+  QUnit.test( 'sanitize() should not allow javascript when ALLOW_UNKNOWN_PROTOCOLS is true', function (assert) {
+      var dirty = '<div><a href="javascript:alert(document.title)"><img src="cid:1234567"/></a></div>';
+      var modified = '<div><a><img src="cid:1234567"></a></div>';
+      assert.equal(modified, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));
+  } );
 }

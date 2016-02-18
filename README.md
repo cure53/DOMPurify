@@ -115,6 +115,10 @@ var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 // prohibit HTML5 data attributes (default is true)
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 
+// allow external protocol handlers in URL attributes (default is false)
+// by default only http, https, ftp, ftps, tel and mailto are allowed.
+var clean = DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true});
+
 // return a DOM HTMLBodyElement instead of an HTML string (default is false)
 var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
 
