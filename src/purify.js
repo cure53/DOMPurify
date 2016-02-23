@@ -203,6 +203,9 @@
     /* Decide if custom data attributes are okay */
     var ALLOW_DATA_ATTR = true;
 
+    /* Decide if unknown protocols are okay */
+    var ALLOW_UNKNOWN_PROTOCOLS = false;
+
     /* Output should be safe for jQuery's $() factory? */
     var SAFE_FOR_JQUERY = false;
 
@@ -283,6 +286,7 @@
         FORBID_ATTR = 'FORBID_ATTR' in cfg ?
             _addToSet({}, cfg.FORBID_ATTR) : {};
         ALLOW_DATA_ATTR     = cfg.ALLOW_DATA_ATTR     !== false; // Default true
+        ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
         SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     ||  false; // Default false
         SAFE_FOR_TEMPLATES  = cfg.SAFE_FOR_TEMPLATES  ||  false; // Default false
         WHOLE_DOCUMENT      = cfg.WHOLE_DOCUMENT      ||  false; // Default false
@@ -472,6 +476,7 @@
 
     var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
     var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
+    var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
     var ATTR_WHITESPACE = /[\x00-\x20\xA0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
@@ -574,7 +579,12 @@
                  * XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
                  * We don't need to check the value; it's always URI safe.
                  */
-                 (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName))
+                 (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) ||
+                 /* Allow unknown protocols:
+                  * This provides support for links that are handled by protocol handlers which may be unknown
+                  * ahead of time, e.g. fb:, spotify:
+                  */
+                 (ALLOW_UNKNOWN_PROTOCOLS && !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,'')))
             ) {
                 /* Handle invalid data-* attribute set by try-catching it */
                 try {
