@@ -174,6 +174,8 @@ We are currently using Travis CI in combination with BrowserStack. This gives us
 
 You can further run local tests by executing `npm run-script local-test` or, in case you have a BrowserStack account with automation available, run the tests using `npm run-script ci-test`.
 
+All relevant commits will be signed with the key 0x24BB6BF4 (since 8th of April 2016).
+
 ## Security Mailing List
 
 We maintain a mailing list that notifies whenever a security-critical release of DOMPurify was published. This means, if someone found a bypass and we fixed it with a release (which always happens when a bypass was found) a mail will go out to that list. This usually happens within minutes or few hours after learning about a bypass. The list can be subscribed to here:
