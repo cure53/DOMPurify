@@ -185,7 +185,7 @@ We maintain a mailing list that notifies whenever a security-critical release of
 
 ## What's on the road-map?
 
-We recently implemented a Hook-API allowing developers to create their own DOMPurify plugins and customize its functionality without changing the core. Thus, we are looking forward for plugins and extensions - pull requests are welcome! Oh, and we will increase the amount of browsers and HTML-mappings in our automates tests to make sure nothing slips through.
+We recently implemented a Hook-API allowing developers to create their own DOMPurify plugins and customize its functionality without changing the core. Thus, we are looking forward for plugins and extensions - pull requests are welcome! Oh, and we will increase the amount of browsers and HTML-mappings in our automated tests to make sure nothing slips through.
 
 ## Who contributed?
 
