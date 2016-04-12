@@ -433,7 +433,7 @@
         }
 
         /* Now let's check the element's type and name */
-        tagName = currentNode.nodeName;
+        tagName = currentNode.nodeName.toString();
 
         /* Execute a hook if present */
         _executeHook('uponSanitizeElement', currentNode, {
@@ -572,7 +572,7 @@
                   IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,'')) ||
                   /* Keep image data URIs alive if src is allowed */
                   (lcName === 'src' && value.indexOf('data:') === 0 &&
-                   DATA_URI_TAGS[currentNode.nodeName])
+                   DATA_URI_TAGS[currentNode.nodeName.toString()])
                 )) ||
                 /* Allow potentially valid data-* attributes:
                  * At least one character after "-" (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
