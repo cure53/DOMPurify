@@ -4,7 +4,7 @@ module.exports = [
       "payload": "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
       "expected": [
             "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
-            "<svg><defs><filter id=\"f1\"><feGaussianBlur stdDeviation=\"15\" in=\"SourceGraphic\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>"
+            "<svg><defs><filter id=\"f1\"><feGaussianBlur stdDeviation=\"15\" in=\"SourceGraphic\"></feGaussianBlur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>"
        ]
      },
   {
