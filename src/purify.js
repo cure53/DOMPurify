@@ -112,7 +112,7 @@
         // SVG
         'svg','altglyph','altglyphdef','altglyphitem','animatecolor',
         'animatemotion','animatetransform','circle','clippath','defs','desc',
-        'ellipse','font','g','glyph','glyphref','hkern','image','line',
+        'ellipse','filter','font','g','glyph','glyphref','hkern','image','line',
         'lineargradient','marker','mask','metadata','mpath','path','pattern',
         'polygon','polyline','radialgradient','rect','stop','switch','symbol',
         'text','textpath','title','tref','tspan','view','vkern',
@@ -433,7 +433,7 @@
         }
 
         /* Now let's check the element's type and name */
-        tagName = currentNode.nodeName.toLowerCase();
+        tagName = currentNode.nodeName;
 
         /* Execute a hook if present */
         _executeHook('uponSanitizeElement', currentNode, {
@@ -572,7 +572,7 @@
                   IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,'')) ||
                   /* Keep image data URIs alive if src is allowed */
                   (lcName === 'src' && value.indexOf('data:') === 0 &&
-                   DATA_URI_TAGS[currentNode.nodeName.toLowerCase()])
+                   DATA_URI_TAGS[currentNode.nodeName])
                 )) ||
                 /* Allow potentially valid data-* attributes:
                  * At least one character after "-" (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
