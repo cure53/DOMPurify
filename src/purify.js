@@ -124,7 +124,7 @@
         'feBlend','feColorMatrix','feComponentTransfer','feComposite',
         'feConvolveMatrix','feDiffuseLighting','feDisplacementMap',
         'feFlood','feFuncA','feFuncB','feFuncG','feFuncR','feGaussianBlur',
-        'feImage','feMerge','feMergeNode','feMorphology','feOffset',
+        'feMerge','feMergeNode','feMorphology','feOffset',
         'feSpecularLighting','feTile','feTurbulence',
 
         //MathML
