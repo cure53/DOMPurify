@@ -68,7 +68,7 @@
     var _addToSet = function(set, array) {
         var l = array.length;
         while (l--) {
-            set[array[l]] = true;
+            set[array[l.toLowerCase()]] = true;
         }
         return set;
     };
