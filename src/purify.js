@@ -68,8 +68,8 @@
     var _addToSet = function(set, array) {
         var l = array.length;
         while (l--) {
-            if(typeof l === 'string') {
-                l = l.toLowerCase();
+            if(typeof array[l] === 'string') {
+                array[l] = array[l].toLowerCase();
             }
             set[array[l]] = true;
         }
