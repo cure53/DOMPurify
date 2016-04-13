@@ -1,10 +1,11 @@
 module.exports = [
   {
-      "title": "Avoid over-zealous stripping of SVG filters (see #144)",
+      "title": "Avoid over-zealous stripping of SVG filter elements (see #144)",
       "payload": "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
       "expected": [
             "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
-            "<svg><defs><filter id=\"f1\"><feGaussianBlur stdDeviation=\"15\" in=\"SourceGraphic\"></feGaussianBlur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>"
+            "<svg><defs><filter id=\"f1\"><feGaussianBlur stdDeviation=\"15\" in=\"SourceGraphic\"></feGaussianBlur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(&quot;#f1&quot;)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" /></svg>"
        ]
      },
   {
