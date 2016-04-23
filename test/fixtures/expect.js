@@ -256,10 +256,10 @@ module.exports = [
       "payload": "<form action=\"javasc\nript:alert(1)\"><button>XXX</button></form>",
       "expected": "<form><button>XXX</button></form>"
   }, {
-      "payload": "<div id=\"1\"><form id=\"test\"></form><button form=\"test\" formaction=\"javascript:alert(1)\">X</button>//[\"'`-->]]>]</div>",
+      "payload": "<div id=\"1\"><form id=\"foobar\"></form><button form=\"foobar\" formaction=\"javascript:alert(1)\">X</button>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"1\"><form></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"1\"><form><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
+          "<div id=\"1\"><form id=\"foobar\"></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"1\"><form id=\"foobar\"><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
       ]
   }, {
       "payload": "<div id=\"2\"><meta charset=\"x-imap4-modified-utf7\">&ADz&AGn&AG0&AEf&ACA&AHM&AHI&AGO&AD0&AGn&ACA&AG8Abg&AGUAcgByAG8AcgA9AGEAbABlAHIAdAAoADEAKQ&ACAAPABi//[\"'`-->]]>]</div>",
@@ -332,10 +332,10 @@ module.exports = [
       "payload": "<div id=\"22\"><input onblur=focus() autofocus><input>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"22\"><input><input>//[\"'`--&gt;]]&gt;]</div>"
   }, {
-      "payload": "<div id=\"23\"><form id=test onforminput=alert(23)><input></form><button form=test onformchange=alert(2)>X</button>//[\"'`-->]]>]</div>",
+      "payload": "<div id=\"23\"><form id=foobar onforminput=alert(23)><input></form><button form=test onformchange=alert(2)>X</button>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"23\"><form><input></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"23\"><form><input><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
+          "<div id=\"23\"><form id=\"foobar\"><input></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"23\"><form id=\"foobar\"><input><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
       ]
   }, {
       "payload": "<div id=\"24\">1<set/xmlns=`urn:schemas-microsoft-com:time` style=`behAvior:url(#default#time2)` attributename=`innerhtml` to=`<img/src=\"x\"onerror=alert(24)>`>//[\"'`-->]]>]</div>",
