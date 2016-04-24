@@ -1,4 +1,7 @@
-module.exports = function(DOMPurify, tests, xssTests) {
+module.exports = function(DOMPurify, window, tests, xssTests) {
+  var document = window.document;
+  var jQuery = window.jQuery;
+
   QUnit
     .cases(tests)
     .test( 'Sanitization test', function(params, assert) {

@@ -7,4 +7,4 @@ var
   });
 
 QUnit.module('DOMPurify dist');
-testSuite(DOMPurify, tests, xssTests);
+testSuite(DOMPurify, window, tests, xssTests);

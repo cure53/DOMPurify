@@ -6,7 +6,10 @@ module.exports = [
             "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
             "<svg><defs><filter id=\"f1\"><feGaussianBlur stdDeviation=\"15\" in=\"SourceGraphic\"></feGaussianBlur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>",
             "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(&quot;#f1&quot;)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" /></svg>",
-            "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" FILTER=\"url(#f1)\" /></svg>"
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" FILTER=\"url(#f1)\" /></svg>",
+            // browsers without SVG support (notice the lowercase tagname):
+            "<svg><defs><filter id=\"f1\"><fegaussianblur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
+            "<svg><defs><filter id=\"f1\"><fegaussianblur stdDeviation=\"15\" in=\"SourceGraphic\"></fegaussianblur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>"
        ]
      },
   {
@@ -253,10 +256,10 @@ module.exports = [
       "payload": "<form action=\"javasc\nript:alert(1)\"><button>XXX</button></form>",
       "expected": "<form><button>XXX</button></form>"
   }, {
-      "payload": "<div id=\"1\"><form id=\"test\"></form><button form=\"test\" formaction=\"javascript:alert(1)\">X</button>//[\"'`-->]]>]</div>",
+      "payload": "<div id=\"1\"><form id=\"foobar\"></form><button form=\"foobar\" formaction=\"javascript:alert(1)\">X</button>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"1\"><form></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"1\"><form><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
+          "<div id=\"1\"><form id=\"foobar\"></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"1\"><form id=\"foobar\"><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
       ]
   }, {
       "payload": "<div id=\"2\"><meta charset=\"x-imap4-modified-utf7\">&ADz&AGn&AG0&AEf&ACA&AHM&AHI&AGO&AD0&AGn&ACA&AG8Abg&AGUAcgByAG8AcgA9AGEAbABlAHIAdAAoADEAKQ&ACAAPABi//[\"'`-->]]>]</div>",
@@ -329,10 +332,10 @@ module.exports = [
       "payload": "<div id=\"22\"><input onblur=focus() autofocus><input>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"22\"><input><input>//[\"'`--&gt;]]&gt;]</div>"
   }, {
-      "payload": "<div id=\"23\"><form id=test onforminput=alert(23)><input></form><button form=test onformchange=alert(2)>X</button>//[\"'`-->]]>]</div>",
+      "payload": "<div id=\"23\"><form id=foobar onforminput=alert(23)><input></form><button form=test onformchange=alert(2)>X</button>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"23\"><form><input></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"23\"><form><input><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
+          "<div id=\"23\"><form id=\"foobar\"><input></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"23\"><form id=\"foobar\"><input><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
       ]
   }, {
       "payload": "<div id=\"24\">1<set/xmlns=`urn:schemas-microsoft-com:time` style=`behAvior:url(#default#time2)` attributename=`innerhtml` to=`<img/src=\"x\"onerror=alert(24)>`>//[\"'`-->]]>]</div>",
@@ -403,6 +406,7 @@ module.exports = [
       "payload": "<!-- IE9+, FF4+, Opera 11.60+, Safari 4.0.4+, GC7+  -->\n<svg><![CDATA[><image xlink:href=\"]]><img src=x onerror=alert(2)//\"></svg>//[\"'`-->]]>]</div>",
       "expected": [
           "<svg>&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
+          "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></svg>//[\"'`--&gt;]]&gt;]",
           "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></img></svg>//[\"'`--&gt;]]&gt;]",
           "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]"
       ]
@@ -805,7 +809,8 @@ module.exports = [
       "expected": [
           "<div id=\"128\"><svg><style></style></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"128\"><svg><style><img src=\"x\">//[\"'`--&gt;]]&gt;]</img></style></svg></div>",
-          "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"128\"><svg><style><img src=\"x\"></style></svg></div>"
       ]
   }, {
       "title": "Inline SVG (data-uri)",
