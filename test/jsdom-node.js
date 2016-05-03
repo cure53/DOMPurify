@@ -32,6 +32,10 @@ jsdom.env({
             process.exit(1);
         }
 
+        if (!window.jQuery) {
+            console.warn('Unable to load jQuery (did you forget to run `bower install`?)');
+        }
+
         const DOMPurify = dompurify(window);
         if (!DOMPurify.isSupported) {
             console.error('Unexpected error returned by jsdom.env():', err, err.stack);
@@ -41,7 +45,7 @@ jsdom.env({
         window.alert = () => {
             window.xssed = true;
         };
-        
+
         testSuite(DOMPurify, window, tests, xssTests);
         QUnit.start();
     }
