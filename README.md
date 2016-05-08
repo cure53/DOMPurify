@@ -46,16 +46,27 @@ require(['dompurify'], function(DOMPurify) {
 });
 ```
 
-You can also grab the files straight from npm (requires either [io.js](https://iojs.org) or [Browserify](http://browserify.org/), **Node.js 0.x is not supported**):  
+DOMPurify also works server-side with node.js as well as client-side via [Browserify](http://browserify.org/) or similar translators.  Node.js 0.x is not supported; either [io.js](https://iojs.org) or Node.js 4.x or newer is required.
 
 ```bash
 npm install dompurify
 ```
 
 ```javascript
-var DOMPurify = require('dompurify');
-var clean = DOMPurify.sanitize(dirty);
+const createDOMPurify = require('dompurify');
+const jsdom = require('jsdom');
+const window = jsdom.jsdom('', {
+  features: {
+    FetchExternalResources: false, // disables resource loading over HTTP / filesystem
+    ProcessExternalResources: false // do not execute JS within script blocks
+  }
+}).defaultView;
+const DOMPurify = createDOMPurify(window);
+
+const clean = DOMPurify.sanitize(dirty));
 ```
+
+(Strictly speaking, DOMPurify creates a document without a browsing context and you can replace it with `const window = jsdom.jsdom().defaultView;`, however, the longer case protects against accidental bugs in jsdom or DOMPurify)
 
 ## Is there a demo?
 
