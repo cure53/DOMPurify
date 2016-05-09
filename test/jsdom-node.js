@@ -21,7 +21,7 @@ QUnit.config.autostart = false;
 
 jsdom.env({
     html: `<html><head></head><body><div id="qunit-fixture"></div></body></html>`,
-    scripts: ['bower_components/jQuery/dist/jquery.js'],
+    scripts: ['node_modules/jquery/dist/jquery.js'],
     features: {
         ProcessExternalResources: ["script"] // needed for firing the onload event for about:blank iframes
     },
@@ -33,7 +33,7 @@ jsdom.env({
         }
 
         if (!window.jQuery) {
-            console.warn('Unable to load jQuery (did you forget to run `bower install`?)');
+            console.warn('Unable to load jQuery');
         }
 
         const DOMPurify = dompurify(window);

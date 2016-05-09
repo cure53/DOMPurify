@@ -4,7 +4,7 @@ module.exports = function(config) {
     basePath: '../',
     frameworks: ['qunit'],
     files: [
-      'bower_components/jQuery/dist/jquery.js',
+      'node_modules/jquery/dist/jquery.js',
       'node_modules/qunit-parameterize/qunit-parameterize.js',
       'test/config/setup.js',
       'test/**/*.spec.js'
