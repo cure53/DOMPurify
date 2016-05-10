@@ -26,8 +26,5 @@
     "**/.*",
     "test",
     "demo"
-  ],
-  "devDependencies": {
-    "jQuery": "1.11.0"
-  }
+  ]
 }
