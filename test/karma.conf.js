@@ -49,6 +49,10 @@ module.exports = function(config) {
       }
     },
 
+    webpackMiddleware: {
+      noInfo: true
+    },
+
     customLaunchers: {
       bs_win81_ie_11: {
         base: 'BrowserStack',
