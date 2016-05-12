@@ -8,5 +8,12 @@ notifications:
   email: false
 env:
   global:
-  - secure: GQ/MxXGdlpjXdnASyAeuTUvErhx61l+IS2rCo7vIrxKFxIqpa7AQnGp/eoBDitscvDgYIiVhXOPnTdjYYT6UgMwX169Fm9lg3jbFDqAHCsWQmtEIDKHyNwT2gi97rLqBDyXpwTmQebF2s7P914OayyoaY1NnTU/JGRdDi79lm80=
-  - secure: ZWko24CzEV7geTReAQhMBElwB7WBj+V+tZztjpOrogMS7BLT43qwTNF9FPuvdk9JjBV/sEdz3NWZhutXDkcNyLdCtLNIgxRkqCbXXn+S4cW4lYxPHWXyvtNu7mzuow1chq74L45CBpOFzpnkUsP13X4F8rU7o8XDvDsoPHZZYtc=
+    - secure: GQ/MxXGdlpjXdnASyAeuTUvErhx61l+IS2rCo7vIrxKFxIqpa7AQnGp/eoBDitscvDgYIiVhXOPnTdjYYT6UgMwX169Fm9lg3jbFDqAHCsWQmtEIDKHyNwT2gi97rLqBDyXpwTmQebF2s7P914OayyoaY1NnTU/JGRdDi79lm80=
+    - secure: ZWko24CzEV7geTReAQhMBElwB7WBj+V+tZztjpOrogMS7BLT43qwTNF9FPuvdk9JjBV/sEdz3NWZhutXDkcNyLdCtLNIgxRkqCbXXn+S4cW4lYxPHWXyvtNu7mzuow1chq74L45CBpOFzpnkUsP13X4F8rU7o8XDvDsoPHZZYtc=
+    - CXX=g++-4.8
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
