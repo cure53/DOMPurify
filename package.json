@@ -9,7 +9,7 @@
     "travis-ci": "npm run jsdom-test && ([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || karma start test/karma.conf.js --log-level warn --reporters dots --single-run)",
     "ci-test": "karma start test/karma.conf.js --single-run",
     "local-test": "npm run jshint; npm run jsdom-test && karma start test/karma.conf.js --browsers Firefox,Chrome --single-run",
-    "jsdom-test": "node test/jsdom-node-runner"
+    "jsdom-test": "node test/jsdom-node-runner --dot"
   },
   "pre-commit": [
     "jshint",
@@ -18,7 +18,7 @@
   ],
   "devDependencies": {
     "jquery": "^2.2.3",
-    "jsdom": "^9.0.0",
+    "jsdom": "8.x.x",
     "jshint": "^2.9.2",
     "json-loader": "^0.5.4",
     "karma": "^0.13.22",
