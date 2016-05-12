@@ -9,7 +9,7 @@
     "travis-ci": "npm run jsdom-test && ([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || karma start test/karma.conf.js --log-level warn --reporters dots --single-run)",
     "ci-test": "karma start test/karma.conf.js --single-run",
     "local-test": "npm run jshint; npm run jsdom-test && karma start test/karma.conf.js --browsers Firefox,Chrome --single-run",
-    "jsdom-test": "node test/jsdom-node-runner"
+    "jsdom-test": "node test/jsdom-node-runner --dot"
   },
   "pre-commit": [
     "jshint",
