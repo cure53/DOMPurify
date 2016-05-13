@@ -6,7 +6,7 @@
     "minify": "scripts/minify.sh",
     "amend-minified": "scripts/amend-minified.sh",
     "test": "npm run jshint && npm run travis-ci",
-    "travis-ci": "npm run jsdom-test && ([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || karma start test/karma.conf.js --log-level warn --reporters dots --single-run)",
+    "travis-ci": "npm run jsdom-test && ([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
     "ci-test": "karma start test/karma.conf.js --single-run",
     "local-test": "npm run jshint; npm run jsdom-test && karma start test/karma.conf.js --browsers Firefox,Chrome --single-run",
     "jsdom-test": "node test/jsdom-node-runner --dot"
@@ -22,7 +22,7 @@
     "jshint": "^2.9.2",
     "json-loader": "^0.5.4",
     "karma": "^0.13.22",
-    "karma-browserstack-launcher": "git://github.com/shirish87/karma-browserstack-launcher.git#global_poll_0.1.6",
+    "karma-browserstack-launcher": "1.0.0",
     "karma-chrome-launcher": "^1.0.1",
     "karma-firefox-launcher": "^1.0.0",
     "karma-fixture": "^0.2.6",
