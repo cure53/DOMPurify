@@ -1,16 +1,19 @@
 sudo: false
 language: node_js
-node_js:
-  - 6
-  - 5
-  - 4
+script: npm run test:ci
 notifications:
-  email: false
+   email: false
 env:
-  global:
-    - secure: GQ/MxXGdlpjXdnASyAeuTUvErhx61l+IS2rCo7vIrxKFxIqpa7AQnGp/eoBDitscvDgYIiVhXOPnTdjYYT6UgMwX169Fm9lg3jbFDqAHCsWQmtEIDKHyNwT2gi97rLqBDyXpwTmQebF2s7P914OayyoaY1NnTU/JGRdDi79lm80=
-    - secure: ZWko24CzEV7geTReAQhMBElwB7WBj+V+tZztjpOrogMS7BLT43qwTNF9FPuvdk9JjBV/sEdz3NWZhutXDkcNyLdCtLNIgxRkqCbXXn+S4cW4lYxPHWXyvtNu7mzuow1chq74L45CBpOFzpnkUsP13X4F8rU7o8XDvDsoPHZZYtc=
-    - CXX=g++-4.8
+   global:
+      - secure: GQ/MxXGdlpjXdnASyAeuTUvErhx61l+IS2rCo7vIrxKFxIqpa7AQnGp/eoBDitscvDgYIiVhXOPnTdjYYT6UgMwX169Fm9lg3jbFDqAHCsWQmtEIDKHyNwT2gi97rLqBDyXpwTmQebF2s7P914OayyoaY1NnTU/JGRdDi79lm80=
+      - secure: ZWko24CzEV7geTReAQhMBElwB7WBj+V+tZztjpOrogMS7BLT43qwTNF9FPuvdk9JjBV/sEdz3NWZhutXDkcNyLdCtLNIgxRkqCbXXn+S4cW4lYxPHWXyvtNu7mzuow1chq74L45CBpOFzpnkUsP13X4F8rU7o8XDvDsoPHZZYtc=
+      - CXX=g++-4.8
+matrix:
+   include:
+      - node_js: "5"
+      - node_js: "6"
+      - node_js: "4"
+        env: TEST_BROWSERSTACK=true
 addons:
   apt:
     sources:
