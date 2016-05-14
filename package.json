@@ -1,18 +1,16 @@
 {
   "scripts": {
     "build-demo": "node scripts/build-demo.js",
-    "qunit": "node scripts/server.js",
-    "jshint": "jshint src/purify.js || true",
+    "lint": "jshint src/purify.js",
     "minify": "scripts/minify.sh",
     "amend-minified": "scripts/amend-minified.sh",
-    "test": "npm run jshint && npm run travis-ci",
-    "travis-ci": "npm run jsdom-test && ([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
-    "ci-test": "karma start test/karma.conf.js --single-run",
-    "local-test": "npm run jshint; npm run jsdom-test && karma start test/karma.conf.js --browsers Firefox,Chrome --single-run",
-    "jsdom-test": "node test/jsdom-node-runner --dot"
+    "test:jsdom": "node test/jsdom-node-runner --dot",
+    "test:karma": "karma start test/karma.conf.js --log-level warn --single-run",
+    "test:ci": "npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
+    "test": "npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Firefox,Chrome"
   },
   "pre-commit": [
-    "jshint",
+    "lint",
     "minify",
     "amend-minified"
   ],
