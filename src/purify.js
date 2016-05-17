@@ -47,7 +47,10 @@
     // document, so we use that as our parent document to ensure nothing
     // is inherited.
     if (typeof HTMLTemplateElement === 'function') {
-        document = document.createElement('template').content.ownerDocument;
+        var template = document.createElement('template');
+        if (template.content && template.content.ownerDocument) {
+            document = template.content.ownerDocument;
+        }
     }
     var implementation = document.implementation;
     var createNodeIterator = document.createNodeIterator;
