@@ -116,12 +116,28 @@ module.exports = function(config) {
         browser: 'chrome',
         os_version: '8.1'
       },
-      bs_win10_edge_12: {
+      bs_win10_edge_13: {
         base: 'BrowserStack',
         device: null,
         os: 'Windows',
-        browser_version: '12.0',
+        browser_version: '13.0',
         browser: 'edge',
+        os_version: '10'
+      },
+      bs_win10_firefox_46: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '46.0',
+        browser: 'firefox',
+        os_version: '10'
+      },
+      bs_win10_chrome_50: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '50.0',
+        browser: 'chrome',
         os_version: '10'
       }
     },
@@ -135,7 +151,9 @@ module.exports = function(config) {
       'bs_win81_opera_31',
       'bs_win7_firefox_12',
       'bs_win81_chrome_22',
-      'bs_win10_edge_12'
+      'bs_win10_edge_13',
+      'bs_win10_firefox_46',
+      'bs_win10_chrome_50'
     ],
 
     browserDisconnectTimeout: 10000,
