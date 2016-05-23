@@ -6,7 +6,7 @@ DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathM
 
 It's also very simple to use and get started with.
 
-DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It simply does nothing there. Our automated tests cover [9 different browsers](https://github.com/cure53/DOMPurify/blob/master/test/karma.conf.js#L125) right now. We also cover Node.js v4.0.0, v5.0.0 and v6.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom).
+DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It simply does nothing there. Our automated tests cover [10 different browsers](https://github.com/cure53/DOMPurify/blob/master/test/karma.conf.js#L145) right now. We also cover Node.js v4.0.0, v5.0.0 and v6.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom).
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model)
 
@@ -183,7 +183,7 @@ DOMPurify.addHook('beforeSanitizeElements', function(currentNode, data, config) 
 
 We are currently using Travis CI in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://travis-ci.org/cure53/DOMPurify
 
-You can further run local tests by executing `npm run-script local-test` or, in case you have a BrowserStack account with automation available, run the tests using `npm run-script ci-test`.
+You can further run local tests by executing `npm test`. The test word fine with Node.js v0.6.2 and jsdom@8.5.0.
 
 All relevant commits will be signed with the key 0x24BB6BF4 (since 8th of April 2016).
 
