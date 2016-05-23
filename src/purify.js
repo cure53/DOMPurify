@@ -362,7 +362,7 @@
 
         /* Some browsers throw, some browsers return null for the code above
            DOMParser with text/html support is only in very recent browsers. */
-        if (!doc) {
+        if (!doc || !doc.documentElement) {
             doc = implementation.createHTMLDocument('');
             body = doc.body;
             body.parentNode.removeChild(body.parentNode.firstElementChild);
