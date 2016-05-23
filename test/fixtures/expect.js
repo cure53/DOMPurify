@@ -8,7 +8,8 @@ module.exports = [
             "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(&quot;#f1&quot;)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" /></svg>",
             "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" FILTER=\"url(#f1)\" /></svg>",
             "<svg><defs><filter id=\"f1\"><fegaussianblur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
-            "<svg><defs><filter id=\"f1\"><fegaussianblur stdDeviation=\"15\" in=\"SourceGraphic\"></fegaussianblur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>"
+            "<svg><defs><filter id=\"f1\"><fegaussianblur stdDeviation=\"15\" in=\"SourceGraphic\"></fegaussianblur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" STROKE-WIDTH=\"3\" STROKE=\"green\" FILL=\"yellow\" FILTER=\"url(#f1)\" /></svg>"
        ]
      },
   {
@@ -206,7 +207,8 @@ module.exports = [
       "payload": "<image name=body><img src=x><svg onload=alert(1); autofocus>, <keygen onfocus=alert(1); autofocus>",
       "expected": [
           "<img><img src=\"x\"><svg>, </svg>",
-          "<img><img src=\"x\"><svg xmlns=\"http://www.w3.org/2000/svg\">, </svg></svg>"
+          "<img><img src=\"x\"><svg xmlns=\"http://www.w3.org/2000/svg\">, </svg></svg>",
+          "<img><img src=\"x\"><svg xmlns=\"http://www.w3.org/2000/svg\">, </svg>"
       ]
   }, {
       "title": "Bypass using multiple unknown attributes",
@@ -407,7 +409,8 @@ module.exports = [
           "<svg>&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
           "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></svg>//[\"'`--&gt;]]&gt;]",
           "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></img></svg>//[\"'`--&gt;]]&gt;]",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]"
       ]
   }, {
       "payload": "<div id=\"40\"><style><img src=\"</style><img src=x onerror=alert(40)//\">//[\"'`-->]]>]</div>",
@@ -502,13 +505,6 @@ module.exports = [
           "<div id=\"60\"><div>XXX</div>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
-      "payload": "<div id=\"61\"><div style=\"3\t\u0006f\n\u00006c\f\u000006F\nR:\u0000072 Ed;color\u0000\bla:yellow\u0000\bla;col\u0000\u0000 \u00A0or:blue;\">XXX</div>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"61\"><div style=\"3\t\u0006f\n\uFFFD6c\f\uFFFD06F\nR:\uFFFD072 Ed;color\uFFFD\bla:yellow\uFFFD\bla;col\uFFFD\uFFFD &nbsp;or:blue;\">XXX</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"61\"><div>XXX</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"61\"></div>"
-      ]
-  }, {
       "payload": "<div id=\"62\"><!-- IE 6-8 -->\n<x '=\"foo\"><x foo='><img src=x onerror=alert(62)//'>\n<!-- IE 6-9 -->\n<! '=\"foo\"><x foo='><img src=x onerror=alert(2)//'>\n<? '=\"foo\"><x foo='><img src=x onerror=alert(3)//'>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"62\">\n\n\n\n//[\"'`--&gt;]]&gt;]</div>"
   }, {
@@ -594,7 +590,8 @@ module.exports = [
           "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" height=\"1000\" width=\"1000\"></rect></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" FILL=\"white\" /></a>\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"88\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<animation xlink:href=\"javascript:alert(88)\"/>\n<animation xlink:href=\"data:text/xml,%3Csvg xmlns='http://www.w3.org/2000/svg' onload='alert(88)'%3E%3C/svg%3E\"/>\n\n<image xlink:href=\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' onload='alert(88)'%3E%3C/svg%3E\"/>\n\n<foreignObject xlink:href=\"javascript:alert(88)\"/>\n<foreignObject xlink:href=\"data:text/xml,%3Cscript xmlns='http://www.w3.org/1999/xhtml'%3Ealert(88)%3C/script%3E\"/>\n\n</svg>//[\"'`-->]]>]</div>",
@@ -630,7 +627,8 @@ module.exports = [
       "payload": "<div id=\"93\"><div style=\"list-style:url(http://foo.f)\u0010url(javascript:alert(93));\">X</div>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"93\"><div style=\"list-style:url(http://foo.f)\u0010url(javascript:alert(93));\">X</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"93\"><div>X</div>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"93\"><div>X</div>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"93\"><div style=\"list-style:url(http://foo.f)&#16;url(javascript:alert(93));\">X</div>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"94\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<handler xmlns:ev=\"http://www.w3.org/2001/xml-events\" ev:event=\"load\">alert(94)</handler>\n</svg>//[\"'`-->]]>]</div>",
@@ -717,7 +715,8 @@ module.exports = [
           "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"filter: url(&quot;#c&quot;); clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"filter: url(#c); clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" FILL=\"white\" /></a>\n\n<rect style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\" fill=\"white\" FILL=\"white\" />\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"110\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M0,0\" style=\"marker-start:url(test4.svg#a)\"/>\n</svg>//[\"'`-->]]>]</div>",
@@ -790,7 +789,8 @@ module.exports = [
           "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">        <circle r=\"40\" fill=\"red\"></circle></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">                                        <circle r=\"40\" fill=\"red\"></circle></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">        <circle fill=\"red\" r=\"40\" /></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">        <circle fill=\"red\" r=\"40\" /></svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">        <circle fill=\"red\" r=\"40\" /></svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">        <circle fill=\"red\" r=\"40\" FILL=\"red\" /></svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"126\"><object id=\"x\" classid=\"clsid:CB927D12-4FF7-4a9e-A169-56E4B8A75598\"></object>\n<object classid=\"clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B\" onqt_error=\"alert(126)\" style=\"behavior:url(#x);\"><param name=postdomevents /></object>//[\"'`-->]]>]</div>",
@@ -809,7 +809,8 @@ module.exports = [
           "<div id=\"128\"><svg><style></style></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"128\"><svg><style><img src=\"x\">//[\"'`--&gt;]]&gt;]</img></style></svg></div>",
           "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"128\"><svg><style><img src=\"x\"></style></svg></div>"
+          "<div id=\"128\"><svg><style><img src=\"x\"></style></svg></div>",
+          "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "Inline SVG (data-uri)",
@@ -819,7 +820,8 @@ module.exports = [
           "<div id=\"129\"><svg><image style=\"filter:url(&quot;data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22><script>parent.alert(129)</script></svg>&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter: url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;);\">\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image>\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "MathML",
@@ -875,7 +877,8 @@ module.exports = [
           "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
           "<div id=\"137\"><svg>\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\"></circle>\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
           "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:NS1=\"\" NS1:xlink:href=\"?\" xmlns:NS2=\"\" NS2:xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>"
+          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
+          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>"
       ]
   }, {
       "title": "Removing name attr from img with id can crash Safari",
