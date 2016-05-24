@@ -38,6 +38,8 @@ var clean = DOMPurify.sanitize(dirty);
 
 The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you. But keep in mind, if you use the sanitized HTML with jQuery's very insecure `elm.html()` method, then the `SAFE_FOR_JQUERY` flag has to be set to make sure it's safe! Other than that, all is fine.
 
+After sanitizing your markup, you can also have a look at the property `DOMPurify.removed` and find out, what elements and attributes were thrown out.
+
 If you're using an [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) module loader like [Require.js](http://requirejs.org/), you can load this script asynchronously as well:
 
 ```javascript
@@ -66,7 +68,7 @@ const DOMPurify = createDOMPurify(window);
 const clean = DOMPurify.sanitize(dirty));
 ```
 
-(Strictly speaking, DOMPurify creates a document without a browsing context and you can replace it with `const window = jsdom.jsdom().defaultView;`, however, the longer case protects against accidental bugs in jsdom or DOMPurify)
+Strictly speaking, DOMPurify creates a document without a browsing context and you can replace it with `const window = jsdom.jsdom().defaultView;`, however, the longer case protects against accidental bugs in jsdom or DOMPurify.
 
 ## Is there a demo?
 
@@ -183,9 +185,9 @@ DOMPurify.addHook('beforeSanitizeElements', function(currentNode, data, config) 
 
 We are currently using Travis CI in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://travis-ci.org/cure53/DOMPurify
 
-You can further run local tests by executing `npm test`. The test word fine with Node.js v0.6.2 and jsdom@8.5.0.
+You can further run local tests by executing `npm test`. The tests work fine with Node.js v0.6.2 and jsdom@8.5.0.
 
-All relevant commits will be signed with the key 0x24BB6BF4 (since 8th of April 2016).
+All relevant commits will be signed with the key `0x24BB6BF4` for additional security (since 8th of April 2016).
 
 ## Security Mailing List
 
@@ -193,15 +195,16 @@ We maintain a mailing list that notifies whenever a security-critical release of
 
 [https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security](https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security)
 
-
-## What's on the road-map?
-
-We recently implemented a Hook-API allowing developers to create their own DOMPurify plugins and customize its functionality without changing the core. Thus, we are looking forward for plugins and extensions - pull requests are welcome! Oh, and we will increase the amount of browsers and HTML-mappings in our automated tests to make sure nothing slips through.
-
 ## Who contributed?
 
-Several people need to be listed here! [@garethheyes](https://twitter.com/garethheyes) and [@filedescriptor](https://twitter.com/filedescriptor) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same.
+Several people need to be listed here! 
 
-Big thanks also go to [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)! Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their code reviews and countless small optimizations, fixes and beautifications. Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack.
+[@garethheyes](https://twitter.com/garethheyes) and [@filedescriptor](https://twitter.com/filedescriptor) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same.
+
+Big thanks also go to [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)! 
+
+Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their code reviews and countless small optimizations, fixes and beautifications. 
+
+Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack. And thanks to [@Joris-van-der-Wel](https://github.com/Joris-van-der-Wel) for setting up DOMPurify for jsdom and creating the additional test suite.
 
 And last but not least, thanks to [BrowserStack](https://browserstack.com) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
