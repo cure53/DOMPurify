@@ -273,4 +273,18 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var modified = '<div><a><img src="cid:1234567"></a></div>';
       assert.equal(modified, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));
   } );
+
+  // Test 1 to check if the element count in DOMPurify.removed is correct
+  QUnit.test( 'DOMPurify.removed shoud contain one element', function (assert) {
+      var dirty = '<svg onload=alert(1)><filter><feGaussianBlur /></filter></svg>';
+      DOMPurify.sanitize(dirty);
+      assert.equal(DOMPurify.removed.length, 1);
+  } );
+
+  // Test 2 to check if the element count in DOMPurify.removed is correct
+  QUnit.test( 'DOMPurify.removed shoud contain one element', function (assert) {
+      var dirty = '1<script>alert(1)<\/script><svg onload=alert(1)><filter><feGaussianBlur /></filter></svg>';
+      DOMPurify.sanitize(dirty);
+      assert.equal(DOMPurify.removed.length, 2);
+  } );  
 }
