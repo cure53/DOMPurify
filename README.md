@@ -152,7 +152,7 @@ var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 // discard an element's content when the element is removed (default is true)
 var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 ```
-There is even [more examples here](https://github.com/cure53/DOMPurify/tree/master/demos#what-it-this), showing how you can run, customize and configure DOMPurify to fit your needs.
+There is even [more examples here](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
 
 ## Hooks
 

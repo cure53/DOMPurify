@@ -21,7 +21,13 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.7.4';
+    DOMPurify.version = '0.8.0';
+
+    /**
+     * Array of elements that DOMPurify removed during sanitation.
+     * Empty if nothing was removed.
+     */
+    DOMPurify.removed = [];
 
     if (!window || !window.document || window.document.nodeType !== 9) {
         // not running in a browser, provide a factory function
@@ -340,11 +346,26 @@
      * @param  a DOM node
      */
     var _forceRemove = function(node) {
+        DOMPurify.removed.push({element: node});
         try {
             node.parentNode.removeChild(node);
         } catch (e) {
             node.outerHTML = '';
         }
+    };
+
+   /**
+     * _removeAttribute
+     *
+     * @param  an Attribute name
+     * @param  a DOM node
+     */
+    var _removeAttribute = function(name, node) {
+        DOMPurify.removed.push({
+            attribute: node.getAttributeNode(name),
+            from: node
+        });
+        node.removeAttribute(name);
     };
 
    /**
@@ -361,7 +382,8 @@
         } catch (e) {}
 
         /* Some browsers throw, some browsers return null for the code above
-           DOMParser with text/html support is only in very recent browsers. */
+           DOMParser with text/html support is only in very recent browsers.
+           See #159 why the check here is extra-thorough */
         if (!doc || !doc.documentElement) {
             doc = implementation.createHTMLDocument('');
             body = doc.body;
@@ -480,7 +502,7 @@
         return false;
     };
 
-    var DATA_ATTR = /^data-[\w.\u00B7-\uFFFF-]/;
+    var DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/;
     var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
     var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
@@ -536,8 +558,8 @@
                     currentNode.nodeName === 'IMG' && attributes.id) {
                 idAttr = attributes.id;
                 attributes = Array.prototype.slice.apply(attributes);
-                currentNode.removeAttribute('id');
-                currentNode.removeAttribute(name);
+                _removeAttribute('id', currentNode);
+                _removeAttribute(name, currentNode);
                 if (attributes.indexOf(idAttr) > l) {
                     currentNode.setAttribute('id', idAttr.value);
                 }
@@ -548,7 +570,7 @@
                 if (name === 'id') {
                     currentNode.setAttribute(name, '');
                 }
-                currentNode.removeAttribute(name);
+                _removeAttribute(name, currentNode);
             }
 
             /* Did the hooks approve of the attribute? */
@@ -689,6 +711,9 @@
 
         /* Assign config vars */
         _parseConfig(cfg);
+
+        /* Clean up removed elements */
+        DOMPurify.removed = [];
 
         /* Exit directly if we have nothing to do */
         if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
