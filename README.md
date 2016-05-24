@@ -195,6 +195,8 @@ We maintain a mailing list that notifies whenever a security-critical release of
 
 [https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security](https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security)
 
+Feature releases will not be announced to this list.
+
 ## Who contributed?
 
 Several people need to be listed here! 
