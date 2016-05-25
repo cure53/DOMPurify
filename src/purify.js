@@ -617,6 +617,7 @@
                 /* Handle invalid data-* attribute set by try-catching it */
                 try {
                     currentNode.setAttribute(name, value);
+                    DOMPurify.removed.pop();
                 } catch (e) {}
             }
         }
