@@ -377,6 +377,8 @@
     var _initDocument = function(dirty) {
         /* Create a HTML document using DOMParser */
         var doc, body;
+
+        dirty = '<div></div>' + dirty;
         try {
             doc = new DOMParser().parseFromString(dirty, 'text/html');
         } catch (e) {}
@@ -390,6 +392,8 @@
             body.parentNode.removeChild(body.parentNode.firstElementChild);
             body.outerHTML = dirty;
         }
+
+        doc.body.removeChild(doc.body.firstElementChild);
 
         /* Work on whole document or just its body */
         if (typeof doc.getElementsByTagName === 'function') {
