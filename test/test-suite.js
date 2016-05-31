@@ -275,16 +275,65 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   } );
 
   // Test 1 to check if the element count in DOMPurify.removed is correct
-  QUnit.test( 'DOMPurify.removed shoud contain one element', function (assert) {
+  QUnit.test( 'DOMPurify.removed should contain one element', function (assert) {
       var dirty = '<svg onload=alert(1)><filter><feGaussianBlur /></filter></svg>';
       DOMPurify.sanitize(dirty);
       assert.equal(DOMPurify.removed.length, 1);
   } );
 
   // Test 2 to check if the element count in DOMPurify.removed is correct
-  QUnit.test( 'DOMPurify.removed shoud contain one element', function (assert) {
+  QUnit.test( 'DOMPurify.removed should contain two elements', function (assert) {
       var dirty = '1<script>alert(1)<\/script><svg onload=alert(1)><filter><feGaussianBlur /></filter></svg>';
       DOMPurify.sanitize(dirty);
       assert.equal(DOMPurify.removed.length, 2);
-  } );  
+  } );
+
+  // Test 3 to check if the element count in DOMPurify.removed is correct
+  QUnit.test( 'DOMPurify.removed should be correct', function (assert) {
+      var dirty = '<img src=x onerror="alert(1)">';
+      DOMPurify.sanitize(dirty);
+      assert.equal(DOMPurify.removed.length, 1);
+  } );
+
+  // Test 4 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode 
+  QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode', function (assert) {
+      var dirty = '<a>123{{456}}</a>';
+      DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_TEMPLATES: true});
+      assert.equal(DOMPurify.removed.length, 1);
+  } );
+
+  // Test 5 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode 
+  QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode', function (assert) {
+      var dirty = '<a>123{{456}}<b>456{{789}}</b></a>';
+      DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_TEMPLATES: true});
+      assert.equal(DOMPurify.removed.length, 2);
+  } );
+
+  // Test 6 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode 
+  QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode', function (assert) {
+      var dirty = '<img src=1 width="{{123}}">';
+      DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_TEMPLATES: true});
+      assert.equal(DOMPurify.removed.length, 1);
+  } );
+
+  // Test 7 to check that DOMPurify.removed is correct in SAFE_FOR_JQUERY mode 
+  QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_JQUERY mode', function (assert) {
+      var dirty = '<option><iframe></select><b><script>alert(1)<\/script>';
+      DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_JQUERY: true});
+      assert.equal(DOMPurify.removed.length, 2);
+  } );
+
+  // Test 8 to check that DOMPurify.removed is correct if tags are clean 
+  QUnit.test( 'DOMPurify.removed should not contain elements if tags are permitted', function (assert) {
+      var dirty = '<a>123</a>';
+      DOMPurify.sanitize(dirty);
+      assert.equal(DOMPurify.removed.length, 0);
+  } );
+
+  // Test 9 to check that DOMPurify.removed is correct if the tags and attributes are clean
+  QUnit.test( 'DOMPurify.removed should not contain elements if all tags and attrs are permitted', function (assert) {
+      var dirty = '<img src=x>';
+      DOMPurify.sanitize(dirty);
+      assert.equal(DOMPurify.removed.length, 0);
+  } );
 }
