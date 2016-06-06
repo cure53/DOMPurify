@@ -835,7 +835,7 @@
      * @return void
      */
     DOMPurify.removeAllHooks = function() {
-        hooks = [];
+        hooks = {};
     };
 
     return DOMPurify;
