@@ -494,7 +494,7 @@
             content = currentNode.textContent;
             content = content.replace(MUSTACHE_EXPR, ' ');
             content = content.replace(ERB_EXPR, ' ');
-            if(currentNode.textContent !== content){
+            if (currentNode.textContent !== content) {
                 DOMPurify.removed.push({element: currentNode.cloneNode()});
                 currentNode.textContent = content;
             }
