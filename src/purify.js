@@ -483,14 +483,14 @@
 
         /* Convert markup to cover jQuery behavior */
         if (SAFE_FOR_JQUERY && !currentNode.firstElementChild &&
-                (!currentNode.content || !currentNode.content.firstElementChild) && 
+                (!currentNode.content || !currentNode.content.firstElementChild) &&
                 /</g.test(currentNode.textContent)) {
             DOMPurify.removed.push({element: currentNode.cloneNode()});
             currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
         }
 
         /* Sanitize element content to be template-safe */
-        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3 && 
+        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3 &&
                 (MUSTACHE_EXPR.test(currentNode.textContent) || ERB_EXPR.test(currentNode.textContent))) {
             DOMPurify.removed.push({element: currentNode.cloneNode()});
             /* Get the element's text content */
