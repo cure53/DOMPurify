@@ -483,14 +483,14 @@
 
         /* Convert markup to cover jQuery behavior */
         if (SAFE_FOR_JQUERY && !currentNode.firstElementChild &&
-                (!currentNode.content || !currentNode.content.firstElementChild) && 
+                (!currentNode.content || !currentNode.content.firstElementChild) &&
                 /</g.test(currentNode.textContent)) {
             DOMPurify.removed.push({element: currentNode.cloneNode()});
             currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
         }
 
         /* Sanitize element content to be template-safe */
-        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3 && 
+        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3 &&
                 (MUSTACHE_EXPR.test(currentNode.textContent) || ERB_EXPR.test(currentNode.textContent))) {
             DOMPurify.removed.push({element: currentNode.cloneNode()});
             /* Get the element's text content */
@@ -595,35 +595,51 @@
                 value = value.replace(ERB_EXPR, ' ');
             }
 
-            if (
-                /* Check the name is permitted */
-                (ALLOWED_ATTR[lcName] && !FORBID_ATTR[lcName] && (
-                  /* Check no script, data or unknown possibly unsafe URI
-                     unless we know URI values are safe for that attribute */
-                  URI_SAFE_ATTRIBUTES[lcName] ||
-                  IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,'')) ||
-                  /* Keep image data URIs alive if src is allowed */
-                  (lcName === 'src' && value.indexOf('data:') === 0 &&
-                   DATA_URI_TAGS[currentNode.nodeName.toLowerCase()])
-                )) ||
-                /* Allow potentially valid data-* attributes:
-                 * At least one character after "-" (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
-                 * XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
-                 * We don't need to check the value; it's always URI safe.
-                 */
-                 (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) ||
-                 /* Allow unknown protocols:
-                  * This provides support for links that are handled by protocol handlers which may be unknown
-                  * ahead of time, e.g. fb:, spotify:
-                  */
-                 (ALLOW_UNKNOWN_PROTOCOLS && !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,'')))
-            ) {
-                /* Handle invalid data-* attribute set by try-catching it */
-                try {
-                    currentNode.setAttribute(name, value);
-                    DOMPurify.removed.pop();
-                } catch (e) {}
+            /* Allow valid data-* attributes: At least one character after "-"
+               (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
+               XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
+               We don't need to check the value; it's always URI safe. */
+            if (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) {
+                // This attribute is safe
             }
+            /* Otherwise, check the name is permitted */
+            else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
+                continue;
+            }
+            /* Check value is safe. First, is attr inert? If so, is safe */
+            else if (URI_SAFE_ATTRIBUTES[lcName]) {
+                // This attribute is safe
+            }
+            /* Check no script, data or unknown possibly unsafe URI
+               unless we know URI values are safe for that attribute */
+            else if (IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,''))) {
+                // This attribute is safe
+            }
+            /* Keep image data URIs alive if src is allowed */
+            else if (
+                lcName === 'src' &&
+                value.indexOf('data:') === 0 &&
+                DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]) {
+                // This attribute is safe
+            }
+            /* Allow unknown protocols: This provides support for links that
+               are handled by protocol handlers which may be unknown ahead of
+               time, e.g. fb:, spotify: */
+            else if (
+                ALLOW_UNKNOWN_PROTOCOLS &&
+                !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,''))) {
+                // This attribute is safe
+            }
+            /* Anything else, presume unsafe, do not add it back */
+            else {
+                continue;
+            }
+
+            /* Handle invalid data-* attribute set by try-catching it */
+            try {
+                currentNode.setAttribute(name, value);
+                DOMPurify.removed.pop();
+            } catch (e) {}
         }
 
         /* Execute a hook if present */
@@ -835,7 +851,7 @@
      * @return void
      */
     DOMPurify.removeAllHooks = function() {
-        hooks = [];
+        hooks = {};
     };
 
     return DOMPurify;
