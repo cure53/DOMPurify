@@ -108,6 +108,14 @@ module.exports = function(config) {
         browser: 'firefox',
         os_version: '7'
       },
+      bs_win7_firefox_15: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '15.0',
+        browser: 'firefox',
+        os_version: '7'
+      },
       bs_win81_chrome_22: {
         base: 'BrowserStack',
         device: null,
@@ -150,6 +158,7 @@ module.exports = function(config) {
       'bs_yosemite_safari_8',
       'bs_win81_opera_31',
       'bs_win7_firefox_20',
+      'bs_win7_firefox_15',
       'bs_win81_chrome_22',
       'bs_win10_edge_13',
       'bs_win10_firefox_46',
