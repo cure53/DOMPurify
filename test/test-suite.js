@@ -274,6 +274,12 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal(modified, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));
   } );
 
+  QUnit.test( 'Regression-Test to make sure #166 stays fixed', function (assert) {
+      var dirty = '<p onFoo="123">HELLO</p>';
+      var modified = '<p>HELLO</p>';
+      assert.equal(modified, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));
+  } );  
+
   // Test 1 to check if the element count in DOMPurify.removed is correct
   QUnit.test( 'DOMPurify.removed should contain one element', function (assert) {
       var dirty = '<svg onload=alert(1)><filter><feGaussianBlur /></filter></svg>';
