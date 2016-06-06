@@ -21,7 +21,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.8.0';
+    DOMPurify.version = '0.8.1';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -483,21 +483,21 @@
 
         /* Convert markup to cover jQuery behavior */
         if (SAFE_FOR_JQUERY && !currentNode.firstElementChild &&
-                (!currentNode.content || !currentNode.content.firstElementChild) &&
-                /</g.test(currentNode.textContent)) {
+                (!currentNode.content || !currentNode.content.firstElementChild)) {
             DOMPurify.removed.push({element: currentNode.cloneNode()});
             currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
         }
 
         /* Sanitize element content to be template-safe */
-        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3 &&
-                (MUSTACHE_EXPR.test(currentNode.textContent) || ERB_EXPR.test(currentNode.textContent))) {
-            DOMPurify.removed.push({element: currentNode.cloneNode()});
+        if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
             /* Get the element's text content */
             content = currentNode.textContent;
             content = content.replace(MUSTACHE_EXPR, ' ');
             content = content.replace(ERB_EXPR, ' ');
-            currentNode.textContent = content;
+            if(currentNode.textContent !== content){
+                DOMPurify.removed.push({element: currentNode.cloneNode()});
+                currentNode.textContent = content;
+            }
         }
 
         /* Execute a hook if present */
