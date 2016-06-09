@@ -633,7 +633,7 @@
             }
             /* Check for binary attributes */
             else if (!value) {
-                // binary attributes are safe at this point    
+                // binary attributes are safe at this point
             }
             /* Anything else, presume unsafe, do not add it back */
             else {

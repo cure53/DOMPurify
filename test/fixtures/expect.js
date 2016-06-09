@@ -1,8 +1,8 @@
 module.exports = [
   {
-      "title": "Don't remove binary attributes if considered safe",
-      "payload": "<input type=checkbox checked>",
-      "expected": "<input type=\"checkbox\" checked=\"checked\">"
+      "title": "Don't remove binary attributes if considered safe (see #168)",
+      "payload": "<input type=checkbox checked><input type=checkbox onclick>",
+      "expected": "<input checked=\"\" type=\"checkbox\"><input type=\"checkbox\">"
   },
   {
       "title": "Avoid over-zealous stripping of SVG filter elements (see #144)",
