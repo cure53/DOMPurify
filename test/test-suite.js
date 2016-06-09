@@ -356,11 +356,4 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_JQUERY: true});
       assert.equal(DOMPurify.removed.length, 0);
   } );
-
-  // Make sure the fix for #168 doesn't regress and boolean attributes are permitted
-  QUnit.test( 'Boolean attributes should not be stripped', function (assert) {
-      var dirty = '<input type=checkbox checked>';
-      var modified = DOMPurify.sanitize(dirty);
-      assert.equal(modified, '<input type="checkbox" checked="checked" />');
-  } );
 }

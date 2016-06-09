@@ -627,9 +627,13 @@
                are handled by protocol handlers which may be unknown ahead of
                time, e.g. fb:, spotify: */
             else if (
-                value && ALLOW_UNKNOWN_PROTOCOLS &&
+                ALLOW_UNKNOWN_PROTOCOLS &&
                 !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE,''))) {
                 // This attribute is safe
+            }
+            /* Check for binary attributes */
+            else if (!value) {
+                // binary attributes are safe at this point    
             }
             /* Anything else, presume unsafe, do not add it back */
             else {

@@ -1,5 +1,10 @@
 module.exports = [
   {
+      "title": "Don't remove binary attributes if considered safe",
+      "payload": "<input type=checkbox checked>",
+      "expected": "<input type=\"checkbox\" checked=\"checked\">"
+  },
+  {
       "title": "Avoid over-zealous stripping of SVG filter elements (see #144)",
       "payload": "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
       "expected": [
