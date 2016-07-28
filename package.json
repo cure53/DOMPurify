@@ -9,6 +9,10 @@
     "test:ci": "npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
     "test": "npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Firefox,Chrome"
   },
+  "files": [
+    "src",
+    "dist"
+  ],
   "pre-commit": [
     "lint",
     "minify",
