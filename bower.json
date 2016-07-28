@@ -24,7 +24,9 @@
   ],
   "ignore": [
     "**/.*",
+    "demos",
+    "scripts",
     "test",
-    "demo"
+    "website"
   ]
 }
