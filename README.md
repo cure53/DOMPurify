@@ -65,7 +65,7 @@ const window = jsdom.jsdom('', {
 }).defaultView;
 const DOMPurify = createDOMPurify(window);
 
-const clean = DOMPurify.sanitize(dirty));
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 Strictly speaking, DOMPurify creates a document without a browsing context and you can replace it with `const window = jsdom.jsdom().defaultView;`, however, the longer case protects against accidental bugs in jsdom or DOMPurify.
