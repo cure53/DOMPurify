@@ -5775,21 +5775,21 @@
         }
     };
 
-    exports.version = "0.3.10";
+    exports.version = "0.4.0";
     exports.parse = function() {
         var js = MentalJS();
     };
     MentalJS = function() {
         function Mental() {
-            var that = this,scoping = '$', replaceScoping = new RegExp('[' + scoping + ']'), 
-                attributeWhitelist = /^(?:style|accesskey|align|alink|alt|bgcolor|border|cellpadding|cellspacing|class|color|cols|colspan|coords|dir|face|height|hspace|id|ismap|lang|marginheight|marginwidth|multiple|name|nohref|noresize|noshade|nowrap|ref|rel|rev|rows|rowspan|scrolling|size|shape|span|summary|tabindex|target|title|type|usemap|valign|value|vlink|vspace|width)$/i, 
-                attributeWhitelistList = 'accesskey|align|alink|alt|bgcolor|border|cellpadding|cellspacing|class|color|cols|colspan|coords|dir|face|height|hspace|id|ismap|lang|marginheight|marginwidth|multiple|name|nohref|noresize|noshade|nowrap|ref|rel|rev|rows|rowspan|scrolling|size|shape|span|summary|tabindex|target|title|type|usemap|valign|value|vlink|vspace|width'.split('|'), 
-                urlBasedAttributes = /^(?:href|src|action)$/i, urlBasedAttributesList = ['href', 'src', 'action'], allowedEvents = /^(?:onabort|onactivate|onafterprint|onafterupdate|onbeforeactivate|onbeforecopy|onbeforecut|onbeforedeactivate|onbeforeeditfocus|onbeforepaste|onbeforeprint|onbeforeunload|onbegin|onblur|onbounce|oncellchange|onchange|onclick|oncontextmenu|oncontrolselect|oncopy|oncut|ondataavailable|ondatasetchanged|ondatasetcomplete|ondblclick|ondeactivate|ondrag|ondragend|ondragleave|ondragenter|ondragover|ondragdrop|ondrop|onend|onerror|onerrorupdate|onexit|onfilterchange|onfinish|onfocus|onfocusin|onfocusout|onhelp|onkeydown|onkeypress|onkeyup|onlayoutcomplete|onload|onlosecapture|onmediacomplete|onmediaerror|onmousedown|onmouseenter|onmouseleave|onmousemove|onmouseout|onmouseover|onmouseup|onmousewheel|onmove|onmoveend|onmovestart|onoutofsync|onpaste|onpause|onprogress|onpropertychange|onreadystatechange|onrepeat|onreset|onresize|onresizeend|onresizestart|onresume|onreverse|onrowenter|onrowexit|onrowdelete|onrowinserted|onscroll|onseek|onselect|onselectionchange|onselectstart|onstart|onstop|onsynchrestored|onsubmit|ontimeerror|ontrackchange|onunload|onurlflip|seeksegmenttime|oncanplay|oncanplaythrough|ondragstart|ondurationchange|onemptied|onended|onloadeddata|onloadedmetadata|onloadstart|onmessage|onoffline|ononline|onplay|onplaying|onratechange|onsearch|onseeked|onseeking|onstalled|onstorage|onsuspend|ontimeupdate|onvolumechange|onwaiting|onwebkitanimationend|onwebkitanimationiteration|onwebkitanimationstart|onwebkittransitionend)$/i, 
-                allowedEventsList = 'onabort|onactivate|onafterprint|onafterupdate|onbeforeactivate|onbeforecopy|onbeforecut|onbeforedeactivate|onbeforeeditfocus|onbeforepaste|onbeforeprint|onbeforeunload|onbegin|onblur|onbounce|oncellchange|onchange|onclick|oncontextmenu|oncontrolselect|oncopy|oncut|ondataavailable|ondatasetchanged|ondatasetcomplete|ondblclick|ondeactivate|ondrag|ondragend|ondragleave|ondragenter|ondragover|ondragdrop|ondrop|onend|onerror|onerrorupdate|onexit|onfilterchange|onfinish|onfocus|onfocusin|onfocusout|onhelp|onkeydown|onkeypress|onkeyup|onlayoutcomplete|onload|onlosecapture|onmediacomplete|onmediaerror|onmousedown|onmouseenter|onmouseleave|onmousemove|onmouseout|onmouseover|onmouseup|onmousewheel|onmove|onmoveend|onmovestart|onoutofsync|onpaste|onpause|onprogress|onpropertychange|onreadystatechange|onrepeat|onreset|onresize|onresizeend|onresizestart|onresume|onreverse|onrowenter|onrowexit|onrowdelete|onrowinserted|onscroll|onseek|onselect|onselectionchange|onselectstart|onstart|onstop|onsynchrestored|onsubmit|ontimeerror|ontrackchange|onunload|onurlflip|seeksegmenttime|oncanplay|oncanplaythrough|ondragstart|ondurationchange|onemptied|onended|onloadeddata|onloadedmetadata|onloadstart|onmessage|onoffline|ononline|onplay|onplaying|onratechange|onsearch|onseeked|onseeking|onstalled|onstorage|onsuspend|ontimeupdate|onvolumechange|onwaiting|onwebkitanimationend|onwebkitanimationiteration|onwebkitanimationstart|onwebkittransitionend'.split('|'), allowedTagsRegEx = /^(?:a|b|h[1-6]|script|head|title|style|link|body|form|font|select|optgroup|option|input|textarea|button|label|fieldset|legend|ul|ol|dl|directory|menu|nav|li|div|p|heading|quote|pre|br|hr|img|image|map|area|table|code|caption|th|section|tr|td|tbody|iframe)$/i, 
-                allowedCSSProperties = ["azimuth", "background", "backgroundAttachment", "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundRepeat", "border", "borderCollapse", "borderColor", "borderSpacing", "borderStyle", "borderTop", "borderRight", "borderBottom", "borderLeft", "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor", "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle", "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth", "borderWidth", "bottom", "captionSide", "clear", "clip", "color", "content", "counterIncrement", "counterReset", "cue", "cueAfter", "cueBefore", "cursor", "direction", "display", "elevation", "emptyCells", "float", "font", "fontFamily", "fontSize", "fontSizeAdjust", "fontStretch", "fontStyle", "fontVariant", "fontWeight", "height", "left", "letterSpacing", "lineHeight", "listStyle", "listStyleImage", "listStylePosition", "listStyleType", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft", "markerOffset", "marks", "maxHeight", "maxWidth", "minHeight", "minWidth", "orphans", "outline", "outlineColor", "outlineStyle", "outlineWidth", "overflow", "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "page", "pageBreakAfter", "pageBreakBefore", "pageBreakInside", "pause", "pauseAfter", "pauseBefore", "pitch", "pitchRange", "playDuring", "position", "quotes", "richness", "right", "size", "speak", "speakHeader", "speakNumeral", "speakPunctuation", "speechRate", "stress", "tableLayout", "textAlign", "textDecoration", "textIndent", "textShadow", "textTransform", "top", "unicodeBidi", "verticalAlign", "visibility", "voiceFamily", "volume", "whiteSpace", "widows", "width", "wordSpacing", "zIndex"], 
+            var that = this,scoping = '$', replaceScoping = new RegExp('[' + scoping + ']'),
+                attributeWhitelist = /^(?:style|accesskey|align|alink|alt|bgcolor|border|cellpadding|cellspacing|class|color|cols|colspan|coords|dir|face|height|hspace|id|ismap|lang|marginheight|marginwidth|multiple|name|nohref|noresize|noshade|nowrap|ref|rel|rev|rows|rowspan|scrolling|size|shape|span|summary|tabindex|target|title|type|usemap|valign|value|vlink|vspace|width)$/i,
+                attributeWhitelistList = 'accesskey|align|alink|alt|bgcolor|border|cellpadding|cellspacing|class|color|cols|colspan|coords|dir|face|height|hspace|id|ismap|lang|marginheight|marginwidth|multiple|name|nohref|noresize|noshade|nowrap|ref|rel|rev|rows|rowspan|scrolling|size|shape|span|summary|tabindex|target|title|type|usemap|valign|value|vlink|vspace|width'.split('|'),
+                urlBasedAttributes = /^(?:href|src|action)$/i, urlBasedAttributesList = ['href', 'src', 'action'], allowedEvents = /^(?:onabort|onactivate|onafterprint|onafterupdate|onbeforeactivate|onbeforecopy|onbeforecut|onbeforedeactivate|onbeforeeditfocus|onbeforepaste|onbeforeprint|onbeforeunload|onbegin|onblur|onbounce|oncellchange|onchange|onclick|oncontextmenu|oncontrolselect|oncopy|oncut|ondataavailable|ondatasetchanged|ondatasetcomplete|ondblclick|ondeactivate|ondrag|ondragend|ondragleave|ondragenter|ondragover|ondragdrop|ondrop|onend|onerror|onerrorupdate|onexit|onfilterchange|onfinish|onfocus|onfocusin|onfocusout|onhelp|onkeydown|onkeypress|onkeyup|onlayoutcomplete|onload|onlosecapture|onmediacomplete|onmediaerror|onmousedown|onmouseenter|onmouseleave|onmousemove|onmouseout|onmouseover|onmouseup|onmousewheel|onmove|onmoveend|onmovestart|onoutofsync|onpaste|onpause|onprogress|onpropertychange|onreadystatechange|onrepeat|onreset|onresize|onresizeend|onresizestart|onresume|onreverse|onrowenter|onrowexit|onrowdelete|onrowinserted|onscroll|onseek|onselect|onselectionchange|onselectstart|onstart|onstop|onsynchrestored|onsubmit|ontimeerror|ontrackchange|onunload|onurlflip|seeksegmenttime|oncanplay|oncanplaythrough|ondragstart|ondurationchange|onemptied|onended|onloadeddata|onloadedmetadata|onloadstart|onmessage|onoffline|ononline|onplay|onplaying|onratechange|onsearch|onseeked|onseeking|onstalled|onstorage|onsuspend|ontimeupdate|onvolumechange|onwaiting|onwebkitanimationend|onwebkitanimationiteration|onwebkitanimationstart|onwebkittransitionend)$/i,
+                allowedEventsList = 'onabort|onactivate|onafterprint|onafterupdate|onbeforeactivate|onbeforecopy|onbeforecut|onbeforedeactivate|onbeforeeditfocus|onbeforepaste|onbeforeprint|onbeforeunload|onbegin|onblur|onbounce|oncellchange|onchange|onclick|oncontextmenu|oncontrolselect|oncopy|oncut|ondataavailable|ondatasetchanged|ondatasetcomplete|ondblclick|ondeactivate|ondrag|ondragend|ondragleave|ondragenter|ondragover|ondragdrop|ondrop|onend|onerror|onerrorupdate|onexit|onfilterchange|onfinish|onfocus|onfocusin|onfocusout|onhelp|onkeydown|onkeypress|onkeyup|onlayoutcomplete|onload|onlosecapture|onmediacomplete|onmediaerror|onmousedown|onmouseenter|onmouseleave|onmousemove|onmouseout|onmouseover|onmouseup|onmousewheel|onmove|onmoveend|onmovestart|onoutofsync|onpaste|onpause|onprogress|onpropertychange|onreadystatechange|onrepeat|onreset|onresize|onresizeend|onresizestart|onresume|onreverse|onrowenter|onrowexit|onrowdelete|onrowinserted|onscroll|onseek|onselect|onselectionchange|onselectstart|onstart|onstop|onsynchrestored|onsubmit|ontimeerror|ontrackchange|onunload|onurlflip|seeksegmenttime|oncanplay|oncanplaythrough|ondragstart|ondurationchange|onemptied|onended|onloadeddata|onloadedmetadata|onloadstart|onmessage|onoffline|ononline|onplay|onplaying|onratechange|onsearch|onseeked|onseeking|onstalled|onstorage|onsuspend|ontimeupdate|onvolumechange|onwaiting|onwebkitanimationend|onwebkitanimationiteration|onwebkitanimationstart|onwebkittransitionend'.split('|'), allowedTagsRegEx = /^(?:a|b|h[1-6]|script|head|title|style|link|body|form|font|select|optgroup|option|input|textarea|button|label|fieldset|legend|ul|ol|dl|directory|menu|nav|li|div|p|heading|quote|pre|br|hr|img|image|map|area|table|code|caption|th|section|tr|td|tbody|iframe)$/i,
+                allowedCSSProperties = ["azimuth", "background", "backgroundAttachment", "backgroundColor", "backgroundImage", "backgroundPosition", "backgroundRepeat", "border", "borderCollapse", "borderColor", "borderSpacing", "borderStyle", "borderTop", "borderRight", "borderBottom", "borderLeft", "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor", "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle", "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth", "borderWidth", "bottom", "captionSide", "clear", "clip", "color", "content", "counterIncrement", "counterReset", "cue", "cueAfter", "cueBefore", "cursor", "direction", "display", "elevation", "emptyCells", "float", "font", "fontFamily", "fontSize", "fontSizeAdjust", "fontStretch", "fontStyle", "fontVariant", "fontWeight", "height", "left", "letterSpacing", "lineHeight", "listStyle", "listStyleImage", "listStylePosition", "listStyleType", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft", "markerOffset", "marks", "maxHeight", "maxWidth", "minHeight", "minWidth", "orphans", "outline", "outlineColor", "outlineStyle", "outlineWidth", "overflow", "padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "page", "pageBreakAfter", "pageBreakBefore", "pageBreakInside", "pause", "pauseAfter", "pauseBefore", "pitch", "pitchRange", "playDuring", "position", "quotes", "richness", "right", "size", "speak", "speakHeader", "speakNumeral", "speakPunctuation", "speechRate", "stress", "tableLayout", "textAlign", "textDecoration", "textIndent", "textShadow", "textTransform", "top", "unicodeBidi", "verticalAlign", "visibility", "voiceFamily", "volume", "whiteSpace", "widows", "width", "wordSpacing", "zIndex"],
                 setTimeoutIDS = {}, setIntervalIDS = {};
             this.init = init;
-            function init(config) {                                                                                                            
+            function init(config) {
                 M = {
                     O : function(obj) {
                         var keys = Object.keys(obj), key;
@@ -5814,7 +5814,8 @@
                                     Object.defineProperty(obj, key.replace(new RegExp(replaceScoping.source + '$', 'i'), ''), {
                                         configurable : true,
                                         enumerable : true,
-                                        writable : true
+                                        writable : true,
+                                        value : obj[key]
                                     });
                                     Object.defineProperty(obj, key, {
                                         set : function(len) {
@@ -5942,105 +5943,10 @@
                             get : function() {
                                 return this.innerHTML;
                             },
-                            set : function(innerHTML) {                                
-                                if (config.parseInnerHTML) {                                    
-                                    this.innerHTML = config.parseInnerHTML(innerHTML);
-                                    return innerHTML;
-                                }
-                                var node = document.implementation.createHTMLDocument('');
-                                node.body.innerHTML = innerHTML;
-                                var ni = document.createNodeIterator(node.body, NodeFilter.SHOW_ELEMENT, null, false), elementNode, anchor = document.createElement('a'), scripts = [], i, script, code, elementsToRemove = [];
-                                while ( elementNode = ni.nextNode()) {
-                                    if (!allowedTagsRegEx.test(elementNode.nodeName)) {
-                                        elementsToRemove.push(elementNode);
-                                    }
-                                    if (elementNode.nodeName.toLowerCase() === 'script') {
-                                        if (elementNode.text.length) {
-                                            scripts.push({
-                                                type : 'inline',
-                                                code : elementNode.text
-                                            });
-                                        } else {
-                                            anchor.href = elementNode.getAttribute('src');
-                                            if ((anchor.protocol === 'http:' || anchor.protocol === 'https:') && anchor.host.replace(/:\d+$/, '') === location.host.replace(/:\d+$/, '')) {
-                                                scripts.push({
-                                                    type : 'external',
-                                                    src : elementNode.getAttribute('src')
-                                                });
-                                            }
-                                        }
-                                        elementsToRemove.push(elementNode);
-                                        continue;
-                                    }
-
-                                    if (elementNode.attributes instanceof HTMLElement || typeof elementNode.setAttribute !== 'function' || typeof elementNode.getAttribute !== 'function' || typeof elementNode.removeAttribute !== 'function') {
-                                        elementsToRemove.push(elementNode);
-                                        continue;
-                                    }
-
-                                    for ( i = elementNode.attributes.length - 1; i > -1; i--) {
-
-                                        if (urlBasedAttributes.test(elementNode.attributes[i].name)) {
-                                            anchor.href = elementNode.attributes[i].value;
-                                            if ((anchor.protocol === 'http:' || anchor.protocol === 'https:') && anchor.host.replace(/:\d+$/, '') === location.host.replace(/:\d+$/, '')) {
-                                                elementNode.setAttribute(elementNode.attributes[i].name, elementNode.attributes[i].value + '');
-                                            } else {
-                                                elementNode.setAttribute(elementNode.attributes[i].name, '#');
-                                            }
-                                            continue;
-                                        }
-                                        if (allowedEvents.test(elementNode.attributes[i].name)) {
-                                            var js = MentalJS();
-                                            try {
-                                                elementNode.setAttribute(elementNode.attributes[i].name, js.parse({
-                                                    options : {
-                                                        eval : false
-                                                    },
-                                                    code : elementNode.attributes[i].value
-                                                }));
-                                            } catch(e) {
-                                                elementNode.setAttribute(elementNode.attributes[i].name, '');
-                                            }
-                                            continue;
-                                        }
-                                        if (!attributeWhitelist.test(elementNode.attributes[i].name)) {
-                                            elementNode.removeAttribute(elementNode.attributes[i].name);
-                                        }
-                                    }
-                                }
-
-                                for ( i = 0; i < elementsToRemove.length; i++) {
-                                    try {
-                                        elementsToRemove[i].parentNode.removeChild(elementsToRemove[i]);
-                                    } catch(e) {
-                                    };
-                                    try {
-                                        node.body.removeChild(elementsToRemove[i]);
-                                    } catch(e) {
-                                    };
-                                }
-
-                                anchor = null;
-                                this.innerHTML = node.body.innerHTML;
-                                for ( i = 0; i < scripts.length; i++) {
-                                    script = document.createElement('script');
-                                    if (scripts[i].type === 'inline') {
-                                        var js = MentalJS();
-                                        try {
-                                            code = document.createTextNode(js.parse({
-                                                options : {
-                                                    eval : false
-                                                },
-                                                code : scripts[i].code
-                                            }));
-                                            script.appendChild(code);
-                                        } catch(e) {
-                                        }
-                                    } else {
-                                        script.src = scripts[i].src;
-                                    }
-                                    document.getElementsByTagName('head')[0].appendChild(script);
-                                }
+                            set : function(innerHTML) {
+                                var clean = config.parseInnerHTML(innerHTML);
+                                this.innerHTML = clean;
+                                return this.innerHTML;
                             }
                         },
                         'textContent$' : {
@@ -6314,7 +6220,7 @@
 
 
                 FUNCTION.constructor$ = FUNCTION;
-                Function$ = FUNCTION;             
+                Function$ = FUNCTION;
                 Boolean.constructor$ = Function$;
                 Boolean.prototype.constructor$ = Boolean;
                 Boolean$ = Boolean;
@@ -6400,13 +6306,13 @@
                 alert$ = ALERT;
                 var EVAL = function(str) {
                     var js = MentalJS(), converted;
-                    if ( typeof str !== 'function') {                        
+                    if ( typeof str !== 'function') {
                         return eval(js.parse({
                             options : {
                                 eval : false
                             },
                             code : str,
-                            converted : function(converted) {                                
+                            converted : function(converted) {
                                 if (config.evalCode) {
                                     config.evalCode(converted);
                                 }
@@ -6415,7 +6321,7 @@
                     } else {
                         if (config.evalCode) {
                             config.evalCode(str);
-                        }                        
+                        }
                         return eval(str);
                     }
                 };
@@ -6449,10 +6355,10 @@
                         this.length = len;
                     }
                 });
-                
+
                 Object.preventExtensions(Object.prototype);
                 Object.preventExtensions(Array.prototype);
-                                
+
                 Object.defineProperties(window, {
                     'undefined$' : {
                         configurable : true,
@@ -6803,7 +6709,7 @@
                                 return document.documentElement.compareDocumentPosition.apply(document.documentElement, arguments)
                             }
                         }
-                    });                                        
+                    });
                     createSandboxedNode(Element.prototype);
                     createSandboxedNode(DocumentFragment.prototype);
                     Object.defineProperties(HTMLScriptElement.prototype, {
@@ -7010,11 +6916,11 @@
                             }
                         }
                     });
-                    
+
                     Object.freeze(Element.prototype);
                     Object.freeze(DocumentFragment.prototype);
                     Object.freeze(HTMLScriptElement.prototype);
-                    Object.freeze(HTMLStyleElement.prototype);    
+                    Object.freeze(HTMLStyleElement.prototype);
                 }
             };
 
@@ -7022,7 +6928,7 @@
                 if (!Object.defineProperty) {
                     error("MentalJS requires ES5. Please upgrade your browser.");
                 }
-                var parseTreeOutput = '', converted, pos = 0, chr, index, result;                    
+                var parseTreeOutput = '', converted, pos = 0, chr, index, result;
 
                 function error(str) {
                     var e = new Error();
@@ -7087,8 +6993,8 @@
                         var chr1 = code.charCodeAt(pos), chr2 = code.charAt(pos + 1), chr3 = code.charAt(pos + 2), chr4 = code.charAt(pos + 3), chr5 = code.charAt(pos + 4), hex;
                         if (chr1 !== 0x75) {
                             error("Invalid unicode escape. Expected u.");
-                        }                     
-                        hex = +('0x' + chr2 + chr3 + chr4 + chr5);                        
+                        }
+                        hex = +('0x' + chr2 + chr3 + chr4 + chr5);
                         if ((hex === hex && hex !== hex) || /[^a-f0-9]/i.test(''+chr2+chr3+chr4+chr5)) {
                             error("Invalid unicode escape. Expected valid hex sequence.");
                         }
@@ -7268,8 +7174,8 @@
                         }
                     }
 
-                    function identifierAsi() {                        
-                        if (!rules[state][lastState] && newLineFlag) {                            
+                    function identifierAsi() {
+                        if (!rules[state][lastState] && newLineFlag) {
                             if (left) {
                                 asi(true);
                                 left = 1;
@@ -7299,7 +7205,7 @@
                                 break;
                             }
                             outputLine += code.charAt(pos++);
-                        }                        
+                        }
                         iLen = outputLine.length;
                         if (iLen === 1 || iLen > 10) {
                             outputLine = outputLine + scoping;
@@ -7310,36 +7216,36 @@
                                 outputLine = outputLine + scoping;
                                 identifierStates();
                                 return false;
-                            }                                                  
+                            }
                         }
                         identifierAsi();
                     }
 
-                    function identifierStates() {                        
+                    function identifierStates() {
                         if (rules[50][lastState]) {
                             state = 50;
-                            outputLine = ' ' + outputLine;                            
+                            outputLine = ' ' + outputLine;
                         } else if (rules[25][lastState]) {
-                            state = 25;                            
+                            state = 25;
                         } else if (rules[98][lastState]) {
-                            state = 98;                            
+                            state = 98;
                         } else if (rules[53][lastState]) {
                             state = 53;
-                            outputLine = ' ' + outputLine;                            
+                            outputLine = ' ' + outputLine;
                         } else if (rules[48][lastState]) {
                             state = 48;
                         } else if (rules[55][lastState]) {
-                            state = 55;                            
+                            state = 55;
                         } else if (rules[137][lastState]) {
                             state = 137;
-                            left = 1;                            
+                            left = 1;
                         } else if (rules[67][lastState]) {
                             state = 67;
-                            left = 1;                                                       
-                        } else {                            
+                            left = 1;
+                        } else {
                             if (!rules[67][lastState] && newLineFlag) {
                                 asi(true);
-                            }                            
+                            }
                             state = 67;
                             left = 1;
                         }
@@ -7543,7 +7449,7 @@
                         function number() {
                             while (pos < len) {
                                 chr = code.charCodeAt(pos);
-                                if (chr >= 0x31 && chr <= 0x39) {                                                                      
+                                if (chr >= 0x31 && chr <= 0x39) {
                                     if (states.e) {
                                         states.e = 2;
                                     }
@@ -7579,7 +7485,7 @@
                                     if (states.dot || states.e || (states.zeroFirst && states.output.length != 1)) {
                                         break;
                                     }
-                                    states.dot = 1;                                    
+                                    states.dot = 1;
                                 } else {
                                     cached = chr;
                                     break;
@@ -7649,8 +7555,8 @@
                             states.dot = 1;
                             states.dotFirst = 1;
                         } else if (chr === 0x30) {
-                            states.zeroFirst = 1; 
-                            states.output += '' + code.charAt(pos);                                                      
+                            states.zeroFirst = 1;
+                            states.output += '' + code.charAt(pos);
                         } else {
                             states.output = code.charAt(pos);
                         }
@@ -8500,7 +8406,7 @@
                     if (parseTreeFlag) {
                         that.parseTree(parseTreeOutput);
                     }
-                    if (convertedFlag) {                        
+                    if (convertedFlag) {
                         that.converted(output);
                     }
                     return output;
@@ -8523,10 +8429,10 @@
                 }
                 if (obj.complete) {
                     this.complete = obj.complete;
-                }                
+                }
                 if (obj.parseTree) {
                     this.parseTree = obj.parseTree;
-                }                                
+                }
                 converted = rewrite(obj.code);
                 if (this.options.eval) {
                     return execute(converted);
@@ -8537,4 +8443,4 @@
         };
         return new Mental;
     };
-})( typeof exports === "undefined" ? (window.mentaljs = {}) : exports); 
+})( typeof exports === "undefined" ? (window.mentaljs = {}) : exports);
