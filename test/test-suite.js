@@ -260,9 +260,29 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       });
       var dirty = '<div><p>This is a beatufiul text</p><p>This is too</p></div>';
       var modified = '<div><p>foo</p><p>foo</p></div>';
-      assert.equal(modified, DOMPurify.sanitize(dirty));
+      assert.equal(DOMPurify.sanitize(dirty), modified);
       DOMPurify.removeHooks('afterSanitizeElements')
   } );
+  // Test to ensure that a hook can add allowed tags / attributes on the fly
+  QUnit.test( 'ensure that a hook can add allowed tags / attributes on the fly', function(assert) {
+      DOMPurify.addHook('uponSanitizeElement', function(node, data){
+        if(node.nodeName && node.nodeName.match(/^\w+-\w+$/) 
+          && !data.allowedTags[data.tagName]) {
+            data.allowedTags[data.tagName] = true;
+        }
+      });
+      DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
+        if(data.attrName && data.attrName.match(/^\w+-\w+$/) 
+          && !data.allowedAttributes[data.attrName]) {
+            data.allowedAttributes[data.attrName] = true;
+        }
+      });
+      var dirty = '<p>HE<iframe></iframe><is-custom onload="alert(1)" super-custom="test" />LLO</p>';
+      var modified = '<p>HE<is-custom super-custom="test">LLO</is-custom></p>';
+      assert.equal(DOMPurify.sanitize(dirty), modified);
+      DOMPurify.removeHooks('uponSanitizeElement');
+      DOMPurify.removeHooks('uponSanitizeAttribute');
+  } );  
   QUnit.test( 'sanitize() should allow unknown protocols when ALLOW_UNKNOWN_PROTOCOLS is true', function (assert) {
       var dirty = '<div><a href="spotify:track:12345"><img src="cid:1234567"></a></div>';
       assert.equal(dirty, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));

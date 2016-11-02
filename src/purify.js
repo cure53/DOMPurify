@@ -21,7 +21,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.8.3';
+    DOMPurify.version = '0.8.4';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -465,7 +465,8 @@
 
         /* Execute a hook if present */
         _executeHook('uponSanitizeElement', currentNode, {
-            tagName: tagName
+            tagName: tagName,
+            allowedTags: ALLOWED_TAGS
         });
 
         /* Remove element if anything forbids its presence */
@@ -537,7 +538,8 @@
         hookEvent = {
             attrName: '',
             attrValue: '',
-            keepAttr: true
+            keepAttr: true,
+            allowedAttributes: ALLOWED_ATTR
         };
         l = attributes.length;
 
