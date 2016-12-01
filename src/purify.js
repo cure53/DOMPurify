@@ -40,6 +40,7 @@
     var originalDocument = document;
     var DocumentFragment = window.DocumentFragment;
     var HTMLTemplateElement = window.HTMLTemplateElement;
+    var Node = window.Node;
     var NodeFilter = window.NodeFilter;
     var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
@@ -707,11 +708,11 @@
      * sanitize
      * Public method providing core sanitation functionality
      *
-     * @param {String} dirty string
+     * @param {String|Node} dirty string or DOM node
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
-        var body, currentNode, oldNode, nodeIterator, returnNode;
+        var body, importedNode, currentNode, oldNode, nodeIterator, returnNode;
         /* Make sure we have a string to sanitize.
            DO NOT return early, as this will return the wrong type if
            the user has requested a DOM object rather than a string */
@@ -720,7 +721,7 @@
         }
 
         /* Stringify, in case dirty is an object */
-        if (typeof dirty !== 'string') {
+        if (typeof dirty !== 'string' && !(dirty instanceof Node)) {
             if (typeof dirty.toString !== 'function') {
                 throw new TypeError('toString is not a function');
             } else {
@@ -730,7 +731,8 @@
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof window.toStaticHTML === 'object'
+            if (typeof dirty === 'string'
+                && typeof window.toStaticHTML === 'object'
                 || typeof window.toStaticHTML === 'function') {
                 return window.toStaticHTML(dirty);
             }
@@ -743,17 +745,30 @@
         /* Clean up removed elements */
         DOMPurify.removed = [];
 
-        /* Exit directly if we have nothing to do */
-        if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
-            return dirty;
-        }
+        if (dirty instanceof Node) {
+            /* If dirty is a DOM element, append to an empty document to avoid
+               elements being stripped by the parser */
+            body = _initDocument('');
+            importedNode = body.ownerDocument.importNode(dirty, true);
+            if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+                /* Node is already a body, use as is */
+                body = importedNode;
+            } else {
+                body.appendChild( importedNode );
+            }
+        } else {
+            /* Exit directly if we have nothing to do */
+            if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
+                return dirty;
+            }
 
-        /* Initialize the document to work on */
-        body = _initDocument(dirty);
+            /* Initialize the document to work on */
+            body = _initDocument(dirty);
 
-        /* Check we have a DOM node from the data */
-        if (!body) {
-            return RETURN_DOM ? null : '';
+            /* Check we have a DOM node from the data */
+            if (!body) {
+                return RETURN_DOM ? null : '';
+            }
         }
 
         /* Get node iterator */
