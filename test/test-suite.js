@@ -376,4 +376,18 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_JQUERY: true});
       assert.equal(DOMPurify.removed.length, 0);
   } );
+  // Tests to make sure that the node scanning feature delivers acurate results on all browsers
+  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 1', function (assert) {
+      var clean = DOMPurify.sanitize(document.createElement('td'));
+      assert.equal(clean, "<td></td>");
+  } );
+  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 2', function (assert) {
+      var clean = DOMPurify.sanitize(document.createElement('td'), {RETURN_DOM: true});
+      assert.equal(clean.outerHTML, "<body><td></td></body>");
+  } );
+  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 3', function (assert) {
+      var clean = DOMPurify.sanitize(document.createElement('td'), {RETURN_DOM_FRAGMENT: true});
+      assert.equal(clean.childElementCount, 1);
+      assert.equal(clean.firstElementChild.tagName, "TD");
+  } );  
 }
