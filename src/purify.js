@@ -330,6 +330,9 @@
             }
             _addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
         }
+        if (cfg.ADD_URI_SAFE_ATTR) {
+            _addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
+        }
 
         /* Add #text in case KEEP_CONTENT is set to true */
         if (KEEP_CONTENT) { ALLOWED_TAGS['#text'] = true; }

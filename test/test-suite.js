@@ -385,4 +385,9 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize(document.createElement('td'), {RETURN_DOM: true});
       assert.equal(clean.outerHTML, "<body><td></td></body>");
   } );
+  // Test to make sure that URI_safe attributes can be configured too
+  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 2', function (assert) {
+      var clean = DOMPurify.sanitize('<b typeof="bla:h">123</b>', {ALLOWED_ATTR: ['typeof'], ADD_URI_SAFE_ATTR: ['typeof']});
+      assert.equal(clean, "<b typeof=\"bla:h\">123</b>");
+  } );
 }
