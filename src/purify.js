@@ -260,7 +260,8 @@
     ]);
 
     /* Tags that are safe for data: URIs */
-    var DATA_URI_TAGS = _addToSet({}, [
+    var DATA_URI_TAGS = null;
+    var DEFAULT_DATA_URI_TAGS = _addToSet({}, [
         'audio', 'video', 'img', 'source'
     ]);
 
@@ -298,6 +299,8 @@
             _addToSet({}, cfg.FORBID_TAGS) : {};
         FORBID_ATTR = 'FORBID_ATTR' in cfg ?
             _addToSet({}, cfg.FORBID_ATTR) : {};
+        DATA_URI_TAGS = 'DATA_URI_TAGS' in cfg ?
+            _addToSet({}, cfg.DATA_URI_TAGS) : DEFAULT_DATA_URI_TAGS;
         ALLOW_DATA_ATTR     = cfg.ALLOW_DATA_ATTR     !== false; // Default true
         ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
         SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     ||  false; // Default false
@@ -329,6 +332,12 @@
                 ALLOWED_ATTR = _cloneObj(ALLOWED_ATTR);
             }
             _addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
+        }
+        if (cfg.ADD_DATA_URI_TAGS) {
+            if (DATA_URI_TAGS === DEFAULT_DATA_URI_TAGS) {
+                DATA_URI_TAGS = _cloneObj(DATA_URI_TAGS);
+            }
+            _addToSet(DATA_URI_TAGS, cfg.ADD_DATA_URI_TAGS);
         }
 
         /* Add #text in case KEEP_CONTENT is set to true */
