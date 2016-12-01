@@ -385,9 +385,4 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize(document.createElement('td'), {RETURN_DOM: true});
       assert.equal(clean.outerHTML, "<body><td></td></body>");
   } );
-  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 3', function (assert) {
-      var clean = DOMPurify.sanitize(document.createElement('td'), {RETURN_DOM_FRAGMENT: true});
-      assert.equal(clean.childElementCount, 1);
-      assert.equal(clean.firstElementChild.tagName, "TD");
-  } );  
 }
