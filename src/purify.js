@@ -441,6 +441,20 @@
     };
 
     /**
+     * _isNode
+     * 
+     * @param object to check whether it's a DOM node
+     * @return true is object is a DOM node
+     */
+    var _isNode = function(obj) {
+        return (
+            typeof Node === "object" ? obj instanceof Node : obj
+                && typeof obj === "object" && typeof obj.nodeType === "number"
+                && typeof obj.nodeName==="string"
+        );
+    };
+
+    /**
      * _sanitizeElements
      *
      * @protect nodeName
@@ -721,7 +735,7 @@
         }
 
         /* Stringify, in case dirty is an object */
-        if (typeof dirty !== 'string' && !(dirty instanceof Node)) {
+        if (typeof dirty !== 'string' && !_isNode(dirty)) {
             if (typeof dirty.toString !== 'function') {
                 throw new TypeError('toString is not a function');
             } else {
@@ -731,10 +745,13 @@
 
         /* Check we can run. Otherwise fall back or ignore */
         if (!DOMPurify.isSupported) {
-            if (typeof dirty === 'string'
-                && typeof window.toStaticHTML === 'object'
+            if (typeof window.toStaticHTML === 'object'
                 || typeof window.toStaticHTML === 'function') {
-                return window.toStaticHTML(dirty);
+                if (typeof dirty === 'string') {
+                    return window.toStaticHTML(dirty);
+                } else if (_isNode(dirty)) {
+                    return window.toStaticHTML(dirty.outerHTML);
+                }
             }
             return dirty;
         }
@@ -748,7 +765,7 @@
         if (dirty instanceof Node) {
             /* If dirty is a DOM element, append to an empty document to avoid
                elements being stripped by the parser */
-            body = _initDocument('');
+            body = _initDocument('<!-->');
             importedNode = body.ownerDocument.importNode(dirty, true);
             if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
                 /* Node is already a body, use as is */
