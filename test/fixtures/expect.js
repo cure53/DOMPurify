@@ -30,7 +30,7 @@ module.exports = [
       "title": "src Attributes for IMG, AUDIO, VIDEO and SOURCE (see #131)",
       "payload": "<img src=\"data:,123\"><audio src=\"data:,456\"></audio><video src=\"data:,789\"></video><source src=\"data:,012\"><div src=\"data:,345\">",
       "expected": "<img src=\"data:,123\"><audio src=\"data:,456\"></audio><video src=\"data:,789\"></video><source src=\"data:,012\"><div></div>"
-  }, 
+  },
      {
       "title": "DOM Clobbering against document.createElement() (see #47)",
       "payload": "<img src=x name=createElement><img src=y id=createElement>",
@@ -54,6 +54,10 @@ module.exports = [
   }, {
       "title": "Image with data URI src",
       "payload": "<img src=data:image/jpeg,ab798ewqxbaudbuoibeqbla>",
+      "expected": "<img src=\"data:image/jpeg,ab798ewqxbaudbuoibeqbla\">"
+  }, {
+      "title": "Image with data URI src with whitespace",
+      "payload": "<img src=\"\r\ndata:image/jpeg,ab798ewqxbaudbuoibeqbla\">",
       "expected": "<img src=\"data:image/jpeg,ab798ewqxbaudbuoibeqbla\">"
   }, {
       "title": "Image with JavaScript URI src (DoS on Firefox)",
