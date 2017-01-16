@@ -445,7 +445,7 @@
 
     /**
      * _isNode
-     * 
+     *
      * @param object to check whether it's a DOM node
      * @return true is object is a DOM node
      */
@@ -565,7 +565,7 @@
         while (l--) {
             attr = attributes[l];
             name = attr.name;
-            value = attr.value;
+            value = attr.value.trim();
             lcName = name.toLowerCase();
 
             /* Execute a hook if present */
