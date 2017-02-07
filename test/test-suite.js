@@ -390,4 +390,9 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize('<b typeof="bla:h">123</b>', {ALLOWED_ATTR: ['typeof'], ADD_URI_SAFE_ATTR: ['typeof']});
       assert.equal(clean, "<b typeof=\"bla:h\">123</b>");
   } );
+  // Test to make sure that empty HTML doesn't return null on MSIE11 (#198)
+  QUnit.test( 'Eempty HTML shouldn\'t return null on MSIE11', function (assert) {
+      var clean = DOMPurify.sanitize('', {RETURN_DOM: true, RETURN_DOM_FRAGMENT: true});
+      assert.equal(typeof clean, "object");
+  } );
 }
