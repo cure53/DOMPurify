@@ -21,7 +21,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.8.4';
+    DOMPurify.version = '0.8.5';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
