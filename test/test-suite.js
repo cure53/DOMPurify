@@ -391,7 +391,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal(clean, "<b typeof=\"bla:h\">123</b>");
   } );
   // Test to make sure that empty HTML doesn't return null on MSIE11 (#198)
-  QUnit.test( 'Eempty HTML shouldn\'t return null on MSIE11', function (assert) {
+  QUnit.test( 'Empty HTML shouldn\'t return null on MSIE11 in RETURN_DOM_FRAGMENT mode', function (assert) {
       var clean = DOMPurify.sanitize('', {RETURN_DOM: true, RETURN_DOM_FRAGMENT: true});
       assert.equal(typeof clean, "object");
   } );
