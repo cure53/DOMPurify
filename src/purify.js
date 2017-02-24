@@ -234,6 +234,10 @@
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
+    /* Decide if all elements (e.g. style, script) must be children of 
+     * document.body. By default, browsers might move them to document.head */
+    var FORCE_BODY = false;
+
     /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
      * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
      */
@@ -306,6 +310,7 @@
         RETURN_DOM          = cfg.RETURN_DOM          ||  false; // Default false
         RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT ||  false; // Default false
         RETURN_DOM_IMPORT   = cfg.RETURN_DOM_IMPORT   ||  false; // Default false
+        FORCE_BODY          = cfg.FORCE_BODY          ||  false; // Default false
         SANITIZE_DOM        = cfg.SANITIZE_DOM        !== false; // Default true
         KEEP_CONTENT        = cfg.KEEP_CONTENT        !== false; // Default true
 
@@ -381,6 +386,11 @@
     var _initDocument = function(dirty) {
         /* Create a HTML document using DOMParser */
         var doc, body;
+        
+        if (FORCE_BODY) {
+            dirty = '_remove_' + dirty;
+        }
+
         try {
             doc = new DOMParser().parseFromString(dirty, 'text/html');
         } catch (e) {}
@@ -469,6 +479,7 @@
      */
     var _sanitizeElements = function(currentNode) {
         var tagName, content;
+
         /* Execute a hook if present */
         _executeHook('beforeSanitizeElements', currentNode, null);
 
@@ -789,6 +800,11 @@
             if (!body) {
                 return RETURN_DOM ? null : '';
             }
+        }
+
+        /* Remove first text node if FORCE_BODY is set */
+        if (FORCE_BODY) {
+            _forceRemove(body.firstChild);
         }
 
         /* Get node iterator */
