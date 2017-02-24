@@ -160,6 +160,9 @@ var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 
 // discard an element's content when the element is removed (default is true)
 var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
+
+// glue elements like style, script or others to document.body and prevent unintuitive browser behavior in several edge-cases (default is false)
+var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 ```
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
 

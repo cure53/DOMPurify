@@ -395,4 +395,13 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize('', {RETURN_DOM: true, RETURN_DOM_FRAGMENT: true});
       assert.equal(typeof clean, "object");
   } );
+  // Tests to make sure that FORCE_BODY pushes elements to document.body (#199)
+  QUnit.test( 'FORCE_BODY needs to push some elements to document.body', function (assert) {
+      var clean = DOMPurify.sanitize('<style>123</style>', {FORCE_BODY: true});
+      assert.equal(clean, "<style>123</style>");
+  } );
+  QUnit.test( 'Lack of FORCE_BODY needs to push some elements to document.head', function (assert) {
+      var clean = DOMPurify.sanitize('<style>123</style>', {FORCE_BODY: false});
+      assert.equal(clean, "");
+  } );  
 }
