@@ -400,6 +400,14 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize('<style>123</style>', {FORCE_BODY: true});
       assert.equal(clean, "<style>123</style>");
   } );
+  QUnit.test( 'FORCE_BODY needs to push some elements to document.body', function (assert) {
+      var clean = DOMPurify.sanitize('<script>123</script>', {FORCE_BODY: true, ADD_TAGS: ['script']});
+      assert.equal(clean, "<script>123</script>");
+  } );
+  QUnit.test( 'FORCE_BODY needs to push some elements to document.body', function (assert) {
+      var clean = DOMPurify.sanitize(' AAAAA', {FORCE_BODY: true});
+      assert.equal(clean, " AAAAA");
+  } );
   QUnit.test( 'Lack of FORCE_BODY needs to push some elements to document.head', function (assert) {
       var clean = DOMPurify.sanitize('<style>123</style>', {FORCE_BODY: false});
       assert.equal(clean, "");

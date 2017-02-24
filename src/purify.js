@@ -388,7 +388,7 @@
         var doc, body;
         
         if (FORCE_BODY) {
-            dirty = '_remove_' + dirty;
+            dirty = '<remove></remove>' + dirty;
         }
 
         try {
@@ -802,7 +802,7 @@
             }
         }
 
-        /* Remove first text node if FORCE_BODY is set */
+        /* Remove first element node (ours) if FORCE_BODY is set */
         if (FORCE_BODY) {
             _forceRemove(body.firstChild);
         }
