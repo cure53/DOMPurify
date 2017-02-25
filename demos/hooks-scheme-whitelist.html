@@ -38,7 +38,7 @@
             var whitelist = ['http', 'https', 'ftp'];
 
             // build fitting regex
-            var regex = RegExp('^('+whitelist.join('|')+'):', 'gim');
+            var regex = RegExp('^('+whitelist.join('|')+'):', 'im');
 
             // Add a hook to enforce URI scheme whitelist
             DOMPurify.addHook('afterSanitizeAttributes', function(node){
