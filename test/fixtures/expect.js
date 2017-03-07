@@ -2,7 +2,10 @@ module.exports = [
   {
       "title": "Don't remove ARIA attributes if not prohibited (see #203)",
       "payload": "<div aria-labelledby=\"msg--title\" role=\"dialog\" class=\"msg\"><button class=\"modal-close\" aria-label=\"close\" type=\"button\"><i class=\"icon-close\"></i>some button</button></div>",
-      "expected": "<div class=\"msg\" role=\"dialog\" aria-labelledby=\"msg--title\"><button type=\"button\" aria-label=\"close\" class=\"modal-close\"><i class=\"icon-close\"></i>some button</button></div>"
+      "expected": [
+          "<div class=\"msg\" role=\"dialog\" aria-labelledby=\"msg--title\"><button type=\"button\" aria-label=\"close\" class=\"modal-close\"><i class=\"icon-close\"></i>some button</button></div>",
+          "<div class=\"msg\" role=\"dialog\" aria-labelledby=\"msg--title\"><button class=\"modal-close\" aria-label=\"close\" type=\"button\"><i class=\"icon-close\"></i>some button</button></div>"
+      ]
   },
   {
       "title": "Don't remove binary attributes if considered safe (see #168)",
