@@ -411,5 +411,12 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'Lack of FORCE_BODY needs to push some elements to document.head', function (assert) {
       var clean = DOMPurify.sanitize('<style>123</style>', {FORCE_BODY: false});
       assert.equal(clean, "");
-  } );  
+  } );
+  // Test to make sure that ALLOW_ARIA_ATTR is working as expected (#198)
+  QUnit.test( 'Config-Flag tests: ALLOW_ARIA_ATTR', function(assert) {
+      assert.equal( DOMPurify.sanitize( "<a aria-abc=\"foo\" href=\"#\">abc</a>", {ALLOW_ARIA_ATTR: true}), "<a aria-abc=\"foo\" href=\"#\">abc</a>" );
+      assert.equal( DOMPurify.sanitize( '<a href="#" aria-aöü="foo">abc</a>', {ALLOW_ARIA_ATTR: true}), '<a href="#">abc</a>' );
+      assert.equal( DOMPurify.sanitize( '<a href="#" aria-abc="foo">abc</a>', {ALLOW_ARIA_ATTR: false}), "<a href=\"#\">abc</a>" );
+      assert.equal( DOMPurify.sanitize( '<a href="#" aria-äöü="foo">abc</a>', {ALLOW_ARIA_ATTR: false}), "<a href=\"#\">abc</a>" );
+  });
 }

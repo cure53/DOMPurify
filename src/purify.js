@@ -159,7 +159,7 @@
         'hreflang','id','ismap','label','lang','list','loop', 'low','max',
         'maxlength','media','method','min','multiple','name','noshade','novalidate',
         'nowrap','open','optimum','pattern','placeholder','poster','preload','pubdate',
-        'radiogroup','readonly','rel','required','rev','reversed','rows',
+        'radiogroup','readonly','rel','required','rev','reversed','role','rows',
         'rowspan','spellcheck','scope','selected','shape','size','span',
         'srclang','start','src','step','style','summary','tabindex','title',
         'type','usemap','valign','value','width','xmlns',
@@ -212,6 +212,9 @@
 
     /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
     var FORBID_ATTR = null;
+
+    /* Decide if ARIA attributes are okay */
+    var ALLOW_ARIA_ATTR = true;
 
     /* Decide if custom data attributes are okay */
     var ALLOW_DATA_ATTR = true;
@@ -302,6 +305,7 @@
             _addToSet({}, cfg.FORBID_TAGS) : {};
         FORBID_ATTR = 'FORBID_ATTR' in cfg ?
             _addToSet({}, cfg.FORBID_ATTR) : {};
+        ALLOW_ARIA_ATTR     = cfg.ALLOW_ARIA_ATTR     !== false; // Default true
         ALLOW_DATA_ATTR     = cfg.ALLOW_DATA_ATTR     !== false; // Default true
         ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
         SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     ||  false; // Default false
@@ -538,6 +542,7 @@
     };
 
     var DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/;
+    var ARIA_ATTR = /^aria-[\-\w]+$/;
     var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
     var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
@@ -632,6 +637,9 @@
                XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
                We don't need to check the value; it's always URI safe. */
             if (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) {
+                // This attribute is safe
+            }
+            else if (ALLOW_ARIA_ATTR && ARIA_ATTR.test(lcName)) {
                 // This attribute is safe
             }
             /* Otherwise, check the name is permitted */
