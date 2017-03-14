@@ -268,7 +268,7 @@
 
     /* Tags that are safe for data: URIs */
     var DATA_URI_TAGS = _addToSet({}, [
-        'audio', 'video', 'img', 'source'
+        'audio', 'video', 'img', 'source', 'image'
     ]);
 
     /* Attributes safe for values like "javascript:" */
@@ -655,9 +655,9 @@
             else if (IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,''))) {
                 // This attribute is safe
             }
-            /* Keep image data URIs alive if src is allowed */
+            /* Keep image data URIs alive if src/xlink:href is allowed */
             else if (
-                lcName === 'src' &&
+                (lcName === 'src' || lcName === 'xlink:href') &&
                 value.indexOf('data:') === 0 &&
                 DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]) {
                 // This attribute is safe
