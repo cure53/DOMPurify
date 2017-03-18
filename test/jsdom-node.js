@@ -4,7 +4,7 @@
 
 // Test DOMPurify + jsdom using Node.js (version 4 and up)
 const
-    dompurify = require('../'),
+    dompurify = require('../dist/purify'),
     jsdom = require('jsdom'),
     testSuite = require('./test-suite'),
     tests = require('./fixtures/expect'),
