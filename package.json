@@ -39,8 +39,10 @@
           "singleQuote": true
         }
       ]
-   },
-    "globals": ["self", "window"]
+    },
+    "globals": [
+      "window"
+    ]
   },
   "devDependencies": {
     "babel": "^6.23.0",
@@ -49,6 +51,7 @@
     "babel-preset-env": "^1.2.2",
     "eslint-config-prettier": "^1.7.0",
     "eslint-plugin-prettier": "^2.0.1",
+    "he": "^1.1.1",
     "jquery": "^2.2.3",
     "jsdom": "8.x.x",
     "json-loader": "^0.5.4",
@@ -61,8 +64,8 @@
     "karma-json-fixtures-preprocessor": "0.0.6",
     "karma-qunit": "^1.0.0",
     "karma-webpack": "^1.7.0",
-    "prettier": "^1.2.2",
     "pre-commit": "^1.1.2",
+    "prettier": "^1.2.2",
     "qunit-parameterize": "^0.4.0",
     "qunit-tap": "^1.5.0",
     "qunitjs": "^1.23.1",
