@@ -29,7 +29,8 @@
         "arraysInObjects": false
       }],
       "arrow-parens": ["error", "always"]
-    }
+    },
+    "globals": ["window", "document"]
   },
   "devDependencies": {
     "babel": "^6.23.0",
