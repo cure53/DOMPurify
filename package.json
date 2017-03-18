@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build-demo": "node scripts/build-demo.js",
-    "lint": "jshint src/purify.js",
+    "lint": "xo src/*.js",
     "amend-build": "scripts/amend-build.sh",
     "prebuild": "rimraf dist/**",
     "build": "npm run build:umd && npm run build:umd:min",
@@ -21,6 +21,16 @@
     "build",
     "amend-build"
   ],
+  "xo": {
+    "semicolon": true,
+    "space": 2,
+    "rules": {
+      "object-curly-spacing": [2, "always", {
+        "arraysInObjects": false
+      }],
+      "arrow-parens": ["error", "always"]
+    }
+  },
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-core": "^6.24.0",
@@ -28,7 +38,6 @@
     "babel-preset-env": "^1.2.2",
     "jquery": "^2.2.3",
     "jsdom": "8.x.x",
-    "jshint": "^2.9.2",
     "json-loader": "^0.5.4",
     "karma": "^0.13.22",
     "karma-browserstack-launcher": "1.0.0",
@@ -45,7 +54,8 @@
     "qunitjs": "^1.23.1",
     "rimraf": "^2.6.1",
     "webpack": "^2.2.1",
-    "webpack-merge": "^4.1.0"
+    "webpack-merge": "^4.1.0",
+    "xo": "^0.18.0"
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
