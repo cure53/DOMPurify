@@ -3,10 +3,9 @@ const paths = require('./paths');
 const umdConfig = {
    devtool: 'source-map',
    output: {
-      library: `${paths.pkg}`,
+      library: 'DOMPurify',
       libraryTarget: 'umd',
-      path: paths.distUmd,
-      umdNamedDefine: true
+      path: paths.distUmd
    }
 };
 
