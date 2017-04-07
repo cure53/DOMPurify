@@ -606,10 +606,10 @@
                 }
             } else if (
                   // This works around a bug in Safari, where input[type=file] 
-                  // cannot be dynamically changed after type has been removed
+                  // cannot be dynamically set after type has been removed
                   currentNode.nodeName === 'INPUT' && lcName === 'type' && 
                   value === 'file' && (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])) {
-                  // do nothing here
+                  continue;
                 
             } else {
                 // This avoids a crash in Safari v9.0 with double-ids.
