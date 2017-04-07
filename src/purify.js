@@ -604,6 +604,13 @@
                 if (attributes.indexOf(idAttr) > l) {
                     currentNode.setAttribute('id', idAttr.value);
                 }
+            } else if (
+                  // This works around a bug in Safari, where input[type=file] 
+                  // cannot be dynamically changed after type has been removed
+                  currentNode.nodeName === 'INPUT' && lcName === 'type' && 
+                  value === 'file' && (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])) {
+                  // do nothing here
+                
             } else {
                 // This avoids a crash in Safari v9.0 with double-ids.
                 // The trick is to first set the id to be empty and then to
