@@ -21,7 +21,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.8.5';
+    DOMPurify.version = '0.8.6';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -394,10 +394,6 @@
         if (FORCE_BODY) {
             dirty = '<remove></remove>' + dirty;
         }
-
-        try {
-            doc = new DOMParser().parseFromString(dirty, 'text/html');
-        } catch (e) {}
 
         /* Some browsers throw, some browsers return null for the code above
            DOMParser with text/html support is only in very recent browsers.
