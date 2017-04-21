@@ -45,7 +45,6 @@
     var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
     var Comment = window.Comment;
-    var DOMParser = window.DOMParser;
 
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
@@ -388,16 +387,13 @@
      * @return a DOM, filled with the dirty markup
      */
     var _initDocument = function(dirty) {
-        /* Create a HTML document using DOMParser */
+        /* Create a HTML document */
         var doc, body;
         
         if (FORCE_BODY) {
             dirty = '<remove></remove>' + dirty;
         }
 
-        /* Some browsers throw, some browsers return null for the code above
-           DOMParser with text/html support is only in very recent browsers.
-           See #159 why the check here is extra-thorough */
         if (!doc || !doc.documentElement) {
             doc = implementation.createHTMLDocument('');
             body = doc.body;
