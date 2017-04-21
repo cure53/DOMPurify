@@ -84,14 +84,22 @@ module.exports = function(config) {
         browser: 'firefox',
         os_version: 'Yosemite'
       },
-      bs_yosemite_safari_8: {
+      bs_sierra_safari_10: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'OS X',
+        browser_version: '10.0',
+        browser: 'safari',
+        os_version: 'Sierra'
+      },
+      bs_yosemite_safari_9: {
         base: 'BrowserStack',
         device: null,
         os: 'OS X',
         browser_version: '8.0',
         browser: 'safari',
         os_version: 'Yosemite'
-      },
+      },      
       bs_win81_opera_31: {
         base: 'BrowserStack',
         device: null,
@@ -132,6 +140,14 @@ module.exports = function(config) {
         browser: 'edge',
         os_version: '10'
       },
+      bs_win10_edge_14: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '14.0',
+        browser: 'edge',
+        os_version: '10'
+      },      
       bs_win10_firefox_46: {
         base: 'BrowserStack',
         device: null,
@@ -140,11 +156,27 @@ module.exports = function(config) {
         browser: 'firefox',
         os_version: '10'
       },
+      bs_win10_firefox_52: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '52.0',
+        browser: 'firefox',
+        os_version: '10'
+      },      
       bs_win10_chrome_50: {
         base: 'BrowserStack',
         device: null,
         os: 'Windows',
         browser_version: '50.0',
+        browser: 'chrome',
+        os_version: '10'
+      },
+      bs_win10_chrome_57: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '57.0',
         browser: 'chrome',
         os_version: '10'
       }
@@ -156,13 +188,17 @@ module.exports = function(config) {
       'bs_mavericks_chrome_44',
       'bs_yosemite_firefox_40',
       'bs_yosemite_safari_8',
+      'bs_sierra_safari_10',
       'bs_win81_opera_31',
       'bs_win7_firefox_20',
       'bs_win7_firefox_15',
       'bs_win81_chrome_22',
       'bs_win10_edge_13',
+      'bs_win10_edge_14',
       'bs_win10_firefox_46',
-      'bs_win10_chrome_50'
+      'bs_win10_firefox_52',
+      'bs_win10_chrome_50',
+      'bs_win10_chrome_57'
     ],
 
     browserDisconnectTimeout: 10000,
