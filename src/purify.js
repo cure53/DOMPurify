@@ -262,7 +262,7 @@
 
     /* Tags to ignore content of when KEEP_CONTENT is true */
     var FORBID_CONTENTS = _addToSet({}, [
-        'audio', 'head', 'math', 'script', 'style', 'svg', 'video'
+        'audio', 'head', 'math', 'script', 'style', 'template', 'svg', 'video'
     ]);
 
     /* Tags that are safe for data: URIs */
