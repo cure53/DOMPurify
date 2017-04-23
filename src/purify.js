@@ -236,7 +236,7 @@
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
-    /* Decide if all elements (e.g. style, script) must be children of 
+    /* Decide if all elements (e.g. style, script) must be children of
      * document.body. By default, browsers might move them to document.head */
     var FORCE_BODY = false;
 
@@ -597,12 +597,12 @@
                     currentNode.setAttribute('id', idAttr.value);
                 }
             } else if (
-                  // This works around a bug in Safari, where input[type=file] 
+                  // This works around a bug in Safari, where input[type=file]
                   // cannot be dynamically set after type has been removed
-                  currentNode.nodeName === 'INPUT' && lcName === 'type' && 
+                  currentNode.nodeName === 'INPUT' && lcName === 'type' &&
                   value === 'file' && (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])) {
                   continue;
-                
+
             } else {
                 // This avoids a crash in Safari v9.0 with double-ids.
                 // The trick is to first set the id to be empty and then to
