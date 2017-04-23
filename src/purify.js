@@ -594,11 +594,10 @@
                   currentNode.nodeName === 'INPUT' && lcName === 'type' &&
                   value === 'file' && (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])) {
                   continue;
-
             } else {
                 // This avoids a crash in Safari v9.0 with double-ids.
                 // The trick is to first set the id to be empty and then to
-                // remove the attriubute
+                // remove the attribute
                 if (name === 'id') {
                     currentNode.setAttribute(name, '');
                 }
