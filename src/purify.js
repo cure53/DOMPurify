@@ -45,6 +45,9 @@
     var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
     var Comment = window.Comment;
+    var DOMParser = window.DOMParser;
+    var safari = (window.safari && 
+        typeof window.safari.pushNotification === 'object') || false;
 
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
@@ -391,11 +394,18 @@
             dirty = '<remove></remove>' + dirty;
         }
 
-        /* Create a HTML document */
-        var doc = implementation.createHTMLDocument('');
-        var body = doc.body;
-        body.parentNode.removeChild(body.parentNode.firstElementChild);
-        body.outerHTML = dirty;
+        if (!safari) {
+            try {
+                doc = new DOMParser().parseFromString(dirty, 'text/html');
+            } catch (e) {}
+        }
+
+        if (!doc || !doc.documentElement) {
+            doc = implementation.createHTMLDocument('');
+            body = doc.body;
+            body.parentNode.removeChild(body.parentNode.firstElementChild);
+            body.outerHTML = dirty;
+        }
 
         /* Work on whole document or just its body */
         return getElementsByTagName.call(doc,
