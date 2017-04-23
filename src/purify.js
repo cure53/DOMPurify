@@ -387,25 +387,17 @@
      * @return a DOM, filled with the dirty markup
      */
     var _initDocument = function(dirty) {
-        /* Create a HTML document */
-        var doc, body;
-        
         if (FORCE_BODY) {
             dirty = '<remove></remove>' + dirty;
         }
 
-        if (!doc || !doc.documentElement) {
-            doc = implementation.createHTMLDocument('');
-            body = doc.body;
-            body.parentNode.removeChild(body.parentNode.firstElementChild);
-            body.outerHTML = dirty;
-        }
+        /* Create a HTML document */
+        var doc = implementation.createHTMLDocument('');
+        var body = doc.body;
+        body.parentNode.removeChild(body.parentNode.firstElementChild);
+        body.outerHTML = dirty;
 
         /* Work on whole document or just its body */
-        if (typeof doc.getElementsByTagName === 'function') {
-            return doc.getElementsByTagName(
-                WHOLE_DOCUMENT ? 'html' : 'body')[0];
-        }
         return getElementsByTagName.call(doc,
             WHOLE_DOCUMENT ? 'html' : 'body')[0];
     };
