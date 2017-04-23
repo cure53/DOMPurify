@@ -392,17 +392,20 @@
     var _initDocument = function(dirty) {
         /* Create a HTML document */
         var doc, body;
-        
+
+        /* Fill body with bogus element */
         if (FORCE_BODY) {
             dirty = '<remove></remove>' + dirty;
         }
 
+        /* Avoid DOMParser when Safari is used */
         if (!safari) {
             try {
                 doc = new DOMParser().parseFromString(dirty, 'text/html');
             } catch (e) {}
         }
 
+        /* Fallback if DOMParser is unsuitable */
         if (!doc || !doc.documentElement) {
             doc = implementation.createHTMLDocument('');
             body = doc.body;
