@@ -784,7 +784,7 @@
                 /* Node is already a body, use as is */
                 body = importedNode;
             } else {
-                body.appendChild( importedNode );
+                body.appendChild(importedNode);
             }
         } else {
             /* Exit directly if we have nothing to do */
