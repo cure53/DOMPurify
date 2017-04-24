@@ -46,8 +46,7 @@
     var Text = window.Text;
     var Comment = window.Comment;
     var DOMParser = window.DOMParser;
-    var safari = (window.safari && 
-        typeof window.safari.pushNotification === 'object') || false;
+    var useDOMParser = false; // See comment below
 
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
@@ -398,14 +397,15 @@
             dirty = '<remove></remove>' + dirty;
         }
 
-        /* Avoid DOMParser when Safari is used */
-        if (!safari) {
+        /* Use DOMParser to workaround Firefox bug (see comment below) */
+        if (useDOMParser) {
             try {
                 doc = new DOMParser().parseFromString(dirty, 'text/html');
             } catch (e) {}
         }
 
-        /* Fallback if DOMParser is unsuitable */
+        /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
+           Safari (see comment below) */
         if (!doc || !doc.documentElement) {
             doc = implementation.createHTMLDocument('');
             body = doc.body;
@@ -417,6 +417,28 @@
         return getElementsByTagName.call(doc,
             WHOLE_DOCUMENT ? 'html' : 'body')[0];
     };
+
+    // Safari 10.1+ (unfixed as of time of writing) has a catastrophic bug in
+    // its implementation of DOMParser such that the following executes the
+    // JavaScript:
+    //
+    // new DOMParser()
+    //   .parseFromString('<svg onload=alert(document.domain)>', 'text/html');
+    //
+    // However, Firefox uses a different parser for innerHTML rather than
+    // DOMParser (see https://bugzilla.mozilla.org/show_bug.cgi?id=1205631)
+    // which means that you *must* use DOMParser, otherwise the output may
+    // not be safe if used in a document.write context later.
+    //
+    // So we feature detect the Firefox bug and use the DOMParser if necessary.
+    if (DOMPurify.isSupported) {
+        (function () {
+            var doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=alert(1)//">');
+            if (doc.getElementsByTagName('img')[0].hasAttribute('onerror')) {
+                useDOMParser = true;
+            }
+        }());
+    }
 
     /**
      * _createIterator
