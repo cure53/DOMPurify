@@ -260,9 +260,29 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       });
       var dirty = '<div><p>This is a beatufiul text</p><p>This is too</p></div>';
       var modified = '<div><p>foo</p><p>foo</p></div>';
-      assert.equal(modified, DOMPurify.sanitize(dirty));
+      assert.equal(DOMPurify.sanitize(dirty), modified);
       DOMPurify.removeHooks('afterSanitizeElements')
   } );
+  // Test to ensure that a hook can add allowed tags / attributes on the fly
+  QUnit.test( 'ensure that a hook can add allowed tags / attributes on the fly', function(assert) {
+      DOMPurify.addHook('uponSanitizeElement', function(node, data){
+        if(node.nodeName && node.nodeName.match(/^\w+-\w+$/) 
+          && !data.allowedTags[data.tagName]) {
+            data.allowedTags[data.tagName] = true;
+        }
+      });
+      DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
+        if(data.attrName && data.attrName.match(/^\w+-\w+$/) 
+          && !data.allowedAttributes[data.attrName]) {
+            data.allowedAttributes[data.attrName] = true;
+        }
+      });
+      var dirty = '<p>HE<iframe></iframe><is-custom onload="alert(1)" super-custom="test" />LLO</p>';
+      var modified = '<p>HE<is-custom super-custom="test">LLO</is-custom></p>';
+      assert.equal(DOMPurify.sanitize(dirty), modified);
+      DOMPurify.removeHooks('uponSanitizeElement');
+      DOMPurify.removeHooks('uponSanitizeAttribute');
+  } );  
   QUnit.test( 'sanitize() should allow unknown protocols when ALLOW_UNKNOWN_PROTOCOLS is true', function (assert) {
       var dirty = '<div><a href="spotify:track:12345"><img src="cid:1234567"></a></div>';
       assert.equal(dirty, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));
@@ -356,4 +376,49 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_JQUERY: true});
       assert.equal(DOMPurify.removed.length, 0);
   } );
+  // Tests to make sure that the node scanning feature delivers acurate results on all browsers
+  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 1', function (assert) {
+      var clean = DOMPurify.sanitize(document.createElement('td'));
+      assert.equal(clean, "<td></td>");
+  } );
+  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 2', function (assert) {
+      var clean = DOMPurify.sanitize(document.createElement('td'), {RETURN_DOM: true});
+      assert.equal(clean.outerHTML, "<body><td></td></body>");
+  } );
+  // Test to make sure that URI_safe attributes can be configured too
+  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 2', function (assert) {
+      var clean = DOMPurify.sanitize('<b typeof="bla:h">123</b>', {ALLOWED_ATTR: ['typeof'], ADD_URI_SAFE_ATTR: ['typeof']});
+      assert.equal(clean, "<b typeof=\"bla:h\">123</b>");
+  } );
+  // Test to make sure that empty HTML doesn't return null on MSIE11 (#198)
+  QUnit.test( 'Empty HTML shouldn\'t return null on MSIE11 in RETURN_DOM_FRAGMENT mode', function (assert) {
+      var clean = DOMPurify.sanitize('', {RETURN_DOM: true, RETURN_DOM_FRAGMENT: true});
+      assert.equal(typeof clean, "object");
+  } );
+  // Tests to make sure that FORCE_BODY pushes elements to document.body (#199)
+  QUnit.test( 'FORCE_BODY needs to push some elements to document.body', function (assert) {
+      var clean = DOMPurify.sanitize('<style>123</style>', {FORCE_BODY: true});
+      assert.equal(clean, "<style>123</style>");
+  } );
+  QUnit.test( 'FORCE_BODY needs to push some elements to document.body', function (assert) {
+      var clean = DOMPurify.sanitize('<script>123</script>', {FORCE_BODY: true, ADD_TAGS: ['script']});
+      assert.equal(clean, "<script>123</script>");
+  } );
+  QUnit.test( 'FORCE_BODY needs to push some elements to document.body', function (assert) {
+      var clean = DOMPurify.sanitize(' AAAAA', {FORCE_BODY: true});
+      assert.equal(clean, " AAAAA");
+  } );
+  QUnit.test( 'Lack of FORCE_BODY needs to push some elements to document.head', function (assert) {
+      var clean = DOMPurify.sanitize('<style>123</style>', {FORCE_BODY: false});
+      assert.equal(clean, "");
+  } );
+  // Test to make sure that ALLOW_ARIA_ATTR is working as expected (#198)
+  QUnit.test( 'Config-Flag tests: ALLOW_ARIA_ATTR', function(assert) {
+      assert.contains( DOMPurify.sanitize( "<a aria-abc=\"foo\" href=\"#\">abc</a>", {ALLOW_ARIA_ATTR: true}), 
+          ["<a aria-abc=\"foo\" href=\"#\">abc</a>", "<a href=\"#\" aria-abc=\"foo\">abc</a>"] 
+      );
+      assert.equal( DOMPurify.sanitize( '<a href="#" aria-aöü="foo">abc</a>', {ALLOW_ARIA_ATTR: true}), '<a href="#">abc</a>' );
+      assert.equal( DOMPurify.sanitize( '<a href="#" aria-abc="foo">abc</a>', {ALLOW_ARIA_ATTR: false}), "<a href=\"#\">abc</a>" );
+      assert.equal( DOMPurify.sanitize( '<a href="#" aria-äöü="foo">abc</a>', {ALLOW_ARIA_ATTR: false}), "<a href=\"#\">abc</a>" );
+  });
 }

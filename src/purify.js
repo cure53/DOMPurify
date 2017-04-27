@@ -20,7 +20,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.8.3';
+    DOMPurify.version = '0.8.7';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -39,11 +39,13 @@
     var originalDocument = document;
     var DocumentFragment = window.DocumentFragment;
     var HTMLTemplateElement = window.HTMLTemplateElement;
+    var Node = window.Node;
     var NodeFilter = window.NodeFilter;
     var NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap;
     var Text = window.Text;
     var Comment = window.Comment;
     var DOMParser = window.DOMParser;
+    var useDOMParser = false; // See comment below
 
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
@@ -157,7 +159,7 @@
         'hreflang','id','ismap','label','lang','list','loop', 'low','max',
         'maxlength','media','method','min','multiple','name','noshade','novalidate',
         'nowrap','open','optimum','pattern','placeholder','poster','preload','pubdate',
-        'radiogroup','readonly','rel','required','rev','reversed','rows',
+        'radiogroup','readonly','rel','required','rev','reversed','role','rows',
         'rowspan','spellcheck','scope','selected','shape','size','span',
         'srclang','start','src','step','style','summary','tabindex','title',
         'type','usemap','valign','value','width','xmlns',
@@ -211,6 +213,9 @@
     /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
     var FORBID_ATTR = null;
 
+    /* Decide if ARIA attributes are okay */
+    var ALLOW_ARIA_ATTR = true;
+
     /* Decide if custom data attributes are okay */
     var ALLOW_DATA_ATTR = true;
 
@@ -231,6 +236,10 @@
 
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
+
+    /* Decide if all elements (e.g. style, script) must be children of
+     * document.body. By default, browsers might move them to document.head */
+    var FORCE_BODY = false;
 
     /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
      * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
@@ -254,12 +263,12 @@
 
     /* Tags to ignore content of when KEEP_CONTENT is true */
     var FORBID_CONTENTS = _addToSet({}, [
-        'audio', 'head', 'math', 'script', 'style', 'svg', 'video'
+        'audio', 'head', 'math', 'script', 'style', 'template', 'svg', 'video'
     ]);
 
     /* Tags that are safe for data: URIs */
     var DATA_URI_TAGS = _addToSet({}, [
-        'audio', 'video', 'img', 'source'
+        'audio', 'video', 'img', 'source', 'image'
     ]);
 
     /* Attributes safe for values like "javascript:" */
@@ -296,6 +305,7 @@
             _addToSet({}, cfg.FORBID_TAGS) : {};
         FORBID_ATTR = 'FORBID_ATTR' in cfg ?
             _addToSet({}, cfg.FORBID_ATTR) : {};
+        ALLOW_ARIA_ATTR     = cfg.ALLOW_ARIA_ATTR     !== false; // Default true
         ALLOW_DATA_ATTR     = cfg.ALLOW_DATA_ATTR     !== false; // Default true
         ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
         SAFE_FOR_JQUERY     = cfg.SAFE_FOR_JQUERY     ||  false; // Default false
@@ -304,6 +314,7 @@
         RETURN_DOM          = cfg.RETURN_DOM          ||  false; // Default false
         RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT ||  false; // Default false
         RETURN_DOM_IMPORT   = cfg.RETURN_DOM_IMPORT   ||  false; // Default false
+        FORCE_BODY          = cfg.FORCE_BODY          ||  false; // Default false
         SANITIZE_DOM        = cfg.SANITIZE_DOM        !== false; // Default true
         KEEP_CONTENT        = cfg.KEEP_CONTENT        !== false; // Default true
 
@@ -327,6 +338,9 @@
                 ALLOWED_ATTR = _cloneObj(ALLOWED_ATTR);
             }
             _addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
+        }
+        if (cfg.ADD_URI_SAFE_ATTR) {
+            _addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
         }
 
         /* Add #text in case KEEP_CONTENT is set to true */
@@ -374,15 +388,23 @@
      * @return a DOM, filled with the dirty markup
      */
     var _initDocument = function(dirty) {
-        /* Create a HTML document using DOMParser */
+        /* Create a HTML document */
         var doc, body;
-        try {
-            doc = new DOMParser().parseFromString(dirty, 'text/html');
-        } catch (e) {}
 
-        /* Some browsers throw, some browsers return null for the code above
-           DOMParser with text/html support is only in very recent browsers.
-           See #159 why the check here is extra-thorough */
+        /* Fill body with bogus element */
+        if (FORCE_BODY) {
+            dirty = '<remove></remove>' + dirty;
+        }
+
+        /* Use DOMParser to workaround Firefox bug (see comment below) */
+        if (useDOMParser) {
+            try {
+                doc = new DOMParser().parseFromString(dirty, 'text/html');
+            } catch (e) {}
+        }
+
+        /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
+           Safari (see comment below) */
         if (!doc || !doc.documentElement) {
             doc = implementation.createHTMLDocument('');
             body = doc.body;
@@ -391,13 +413,31 @@
         }
 
         /* Work on whole document or just its body */
-        if (typeof doc.getElementsByTagName === 'function') {
-            return doc.getElementsByTagName(
-                WHOLE_DOCUMENT ? 'html' : 'body')[0];
-        }
         return getElementsByTagName.call(doc,
             WHOLE_DOCUMENT ? 'html' : 'body')[0];
     };
+
+    // Safari 10.1+ (unfixed as of time of writing) has a catastrophic bug in
+    // its implementation of DOMParser such that the following executes the
+    // JavaScript:
+    //
+    // new DOMParser()
+    //   .parseFromString('<svg onload=alert(document.domain)>', 'text/html');
+    //
+    // However, Firefox uses a different parser for innerHTML rather than
+    // DOMParser (see https://bugzilla.mozilla.org/show_bug.cgi?id=1205631)
+    // which means that you *must* use DOMParser, otherwise the output may
+    // not be safe if used in a document.write context later.
+    //
+    // So we feature detect the Firefox bug and use the DOMParser if necessary.
+    if (DOMPurify.isSupported) {
+        (function () {
+            var doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=alert(1)//">');
+            if (doc.getElementsByTagName('img')[0].hasAttribute('onerror')) {
+                useDOMParser = true;
+            }
+        }());
+    }
 
     /**
      * _createIterator
@@ -439,6 +479,20 @@
     };
 
     /**
+     * _isNode
+     *
+     * @param object to check whether it's a DOM node
+     * @return true is object is a DOM node
+     */
+    var _isNode = function(obj) {
+        return (
+            typeof Node === "object" ? obj instanceof Node : obj
+                && typeof obj === "object" && typeof obj.nodeType === "number"
+                && typeof obj.nodeName==="string"
+        );
+    };
+
+    /**
      * _sanitizeElements
      *
      * @protect nodeName
@@ -450,6 +504,7 @@
      */
     var _sanitizeElements = function(currentNode) {
         var tagName, content;
+
         /* Execute a hook if present */
         _executeHook('beforeSanitizeElements', currentNode, null);
 
@@ -464,7 +519,8 @@
 
         /* Execute a hook if present */
         _executeHook('uponSanitizeElement', currentNode, {
-            tagName: tagName
+            tagName: tagName,
+            allowedTags: ALLOWED_TAGS
         });
 
         /* Remove element if anything forbids its presence */
@@ -507,6 +563,7 @@
     };
 
     var DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/;
+    var ARIA_ATTR = /^aria-[\-\w]+$/;
     var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
     var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
     /* This needs to be extensive thanks to Webkit/Blink's behavior */
@@ -536,7 +593,8 @@
         hookEvent = {
             attrName: '',
             attrValue: '',
-            keepAttr: true
+            keepAttr: true,
+            allowedAttributes: ALLOWED_ATTR
         };
         l = attributes.length;
 
@@ -544,7 +602,7 @@
         while (l--) {
             attr = attributes[l];
             name = attr.name;
-            value = attr.value;
+            value = attr.value.trim();
             lcName = name.toLowerCase();
 
             /* Execute a hook if present */
@@ -567,10 +625,16 @@
                 if (attributes.indexOf(idAttr) > l) {
                     currentNode.setAttribute('id', idAttr.value);
                 }
+            } else if (
+                  // This works around a bug in Safari, where input[type=file]
+                  // cannot be dynamically set after type has been removed
+                  currentNode.nodeName === 'INPUT' && lcName === 'type' &&
+                  value === 'file' && (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])) {
+                  continue;
             } else {
                 // This avoids a crash in Safari v9.0 with double-ids.
                 // The trick is to first set the id to be empty and then to
-                // remove the attriubute
+                // remove the attribute
                 if (name === 'id') {
                     currentNode.setAttribute(name, '');
                 }
@@ -602,6 +666,9 @@
             if (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) {
                 // This attribute is safe
             }
+            else if (ALLOW_ARIA_ATTR && ARIA_ATTR.test(lcName)) {
+                // This attribute is safe
+            }
             /* Otherwise, check the name is permitted */
             else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
                 continue;
@@ -615,9 +682,9 @@
             else if (IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE,''))) {
                 // This attribute is safe
             }
-            /* Keep image data URIs alive if src is allowed */
+            /* Keep image data URIs alive if src/xlink:href is allowed */
             else if (
-                lcName === 'src' &&
+                (lcName === 'src' || lcName === 'xlink:href') &&
                 value.indexOf('data:') === 0 &&
                 DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]) {
                 // This attribute is safe
@@ -704,20 +771,20 @@
      * sanitize
      * Public method providing core sanitation functionality
      *
-     * @param {String} dirty string
+     * @param {String|Node} dirty string or DOM node
      * @param {Object} configuration object
      */
     DOMPurify.sanitize = function(dirty, cfg) {
-        var body, currentNode, oldNode, nodeIterator, returnNode;
+        var body, importedNode, currentNode, oldNode, nodeIterator, returnNode;
         /* Make sure we have a string to sanitize.
            DO NOT return early, as this will return the wrong type if
            the user has requested a DOM object rather than a string */
         if (!dirty) {
-            dirty = '';
+            dirty = '<!-->';
         }
 
         /* Stringify, in case dirty is an object */
-        if (typeof dirty !== 'string') {
+        if (typeof dirty !== 'string' && !_isNode(dirty)) {
             if (typeof dirty.toString !== 'function') {
                 throw new TypeError('toString is not a function');
             } else {
@@ -729,7 +796,11 @@
         if (!DOMPurify.isSupported) {
             if (typeof window.toStaticHTML === 'object'
                 || typeof window.toStaticHTML === 'function') {
-                return window.toStaticHTML(dirty);
+                if (typeof dirty === 'string') {
+                    return window.toStaticHTML(dirty);
+                } else if (_isNode(dirty)) {
+                    return window.toStaticHTML(dirty.outerHTML);
+                }
             }
             return dirty;
         }
@@ -740,17 +811,35 @@
         /* Clean up removed elements */
         DOMPurify.removed = [];
 
-        /* Exit directly if we have nothing to do */
-        if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
-            return dirty;
+        if (dirty instanceof Node) {
+            /* If dirty is a DOM element, append to an empty document to avoid
+               elements being stripped by the parser */
+            body = _initDocument('<!-->');
+            importedNode = body.ownerDocument.importNode(dirty, true);
+            if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+                /* Node is already a body, use as is */
+                body = importedNode;
+            } else {
+                body.appendChild(importedNode);
+            }
+        } else {
+            /* Exit directly if we have nothing to do */
+            if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
+                return dirty;
+            }
+
+            /* Initialize the document to work on */
+            body = _initDocument(dirty);
+
+            /* Check we have a DOM node from the data */
+            if (!body) {
+                return RETURN_DOM ? null : '';
+            }
         }
 
-        /* Initialize the document to work on */
-        body = _initDocument(dirty);
-
-        /* Check we have a DOM node from the data */
-        if (!body) {
-            return RETURN_DOM ? null : '';
+        /* Remove first element node (ours) if FORCE_BODY is set */
+        if (FORCE_BODY) {
+            _forceRemove(body.firstChild);
         }
 
         /* Get node iterator */
