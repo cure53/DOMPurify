@@ -434,7 +434,7 @@
     if (DOMPurify.isSupported) {
         (function () {
             var doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=alert(1)//">');
-            if (doc.getElementsByTagName('img')[0].hasAttribute('onerror')) {
+            if (doc.querySelector('svg img')) {
                 useDOMParser = true;
             }
         }());
