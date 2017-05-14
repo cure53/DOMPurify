@@ -2,6 +2,7 @@
   "scripts": {
     "build-demo": "node scripts/build-demo.js",
     "lint": "xo src/*.js",
+    "format": "prettier --write --trailing-comma all --single-quote 'src/*.js'",
     "amend-build": "scripts/amend-build.sh",
     "prebuild": "rimraf dist/**",
     "build": "npm run build:umd && npm run build:umd:min",
@@ -24,19 +25,30 @@
   "xo": {
     "semicolon": true,
     "space": 2,
+    "extends": [
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ],
     "rules": {
-      "object-curly-spacing": [2, "always", {
-        "arraysInObjects": false
-      }],
-      "arrow-parens": ["error", "always"]
-    },
-    "globals": ["window", "document"]
+      "prettier/prettier": [
+        "error",
+        {
+          "trailingComma": "es5",
+          "singleQuote": true
+        }
+      ]
+   },
+    "globals": ["self", "window"]
   },
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-core": "^6.24.0",
     "babel-loader": "^6.4.1",
     "babel-preset-env": "^1.2.2",
+    "eslint-config-prettier": "^1.7.0",
+    "eslint-plugin-prettier": "^2.0.1",
     "jquery": "^2.2.3",
     "jsdom": "8.x.x",
     "json-loader": "^0.5.4",
@@ -49,6 +61,7 @@
     "karma-json-fixtures-preprocessor": "0.0.6",
     "karma-qunit": "^1.0.0",
     "karma-webpack": "^1.7.0",
+    "prettier": "^1.2.2",
     "pre-commit": "^1.1.2",
     "qunit-parameterize": "^0.4.0",
     "qunit-tap": "^1.5.0",
@@ -56,7 +69,7 @@
     "rimraf": "^2.6.1",
     "webpack": "^2.2.1",
     "webpack-merge": "^4.1.0",
-    "xo": "^0.18.0"
+    "xo": "^0.18.1"
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
