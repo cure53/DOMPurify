@@ -4,7 +4,7 @@
 
 // Test DOMPurify + jsdom using Node.js (version 4 and up)
 const
-    dompurify = require('../dist/purify'),
+    createDOMPurify = require('../dist/purify'),
     jsdom = require('jsdom'),
     testSuite = require('./test-suite'),
     tests = require('./fixtures/expect'),
@@ -36,7 +36,7 @@ jsdom.env({
             console.warn('Unable to load jQuery');
         }
 
-        const DOMPurify = dompurify(window);
+        const DOMPurify = createDOMPurify(window);
         if (!DOMPurify.isSupported) {
             console.error('Unexpected error returned by jsdom.env():', err, err.stack);
             process.exit(1);
