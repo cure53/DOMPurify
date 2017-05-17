@@ -166,6 +166,10 @@ var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 ```
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
 
+## Persistent Configuration
+
+Instead of repeatedly passing the same configuration to `DOMPurify.sanitize`, you can use the `DOMPurify.setConfig` method. Your configuration will persist until your next call to `DOMPurify.setConfig`, or until you invoke `DOMPurify.clearConfig` to reset it. Remember that there is only one active configuration, which means once it is set, all extra configuration parameters passed to `DOMPurify.sanitize` are ignored.
+
 ## Hooks
 
 DOMPurify allows you to augment its functionality by attaching one or more functions with the `DOMPurify.addHook` method to one of the following hooks:

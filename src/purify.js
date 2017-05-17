@@ -238,6 +238,9 @@
     /* Decide if document with <html>... should be returned */
     var WHOLE_DOCUMENT = false;
 
+    /* Track whether config is already set on this instance of DOMPurify. */
+    var SET_CONFIG = false;
+
     /* Decide if all elements (e.g. style, script) must be children of
      * document.body. By default, browsers might move them to document.head */
     var FORCE_BODY = false;
@@ -807,7 +810,9 @@
         }
 
         /* Assign config vars */
-        _parseConfig(cfg);
+        if (!SET_CONFIG) {
+            _parseConfig(cfg);
+        }
 
         /* Clean up removed elements */
         DOMPurify.removed = [];
@@ -896,6 +901,29 @@
         }
 
         return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    };
+
+    /**
+     * setConfig
+     * Public method to set the configuration once
+     *
+     * @param {Object} configuration object
+     * @return void
+     */
+    DOMPurify.setConfig = function(cfg) {
+        _parseConfig(cfg);
+        SET_CONFIG = true;
+    };
+
+    /**
+     * clearConfig
+     * Public method to remove the configuration
+     *
+     * @return void
+     */
+    DOMPurify.clearConfig = function() {
+        CONFIG = null;
+        SET_CONFIG = false;
     };
 
     /**

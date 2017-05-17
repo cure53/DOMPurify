@@ -7,7 +7,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
     .test( 'Sanitization test', function(params, assert) {
         assert.contains( DOMPurify.sanitize( params.payload ), params.expected, 'Payload: ' + params.payload);
     });
-  
+
   // Config-Flag Tests
   QUnit.test( 'Config-Flag tests: KEEP_CONTENT + ALLOWED_TAGS / ALLOWED_ATTR', function(assert) {
       // KEEP_CONTENT + ALLOWED_TAGS / ALLOWED_ATTR
@@ -74,15 +74,15 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a>123{{45{{6}}<b><style><% alert(1)%> %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a> <b><style> </style>456</b></a>" );
       assert.equal( DOMPurify.sanitize( '<a>123{{45}}6}}<b><style><% <%alert(1) %></style>456</b></a>', {SAFE_FOR_TEMPLATES: true}), "<a> <b><style> </style>456</b></a>" );
       assert.equal( DOMPurify.sanitize( '<a>123{{<b>456}}</b><style><% alert(1) %></style>456</a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b> </b><style> </style>456</a>" );
-      assert.contains( DOMPurify.sanitize( '<b>{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}</b>', {SAFE_FOR_TEMPLATES: true}), 
-          ["<b>  </b>", "<b> </b>", "<b> <form><img src=\"x\"></form> </b>"] 
+      assert.contains( DOMPurify.sanitize( '<b>{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}</b>', {SAFE_FOR_TEMPLATES: true}),
+          ["<b>  </b>", "<b> </b>", "<b> <form><img src=\"x\"></form> </b>"]
       );
-      assert.contains( DOMPurify.sanitize( '<b>he{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}ya</b>', {SAFE_FOR_TEMPLATES: true}), 
+      assert.contains( DOMPurify.sanitize( '<b>he{{evil<script>alert(1)</script><form><img src=x name=textContent></form>}}ya</b>', {SAFE_FOR_TEMPLATES: true}),
           ["<b>he  ya</b>", "<b>he </b>", "<b>he <form><img src=\"x\"></form> ya</b>"]
       );
       assert.equal( DOMPurify.sanitize( '<a>123<% <b>456}}</b><style>{{ alert(1) }}</style>456 %></a>', {SAFE_FOR_TEMPLATES: true}), "<a>123 <b> </b><style> </style> </a>" );
       assert.equal( DOMPurify.sanitize( '<a href="}}javascript:alert(1)"></a>', {SAFE_FOR_TEMPLATES: true}), "<a></a>" );
-  }); 
+  });
   QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
       // SANITIZE_DOM
       assert.equal( DOMPurify.sanitize( '<form name="window">', {SANITIZE_DOM: true}), "<form></form>" );
@@ -155,7 +155,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'Test dirty being an array', function(assert) {
       assert.equal( DOMPurify.sanitize( ['<a>123<b>456</b></a>']), "<a>123<b>456</b></a>" );
       assert.equal( DOMPurify.sanitize( ['<img src=', 'x onerror=alert(1)>']), "<img src=\",x\">" );
-  });  
+  });
   // XSS tests: Native DOM methods (alert() should not be called)
   QUnit
     .cases(xssTests)
@@ -195,7 +195,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
             window.xssed = false;
             iframe.parentNode.removeChild(iframe);
         }
-        document.body.appendChild(iframe);  
+        document.body.appendChild(iframe);
   });
   // cross-check that document.write into iframe works properly
   QUnit
@@ -211,7 +211,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
             iframe.parentNode.removeChild(iframe);
         }
         document.body.appendChild(iframe);
-  }); 
+  });
   // Check for isSupported property
   QUnit.test( 'DOMPurify property tests', function(assert) {
       assert.equal( typeof DOMPurify.isSupported, 'boolean' );
@@ -263,16 +263,25 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal(DOMPurify.sanitize(dirty), modified);
       DOMPurify.removeHooks('afterSanitizeElements')
   } );
+  // Tests to ensure that a configuration can be set and cleared
+  QUnit.test( 'ensure that a persistent configuration can be set and cleared', function(assert) {
+      var dirty = '<my-component>abc</my-component>';
+      assert.equal( DOMPurify.sanitize(dirty), "abc");
+      DOMPurify.setConfig({ADD_TAGS: ['my-component']});
+      assert.equal( DOMPurify.sanitize(dirty), '<my-component>abc</my-component>');
+      DOMPurify.clearConfig();
+      assert.equal( DOMPurify.sanitize(dirty), "abc");
+  });
   // Test to ensure that a hook can add allowed tags / attributes on the fly
   QUnit.test( 'ensure that a hook can add allowed tags / attributes on the fly', function(assert) {
       DOMPurify.addHook('uponSanitizeElement', function(node, data){
-        if(node.nodeName && node.nodeName.match(/^\w+-\w+$/) 
+        if(node.nodeName && node.nodeName.match(/^\w+-\w+$/)
           && !data.allowedTags[data.tagName]) {
             data.allowedTags[data.tagName] = true;
         }
       });
       DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
-        if(data.attrName && data.attrName.match(/^\w+-\w+$/) 
+        if(data.attrName && data.attrName.match(/^\w+-\w+$/)
           && !data.allowedAttributes[data.attrName]) {
             data.allowedAttributes[data.attrName] = true;
         }
@@ -282,7 +291,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal(DOMPurify.sanitize(dirty), modified);
       DOMPurify.removeHooks('uponSanitizeElement');
       DOMPurify.removeHooks('uponSanitizeAttribute');
-  } );  
+  } );
   QUnit.test( 'sanitize() should allow unknown protocols when ALLOW_UNKNOWN_PROTOCOLS is true', function (assert) {
       var dirty = '<div><a href="spotify:track:12345"><img src="cid:1234567"></a></div>';
       assert.equal(dirty, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));
@@ -298,7 +307,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var dirty = '<p onFoo="123">HELLO</p>';
       var modified = '<p>HELLO</p>';
       assert.equal(modified, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));
-  } );  
+  } );
 
   // Test 1 to check if the element count in DOMPurify.removed is correct
   QUnit.test( 'DOMPurify.removed should contain one element', function (assert) {
@@ -321,35 +330,35 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal(DOMPurify.removed.length, 1);
   } );
 
-  // Test 4 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode 
+  // Test 4 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode
   QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode', function (assert) {
       var dirty = '<a>123{{456}}</a>';
       DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_TEMPLATES: true});
       assert.equal(DOMPurify.removed.length, 1);
   } );
 
-  // Test 5 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode 
+  // Test 5 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode
   QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode', function (assert) {
       var dirty = '<a>123{{456}}<b>456{{789}}</b></a>';
       DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_TEMPLATES: true});
       assert.equal(DOMPurify.removed.length, 2);
   } );
 
-  // Test 6 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode 
+  // Test 6 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode
   QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode', function (assert) {
       var dirty = '<img src=1 width="{{123}}">';
       DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_TEMPLATES: true});
       assert.equal(DOMPurify.removed.length, 1);
   } );
 
-  // Test 7 to check that DOMPurify.removed is correct in SAFE_FOR_JQUERY mode 
+  // Test 7 to check that DOMPurify.removed is correct in SAFE_FOR_JQUERY mode
   QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_JQUERY mode', function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)<\/script>';
       DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
       assert.equal(DOMPurify.removed.length, 2);
   } );
 
-  // Test 8 to check that DOMPurify.removed is correct if tags are clean 
+  // Test 8 to check that DOMPurify.removed is correct if tags are clean
   QUnit.test( 'DOMPurify.removed should not contain elements if tags are permitted', function (assert) {
       var dirty = '<a>123</a>';
       DOMPurify.sanitize(dirty);
@@ -370,7 +379,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal(DOMPurify.removed.length, 0);
   } );
 
-  // Test 11 to check that DOMPurify.removed does not have false positive elements in SAFE_FOR_JQUERY mode 
+  // Test 11 to check that DOMPurify.removed does not have false positive elements in SAFE_FOR_JQUERY mode
   QUnit.test( 'DOMPurify.removed should not contain elements for valid data in SAFE_FOR_JQUERY mode', function (assert) {
       var dirty = '1';
       DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true, SAFE_FOR_JQUERY: true});
