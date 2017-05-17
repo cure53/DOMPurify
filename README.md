@@ -2,11 +2,11 @@
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
-DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. 
+DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
 It's also very simple to use and get started with.
 
-DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing. 
+DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
 Our automated tests cover [16 different browsers](https://github.com/cure53/DOMPurify/blob/master/test/karma.conf.js#L185) right now. We also cover Node.js v4.0.0, v5.0.0 and v6.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom).
 
@@ -203,6 +203,23 @@ You can further run local tests by executing `npm test`. The tests work fine wit
 
 All relevant commits will be signed with the key `0x24BB6BF4` for additional security (since 8th of April 2016).
 
+### Development and contributing
+
+We rely on npm-run-scripts for integrating with out tooling infrastructure. We use ESLint as a pre-commit hook to ensure code consistency. Morover, to ease formatting we use [prettier](https://github.com/prettier/prettier) while building the `/dist` assets happens through `webpack`.
+
+These are our npm scripts
+
+- `npm test` to run our test suite via jsdom and karma
+  - `test:jsdom` to only run tests through jsdom
+  - `test:karma` to only run tests through karma
+- `npm run lint` to lint the sources using ESLint (via xo)
+- `npm run format` to format our sources using prettier to ease to pass ESLint
+- `npm run build` to build our distribution assets minified and unminified as a UMD module
+  - `npm run build:umd` to only build an unminified UMD module
+  - `npm run build:umd:min` to only build a minified UMD module
+
+There are more npm scripts but they are mainly to integrate with CI or are meant to be "private" for instance to amend build distribution files with every commit.
+
 ## Security Mailing List
 
 We maintain a mailing list that notifies whenever a security-critical release of DOMPurify was published. This means, if someone found a bypass and we fixed it with a release (which always happens when a bypass was found) a mail will go out to that list. This usually happens within minutes or few hours after learning about a bypass. The list can be subscribed to here:
@@ -213,13 +230,13 @@ Feature releases will not be announced to this list.
 
 ## Who contributed?
 
-Several people need to be listed here! 
+Several people need to be listed here!
 
 [@garethheyes](https://twitter.com/garethheyes) and [@filedescriptor](https://twitter.com/filedescriptor) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same.
 
-Big thanks also go to [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)! 
+Big thanks also go to [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)!
 
-Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their code reviews and countless small optimizations, fixes and beautifications. 
+Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their code reviews and countless small optimizations, fixes and beautifications.
 
 Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack. And thanks to [@Joris-van-der-Wel](https://github.com/Joris-van-der-Wel) for setting up DOMPurify for jsdom and creating the additional test suite.
 
