@@ -326,8 +326,8 @@ function createDOMPurify(window = getGlobal()) {
     if (useXHR) {
       try {
         dirty = encodeURI(dirty);
-      } catch (e) {}
-      var xhr = new XMLHttpRequest();
+      } catch (err) {}
+      const xhr = new XMLHttpRequest();
       xhr.responseType = 'document';
       xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
       xhr.send(null);
@@ -375,13 +375,13 @@ function createDOMPurify(window = getGlobal()) {
   if (DOMPurify.isSupported) {
     (function() {
       let doc = _initDocument(
-        '<svg><g onload="this.parentNode.remove()"></g></svg>',
+        '<svg><g onload="this.parentNode.remove()"></g></svg>'
       );
       if (!doc.querySelector('svg')) {
         useXHR = true;
       }
       doc = _initDocument(
-        '<svg><p><style><img src="</style><img src=x onerror=alert(1)//">',
+        '<svg><p><style><img src="</style><img src=x onerror=alert(1)//">'
       );
       if (doc.querySelector('svg img')) {
         useDOMParser = true;
@@ -403,7 +403,7 @@ function createDOMPurify(window = getGlobal()) {
       () => {
         return NodeFilter.FILTER_ACCEPT;
       },
-      false,
+      false
     );
   };
 
