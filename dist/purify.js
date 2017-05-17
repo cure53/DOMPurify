@@ -457,7 +457,7 @@ function createDOMPurify() {
     if (useXHR) {
       try {
         dirty = encodeURI(dirty);
-      } catch (e) {}
+      } catch (err) {}
       var xhr = new XMLHttpRequest();
       xhr.responseType = 'document';
       xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
