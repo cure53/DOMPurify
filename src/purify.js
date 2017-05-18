@@ -452,8 +452,8 @@
     // So we feature detect the Firefox bug and use the DOMParser if necessary.
     if (DOMPurify.isSupported) {
         (function () {
-            var doc  = _initDocument('<svg><g onload="this.remove()"></g></svg>');
-            if (doc.querySelector('svg') && !doc.querySelector('svg g')) {
+            var doc  = _initDocument('<svg><g onload="this.parentNode.remove()"></g></svg>');
+            if (!doc.querySelector('svg')) {
                 useXHR = true;
             }
             doc = _initDocument('<svg><p><style><img src="</style><img src=x>');
