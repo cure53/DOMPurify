@@ -47,6 +47,7 @@
     var Comment = window.Comment;
     var DOMParser = window.DOMParser;
     var XMLHttpRequest = window.XMLHttpRequest;
+    var encodeURI = window.encodeURI;
     var useXHR = false;
     var useDOMParser = false; // See comment below
     
@@ -406,7 +407,7 @@
         if (useXHR) {
             var xhr = new XMLHttpRequest();
             xhr.responseType = 'document';
-            xhr.open('GET', 'data:text/html,' + dirty, false);
+            xhr.open('GET', 'data:text/html;charset=utf-8,' + encodeURI(dirty), false);
             xhr.send(null);
             doc = xhr.response;
         }
