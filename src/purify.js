@@ -453,7 +453,7 @@
     if (DOMPurify.isSupported) {
         (function () {
             var doc  = _initDocument('<svg><g onload="this.remove()"></g></svg>');
-            if (!doc.querySelector('svg g')) {
+            if (doc.querySelector('svg') && !doc.querySelector('svg g')) {
                 useXHR = true;
             }
             doc = _initDocument('<svg><p><style><img src="</style><img src=x>');
