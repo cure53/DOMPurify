@@ -460,7 +460,7 @@
             if (!doc.querySelector('svg')) {
                 useXHR = true;
             }
-            doc = _initDocument('<svg><p><style><img src="</style><img src=x>');
+            doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=alert(1)//">');
             if (doc.querySelector('svg img')) {
                 useDOMParser = true;
             }
