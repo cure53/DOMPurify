@@ -21,7 +21,7 @@
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
      */
-    DOMPurify.version = '0.8.9';
+    DOMPurify.version = '0.9.0';
 
     /**
      * Array of elements that DOMPurify removed during sanitation.
@@ -46,8 +46,10 @@
     var Text = window.Text;
     var Comment = window.Comment;
     var DOMParser = window.DOMParser;
+    var XMLHttpRequest = window.XMLHttpRequest;
+    var useXHR = false;
     var useDOMParser = false; // See comment below
-
+    
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
     // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
@@ -400,6 +402,15 @@
             dirty = '<remove></remove>' + dirty;
         }
 
+        /* Use XHR if necessary because Safari 10.1 and newer are buggy */
+        if (useXHR) {
+            var xhr = new XMLHttpRequest();
+            xhr.responseType = 'document';
+            xhr.open('GET', 'data:text/html,' + dirty, false);
+            xhr.send(null);
+            doc = xhr.response;
+        }
+
         /* Use DOMParser to workaround Firefox bug (see comment below) */
         if (useDOMParser) {
             try {
@@ -428,6 +439,11 @@
     // new DOMParser()
     //   .parseFromString('<svg onload=alert(document.domain)>', 'text/html');
     //
+    // Later, it was also noticed that even more assumed benign and inert ways
+    // of creating a document are now insecure thanks to Safari. So we work 
+    // around that with a feature test and use XHR to create the document in 
+    // case we really have to. That one seems safe for now.
+    //
     // However, Firefox uses a different parser for innerHTML rather than
     // DOMParser (see https://bugzilla.mozilla.org/show_bug.cgi?id=1205631)
     // which means that you *must* use DOMParser, otherwise the output may
@@ -436,7 +452,13 @@
     // So we feature detect the Firefox bug and use the DOMParser if necessary.
     if (DOMPurify.isSupported) {
         (function () {
-            var doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=alert(1)//">');
+            var rand = Math.random() * 1e17;
+            var doc  = _initDocument('<svg><g onload="useXHR' + rand + '=true"></g></svg>');
+            if (window['useXHR'+rand]) {
+                useXHR = true;
+                delete window['useXHR'+rand];
+            }
+            doc = _initDocument('<svg><p><style><img src="</style><img src=x>');
             if (doc.querySelector('svg img')) {
                 useDOMParser = true;
             }
