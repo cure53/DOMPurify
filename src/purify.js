@@ -452,11 +452,9 @@
     // So we feature detect the Firefox bug and use the DOMParser if necessary.
     if (DOMPurify.isSupported) {
         (function () {
-            var rand = Math.random() * 1e17;
-            var doc  = _initDocument('<svg><g onload="useXHR' + rand + '=true"></g></svg>');
-            if (window['useXHR'+rand]) {
+            var doc  = _initDocument('<svg><g onload="this.remove()"></g></svg>');
+            if (!doc.querySelector('svg g')) {
                 useXHR = true;
-                delete window['useXHR'+rand];
             }
             doc = _initDocument('<svg><p><style><img src="</style><img src=x>');
             if (doc.querySelector('svg img')) {
