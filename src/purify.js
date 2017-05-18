@@ -405,9 +405,12 @@
 
         /* Use XHR if necessary because Safari 10.1 and newer are buggy */
         if (useXHR) {
+            try {
+                dirty = encodeURI(dirty);
+            } catch (e) {}
             var xhr = new XMLHttpRequest();
             xhr.responseType = 'document';
-            xhr.open('GET', 'data:text/html;charset=utf-8,' + encodeURI(dirty), false);
+            xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
             xhr.send(null);
             doc = xhr.response;
         }
