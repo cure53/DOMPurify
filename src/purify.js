@@ -14,7 +14,7 @@ function createDOMPurify(window = getGlobal()) {
       * Version label, exposed for easier checks
       * if DOMPurify is up to date or not
       */
-  DOMPurify.version = '0.9.0';
+  DOMPurify.version = VERSION;
 
   /**
     * Array of elements that DOMPurify removed during sanitation.
