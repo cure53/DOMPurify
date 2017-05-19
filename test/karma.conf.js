@@ -1,3 +1,6 @@
+const version = process.env.npm_package_version;
+const rollupConfig = require('../rollup.config.js');
+
 module.exports = function(config) {
   config.set({
     autoWatch: true,
@@ -11,8 +14,8 @@ module.exports = function(config) {
     ],
 
     preprocessors: {
-      'src/**/*.js': ['webpack'],
-      'test/**/*.js': ['webpack']
+      'src/**/*.js': ['rollup'],
+      'test/**/*.js': ['rollup']
     },
 
     reporters: ['progress'],
@@ -26,32 +29,7 @@ module.exports = function(config) {
       accessKey: process.env.BS_ACCESSKEY
     },
 
-    webpack: {
-      plugins: [],
-      devtool: 'inline-source-map',
-      resolve: {
-        alias: {},
-        modulesDirectories: [
-          'test',
-          'src',
-          'dist'
-        ],
-        extensions: ['', '.js', '.json']
-      },
-      externals: {
-        jQuery: 'jQuery'
-      },
-      module: {
-        loaders: [{
-          test: /\.json$/,
-          loader: 'json-loader'
-        }]
-      }
-    },
-
-    webpackMiddleware: {
-      noInfo: true
-    },
+    rollupPreprocessor: rollupConfig,
 
     customLaunchers: {
       bs_win81_ie_11: {
@@ -99,7 +77,7 @@ module.exports = function(config) {
         browser_version: '8.0',
         browser: 'safari',
         os_version: 'Yosemite'
-      },      
+      },
       bs_win81_opera_31: {
         base: 'BrowserStack',
         device: null,
@@ -147,7 +125,7 @@ module.exports = function(config) {
         browser_version: '14.0',
         browser: 'edge',
         os_version: '10'
-      },      
+      },
       bs_win10_firefox_46: {
         base: 'BrowserStack',
         device: null,
@@ -163,7 +141,7 @@ module.exports = function(config) {
         browser_version: '52.0',
         browser: 'firefox',
         os_version: '10'
-      },      
+      },
       bs_win10_chrome_50: {
         base: 'BrowserStack',
         device: null,
@@ -207,7 +185,7 @@ module.exports = function(config) {
     captureTimeout: 240000,
 
     plugins: [
-      'karma-webpack',
+      'karma-rollup-plugin',
       'karma-chrome-launcher',
       'karma-browserstack-launcher',
       'karma-firefox-launcher',
