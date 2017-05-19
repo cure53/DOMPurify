@@ -1,8 +1,0 @@
-echo "# Ensuring ./dist directory exists..."
-
-mkdir -p foo ./dist
-
-echo "# Minifying purify.js using Uglifyjs2..."
-
-./node_modules/.bin/uglifyjs ./src/purify.js -o ./dist/purify.min.js \
-  --mangle --comments --source-map ./dist/purify.min.js.map
