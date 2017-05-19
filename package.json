@@ -41,7 +41,8 @@
       ]
     },
     "globals": [
-      "window"
+      "window",
+      "VERSION"
     ]
   },
   "devDependencies": {

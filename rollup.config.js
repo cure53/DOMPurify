@@ -4,6 +4,7 @@ const replace = require('rollup-plugin-replace');
 const uglify = require('rollup-plugin-uglify');
 
 const env = process.env.NODE_ENV
+const version = process.env.npm_package_version
 
 const config = {
   entry: 'src/purify.js',
@@ -18,7 +19,8 @@ const config = {
       exclude: '**/node_modules/**'
     }),
     replace({
-      'process.env.NODE_ENV': JSON.stringify(env)
+      'process.env.NODE_ENV': JSON.stringify(env),
+      'VERSION': `'${version}'`,
     })
   ]
 }
