@@ -5,13 +5,13 @@
     "format": "prettier --write --trailing-comma es5 --single-quote 'src/*.js'",
     "amend-build": "scripts/amend-build.sh",
     "prebuild": "rimraf dist/**",
-    "build": "npm run build:umd && npm run build:umd:min",
+    "build": "run-p build:* build:umd:*",
     "build:umd": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -o dist/purify.js",
     "build:umd:min": "cross-env NODE_ENV=production BABEL_ENV=rollup rollup -c -o dist/purify.min.js",
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
     "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
     "test:ci": "cross-env NODE_ENV=test npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
-    "test": "npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Firefox,Chrome"
+    "test": "npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Chrome"
   },
   "files": [
     "src",
@@ -65,6 +65,7 @@
     "karma-json-fixtures-preprocessor": "0.0.6",
     "karma-qunit": "^1.0.0",
     "karma-rollup-plugin": "^0.2.4",
+    "npm-run-all": "^4.0.2",
     "pre-commit": "^1.1.2",
     "prettier": "^1.2.2",
     "qunit-parameterize": "^0.4.0",
