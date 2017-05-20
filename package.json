@@ -6,12 +6,12 @@
     "amend-build": "scripts/amend-build.sh",
     "prebuild": "rimraf dist/**",
     "build": "npm run build:umd && npm run build:umd:min",
-    "build:umd": "cross-env BABEL_ENV=rollup NODE_ENV=development rollup -c -o dist/purify.js",
-    "build:umd:min": "cross-env BABEL_ENV=rollup NODE_ENV=production rollup -c -o dist/purify.min.js",
-    "test:jsdom": "node test/jsdom-node-runner --dot",
-    "test:karma": "karma start test/karma.conf.js --log-level warn --single-run",
-    "test:ci": "npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
-    "test": "cross-env BABEL_ENV=rollup NODE_ENV=test npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Firefox,Chrome"
+    "build:umd": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -o dist/purify.js",
+    "build:umd:min": "cross-env NODE_ENV=production BABEL_ENV=rollup rollup -c -o dist/purify.min.js",
+    "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
+    "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
+    "test:ci": "cross-env NODE_ENV=test npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
+    "test": "npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Firefox,Chrome"
   },
   "files": [
     "src",
