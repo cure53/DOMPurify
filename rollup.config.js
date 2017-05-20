@@ -27,7 +27,7 @@ const config = {
   ]
 }
 
-if (env === 'production' || env === 'test') {
+if (env === 'production') {
   config.plugins.push(
     uglify({
       compress: {
