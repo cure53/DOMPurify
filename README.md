@@ -205,7 +205,7 @@ All relevant commits will be signed with the key `0x24BB6BF4` for additional sec
 
 ### Development and contributing
 
-We rely on npm-run-scripts for integrating with out tooling infrastructure. We use ESLint as a pre-commit hook to ensure code consistency. Morover, to ease formatting we use [prettier](https://github.com/prettier/prettier) while building the `/dist` assets happens through `webpack`.
+We rely on npm-run-scripts for integrating with out tooling infrastructure. We use ESLint as a pre-commit hook to ensure code consistency. Morover, to ease formatting we use [prettier](https://github.com/prettier/prettier) while building the `/dist` assets happens through `rollup`.
 
 These are our npm scripts
 
