@@ -92,7 +92,7 @@ module.exports = function(config) {
         browser: 'safari',
         os_version: 'Sierra'
       },
-      bs_yosemite_safari_9: {
+      bs_yosemite_safari_8: {
         base: 'BrowserStack',
         device: null,
         os: 'OS X',
