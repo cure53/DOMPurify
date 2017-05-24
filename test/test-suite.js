@@ -34,7 +34,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
               ["<a href=\"#\" data-äöü=\"foo\">abc</a>", "<a data-äöü=\"foo\" href=\"#\">abc</a>"]
       );
       assert.contains( DOMPurify.sanitize( '<a href="#" data-\u00B7._="foo">abc</a>', {ALLOW_DATA_ATTR: true}),
-              ["<a data-\u00B7._=\"foo\" href=\"#\">abc</a>", "<a href=\"#\">abc</a>"] // IE11 and Edge throw an InvalidCharacterError
+              ["<a data-\u00B7._=\"foo\" href=\"#\">abc</a>", "<a href=\"#\">abc</a>", "<a href=\"#\" data-·._=\"foo\">abc</a>"] // IE11 and Edge throw an InvalidCharacterError
       );
       assert.equal( DOMPurify.sanitize( '<a href="#" data-\u00B5="foo">abc</a>', {ALLOW_DATA_ATTR: true}), "<a href=\"#\">abc</a>" );
   });
