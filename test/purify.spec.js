@@ -1,6 +1,7 @@
-const DOMPurify = require('purify');
-const testSuite = require('test-suite');
-const tests = require('fixtures/expect');
+import DOMPurify from 'purify.min';
+import testSuite from 'test-suite';
+import tests from 'fixtures/expect';
+
 const xssTests = tests.filter( function( element ) {
   if ( /alert/.test( element.payload ) ) { return element; }
 });
