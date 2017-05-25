@@ -10,8 +10,8 @@
     "build:umd:min": "cross-env NODE_ENV=production BABEL_ENV=rollup rollup -c -o dist/purify.min.js",
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
     "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
-    "test:ci": "cross-env NODE_ENV=test npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
-    "test": "npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Chrome"
+    "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
+    "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Chrome"
   },
   "files": [
     "src",
