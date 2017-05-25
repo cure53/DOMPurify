@@ -1,7 +1,9 @@
 sudo: false
 language: node_js
 cache: yarn
-script: npm run test:ci
+script:
+   - 'if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then npm run test:ci:pr; fi'
+   - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then npm run test:ci; fi'
 notifications:
    email: false
 env:
