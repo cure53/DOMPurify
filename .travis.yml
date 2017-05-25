@@ -11,9 +11,9 @@ env:
       - CXX=g++-4.8
 matrix:
    include:
+      - node_js: "4"
       - node_js: "5"
       - node_js: "6"
-      - node_js: "4"
         env: TEST_BROWSERSTACK=true
 addons:
   apt:
