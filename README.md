@@ -6,11 +6,11 @@ DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathM
 
 It's also very simple to use and get started with.
 
-DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on IE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
+DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
-Our automated tests cover [16 different browsers](https://github.com/cure53/DOMPurify/blob/master/test/karma.conf.js#L185) right now. We also cover Node.js v4.0.0, v5.0.0 and v6.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom).
+Our automated tests cover [16 different browsers](https://github.com/cure53/DOMPurify/blob/master/test/karma.conf.js#L163) right now, more to come. We also cover Node.js v4.0.0, v5.0.0 and v6.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom).
 
-DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model)
+DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
 ## What does it do?
 
@@ -232,12 +232,12 @@ Feature releases will not be announced to this list.
 
 Several people need to be listed here!
 
-[@garethheyes](https://twitter.com/garethheyes) and [@filedescriptor](https://twitter.com/filedescriptor) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same.
+[@garethheyes](https://twitter.com/garethheyes) and [@filedescriptor](https://twitter.com/filedescriptor) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same. And lastly, thanks to  @ShikariSenpai and @ansjdnakjdnajkd for spotting the [massive Safari 10.1 bug](https://github.com/cure53/DOMPurify/releases/tag/0.8.6) in the first place.
 
 Big thanks also go to [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)!
 
 Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their code reviews and countless small optimizations, fixes and beautifications.
 
-Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack. And thanks to [@Joris-van-der-Wel](https://github.com/Joris-van-der-Wel) for setting up DOMPurify for jsdom and creating the additional test suite.
+Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack. And thanks to [@Joris-van-der-Wel](https://github.com/Joris-van-der-Wel) for setting up DOMPurify for jsdom and creating the additional test suite. And again [@tdeekens](https://twitter.com/tdeekens) for his [incredible efforts](https://github.com/cure53/DOMPurify/pull/206) and contribution to refactor DOMPurify into using ES201x, proper build tools, better test coverage and much more!
 
 And last but not least, thanks to [BrowserStack](https://browserstack.com) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
