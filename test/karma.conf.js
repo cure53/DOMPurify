@@ -1,5 +1,18 @@
-const version = process.env.npm_package_version;
+const commonjs = require('rollup-plugin-commonjs');
+const includePaths = require('rollup-plugin-includepaths');
 const rollupConfig = require('../rollup.config.js');
+
+const version = process.env.npm_package_version;
+
+rollupConfig.plugins.push(
+  commonjs(),
+  includePaths({
+    include: {
+      'purify': 'dist/purify.js',
+      'purify.min': 'dist/purify.min.js'
+    }
+  })
+);
 
 module.exports = function(config) {
   config.set({
