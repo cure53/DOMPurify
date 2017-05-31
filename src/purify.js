@@ -957,4 +957,4 @@ function createDOMPurify(window = getGlobal()) {
   return DOMPurify;
 }
 
-module.exports = createDOMPurify();
+export default createDOMPurify();
