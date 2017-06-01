@@ -11,7 +11,7 @@ const config = {
   external: [],
   globals: {},
   format: 'umd',
-  moduleName: 'purify',
+  moduleName: 'DOMPurify',
   sourceMap: true,
   plugins: [
     nodeResolve(),
