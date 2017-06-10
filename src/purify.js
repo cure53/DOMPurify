@@ -32,7 +32,7 @@ function createDOMPurify(window = getGlobal()) {
 
   const originalDocument = window.document;
   let useDOMParser = false; // See comment below
-  let useXHR = false;
+  let useXHR = true;
 
   let document = window.document;
   const {
@@ -375,9 +375,9 @@ function createDOMPurify(window = getGlobal()) {
   if (DOMPurify.isSupported) {
     (function() {
       let doc = _initDocument(
-        '<svg><g onload="this.parentNode.remove()"></g></svg>'
+        '<audio><source onerror="this.parentNode.remove()"></source></audio>'
       );
-      if (!doc.querySelector('svg')) {
+      if (!doc.querySelector('audio')) {
         useXHR = true;
       }
       doc = _initDocument(
