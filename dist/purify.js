@@ -85,7 +85,7 @@ function createDOMPurify() {
 
   var originalDocument = window.document;
   var useDOMParser = false; // See comment below
-  var useXHR = false;
+  var useXHR = true;
 
   var document = window.document;
   var DocumentFragment = window.DocumentFragment,
@@ -335,11 +335,13 @@ function createDOMPurify() {
       try {
         dirty = encodeURI(dirty);
       } catch (err) {}
-      var xhr = new XMLHttpRequest();
-      xhr.responseType = 'document';
-      xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
-      xhr.send(null);
-      doc = xhr.response;
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.responseType = 'document';
+        xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
+        xhr.send(null);
+        doc = xhr.response;
+      } catch (err) {}
     }
 
     /* Use DOMParser to workaround Firefox bug (see comment below) */
