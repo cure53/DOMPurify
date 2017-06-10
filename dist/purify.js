@@ -84,6 +84,8 @@ function createDOMPurify() {
   }
 
   var originalDocument = window.document;
+  var useDOMParser = false; // See comment below
+  var useXHR = false;
 
   var document = window.document;
   var DocumentFragment = window.DocumentFragment,
@@ -94,10 +96,11 @@ function createDOMPurify() {
       NamedNodeMap = _window$NamedNodeMap === undefined ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
       Text = window.Text,
       Comment = window.Comment,
-      _window$encodeURI = window.encodeURI,
-      encodeURI = _window$encodeURI === undefined ? window.encodeURI : _window$encodeURI,
+      DOMParser = window.DOMParser,
       _window$XMLHttpReques = window.XMLHttpRequest,
-      XMLHttpRequest = _window$XMLHttpReques === undefined ? window.XMLHttpRequest : _window$XMLHttpReques;
+      XMLHttpRequest = _window$XMLHttpReques === undefined ? window.XMLHttpRequest : _window$XMLHttpReques,
+      _window$encodeURI = window.encodeURI,
+      encodeURI = _window$encodeURI === undefined ? window.encodeURI : _window$encodeURI;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -327,8 +330,8 @@ function createDOMPurify() {
       dirty = '<remove></remove>' + dirty;
     }
 
-    /* Use XHR as it's the safest way to create a document */
-    try {
+    /* Use XHR if necessary because Safari 10.1 and newer are buggy */
+    if (useXHR) {
       try {
         dirty = encodeURI(dirty);
       } catch (err) {}
@@ -337,10 +340,17 @@ function createDOMPurify() {
       xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
       xhr.send(null);
       doc = xhr.response;
-    } catch (err) {}
+    }
 
-    /* Otherwise use createHTMLDocument, 
-     * because jsdom and XHR don't play well together */
+    /* Use DOMParser to workaround Firefox bug (see comment below) */
+    if (useDOMParser) {
+      try {
+        doc = new DOMParser().parseFromString(dirty, 'text/html');
+      } catch (err) {}
+    }
+
+    /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
+    Safari (see comment below) */
     if (!doc || !doc.documentElement) {
       doc = implementation.createHTMLDocument('');
       body = doc.body;
@@ -351,6 +361,37 @@ function createDOMPurify() {
     /* Work on whole document or just its body */
     return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
   };
+
+  // Safari 10.1+ (unfixed as of time of writing) has a catastrophic bug in
+  // its implementation of DOMParser such that the following executes the
+  // JavaScript:
+  //
+  // new DOMParser()
+  //   .parseFromString('<svg onload=alert(document.domain)>', 'text/html');
+  //
+  // Later, it was also noticed that even more assumed benign and inert ways
+  // of creating a document are now insecure thanks to Safari. So we work
+  // around that with a feature test and use XHR to create the document in
+  // case we really have to. That one seems safe for now.
+  //
+  // However, Firefox uses a different parser for innerHTML rather than
+  // DOMParser (see https://bugzilla.mozilla.org/show_bug.cgi?id=1205631)
+  // which means that you *must* use DOMParser, otherwise the output may
+  // not be safe if used in a document.write context later.
+  //
+  // So we feature detect the Firefox bug and use the DOMParser if necessary.
+  if (DOMPurify.isSupported) {
+    (function () {
+      var doc = _initDocument('<svg><g onload="this.parentNode.remove()"></g></svg>');
+      if (!doc.querySelector('svg')) {
+        useXHR = true;
+      }
+      doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=alert(1)//">');
+      if (doc.querySelector('svg img')) {
+        useDOMParser = true;
+      }
+    })();
+  }
 
   /**
   * _createIterator
