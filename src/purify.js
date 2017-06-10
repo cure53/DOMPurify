@@ -66,6 +66,7 @@ function createDOMPurify(window = getGlobal()) {
   } = document;
   const importNode = originalDocument.importNode;
 
+  let canXHR = false;
   let hooks = {};
 
   /**
@@ -319,17 +320,21 @@ function createDOMPurify(window = getGlobal()) {
       dirty = '<remove></remove>' + dirty;
     }
 
-    /* Use XHR as it's the safest way to create a document */
+    /* Try XHR as it's the safest way to create a document */
+    const xhr = new XMLHttpRequest();
     try {
+      xhr.open('GET', 'data:text/html;charset=utf-8,<html />', false);
+      canXHR = true;
+    } catch (err) {}
+    if (canXHR) {
       try {
         dirty = encodeURI(dirty);
       } catch (err) {}
-      const xhr = new XMLHttpRequest();
-      xhr.responseType = 'document';
       xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
+      xhr.responseType = 'document';
       xhr.send(null);
       doc = xhr.response;
-    } catch (err) {}
+    }
 
     /* Otherwise use createHTMLDocument, 
      * because jsdom and XHR don't play well together */

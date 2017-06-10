@@ -94,6 +94,8 @@ function createDOMPurify() {
       NamedNodeMap = _window$NamedNodeMap === undefined ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
       Text = window.Text,
       Comment = window.Comment,
+      _window$encodeURI = window.encodeURI,
+      encodeURI = _window$encodeURI === undefined ? window.encodeURI : _window$encodeURI,
       _window$XMLHttpReques = window.XMLHttpRequest,
       XMLHttpRequest = _window$XMLHttpReques === undefined ? window.XMLHttpRequest : _window$XMLHttpReques;
 
@@ -327,6 +329,9 @@ function createDOMPurify() {
 
     /* Use XHR as it's the safest way to create a document */
     try {
+      try {
+        dirty = encodeURI(dirty);
+      } catch (err) {}
       var xhr = new XMLHttpRequest();
       xhr.responseType = 'document';
       xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
