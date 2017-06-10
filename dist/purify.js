@@ -85,7 +85,7 @@ function createDOMPurify() {
 
   var originalDocument = window.document;
   var useDOMParser = false; // See comment below
-  var useXHR = true;
+  var useXHR = false;
 
   var document = window.document;
   var DocumentFragment = window.DocumentFragment,

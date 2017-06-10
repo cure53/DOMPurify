@@ -32,7 +32,7 @@ function createDOMPurify(window = getGlobal()) {
 
   const originalDocument = window.document;
   let useDOMParser = false; // See comment below
-  let useXHR = false;
+  let useXHR = true;
 
   let document = window.document;
   const {
@@ -327,11 +327,13 @@ function createDOMPurify(window = getGlobal()) {
       try {
         dirty = encodeURI(dirty);
       } catch (err) {}
-      const xhr = new XMLHttpRequest();
-      xhr.responseType = 'document';
-      xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
-      xhr.send(null);
-      doc = xhr.response;
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.responseType = 'document';
+        xhr.open('GET', 'data:text/html;charset=utf-8,' + dirty, false);
+        xhr.send(null);
+        doc = xhr.response;
+      } catch (err) {}
     }
 
     /* Use DOMParser to workaround Firefox bug (see comment below) */
