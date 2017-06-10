@@ -85,7 +85,7 @@ function createDOMPurify() {
 
   var originalDocument = window.document;
   var useDOMParser = false; // See comment below
-  var useXHR = false;
+  var useXHR = true;
 
   var document = window.document;
   var DocumentFragment = window.DocumentFragment,
@@ -382,8 +382,8 @@ function createDOMPurify() {
   // So we feature detect the Firefox bug and use the DOMParser if necessary.
   if (DOMPurify.isSupported) {
     (function () {
-      var doc = _initDocument('<svg><g onload="this.parentNode.remove()"></g></svg>');
-      if (!doc.querySelector('svg')) {
+      var doc = _initDocument('<audio><source onerror="this.parentNode.remove()"></source></audio>');
+      if (!doc.querySelector('audio')) {
         useXHR = true;
       }
       doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=alert(1)//">');

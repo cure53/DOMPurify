@@ -32,7 +32,7 @@ function createDOMPurify(window = getGlobal()) {
 
   const originalDocument = window.document;
   let useDOMParser = false; // See comment below
-  let useXHR = true;
+  let useXHR = false;
 
   let document = window.document;
   const {
