@@ -170,6 +170,14 @@ module.exports = function(config) {
         browser_version: '57.0',
         browser: 'chrome',
         os_version: '10'
+      },
+      bs_win10_chrome_59: {
+        base: 'BrowserStack',
+        device: null,
+        os: 'Windows',
+        browser_version: '59.0',
+        browser: 'chrome',
+        os_version: '10'
       }
     },
 
@@ -189,7 +197,8 @@ module.exports = function(config) {
       'bs_win10_firefox_46',
       'bs_win10_firefox_52',
       'bs_win10_chrome_50',
-      'bs_win10_chrome_57'
+      'bs_win10_chrome_57',
+      'bs_win10_chrome_59'
     ],
 
     browserDisconnectTimeout: 10000,
