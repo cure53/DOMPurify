@@ -58,19 +58,13 @@ npm install dompurify
 
 ```javascript
 const createDOMPurify = require('dompurify');
-const jsdom = require('jsdom');
-const window = jsdom.jsdom('', {
-  features: {
-    FetchExternalResources: false, // disables resource loading over HTTP / filesystem
-    ProcessExternalResources: false // do not execute JS within script blocks
-  }
-}).defaultView;
+const { JSDOM } = require('jsdom');
+
+const window = (new JSDOM('')).window;
 const DOMPurify = createDOMPurify(window);
 
 const clean = DOMPurify.sanitize(dirty);
 ```
-
-Strictly speaking, DOMPurify creates a document without a browsing context and you can replace it with `const window = jsdom.jsdom().defaultView;`, however, the longer case protects against accidental bugs in jsdom or DOMPurify.
 
 ## Is there a demo?
 
