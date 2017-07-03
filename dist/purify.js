@@ -201,6 +201,9 @@ function createDOMPurify() {
   /* Keep element content when removing element? */
   var KEEP_CONTENT = true;
 
+  /* Allow usage of profiles like html, svg and mathMl */
+  var USE_PROFILES = {};
+
   /* Tags to ignore content of when KEEP_CONTENT is true */
   var FORBID_CONTENTS = addToSet({}, ['audio', 'head', 'math', 'script', 'style', 'template', 'svg', 'video']);
 
@@ -247,6 +250,7 @@ function createDOMPurify() {
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
+    USE_PROFILES = cfg.USE_PROFILES !== {}; // Default empty
 
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
@@ -254,6 +258,23 @@ function createDOMPurify() {
 
     if (RETURN_DOM_FRAGMENT) {
       RETURN_DOM = true;
+    }
+
+    /* Parse profile info */
+    if (USE_PROFILES) {
+      ALLOWED_TAGS = false;
+      if (USE_PROFILES.html) {
+        addToSet(ALLOWED_TAGS, html);
+      }
+      if (USE_PROFILES.svg) {
+        addToSet(ALLOWED_TAGS, svg);
+      }
+      if (USE_PROFILES.svgFilters) {
+        addToSet(ALLOWED_TAGS, svgFilters);
+      }
+      if (USE_PROFILES.mathMl) {
+        addToSet(ALLOWED_TAGS, mathMl);
+      }
     }
 
     /* Merge configuration parameters */
