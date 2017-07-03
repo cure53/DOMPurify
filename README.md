@@ -114,6 +114,15 @@ var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 // allow only <b> and <q> with style attributes (for whatever reason)
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
+// allow all safe HTML elements but neither SVG nor MathML
+var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {html: true}});
+
+// allow all safe SVG elements and SVG Filters
+var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {svg: true, svgFilters: true}});
+
+// allow all safe MathML elements and SVG
+var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {mathMl: true, svg: true}});
+
 // leave all as it is but forbid <style>
 var clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
 
