@@ -263,16 +263,16 @@ function createDOMPurify() {
     /* Parse profile info */
     if (USE_PROFILES) {
       ALLOWED_TAGS = [];
-      if (USE_PROFILES.html) {
+      if (USE_PROFILES.html === true) {
         addToSet(ALLOWED_TAGS, html);
       }
-      if (USE_PROFILES.svg) {
+      if (USE_PROFILES.svg === true) {
         addToSet(ALLOWED_TAGS, svg);
       }
-      if (USE_PROFILES.svgFilters) {
+      if (USE_PROFILES.svgFilters === true) {
         addToSet(ALLOWED_TAGS, svgFilters);
       }
-      if (USE_PROFILES.mathMl) {
+      if (USE_PROFILES.mathMl === true) {
         addToSet(ALLOWED_TAGS, mathMl);
       }
     }

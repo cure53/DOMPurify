@@ -255,17 +255,25 @@ function createDOMPurify(window = getGlobal()) {
     /* Parse profile info */
     if (USE_PROFILES) {
       ALLOWED_TAGS = [];
+      ALLOWED_ATTR = [];
       if (USE_PROFILES.html === true) {
         addToSet(ALLOWED_TAGS, TAGS.html);
+        addToSet(ALLOWED_ATTR, ATTRS.html);
       }
       if (USE_PROFILES.svg === true) {
         addToSet(ALLOWED_TAGS, TAGS.svg);
+        addToSet(ALLOWED_ATTR, ATTRS.svg);
+        addToSet(ALLOWED_ATTR, ATTRS.xml);
       }
       if (USE_PROFILES.svgFilters === true) {
         addToSet(ALLOWED_TAGS, TAGS.svgFilters);
+        addToSet(ALLOWED_ATTR, ATTRS.svg);
+        addToSet(ALLOWED_ATTR, ATTRS.xml);
       }
       if (USE_PROFILES.mathMl === true) {
         addToSet(ALLOWED_TAGS, TAGS.mathMl);
+        addToSet(ALLOWED_ATTR, ATTRS.mathMl);
+        addToSet(ALLOWED_ATTR, ATTRS.xml);
       }
     }
 
