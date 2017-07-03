@@ -431,7 +431,11 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a href="#" aria-äöü="foo">abc</a>', {ALLOW_ARIA_ATTR: false}), "<a href=\"#\">abc</a>" );
   });
   QUnit.test( 'Config-Flag tests: USE_PROFILES', function(assert) {
-      assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: {html: false}}), '' );
+      assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: {html: false}}), 'HELLO' );
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: {html: true}}), '<h1>HELLO</h1>' );
+      assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1><math></math>', {USE_PROFILES: {html: true, mathMl: true}}), '<h1>HELLO</h1><math></math>' );
+      assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: {bogus: true}}), '<h1>HELLO</h1>' );
+      assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: 123}), 'HELLO' );
+      assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: []}), 'HELLO' );
   });
 }
