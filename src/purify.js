@@ -242,7 +242,7 @@ function createDOMPurify(window = getGlobal()) {
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
-    USE_PROFILES = cfg.USE_PROFILES !== {}; // Default empty
+    USE_PROFILES = cfg.USE_PROFILES !== null; // Default empty
 
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
