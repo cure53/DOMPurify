@@ -423,8 +423,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   } );
   // Test to make sure that ALLOW_ARIA_ATTR is working as expected (#198)
   QUnit.test( 'Config-Flag tests: ALLOW_ARIA_ATTR', function(assert) {
-      assert.contains( DOMPurify.sanitize( "<a aria-abc=\"foo\" href=\"#\">abc</a>", {ALLOW_ARIA_ATTR: true}), 
-          ["<a aria-abc=\"foo\" href=\"#\">abc</a>", "<a href=\"#\" aria-abc=\"foo\">abc</a>"] 
+      assert.contains( DOMPurify.sanitize( "<a aria-abc=\"foo\" href=\"#\">abc</a>", {ALLOW_ARIA_ATTR: true}),
+          ["<a aria-abc=\"foo\" href=\"#\">abc</a>", "<a href=\"#\" aria-abc=\"foo\">abc</a>"]
       );
       assert.equal( DOMPurify.sanitize( '<a href="#" aria-aöü="foo">abc</a>', {ALLOW_ARIA_ATTR: true}), '<a href="#">abc</a>' );
       assert.equal( DOMPurify.sanitize( '<a href="#" aria-abc="foo">abc</a>', {ALLOW_ARIA_ATTR: false}), "<a href=\"#\">abc</a>" );
@@ -440,5 +440,6 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: {bogus: true}}), 'HELLO' );
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: 123}), 'HELLO' );
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: []}), 'HELLO' );
+      assert.equal( DOMPurify.sanitize( '<svg><rect height="50"></rect></svg>', {USE_PROFILES: {svg: true}}), '<svg><rect height="50"></rect></svg>' );
   });
 }
