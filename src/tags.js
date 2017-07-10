@@ -119,12 +119,15 @@ export const html = [
 // SVG
 export const svg = [
   'svg',
+  'a',
   'altglyph',
   'altglyphdef',
   'altglyphitem',
   'animatecolor',
   'animatemotion',
   'animatetransform',
+  'audio',
+  'canvas',
   'circle',
   'clippath',
   'defs',
@@ -150,6 +153,7 @@ export const svg = [
   'radialgradient',
   'rect',
   'stop',
+  'style',
   'switch',
   'symbol',
   'text',
@@ -157,6 +161,7 @@ export const svg = [
   'title',
   'tref',
   'tspan',
+  'video',
   'view',
   'vkern',
 ];
