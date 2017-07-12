@@ -5,6 +5,7 @@
     "format": "prettier --write --trailing-comma es5 --single-quote 'src/*.js'",
     "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist/**",
+    "dev": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
     "build": "run-p build:* build:umd:*",
     "build:umd": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -o dist/purify.js",
     "build:umd:min": "cross-env NODE_ENV=production BABEL_ENV=rollup rollup -c -o dist/purify.min.js",
@@ -79,6 +80,7 @@
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-replace": "^1.1.1",
     "rollup-plugin-uglify": "^2.0.0",
+    "rollup-watch": "^4.0.0",
     "xo": "^0.18.1"
   },
   "name": "dompurify",
