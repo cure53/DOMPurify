@@ -212,7 +212,8 @@ We rely on npm-run-scripts for integrating with out tooling infrastructure. We u
 
 These are our npm scripts
 
-- `npm test` to run our test suite via jsdom and karma
+- `npm run dev` to start building while watching sources for changes
+- `npm run test` to run our test suite via jsdom and karma
   - `test:jsdom` to only run tests through jsdom
   - `test:karma` to only run tests through karma
 - `npm run lint` to lint the sources using ESLint (via xo)
