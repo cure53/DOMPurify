@@ -208,9 +208,15 @@ All relevant commits will be signed with the key `0x24BB6BF4` for additional sec
 
 ### Development and contributing
 
-We rely on npm-run-scripts for integrating with out tooling infrastructure. We use ESLint as a pre-commit hook to ensure code consistency. Morover, to ease formatting we use [prettier](https://github.com/prettier/prettier) while building the `/dist` assets happens through `rollup`.
+#### Installation (`yarn i`)
 
-These are our npm scripts
+We support both `yarn` and `npm@5.2` officially while providing lock-files for either dependency manager to provide reproducible installs and builds on either or. TravisCI itself is configured to install dependencies using `yarn`. When using an older version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
+
+#### Scripts
+
+We rely on npm run-scripts for integrating with out tooling infrastructure. We use ESLint as a pre-commit hook to ensure code consistency. Moreover, to ease formatting we use [prettier](https://github.com/prettier/prettier) while building the `/dist` assets happens through `rollup`.
+
+These are our npm scripts:
 
 - `npm run dev` to start building while watching sources for changes
 - `npm run test` to run our test suite via jsdom and karma
@@ -221,6 +227,8 @@ These are our npm scripts
 - `npm run build` to build our distribution assets minified and unminified as a UMD module
   - `npm run build:umd` to only build an unminified UMD module
   - `npm run build:umd:min` to only build a minified UMD module
+
+Note: all run scripts triggered via `npm run <script>` can also be started using `yarn <script>`.
 
 There are more npm scripts but they are mainly to integrate with CI or are meant to be "private" for instance to amend build distribution files with every commit.
 
