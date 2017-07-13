@@ -441,8 +441,11 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: 123}), 'HELLO' );
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: []}), 'HELLO' );
       assert.contains( DOMPurify.sanitize( '<svg><rect height="50"></rect></svg>', {USE_PROFILES: {svg: true}}), [
-          '<svg><rect height="50"></rect></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\"><rect height=\"50\" /></svg>"
+          '<svg><rect height="50"></rect></svg>', 
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><rect height=\"50\" /></svg>"
       ]);
-      assert.equal( DOMPurify.sanitize( '<svg><style>.some-class {fill: #fff}</style></svg>', {USE_PROFILES: {svg: true}}), '<svg><style>.some-class {fill: #fff}</style></svg>');
+      assert.contains( DOMPurify.sanitize( '<svg><style>.some-class {fill: #fff}</style></svg>', {USE_PROFILES: {svg: true}}), [
+          '<svg><style>.some-class {fill: #fff}</style></svg>',
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><style>.some-class {fill: #fff}</style></svg>"]);
   });
 }
