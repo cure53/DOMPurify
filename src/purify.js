@@ -256,7 +256,7 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Parse profile info */
     if (USE_PROFILES) {
-      ALLOWED_TAGS = [];
+      ALLOWED_TAGS = addToSet({}, [...TAGS.text]);
       ALLOWED_ATTR = [];
       if (USE_PROFILES.html === true) {
         addToSet(ALLOWED_TAGS, TAGS.html);

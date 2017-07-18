@@ -262,7 +262,7 @@ function createDOMPurify() {
 
     /* Parse profile info */
     if (USE_PROFILES) {
-      ALLOWED_TAGS = [];
+      ALLOWED_TAGS = addToSet({}, [].concat(_toConsumableArray(text)));
       ALLOWED_ATTR = [];
       if (USE_PROFILES.html === true) {
         addToSet(ALLOWED_TAGS, html);
