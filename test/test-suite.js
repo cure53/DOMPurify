@@ -447,9 +447,13 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.contains( DOMPurify.sanitize( '<svg><style>.some-class {fill: #fff}</style></svg>', {USE_PROFILES: {svg: true}}), [
           '<svg><style>.some-class {fill: #fff}</style></svg>',
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><style>.some-class {fill: #fff}</style></svg>"] );
-      assert.equal( DOMPurify.sanitize( '<svg><text>SEE ME</text></svg>', {USE_PROFILES: {svg: true}, KEEP_CONTENT: false} ), '<svg><text>SEE ME</text></svg>' );
+      assert.contains( DOMPurify.sanitize( '<svg><text>SEE ME</text></svg>', {USE_PROFILES: {svg: true}, KEEP_CONTENT: false} ), [
+          '<svg><text>SEE ME</text></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>SEE ME</text></svg>"
+      ] );
       assert.equal( DOMPurify.sanitize( '<span>SEE ME</span>', {USE_PROFILES: {html: true}, KEEP_CONTENT: false} ), '<span>SEE ME</span>' );
       assert.equal( DOMPurify.sanitize( '<div></div>', {USE_PROFILES: {svg: true}, ADD_TAGS: ['div']} ), '<div></div>' );
-      assert.equal( DOMPurify.sanitize( '<svg keep="me"></svg>', {USE_PROFILES: {svg: true}, ADD_ATTR: ['keep']} ), '<svg keep="me"></svg>' );
+      assert.contains( DOMPurify.sanitize( '<svg keep="me"></svg>', {USE_PROFILES: {svg: true}, ADD_ATTR: ['keep']} ), [
+          '<svg keep="me"></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\" keep=\"me\" />"
+      ] );
   });
 };
