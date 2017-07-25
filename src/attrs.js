@@ -255,6 +255,7 @@ export const svg = [
   'x',
   'x1',
   'x2',
+  'xmlns',
   'y',
   'y1',
   'y2',
