@@ -1,15 +1,18 @@
 {
   "presets": [
-    ["env", {
-      "targets": {
-        "chrome": 22,
-        "ie": 8,
-        "firefox": 15,
-        "opera": 31,
-        "safari": 8,
-        "edge": 13
-      },
-      "modules": false
-    }]
+    [
+      "env",
+      {
+        "targets": {
+          "chrome": 22,
+          "ie": 8,
+          "firefox": 15,
+          "opera": 31,
+          "safari": 8,
+          "edge": 13
+        },
+        "modules": false
+      }
+    ]
   ]
 }
