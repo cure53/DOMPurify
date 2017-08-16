@@ -11,6 +11,7 @@ const config = {
   entry: 'src/purify.js',
   external: [],
   globals: {},
+  format: 'umd',
   moduleName: 'DOMPurify',
   sourceMap: true,
   plugins: [
@@ -22,7 +23,6 @@ const config = {
       'process.env.NODE_ENV': JSON.stringify(env),
       VERSION: `'${version}'`,
     }),
-    bundleSize(),
   ],
 };
 
@@ -34,6 +34,10 @@ if (env === 'production') {
       },
     })
   );
+}
+
+if (env !== 'test') {
+  config.plugins.push(bundleSize());
 }
 
 module.exports = config;
