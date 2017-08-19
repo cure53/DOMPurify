@@ -16,13 +16,24 @@
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
     "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Chrome"
   },
-  "files": ["src", "dist"],
-  "pre-commit": ["lint", "build", "commit-amend-build"],
+  "files": [
+    "src",
+    "dist"
+  ],
+  "pre-commit": [
+    "lint",
+    "build",
+    "commit-amend-build"
+  ],
   "xo": {
     "semicolon": true,
     "space": 2,
-    "extends": ["prettier"],
-    "plugins": ["prettier"],
+    "extends": [
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ],
     "rules": {
       "prettier/prettier": [
         "error",
@@ -32,7 +43,10 @@
         }
       ]
     },
-    "globals": ["window", "VERSION"]
+    "globals": [
+      "window",
+      "VERSION"
+    ]
   },
   "devDependencies": {
     "babel": "^6.23.0",
@@ -53,7 +67,7 @@
     "karma-html2js-preprocessor": "^1.0.0",
     "karma-json-fixtures-preprocessor": "0.0.6",
     "karma-qunit": "^1.0.0",
-    "karma-rollup-plugin": "^0.2.4",
+    "karma-rollup-preprocessor": "^4.0.3",
     "npm-run-all": "^4.0.2",
     "pre-commit": "^1.1.2",
     "prettier": "^1.5.3",
