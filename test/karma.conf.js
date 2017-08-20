@@ -1,29 +1,9 @@
-const argv = require('minimist')(process.argv.slice(2));
-const isArray = require('lodash.isarray');
 const commonjs = require('rollup-plugin-commonjs');
 const includePaths = require('rollup-plugin-includepaths');
 const rollupConfig = require('../rollup.config.js');
 const customLaunchers = require('./karma.custom-launchers.config.js')
   .customLaunchers;
 const browsers = require('./karma.custom-launchers.config.js').browsers;
-
-/**
- * Environment variables are passed into the script and the depth of testing
- * is affected accordginly.
- *
- * - Whenever on a PR we only want to probe test with Firefox
- * - Whenever we are on the most recent node version on Travis we test via BrowserStack
- * - If none of the prior mentioned holds we assume to be running local and respect the passed
- *   in borwsers argv
- * - If we did not receive any argv browsers we succeed (other node versions on Travis)
- */
-const shouldProbeOnly = argv.shouldProbeOnly !== '';
-const shouldTestOnBrowserStack = argv.shouldTestOnBrowserStack !== '';
-const browserStackBrowsers = shouldProbeOnly ? ['Firefox'] : browsers;
-const karmaBrowsers = shouldTestOnBrowserStack
-  ? browserStackBrowsers
-  : // eslint-disable-next-line unicorn/no-process-exit
-    isArray(argv.browsers) ? argv.browsers.split(' ') : process.exit(0);
 
 rollupConfig.plugins.push(
   commonjs(),
@@ -68,7 +48,7 @@ module.exports = function(config) {
     rollupPreprocessor: rollupConfig,
 
     customLaunchers,
-    browsers: karmaBrowsers,
+    browsers,
 
     browserDisconnectTimeout: 10000,
     browserDisconnectTolerance: 1,
