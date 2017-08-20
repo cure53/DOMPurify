@@ -2,8 +2,14 @@ sudo: false
 language: node_js
 cache: yarn
 script: npm run test:ci
+dist: trusty
 notifications:
    email: false
+addons:
+  firefox: latest
+before_install:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 env:
    global:
       - secure: GQ/MxXGdlpjXdnASyAeuTUvErhx61l+IS2rCo7vIrxKFxIqpa7AQnGp/eoBDitscvDgYIiVhXOPnTdjYYT6UgMwX169Fm9lg3jbFDqAHCsWQmtEIDKHyNwT2gi97rLqBDyXpwTmQebF2s7P914OayyoaY1NnTU/JGRdDi79lm80=
