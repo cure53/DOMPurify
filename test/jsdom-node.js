@@ -3,7 +3,7 @@
 'use strict';
 
 // Test DOMPurify + jsdom using Node.js (version 4 and up)
-const createDOMPurify = require('../dist/purify');
+const createDOMPurify = require('../dist/purify.cjs');
 const jsdom = require('jsdom');
 const testSuite = require('./test-suite');
 const tests = require('./fixtures/expect');
