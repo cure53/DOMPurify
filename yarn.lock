@@ -2611,12 +2611,6 @@ karma-qunit@^1.0.0:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/karma-qunit/-/karma-qunit-1.2.1.tgz#88252afd2127bc03b0cc31978ed6882b139f470a"
 
-karma-rollup-plugin@^0.2.4:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/karma-rollup-plugin/-/karma-rollup-plugin-0.2.4.tgz#059548b412e75a2e463d5f6e09035b9d09785a53"
-  dependencies:
-    rollup "^0.x"
-
 karma-rollup-preprocessor@^4.0.3:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/karma-rollup-preprocessor/-/karma-rollup-preprocessor-4.0.3.tgz#b365a2c54049223b62fb09953b8664b8ec0272be"
@@ -2715,6 +2709,10 @@ lodash.cond@^4.3.0:
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/lodash.cond/-/lodash.cond-4.5.2.tgz#f471a1da486be60f6ab955d17115523dd1d255d5"
 
+lodash.isarray@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/lodash.isarray/-/lodash.isarray-4.0.0.tgz#2aca496b28c4ca6d726715313590c02e6ea34403"
+
 lodash.isequal@^4.4.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
@@ -2722,6 +2720,10 @@ lodash.isequal@^4.4.0:
 lodash.kebabcase@^4.0.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/lodash.kebabcase/-/lodash.kebabcase-4.1.1.tgz#8489b1cb0d29ff88195cceca448ff6d6cc295c36"
+
+lodash.sample@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/lodash.sample/-/lodash.sample-4.2.1.tgz#5e4291b0c753fa1abeb0aab8fb29df1b66f07f6d"
 
 lodash.snakecase@^4.0.1:
   version "4.1.1"
@@ -3728,7 +3730,7 @@ rollup-watch@^4.3.1:
     require-relative "0.8.7"
     rollup-pluginutils "^2.0.1"
 
-rollup@>=0.45.x, rollup@^0.47.5, rollup@^0.x:
+rollup@>=0.45.x, rollup@^0.47.5:
   version "0.47.6"
   resolved "https://registry.yarnpkg.com/rollup/-/rollup-0.47.6.tgz#83b90a1890dd3321a3f8d0b2bd216e88483f33de"
 

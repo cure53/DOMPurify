@@ -13,27 +13,16 @@
     "build:cjs": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -f cjs -o dist/purify.cjs.js",
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
     "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
-    "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && (([ \"${TRAVIS_PULL_REQUEST}\" != \"false\" ] || [ \"${TEST_BROWSERSTACK}\" != \"true\" ]) || karma start test/karma.conf.js --log-level error --reporters dots --single-run)",
+    "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TRAVIS_PULL_REQUEST}\"",
     "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Chrome"
   },
-  "files": [
-    "src",
-    "dist"
-  ],
-  "pre-commit": [
-    "lint",
-    "build",
-    "commit-amend-build"
-  ],
+  "files": ["src", "dist"],
+  "pre-commit": ["lint", "build", "commit-amend-build"],
   "xo": {
     "semicolon": true,
     "space": 2,
-    "extends": [
-      "prettier"
-    ],
-    "plugins": [
-      "prettier"
-    ],
+    "extends": ["prettier"],
+    "plugins": ["prettier"],
     "rules": {
       "prettier/prettier": [
         "error",
@@ -41,12 +30,15 @@
           "trailingComma": "es5",
           "singleQuote": true
         }
+      ],
+      "camelcase": [
+        "error",
+        {
+          "properties": "never"
+        }
       ]
     },
-    "globals": [
-      "window",
-      "VERSION"
-    ]
+    "globals": ["window", "VERSION"]
   },
   "devDependencies": {
     "babel": "^6.23.0",
@@ -68,6 +60,9 @@
     "karma-json-fixtures-preprocessor": "0.0.6",
     "karma-qunit": "^1.0.0",
     "karma-rollup-preprocessor": "^4.0.3",
+    "lodash.isarray": "^4.0.0",
+    "lodash.sample": "^4.2.1",
+    "minimist": "^1.2.0",
     "npm-run-all": "^4.0.2",
     "pre-commit": "^1.1.2",
     "prettier": "^1.5.3",
