@@ -8,12 +8,23 @@ const customLaunchers = require('./karma.custom-launchers.config.js')
 const browsers = require('./karma.custom-launchers.config.js').browsers;
 const browser = require('./karma.custom-launchers.config.js').browser();
 
+/**
+ * Environment variables are passed into the script and the depth of testing
+ * is affected accordginly.
+ *
+ * - Whenever on a PR we only want to probe test with a rahdom browsers
+ * - Whenever we are on the most recent node version on Travis we test via BrowserStack
+ * - If none of the prior mentioned holds we assume to be running local and respect the passed
+ *   in borwsers argv
+ * - If we did not receive any argv browsers we succeed (other node versions on Travis)
+ */
 const shouldProbeOnly = argv.shouldProbeOnly !== '';
 const shouldTestOnBrowserStack = argv.shouldTestOnBrowserStack !== '';
 const browserStackBrowsers = shouldProbeOnly ? [browser] : browsers;
 const karmaBrowsers = shouldTestOnBrowserStack
   ? browserStackBrowsers
-  : isArray(argv.browsers) ? argv.browsers.split(' ') : ['Chrome'];
+  : // eslint-disable-next-line unicorn/no-process-exit
+    isArray(argv.browsers) ? argv.browsers.split(' ') : process.exit(0);
 
 rollupConfig.plugins.push(
   commonjs(),
