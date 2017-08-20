@@ -35,6 +35,8 @@ rollupConfig.plugins.push(
   })
 );
 
+rollupConfig.format = 'umd';
+
 module.exports = function(config) {
   config.set({
     autoWatch: true,
