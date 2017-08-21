@@ -16,7 +16,16 @@
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TRAVIS_PULL_REQUEST}\"",
     "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Chrome"
   },
-  "files": ["src", "dist"],
+  "main": "dist/purify.cjs.js",
+  "module": "dist/purify.es.js",
+  "browser": "dist/purify.js",
+  "files": [
+    "dist",
+    "package.json",
+    "yarn.lock",
+    "package-lock.json",
+    "README.md"
+  ],
   "pre-commit": ["lint", "build", "commit-amend-build"],
   "xo": {
     "semicolon": true,
@@ -83,11 +92,6 @@
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
   "version": "1.0.1",
-  "src": "src/purify.js",
-  "dist": "dist/",
-  "main": "dist/purify.cjs.js",
-  "module": "dist/purify.es.js",
-  "browser": "dist/purify.js",
   "directories": {
     "test": "test"
   },
