@@ -2,10 +2,7 @@ import * as TAGS from './tags';
 import * as ATTRS from './attrs';
 import { addToSet, clone } from './utils';
 
-function getGlobal() {
-  // eslint-disable-next-line no-new-func
-  return Function('return this')();
-}
+const getGlobal = () => (typeof window === 'undefined' ? null : window);
 
 function createDOMPurify(window = getGlobal()) {
   const DOMPurify = root => createDOMPurify(root);
