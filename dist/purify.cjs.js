@@ -63,7 +63,7 @@ function createDOMPurify() {
       * Version label, exposed for easier checks
       * if DOMPurify is up to date or not
       */
-  DOMPurify.version = '1.0.0';
+  DOMPurify.version = '1.0.1';
 
   /**
     * Array of elements that DOMPurify removed during sanitation.
