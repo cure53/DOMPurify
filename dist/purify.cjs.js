@@ -47,10 +47,9 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-function getGlobal() {
-  // eslint-disable-next-line no-new-func
-  return Function('return this')();
-}
+var getGlobal = function getGlobal() {
+  return typeof window === 'undefined' ? null : window;
+};
 
 function createDOMPurify() {
   var window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
