@@ -26,12 +26,20 @@
     "package-lock.json",
     "README.md"
   ],
-  "pre-commit": ["lint", "build", "commit-amend-build"],
+  "pre-commit": [
+    "lint",
+    "build",
+    "commit-amend-build"
+  ],
   "xo": {
     "semicolon": true,
     "space": 2,
-    "extends": ["prettier"],
-    "plugins": ["prettier"],
+    "extends": [
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ],
     "rules": {
       "prettier/prettier": [
         "error",
@@ -47,7 +55,10 @@
         }
       ]
     },
-    "globals": ["window", "VERSION"]
+    "globals": [
+      "window",
+      "VERSION"
+    ]
   },
   "devDependencies": {
     "babel": "^6.23.0",
@@ -68,7 +79,7 @@
     "karma-html2js-preprocessor": "^1.0.0",
     "karma-json-fixtures-preprocessor": "0.0.6",
     "karma-qunit": "^1.0.0",
-    "karma-rollup-preprocessor": "^4.0.3",
+    "karma-rollup-preprocessor": "^4.0.4",
     "lodash.isarray": "^4.0.0",
     "lodash.sample": "^4.2.1",
     "minimist": "^1.2.0",
@@ -81,7 +92,7 @@
     "rimraf": "^2.6.1",
     "rollup": "0.47.5",
     "rollup-plugin-babel": "^3.0.2",
-    "rollup-plugin-commonjs": "^8.1.0",
+    "rollup-plugin-commonjs": "^8.2.0",
     "rollup-plugin-includepaths": "^0.2.2",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-replace": "^1.1.1",
