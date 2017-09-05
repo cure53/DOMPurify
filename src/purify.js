@@ -1,6 +1,7 @@
 import * as TAGS from './tags';
 import * as ATTRS from './attrs';
 import { addToSet, clone } from './utils';
+import * as EXPRESSIONS from './regexp';
 
 const getGlobal = () => (typeof window === 'undefined' ? null : window);
 
@@ -76,6 +77,16 @@ function createDOMPurify(window = getGlobal()) {
     typeof implementation.createHTMLDocument !== 'undefined' &&
     document.documentMode !== 9;
 
+  const {
+    MUSTACHE_EXPR,
+    ERB_EXPR,
+    DATA_ATTR,
+    ARIA_ATTR,
+    IS_SCRIPT_OR_DATA,
+    ATTR_WHITESPACE,
+  } = EXPRESSIONS;
+
+  let IS_ALLOWED_URI = EXPRESSIONS.IS_ALLOWED_URI;
   /**
     * We consider the elements and attributes below to be safe. Ideally
     * don't add any new ones but feel free to remove unwanted ones.
@@ -122,10 +133,6 @@ function createDOMPurify(window = getGlobal()) {
    * This means, DOMPurify removes data attributes, mustaches and ERB
    */
   let SAFE_FOR_TEMPLATES = false;
-
-  /* Specify template detection regex for SAFE_FOR_TEMPLATES mode */
-  const MUSTACHE_EXPR = /\{\{[\s\S]*|[\s\S]*\}\}/gm;
-  const ERB_EXPR = /<%[\s\S]*|[\s\S]*%>/gm;
 
   /* Decide if document with <html>... should be returned */
   let WHOLE_DOCUMENT = false;
@@ -217,7 +224,6 @@ function createDOMPurify(window = getGlobal()) {
     if (typeof cfg !== 'object') {
       cfg = {};
     }
-
     /* Set configuration parameters */
     ALLOWED_TAGS =
       'ALLOWED_TAGS' in cfg
@@ -242,6 +248,8 @@ function createDOMPurify(window = getGlobal()) {
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
+
+    IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
 
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
@@ -567,13 +575,6 @@ function createDOMPurify(window = getGlobal()) {
 
     return false;
   };
-
-  const DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/; // eslint-disable-line no-useless-escape
-  const ARIA_ATTR = /^aria-[\-\w]+$/; // eslint-disable-line no-useless-escape
-  const IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i; // eslint-disable-line no-useless-escape
-  const IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
-  /* This needs to be extensive thanks to Webkit/Blink's behavior */
-  const ATTR_WHITESPACE = /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
   /**
  * _sanitizeAttributes
