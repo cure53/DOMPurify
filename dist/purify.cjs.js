@@ -543,7 +543,7 @@ function createDOMPurify() {
 
   var DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/; // eslint-disable-line no-useless-escape
   var ARIA_ATTR = /^aria-[\-\w]+$/; // eslint-disable-line no-useless-escape
-  var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i; // eslint-disable-line no-useless-escape
+  var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i; // eslint-disable-line no-useless-escape
   var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
   /* This needs to be extensive thanks to Webkit/Blink's behavior */
   var ATTR_WHITESPACE = /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
