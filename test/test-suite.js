@@ -456,4 +456,30 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           '<svg keep="me"></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\" keep=\"me\" />"
       ] );
   });
+
+  QUnit.test( 'Config-Flag tests: ALLOWED_URI_REGEXP', function(assert) {
+      var tests = [
+          {
+            test: '<img src="https://i.imgur.com/hkfpOUu.gifv">',
+            expected: '<img src="https://i.imgur.com/hkfpOUu.gifv">',
+          },
+          {
+            test: '<img src="http://i.imgur.com/WScAnHr.jpg">',
+            expected: '<img src="http://i.imgur.com/WScAnHr.jpg">',
+          },
+          {
+            test: '<img src="blob:https://localhost:3000/c4ea3ec6-9f22-4d08-af6f-d79e78a0a7a7">',
+            expected: '<img>',
+          },
+          {
+            test: '<a href="mailto:demo@example.com">demo</a>',
+            expected: '<a>demo</a>',
+          }
+      ].forEach(function (test) {
+        var str = DOMPurify.sanitize(test.test, {
+          ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+        });
+        assert.equal( str, test.expected );
+      });
+  });
 };
