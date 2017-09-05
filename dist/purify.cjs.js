@@ -43,6 +43,14 @@ function clone(object) {
   return newObject;
 }
 
+var MUSTACHE_EXPR = /\{\{[\s\S]*|[\s\S]*\}\}/gm; // Specify template detection regex for SAFE_FOR_TEMPLATES mode
+var ERB_EXPR = /<%[\s\S]*|[\s\S]*%>/gm;
+var DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/; // eslint-disable-line no-useless-escape
+var ARIA_ATTR = /^aria-[\-\w]+$/; // eslint-disable-line no-useless-escape
+var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i; // eslint-disable-line no-useless-escape
+var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
+var ATTR_WHITESPACE = /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g; // This needs to be extensive thanks to Webkit/Blink's behavior
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -126,6 +134,15 @@ function createDOMPurify() {
     */
   DOMPurify.isSupported = implementation && typeof implementation.createHTMLDocument !== 'undefined' && document.documentMode !== 9;
 
+  var MUSTACHE_EXPR$$1 = MUSTACHE_EXPR,
+      ERB_EXPR$$1 = ERB_EXPR,
+      DATA_ATTR$$1 = DATA_ATTR,
+      ARIA_ATTR$$1 = ARIA_ATTR,
+      IS_SCRIPT_OR_DATA$$1 = IS_SCRIPT_OR_DATA,
+      ATTR_WHITESPACE$$1 = ATTR_WHITESPACE;
+
+
+  var IS_ALLOWED_URI$$1 = IS_ALLOWED_URI;
   /**
     * We consider the elements and attributes below to be safe. Ideally
     * don't add any new ones but feel free to remove unwanted ones.
@@ -161,10 +178,6 @@ function createDOMPurify() {
    * This means, DOMPurify removes data attributes, mustaches and ERB
    */
   var SAFE_FOR_TEMPLATES = false;
-
-  /* Specify template detection regex for SAFE_FOR_TEMPLATES mode */
-  var MUSTACHE_EXPR = /\{\{[\s\S]*|[\s\S]*\}\}/gm;
-  var ERB_EXPR = /<%[\s\S]*|[\s\S]*%>/gm;
 
   /* Decide if document with <html>... should be returned */
   var WHOLE_DOCUMENT = false;
@@ -227,7 +240,6 @@ function createDOMPurify() {
     if ((typeof cfg === 'undefined' ? 'undefined' : _typeof(cfg)) !== 'object') {
       cfg = {};
     }
-
     /* Set configuration parameters */
     ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS) : DEFAULT_ALLOWED_TAGS;
     ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR) : DEFAULT_ALLOWED_ATTR;
@@ -246,6 +258,8 @@ function createDOMPurify() {
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
+
+    IS_ALLOWED_URI$$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$$1;
 
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
@@ -527,8 +541,8 @@ function createDOMPurify() {
     if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
       /* Get the element's text content */
       content = currentNode.textContent;
-      content = content.replace(MUSTACHE_EXPR, ' ');
-      content = content.replace(ERB_EXPR, ' ');
+      content = content.replace(MUSTACHE_EXPR$$1, ' ');
+      content = content.replace(ERB_EXPR$$1, ' ');
       if (currentNode.textContent !== content) {
         DOMPurify.removed.push({ element: currentNode.cloneNode() });
         currentNode.textContent = content;
@@ -540,13 +554,6 @@ function createDOMPurify() {
 
     return false;
   };
-
-  var DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/; // eslint-disable-line no-useless-escape
-  var ARIA_ATTR = /^aria-[\-\w]+$/; // eslint-disable-line no-useless-escape
-  var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i; // eslint-disable-line no-useless-escape
-  var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
-  /* This needs to be extensive thanks to Webkit/Blink's behavior */
-  var ATTR_WHITESPACE = /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g;
 
   /**
   * _sanitizeAttributes
@@ -639,17 +646,17 @@ function createDOMPurify() {
 
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
-        value = value.replace(MUSTACHE_EXPR, ' ');
-        value = value.replace(ERB_EXPR, ' ');
+        value = value.replace(MUSTACHE_EXPR$$1, ' ');
+        value = value.replace(ERB_EXPR$$1, ' ');
       }
 
       /* Allow valid data-* attributes: At least one character after "-"
          (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
          XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
          We don't need to check the value; it's always URI safe. */
-      if (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) {
+      if (ALLOW_DATA_ATTR && DATA_ATTR$$1.test(lcName)) {
         // This attribute is safe
-      } else if (ALLOW_ARIA_ATTR && ARIA_ATTR.test(lcName)) {
+      } else if (ALLOW_ARIA_ATTR && ARIA_ATTR$$1.test(lcName)) {
         // This attribute is safe
         /* Otherwise, check the name is permitted */
       } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
@@ -660,7 +667,7 @@ function createDOMPurify() {
         // This attribute is safe
         /* Check no script, data or unknown possibly unsafe URI
          unless we know URI values are safe for that attribute */
-      } else if (IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE, ''))) {
+      } else if (IS_ALLOWED_URI$$1.test(value.replace(ATTR_WHITESPACE$$1, ''))) {
         // This attribute is safe
         /* Keep image data URIs alive if src/xlink:href is allowed */
       } else if ((lcName === 'src' || lcName === 'xlink:href') && value.indexOf('data:') === 0 && DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]) {
@@ -668,7 +675,7 @@ function createDOMPurify() {
         /* Allow unknown protocols: This provides support for links that
          are handled by protocol handlers which may be unknown ahead of
          time, e.g. fb:, spotify: */
-      } else if (ALLOW_UNKNOWN_PROTOCOLS && !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE, ''))) {
+      } else if (ALLOW_UNKNOWN_PROTOCOLS && !IS_SCRIPT_OR_DATA$$1.test(value.replace(ATTR_WHITESPACE$$1, ''))) {
         // This attribute is safe
         /* Check for binary attributes */
         // eslint-disable-next-line no-negated-condition
