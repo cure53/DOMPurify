@@ -918,4 +918,9 @@ module.exports = [
       "title": "DOM clobbering: acceptCharset",
       "payload": "<input name=acceptCharset>123",
       "expected": "<input>123"
-}];
+  }, {
+      "title": "Testing support for sizes and srcset",
+      "payload": "<img src=\"small.jpg\" srcset=\"medium.jpg 1000w, large.jpg 2000w\">",
+      "expected": "<img src=\"small.jpg\" srcset=\"medium.jpg 1000w, large.jpg 2000w\">"
+}
+];
