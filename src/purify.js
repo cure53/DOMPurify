@@ -478,9 +478,9 @@ function createDOMPurify(window = getGlobal()) {
     return typeof Node === 'object'
       ? obj instanceof Node
       : obj &&
-        typeof obj === 'object' &&
-        typeof obj.nodeType === 'number' &&
-        typeof obj.nodeName === 'string';
+          typeof obj === 'object' &&
+          typeof obj.nodeType === 'number' &&
+          typeof obj.nodeName === 'string';
   };
 
   /**
