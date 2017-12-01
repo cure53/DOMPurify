@@ -638,7 +638,7 @@ function createDOMPurify() {
       }
 
       /* Make sure attribute cannot clobber */
-      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in window && value in document || value in formElement)) {
+      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
         continue;
       }
 
