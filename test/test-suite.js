@@ -85,7 +85,6 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   });
   QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
       // SANITIZE_DOM
-      assert.equal( DOMPurify.sanitize( '<form name="window">', {SANITIZE_DOM: true}), "<form></form>" );
       assert.equal( DOMPurify.sanitize( '<img src="x" name="implementation">', {SANITIZE_DOM: true}), '<img src="x">' );
       assert.equal( DOMPurify.sanitize( '<img src="x" name="createNodeIterator">', {SANITIZE_DOM: true}), '<img src="x">' );
       assert.equal( DOMPurify.sanitize( '<img src="x" name="getElementById">', {SANITIZE_DOM: false}), "<img name=\"getElementById\" src=\"x\">" );
