@@ -672,7 +672,7 @@ function createDOMPurify(window = getGlobal()) {
       if (
         SANITIZE_DOM &&
         (lcName === 'id' || lcName === 'name') &&
-        (value in window || value in document || value in formElement)
+        ((value in window && value in document) || value in formElement)
       ) {
         continue;
       }
