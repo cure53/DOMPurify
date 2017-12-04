@@ -475,7 +475,12 @@ function createDOMPurify(window = getGlobal()) {
    * @return true is object is a DOM node
    */
   const _isNode = function(obj) {
-    return typeof Node === 'object' ? obj instanceof Node : false;
+    return typeof Node === 'object'
+      ? obj instanceof Node
+      : obj &&
+          typeof obj === 'object' &&
+          typeof obj.nodeType === 'number' &&
+          typeof obj.nodeName === 'string';
   };
 
   /**
