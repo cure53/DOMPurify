@@ -764,6 +764,9 @@ function createDOMPurify() {
         throw new TypeError('toString is not a function');
       } else {
         dirty = dirty.toString();
+        if (typeof dirty !== 'string') {
+          throw new TypeError('dirty is not a string, aborting');
+        }
       }
     }
 
