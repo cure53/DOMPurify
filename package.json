@@ -2,7 +2,7 @@
   "scripts": {
     "build-demo": "node scripts/build-demo.js",
     "lint": "xo src/*.js",
-    "format": "prettier --write --trailing-comma es5 --single-quote 'src/*.js'",
+    "format": "prettier --write 'src/*.js'",
     "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist/**",
     "dev":
