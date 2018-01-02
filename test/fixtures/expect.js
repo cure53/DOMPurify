@@ -925,5 +925,9 @@ module.exports = [
           "<img src=\"small.jpg\" srcset=\"medium.jpg 1000w, large.jpg 2000w\">",
           "<img srcset=\"medium.jpg 1000w, large.jpg 2000w\" src=\"small.jpg\">"
       ]
+  }, {
+      "title": "See #264 and Edge's weird attribute name errors",
+      "payload": "<div &nbsp;=\"\"></div>",
+      "expected": "<div></div>"
 }
 ];

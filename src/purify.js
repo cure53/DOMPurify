@@ -336,10 +336,17 @@ function createDOMPurify(window = getGlobal()) {
    * @param  a DOM node
    */
   const _removeAttribute = function(name, node) {
-    DOMPurify.removed.push({
-      attribute: node.getAttributeNode(name),
-      from: node,
-    });
+    try {
+      DOMPurify.removed.push({
+        attribute: node.getAttributeNode(name),
+        from: node,
+      });
+    } catch (err) {
+      DOMPurify.removed.push({
+        attribute: null,
+        from: node,
+      });
+    }
     node.removeAttribute(name);
   };
 

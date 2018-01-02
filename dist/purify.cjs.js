@@ -346,10 +346,17 @@ function createDOMPurify() {
    * @param  a DOM node
    */
   var _removeAttribute = function _removeAttribute(name, node) {
-    DOMPurify.removed.push({
-      attribute: node.getAttributeNode(name),
-      from: node
-    });
+    try {
+      DOMPurify.removed.push({
+        attribute: node.getAttributeNode(name),
+        from: node
+      });
+    } catch (err) {
+      DOMPurify.removed.push({
+        attribute: null,
+        from: node
+      });
+    }
     node.removeAttribute(name);
   };
 
