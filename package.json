@@ -5,25 +5,16 @@
     "format": "prettier --write 'src/*.js'",
     "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist/**",
-    "dev":
-      "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
+    "dev": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
     "build": "cross-env run-p build:umd build:umd:min build:es build:cjs",
-    "build:umd":
-      "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -f umd -o dist/purify.js",
-    "build:umd:min":
-      "cross-env NODE_ENV=production BABEL_ENV=rollup rollup -c -f umd -o dist/purify.min.js",
-    "build:es":
-      "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -f es -o dist/purify.es.js",
-    "build:cjs":
-      "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -f cjs -o dist/purify.cjs.js",
-    "test:jsdom":
-      "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
-    "test:karma":
-      "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
-    "test:ci":
-      "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TRAVIS_PULL_REQUEST}\"",
-    "test":
-      "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Chrome"
+    "build:umd": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -f umd -o dist/purify.js",
+    "build:umd:min": "cross-env NODE_ENV=production BABEL_ENV=rollup rollup -c -f umd -o dist/purify.min.js",
+    "build:es": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -f es -o dist/purify.es.js",
+    "build:cjs": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -c -f cjs -o dist/purify.cjs.js",
+    "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
+    "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
+    "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TRAVIS_PULL_REQUEST}\"",
+    "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:karma -- --browsers Chrome"
   },
   "main": "dist/purify.cjs.js",
   "module": "dist/purify.es.js",
@@ -35,12 +26,20 @@
     "package-lock.json",
     "README.md"
   ],
-  "pre-commit": ["lint", "build", "commit-amend-build"],
+  "pre-commit": [
+    "lint",
+    "build",
+    "commit-amend-build"
+  ],
   "xo": {
     "semicolon": true,
     "space": 2,
-    "extends": ["prettier"],
-    "plugins": ["prettier"],
+    "extends": [
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ],
     "rules": {
       "prettier/prettier": [
         "error",
@@ -56,7 +55,10 @@
         }
       ]
     },
-    "globals": ["window", "VERSION"]
+    "globals": [
+      "window",
+      "VERSION"
+    ]
   },
   "devDependencies": {
     "babel": "^6.23.0",
@@ -99,8 +101,7 @@
     "xo": "^0.18.1"
   },
   "name": "dompurify",
-  "description":
-    "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
+  "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
   "version": "1.0.3",
   "directories": {
     "test": "test"
