@@ -55,12 +55,23 @@ DOMPurify also works server-side with node.js as well as client-side via [Browse
 ```bash
 npm install dompurify
 ```
-
+For JSDOM v10 or newer
 ```javascript
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 
 const window = (new JSDOM('')).window;
+const DOMPurify = createDOMPurify(window);
+
+const clean = DOMPurify.sanitize(dirty);
+```
+
+For JSDOM versions older than v10
+```javascript
+const createDOMPurify = require('dompurify');
+const jsdom = require('jsdom').jsdom;
+
+const window = jsdom('').defaultView;
 const DOMPurify = createDOMPurify(window);
 
 const clean = DOMPurify.sanitize(dirty);
