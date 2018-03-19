@@ -174,6 +174,7 @@ export const svgFilters = [
   'feConvolveMatrix',
   'feDiffuseLighting',
   'feDisplacementMap',
+  'feDistantLight',
   'feFlood',
   'feFuncA',
   'feFuncB',
@@ -184,7 +185,9 @@ export const svgFilters = [
   'feMergeNode',
   'feMorphology',
   'feOffset',
+  'fePointLight',
   'feSpecularLighting',
+  'feSpotLight',
   'feTile',
   'feTurbulence',
 ];
