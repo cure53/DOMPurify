@@ -201,6 +201,7 @@ export const svg = [
   'patternunits',
   'points',
   'preservealpha',
+  'preserveaspectratio',
   'r',
   'rx',
   'ry',
