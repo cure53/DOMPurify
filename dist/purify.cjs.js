@@ -580,12 +580,10 @@ function createDOMPurify() {
     var value = void 0;
     var lcName = void 0;
     var idAttr = void 0;
-    var attributes = void 0;
-    var l = void 0;
     /* Execute a hook if present */
     _executeHook('beforeSanitizeAttributes', currentNode, null);
 
-    attributes = currentNode.attributes;
+    var attributes = currentNode.cloneNode().attributes;
 
     /* Check if we have attributes; if not we might have a text node */
     if (!attributes) {
@@ -598,11 +596,9 @@ function createDOMPurify() {
       keepAttr: true,
       allowedAttributes: ALLOWED_ATTR
     };
-    l = attributes.length;
 
-    /* Go backwards over all attributes; safely remove bad ones */
-    while (l--) {
-      attr = attributes[l];
+    for (var i = 0; i < attributes.length; i++) {
+      attr = attributes[i];
       name = attr.name;
       value = attr.value.trim();
       lcName = name.toLowerCase();
@@ -617,15 +613,13 @@ function createDOMPurify() {
       /* Remove attribute */
       // Safari (iOS + Mac), last tested v8.0.5, crashes if you try to
       // remove a "name" attribute from an <img> tag that has an "id"
-      // attribute at the time.
-      if (lcName === 'name' && currentNode.nodeName === 'IMG' && attributes.id) {
-        idAttr = attributes.id;
-        attributes = Array.prototype.slice.apply(attributes);
+      // attribute at the time.  Note that as a side effect attribute
+      // order can be lost for these elements.
+      if (lcName === 'name' && currentNode.nodeName === 'IMG' && currentNode.hasAttribute('id')) {
+        idAttr = currentNode.attributes.id;
         _removeAttribute('id', currentNode);
         _removeAttribute(name, currentNode);
-        if (attributes.indexOf(idAttr) > l) {
-          currentNode.setAttribute('id', idAttr.value);
-        }
+        currentNode.setAttribute('id', idAttr.value);
       } else if (
       // This works around a bug in Safari, where input[type=file]
       // cannot be dynamically set after type has been removed
