@@ -516,7 +516,7 @@ function createDOMPurify() {
     }
 
     /* Now let's check the element's type and name */
-    var tagName = currentNode.nodeName.toLowerCase();
+    var tagName = currentNode.nodeName.toLocaleLowerCase();
 
     /* Execute a hook if present */
     _executeHook('uponSanitizeElement', currentNode, {
@@ -603,7 +603,7 @@ function createDOMPurify() {
       attr = attributes[l];
       name = attr.name;
       value = attr.value.trim();
-      lcName = name.toLowerCase();
+      lcName = name.toLocaleLowerCase();
 
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
@@ -675,7 +675,7 @@ function createDOMPurify() {
       } else if (IS_ALLOWED_URI$$1.test(value.replace(ATTR_WHITESPACE$$1, ''))) {
         // This attribute is safe
         /* Keep image data URIs alive if src/xlink:href is allowed */
-      } else if ((lcName === 'src' || lcName === 'xlink:href') && value.indexOf('data:') === 0 && DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]) {
+      } else if ((lcName === 'src' || lcName === 'xlink:href') && value.indexOf('data:') === 0 && DATA_URI_TAGS[currentNode.nodeName.toLocaleLowerCase()]) {
         // This attribute is safe
         /* Allow unknown protocols: This provides support for links that
          are handled by protocol handlers which may be unknown ahead of
