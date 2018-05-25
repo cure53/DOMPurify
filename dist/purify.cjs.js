@@ -49,7 +49,7 @@ var DATA_ATTR = /^data-[\-\w.\u00B7-\uFFFF]/; // eslint-disable-line no-useless-
 var ARIA_ATTR = /^aria-[\-\w]+$/; // eslint-disable-line no-useless-escape
 var IS_ALLOWED_URI = /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i; // eslint-disable-line no-useless-escape
 var IS_SCRIPT_OR_DATA = /^(?:\w+script|data):/i;
-var ATTR_WHITESPACE = /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g; // This needs to be extensive thanks to Webkit/Blink's behavior
+var ATTR_WHITESPACE = /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g; // eslint-disable-line no-control-regex
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -124,8 +124,8 @@ function createDOMPurify() {
       createNodeIterator = _document.createNodeIterator,
       getElementsByTagName = _document.getElementsByTagName,
       createDocumentFragment = _document.createDocumentFragment;
-
   var importNode = originalDocument.importNode;
+
 
   var hooks = {};
 
@@ -140,8 +140,6 @@ function createDOMPurify() {
       ARIA_ATTR$$1 = ARIA_ATTR,
       IS_SCRIPT_OR_DATA$$1 = IS_SCRIPT_OR_DATA,
       ATTR_WHITESPACE$$1 = ATTR_WHITESPACE;
-
-
   var IS_ALLOWED_URI$$1 = IS_ALLOWED_URI;
   /**
    * We consider the elements and attributes below to be safe. Ideally
@@ -149,6 +147,7 @@ function createDOMPurify() {
    */
 
   /* allowed element names */
+
   var ALLOWED_TAGS = null;
   var DEFAULT_ALLOWED_TAGS = addToSet({}, [].concat(_toConsumableArray(html), _toConsumableArray(svg), _toConsumableArray(svgFilters), _toConsumableArray(mathMl), _toConsumableArray(text)));
 
@@ -369,7 +368,6 @@ function createDOMPurify() {
   var _initDocument = function _initDocument(dirty) {
     /* Create a HTML document */
     var doc = void 0;
-    var body = void 0;
 
     if (FORCE_BODY) {
       dirty = '<remove></remove>' + dirty;
@@ -398,7 +396,9 @@ function createDOMPurify() {
     Safari (see comment below) */
     if (!doc || !doc.documentElement) {
       doc = implementation.createHTMLDocument('');
-      body = doc.body;
+      var _doc = doc,
+          body = _doc.body;
+
       body.parentNode.removeChild(body.parentNode.firstElementChild);
       body.outerHTML = dirty;
     }
@@ -576,18 +576,17 @@ function createDOMPurify() {
   // eslint-disable-next-line complexity
   var _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
     var attr = void 0;
-    var name = void 0;
     var value = void 0;
     var lcName = void 0;
     var idAttr = void 0;
-    var attributes = void 0;
     var l = void 0;
     /* Execute a hook if present */
     _executeHook('beforeSanitizeAttributes', currentNode, null);
 
-    attributes = currentNode.attributes;
+    var attributes = currentNode.attributes;
 
     /* Check if we have attributes; if not we might have a text node */
+
     if (!attributes) {
       return;
     }
@@ -603,7 +602,9 @@ function createDOMPurify() {
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
       attr = attributes[l];
-      name = attr.name;
+      var _attr = attr,
+          name = _attr.name;
+
       value = attr.value.trim();
       lcName = name.toLocaleLowerCase();
 
@@ -778,7 +779,8 @@ function createDOMPurify() {
       if (_typeof(window.toStaticHTML) === 'object' || typeof window.toStaticHTML === 'function') {
         if (typeof dirty === 'string') {
           return window.toStaticHTML(dirty);
-        } else if (_isNode(dirty)) {
+        }
+        if (_isNode(dirty)) {
           return window.toStaticHTML(dirty.outerHTML);
         }
       }

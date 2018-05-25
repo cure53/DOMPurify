@@ -32,7 +32,7 @@ function createDOMPurify(window = getGlobal()) {
   let useDOMParser = false; // See comment below
   let useXHR = false;
 
-  let document = window.document;
+  let { document } = window;
   const {
     DocumentFragment,
     HTMLTemplateElement,
@@ -65,7 +65,7 @@ function createDOMPurify(window = getGlobal()) {
     getElementsByTagName,
     createDocumentFragment,
   } = document;
-  const importNode = originalDocument.importNode;
+  const { importNode } = originalDocument;
 
   let hooks = {};
 
@@ -86,7 +86,7 @@ function createDOMPurify(window = getGlobal()) {
     ATTR_WHITESPACE,
   } = EXPRESSIONS;
 
-  let IS_ALLOWED_URI = EXPRESSIONS.IS_ALLOWED_URI;
+  let { IS_ALLOWED_URI } = EXPRESSIONS;
   /**
    * We consider the elements and attributes below to be safe. Ideally
    * don't add any new ones but feel free to remove unwanted ones.
@@ -359,7 +359,6 @@ function createDOMPurify(window = getGlobal()) {
   const _initDocument = function(dirty) {
     /* Create a HTML document */
     let doc;
-    let body;
 
     if (FORCE_BODY) {
       dirty = '<remove></remove>' + dirty;
@@ -388,7 +387,7 @@ function createDOMPurify(window = getGlobal()) {
     Safari (see comment below) */
     if (!doc || !doc.documentElement) {
       doc = implementation.createHTMLDocument('');
-      body = doc.body;
+      const { body } = doc;
       body.parentNode.removeChild(body.parentNode.firstElementChild);
       body.outerHTML = dirty;
     }
@@ -597,16 +596,14 @@ function createDOMPurify(window = getGlobal()) {
   // eslint-disable-next-line complexity
   const _sanitizeAttributes = function(currentNode) {
     let attr;
-    let name;
     let value;
     let lcName;
     let idAttr;
-    let attributes;
     let l;
     /* Execute a hook if present */
     _executeHook('beforeSanitizeAttributes', currentNode, null);
 
-    attributes = currentNode.attributes;
+    let { attributes } = currentNode;
 
     /* Check if we have attributes; if not we might have a text node */
     if (!attributes) {
@@ -624,7 +621,7 @@ function createDOMPurify(window = getGlobal()) {
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
       attr = attributes[l];
-      name = attr.name;
+      const { name } = attr;
       value = attr.value.trim();
       lcName = name.toLocaleLowerCase();
 
@@ -821,7 +818,8 @@ function createDOMPurify(window = getGlobal()) {
       ) {
         if (typeof dirty === 'string') {
           return window.toStaticHTML(dirty);
-        } else if (_isNode(dirty)) {
+        }
+        if (_isNode(dirty)) {
           return window.toStaticHTML(dirty.outerHTML);
         }
       }

@@ -3,20 +3,6 @@ const argv = require('minimist')(process.argv.slice(2));
 const isArray = require('lodash.isarray');
 
 const customLaunchers = {
-  bs_win81_ie_11: {
-    base: 'BrowserStack',
-    browser: 'ie',
-    browser_version: '11.0',
-    os: 'Windows',
-    os_version: '8.1',
-  },
-  bs_win8_ie_10: {
-    base: 'BrowserStack',
-    browser: 'ie',
-    browser_version: '10.0',
-    os: 'Windows',
-    os_version: '8',
-  },
   bs_mavericks_chrome_44: {
     base: 'BrowserStack',
     device: null,
@@ -33,6 +19,14 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: 'Yosemite',
   },
+  bs_yosemite_safari_8: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'OS X',
+    browser_version: '8.0',
+    browser: 'safari',
+    os_version: 'Yosemite',
+  },
   bs_sierra_safari_10: {
     base: 'BrowserStack',
     device: null,
@@ -41,13 +35,13 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Sierra',
   },
-  bs_yosemite_safari_8: {
+  bs_sierra_safari_11: {
     base: 'BrowserStack',
     device: null,
     os: 'OS X',
-    browser_version: '8.0',
+    browser_version: '11.0',
     browser: 'safari',
-    os_version: 'Yosemite',
+    os_version: 'High Sierra',
   },
   bs_win81_opera_31: {
     base: 'BrowserStack',
@@ -57,28 +51,18 @@ const customLaunchers = {
     browser: 'opera',
     os_version: '8.1',
   },
-  bs_win7_firefox_20: {
+  bs_win8_ie_10: {
     base: 'BrowserStack',
-    device: null,
+    browser: 'ie',
+    browser_version: '10.0',
     os: 'Windows',
-    browser_version: '20.0',
-    browser: 'firefox',
-    os_version: '7',
+    os_version: '8',
   },
-  bs_win7_firefox_15: {
+  bs_win81_ie_11: {
     base: 'BrowserStack',
-    device: null,
+    browser: 'ie',
+    browser_version: '11.0',
     os: 'Windows',
-    browser_version: '15.0',
-    browser: 'firefox',
-    os_version: '7',
-  },
-  bs_win81_chrome_22: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '22.0',
-    browser: 'chrome',
     os_version: '8.1',
   },
   bs_win10_edge_13: {
@@ -97,6 +81,30 @@ const customLaunchers = {
     browser: 'edge',
     os_version: '10',
   },
+   bs_win10_edge_17: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '17.0',
+    browser: 'edge',
+    os_version: '10',
+  },
+  bs_win7_firefox_20: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '20.0',
+    browser: 'firefox',
+    os_version: '7',
+  },
+  bs_win7_firefox_15: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '15.0',
+    browser: 'firefox',
+    os_version: '7',
+  },
   bs_win10_firefox_46: {
     base: 'BrowserStack',
     device: null,
@@ -112,6 +120,22 @@ const customLaunchers = {
     browser_version: '52.0',
     browser: 'firefox',
     os_version: '10',
+  },
+  bs_win10_firefox_60: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '60.0',
+    browser: 'firefox',
+    os_version: '10',
+  },
+  bs_win81_chrome_22: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '22.0',
+    browser: 'chrome',
+    os_version: '8.1',
   },
   bs_win10_chrome_50: {
     base: 'BrowserStack',
@@ -137,6 +161,14 @@ const customLaunchers = {
     browser: 'chrome',
     os_version: '10',
   },
+  bs_win10_chrome_66: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '66.0',
+    browser: 'chrome',
+    os_version: '10',
+  }
 };
 
 const getAllBrowsers = () => Object.keys(customLaunchers);
