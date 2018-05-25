@@ -36,8 +36,9 @@ module.exports = [
             "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" FILTER=\"url(#f1)\" /></svg>",
             "<svg><defs><filter id=\"f1\"><fegaussianblur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
             "<svg><defs><filter id=\"f1\"><fegaussianblur stdDeviation=\"15\" in=\"SourceGraphic\"></fegaussianblur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>",
-            "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" STROKE-WIDTH=\"3\" STROKE=\"green\" FILL=\"yellow\" FILTER=\"url(#f1)\" /></svg>"
-       ]
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" STROKE-WIDTH=\"3\" STROKE=\"green\" FILL=\"yellow\" FILTER=\"url(#f1)\" /></svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" /></svg>"
+        ]
      },
   {
       "title": "safe usage of URI-like attribute values (see #135)",
@@ -671,7 +672,8 @@ module.exports = [
           "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"96\"><iframe src=mhtml:http://html5sec.org/test.html!xss.html></iframe>\n<iframe src=mhtml:http://html5sec.org/test.gif!xss.html></iframe>//[\"'`-->]]>]</div>",
@@ -881,7 +883,8 @@ module.exports = [
       "payload": "<div id=\"135\"><?xml-stylesheet type=\"text/xsl\" href=\"#\" ?>\n<stylesheet xmlns=\"http://www.w3.org/TR/WD-xsl\">\n<template match=\"/\">\n<eval>new ActiveXObject('htmlfile').parentWindow.alert(135)</eval>\n<if expr=\"new ActiveXObject('htmlfile').parentWindow.alert(2)\"></if>\n</template>\n</stylesheet>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"135\">\n\n<template>\n\n\n</template>\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n\n</template>\n//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n\n</template>\n//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n<head></head><body></body>\n</template>\n//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"136\"><form action=\"x\" method=\"post\">\n<input name=\"username\" value=\"admin\" />\n<input name=\"password\" type=\"password\" value=\"secret\" />\n<input name=\"injected\" value=\"injected\" dirname=\"password\" />\n<input type=\"submit\">\n</form>//[\"'`-->]]>]</div>",
