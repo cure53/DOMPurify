@@ -529,7 +529,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Now let's check the element's type and name */
-    const tagName = currentNode.nodeName.toLocaleLowerCase();
+    const tagName = currentNode.nodeName.toLowerCase();
 
     /* Execute a hook if present */
     _executeHook('uponSanitizeElement', currentNode, {
@@ -623,7 +623,7 @@ function createDOMPurify(window = getGlobal()) {
       attr = attributes[l];
       const { name } = attr;
       value = attr.value.trim();
-      lcName = name.toLocaleLowerCase();
+      lcName = name.toLowerCase();
 
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
@@ -710,7 +710,7 @@ function createDOMPurify(window = getGlobal()) {
       } else if (
         (lcName === 'src' || lcName === 'xlink:href') &&
         value.indexOf('data:') === 0 &&
-        DATA_URI_TAGS[currentNode.nodeName.toLocaleLowerCase()]
+        DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]
       ) {
         // This attribute is safe
         /* Allow unknown protocols: This provides support for links that
