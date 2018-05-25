@@ -4,11 +4,11 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 1.0.4!
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 1.0.4.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
-Our automated tests cover [16 different browsers](https://github.com/cure53/DOMPurify/blob/master/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v4.0.0, v5.0.0 and v6.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom).
+Our automated tests cover [21 different browsers](https://github.com/cure53/DOMPurify/blob/master/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v6.0.0, v8.0.0, v9.0.0 and v10.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom).
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
