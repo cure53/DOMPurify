@@ -21,7 +21,6 @@ matrix:
       - node_js: "8"
       - node_js: "9"
       - node_js: "10"
-      - node_js: "11"
         env: TEST_BROWSERSTACK=true
 addons:
   apt:
