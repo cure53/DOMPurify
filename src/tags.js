@@ -161,6 +161,7 @@ export const svg = [
   'title',
   'tref',
   'tspan',
+  'use',
   'video',
   'view',
   'vkern',
