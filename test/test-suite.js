@@ -62,6 +62,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<b><style><style/><img src=xx: onerror=alert(1)>', {SAFE_FOR_JQUERY: true}), "<b><style>&lt;style/>&lt;img src=xx: onerror=alert(1)></style></b>" );
       assert.contains( DOMPurify.sanitize( '1<template><s>000</s></template>2', {SAFE_FOR_JQUERY: true}), ["1<template><s>000</s></template>2", "1<template></template>2"] );
       assert.contains( DOMPurify.sanitize( '<template><s>000</s></template>', {SAFE_FOR_JQUERY: true}), ["", "<template><s>000</s></template>"]);
+      // see https://github.com/cure53/DOMPurify/issues/283
+      assert.equal( DOMPurify.sanitize( '<i>&amp;amp; &lt;</i>', {SAFE_FOR_JQUERY: true}), "<i>&amp;amp; &lt;</i>" );
   });
   QUnit.test( 'Config-Flag tests: SAFE_FOR_TEMPLATES', function(assert) {
       //SAFE_FOR_TEMPLATES
