@@ -561,7 +561,11 @@ function createDOMPurify(window = getGlobal()) {
       /</g.test(currentNode.textContent)
     ) {
       DOMPurify.removed.push({ element: currentNode.cloneNode() });
-      currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
+      if (currentNode.innerHTML) {
+        currentNode.innerHTML = currentNode.innerHTML.replace(/</g, '&lt;');
+      } else {
+        currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
+      }
     }
 
     /* Sanitize element content to be template-safe */
