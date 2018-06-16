@@ -306,6 +306,11 @@ function createDOMPurify(window = getGlobal()) {
       ALLOWED_TAGS['#text'] = true;
     }
 
+    /* Add html, head and body to ALLOWED_TAGS in case WHOLE_DOCUMENT is true */
+    if (WHOLE_DOCUMENT) {
+      addToSet(ALLOWED_TAGS, ['html', 'head', 'body']);
+    }
+
     // Prevent further manipulation of configuration.
     // Not available in IE8, Safari 5, etc.
     if (Object && 'freeze' in Object) {
