@@ -224,7 +224,7 @@ function createDOMPurify() {
   /**
    * _parseConfig
    *
-   * @param  optional config literal
+   * @param  {Object} cfg optional config literal
    */
   // eslint-disable-next-line complexity
   var _parseConfig = function _parseConfig(cfg) {
@@ -325,7 +325,7 @@ function createDOMPurify() {
   /**
    * _forceRemove
    *
-   * @param  a DOM node
+   * @param  {Node} node a DOM node
    */
   var _forceRemove = function _forceRemove(node) {
     DOMPurify.removed.push({ element: node });
@@ -339,8 +339,8 @@ function createDOMPurify() {
   /**
    * _removeAttribute
    *
-   * @param  an Attribute name
-   * @param  a DOM node
+   * @param  {String} name an Attribute name
+   * @param  {Node} node a DOM node
    */
   var _removeAttribute = function _removeAttribute(name, node) {
     try {
@@ -360,8 +360,8 @@ function createDOMPurify() {
   /**
    * _initDocument
    *
-   * @param  a string of dirty markup
-   * @return a DOM, filled with the dirty markup
+   * @param  {String} dirty a string of dirty markup
+   * @return {Document} a DOM, filled with the dirty markup
    */
   var _initDocument = function _initDocument(dirty) {
     /* Create a HTML document */
@@ -413,8 +413,8 @@ function createDOMPurify() {
   /**
    * _createIterator
    *
-   * @param  document/fragment to create iterator for
-   * @return iterator instance
+   * @param  {Document} root document/fragment to create iterator for
+   * @return {Iterator} iterator instance
    */
   var _createIterator = function _createIterator(root) {
     return createNodeIterator.call(root.ownerDocument || root, root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, function () {
@@ -425,8 +425,8 @@ function createDOMPurify() {
   /**
    * _isClobbered
    *
-   * @param  element to check for clobbering attacks
-   * @return true if clobbered, false if safe
+   * @param  {Node} elm element to check for clobbering attacks
+   * @return {Boolean} true if clobbered, false if safe
    */
   var _isClobbered = function _isClobbered(elm) {
     if (elm instanceof Text || elm instanceof Comment) {
@@ -441,8 +441,8 @@ function createDOMPurify() {
   /**
    * _isNode
    *
-   * @param object to check whether it's a DOM node
-   * @return true is object is a DOM node
+   * @param  {Node} obj object to check whether it's a DOM node
+   * @return {Boolean} true is object is a DOM node
    */
   var _isNode = function _isNode(obj) {
     return (typeof Node === 'undefined' ? 'undefined' : _typeof(Node)) === 'object' ? obj instanceof Node : obj && (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' && typeof obj.nodeType === 'number' && typeof obj.nodeName === 'string';
@@ -453,7 +453,8 @@ function createDOMPurify() {
    * Execute user configurable hooks
    *
    * @param  {String} entryPoint  Name of the hook's entry point
-   * @param  {Node} currentNode
+   * @param  {Node} currentNode node to work on with the hook
+   * @param  {Object} data additional hook parameters
    */
   var _executeHook = function _executeHook(entryPoint, currentNode, data) {
     if (!hooks[entryPoint]) {
@@ -472,8 +473,8 @@ function createDOMPurify() {
    * @protect textContent
    * @protect removeChild
    *
-   * @param   node to check for permission to exist
-   * @return  true if node was killed, false if left alive
+   * @param   {Node} currentNode to check for permission to exist
+   * @return  {Boolean} true if node was killed, false if left alive
    */
   var _sanitizeElements = function _sanitizeElements(currentNode) {
     var content = void 0;
@@ -682,8 +683,7 @@ function createDOMPurify() {
   /**
    * _sanitizeShadowDOM
    *
-   * @param  fragment to iterate over recursively
-   * @return void
+   * @param  {DocumentFragment} fragment to iterate over recursively
    */
   var _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
     var shadowNode = void 0;
@@ -857,8 +857,7 @@ function createDOMPurify() {
    * Public method to set the configuration once
    * setConfig
    *
-   * @param {Object} configuration object
-   * @return void
+   * @param {Object} cfg configuration object
    */
   DOMPurify.setConfig = function (cfg) {
     _parseConfig(cfg);
@@ -869,7 +868,6 @@ function createDOMPurify() {
    * Public method to remove the configuration
    * clearConfig
    *
-   * @return void
    */
   DOMPurify.clearConfig = function () {
     CONFIG = null;
@@ -880,8 +878,8 @@ function createDOMPurify() {
    * AddHook
    * Public method to add DOMPurify hooks
    *
-   * @param {String} entryPoint
-   * @param {Function} hookFunction
+   * @param {String} entryPoint entry point for the hook to add
+   * @param {Function} hookFunction function to execute
    */
   DOMPurify.addHook = function (entryPoint, hookFunction) {
     if (typeof hookFunction !== 'function') {
@@ -896,8 +894,7 @@ function createDOMPurify() {
    * Public method to remove a DOMPurify hook at a given entryPoint
    * (pops it from the stack of hooks if more are present)
    *
-   * @param {String} entryPoint
-   * @return void
+   * @param {String} entryPoint entry point for the hook to remove
    */
   DOMPurify.removeHook = function (entryPoint) {
     if (hooks[entryPoint]) {
@@ -909,8 +906,7 @@ function createDOMPurify() {
    * RemoveHooks
    * Public method to remove all DOMPurify hooks at a given entryPoint
    *
-   * @param  {String} entryPoint
-   * @return void
+   * @param  {String} entryPoint entry point for the hooks to remove
    */
   DOMPurify.removeHooks = function (entryPoint) {
     if (hooks[entryPoint]) {
@@ -922,7 +918,6 @@ function createDOMPurify() {
    * RemoveAllHooks
    * Public method to remove all DOMPurify hooks
    *
-   * @return void
    */
   DOMPurify.removeAllHooks = function () {
     hooks = {};
