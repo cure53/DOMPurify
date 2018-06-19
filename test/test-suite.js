@@ -457,7 +457,6 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           '<svg keep="me"></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\" keep=\"me\" />"
       ] );
   });
-
   QUnit.test( 'Config-Flag tests: ALLOWED_URI_REGEXP', function(assert) {
       var tests = [
           {
@@ -483,4 +482,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
         assert.equal( str, test.expected );
       });
   });
+  QUnit.test( 'Avoid freeze when using tables and ALLOW_TAGS', function (assert) {
+      var clean = DOMPurify.sanitize('<table><tr><td></td></tr></table>', {ALLOW_TAGS: ['table', 'tr', 'td']});
+      assert.equal(clean, '<table><tbody><tr><td></td></tr></tbody></table>');
+  } );
 };

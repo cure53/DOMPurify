@@ -313,6 +313,11 @@ function createDOMPurify() {
       addToSet(ALLOWED_TAGS, ['html', 'head', 'body']);
     }
 
+    /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286 */
+    if (ALLOWED_TAGS.table) {
+      addToSet(ALLOWED_TAGS, ['tbody']);
+    }
+
     // Prevent further manipulation of configuration.
     // Not available in IE8, Safari 5, etc.
     if (Object && 'freeze' in Object) {
