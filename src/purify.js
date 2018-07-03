@@ -879,6 +879,11 @@ function createDOMPurify(window = getGlobal()) {
       oldNode = currentNode;
     }
 
+    /* If we sanitized `dirty` in-place, return it. */
+    if (IN_PLACE) {
+      return dirty;
+    }
+
     /* Return sanitized string or DOM */
     if (RETURN_DOM) {
       if (RETURN_DOM_FRAGMENT) {
