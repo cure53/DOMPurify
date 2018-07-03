@@ -161,6 +161,10 @@ function createDOMPurify(window = getGlobal()) {
   /* Keep element content when removing element? */
   let KEEP_CONTENT = true;
 
+  /* If a `Node` is passed to sanitize(), then performs sanitization in-place instead
+   * of importing it into a new Document and returning a sanitized copy */
+  let IN_PLACE = false;
+
   /* Allow usage of profiles like html, svg and mathMl */
   let USE_PROFILES = {};
 
@@ -245,6 +249,7 @@ function createDOMPurify(window = getGlobal()) {
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
+    IN_PLACE = cfg.IN_PLACE || false; // Default false
 
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
 
@@ -815,7 +820,9 @@ function createDOMPurify(window = getGlobal()) {
     /* Clean up removed elements */
     DOMPurify.removed = [];
 
-    if (dirty instanceof Node) {
+    if (IN_PLACE) {
+      /* No special handling necessary for in-place sanitization */
+    } else if (dirty instanceof Node) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
       body = _initDocument('<!-->');
@@ -842,12 +849,12 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Remove first element node (ours) if FORCE_BODY is set */
-    if (FORCE_BODY) {
+    if (body && FORCE_BODY) {
       _forceRemove(body.firstChild);
     }
 
     /* Get node iterator */
-    const nodeIterator = _createIterator(body);
+    const nodeIterator = _createIterator(IN_PLACE ? dirty : body);
 
     /* Now start iterating over the created document */
     while ((currentNode = nodeIterator.nextNode())) {
