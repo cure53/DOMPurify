@@ -570,6 +570,75 @@ function createDOMPurify(window = getGlobal()) {
   };
 
   /**
+   * _isValidAttribute
+   *
+   * @param  {string} lcTag Lowercase tag name of containing element.
+   * @param  {string} lcName Lowercase attribute name.
+   * @param  {string} value Attribute value.
+   * @return {Boolean} Returns true if `value` is valid, otherwise false.
+   */
+  const _isValidAttribute = function(lcTag, lcName, value) {
+    /* Make sure attribute cannot clobber */
+    if (
+      SANITIZE_DOM &&
+      (lcName === 'id' || lcName === 'name') &&
+      (value in document || value in formElement)
+    ) {
+      return false;
+    }
+
+    /* Sanitize attribute content to be template-safe */
+    if (SAFE_FOR_TEMPLATES) {
+      value = value.replace(MUSTACHE_EXPR, ' ');
+      value = value.replace(ERB_EXPR, ' ');
+    }
+
+    /* Allow valid data-* attributes: At least one character after "-"
+        (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
+        XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
+        We don't need to check the value; it's always URI safe. */
+    if (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) {
+      // This attribute is safe
+    } else if (ALLOW_ARIA_ATTR && ARIA_ATTR.test(lcName)) {
+      // This attribute is safe
+      /* Otherwise, check the name is permitted */
+    } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
+      return false;
+
+      /* Check value is safe. First, is attr inert? If so, is safe */
+    } else if (URI_SAFE_ATTRIBUTES[lcName]) {
+      // This attribute is safe
+      /* Check no script, data or unknown possibly unsafe URI
+        unless we know URI values are safe for that attribute */
+    } else if (IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE, ''))) {
+      // This attribute is safe
+      /* Keep image data URIs alive if src/xlink:href is allowed */
+    } else if (
+      (lcName === 'src' || lcName === 'xlink:href') &&
+      value.indexOf('data:') === 0 &&
+      DATA_URI_TAGS[lcTag]
+    ) {
+      // This attribute is safe
+      /* Allow unknown protocols: This provides support for links that
+        are handled by protocol handlers which may be unknown ahead of
+        time, e.g. fb:, spotify: */
+    } else if (
+      ALLOW_UNKNOWN_PROTOCOLS &&
+      !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE, ''))
+    ) {
+      // This attribute is safe
+      /* Check for binary attributes */
+      // eslint-disable-next-line no-negated-condition
+    } else if (!value) {
+      // Binary attributes are safe at this point
+      /* Anything else, presume unsafe, do not add it back */
+    } else {
+      return false;
+    }
+    return true;
+  };
+
+  /**
    * _sanitizeAttributes
    *
    * @protect attributes
@@ -577,8 +646,7 @@ function createDOMPurify(window = getGlobal()) {
    * @protect removeAttribute
    * @protect setAttribute
    *
-   * @param   node to sanitize
-   * @return  void
+   * @param  {Node} node to sanitize
    */
   // eslint-disable-next-line complexity
   const _sanitizeAttributes = function(currentNode) {
@@ -659,61 +727,9 @@ function createDOMPurify(window = getGlobal()) {
         continue;
       }
 
-      /* Make sure attribute cannot clobber */
-      if (
-        SANITIZE_DOM &&
-        (lcName === 'id' || lcName === 'name') &&
-        (value in document || value in formElement)
-      ) {
-        continue;
-      }
-
-      /* Sanitize attribute content to be template-safe */
-      if (SAFE_FOR_TEMPLATES) {
-        value = value.replace(MUSTACHE_EXPR, ' ');
-        value = value.replace(ERB_EXPR, ' ');
-      }
-
-      /* Allow valid data-* attributes: At least one character after "-"
-         (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
-         XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
-         We don't need to check the value; it's always URI safe. */
-      if (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) {
-        // This attribute is safe
-      } else if (ALLOW_ARIA_ATTR && ARIA_ATTR.test(lcName)) {
-        // This attribute is safe
-        /* Otherwise, check the name is permitted */
-      } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
-        continue;
-
-        /* Check value is safe. First, is attr inert? If so, is safe */
-      } else if (URI_SAFE_ATTRIBUTES[lcName]) {
-        // This attribute is safe
-        /* Check no script, data or unknown possibly unsafe URI
-         unless we know URI values are safe for that attribute */
-      } else if (IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE, ''))) {
-        // This attribute is safe
-        /* Keep image data URIs alive if src/xlink:href is allowed */
-      } else if (
-        (lcName === 'src' || lcName === 'xlink:href') &&
-        value.indexOf('data:') === 0 &&
-        DATA_URI_TAGS[currentNode.nodeName.toLowerCase()]
-      ) {
-        // This attribute is safe
-        /* Allow unknown protocols: This provides support for links that
-         are handled by protocol handlers which may be unknown ahead of
-         time, e.g. fb:, spotify: */
-      } else if (
-        ALLOW_UNKNOWN_PROTOCOLS &&
-        !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE, ''))
-      ) {
-        // This attribute is safe
-        /* Check for binary attributes */
-        // eslint-disable-next-line no-negated-condition
-      } else if (!value) {
-        // Binary attributes are safe at this point
-        /* Anything else, presume unsafe, do not add it back */
-      } else {
+      /* Is `value` valid for this attribute? */
+      const lcTag = currentNode.nodeName.toLowerCase();
+      if (!_isValidAttribute(lcTag, lcName, value)) {
         continue;
       }
 
@@ -930,6 +946,26 @@ function createDOMPurify(window = getGlobal()) {
   DOMPurify.clearConfig = function() {
     CONFIG = null;
     SET_CONFIG = false;
+  };
+
+  /**
+   * Public method to check if an attribute value is valid.
+   * Uses last set config, if any. Otherwise, uses config defaults.
+   * isValidAttribute
+   *
+   * @param  {string} tag Tag name of containing element.
+   * @param  {string} attr Attribute name.
+   * @param  {string} value Attribute value.
+   * @return {Boolean} Returns true if `value` is valid. Otherwise, returns false.
+   */
+  DOMPurify.isValidAttribute = function(tag, attr, value) {
+    /* Initialize shared config vars if necessary. */
+    if (!CONFIG) {
+      _parseConfig({});
+    }
+    const lcTag = tag.toLowerCase();
+    const lcName = attr.toLowerCase();
+    return _isValidAttribute(lcTag, lcName, value);
   };
 
   /**
