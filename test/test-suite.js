@@ -138,6 +138,14 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.notEqual(fragment.ownerDocument, document);
       assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
   });
+  QUnit.test( 'Config-Flag tests: IN_PLACE', function(assert) {
+      //IN_PLACE
+      var dirty = document.createElement('img');
+      dirty.setAttribute('src', 'javascript:alert(1)');
+      var clean = DOMPurify.sanitize( dirty, {IN_PLACE: true} );
+      assert.equal(dirty, clean); // should return the input node
+      assert.equal(dirty.src, ''); // should still sanitize
+  });
   QUnit.test( 'Config-Flag tests: FORBID_TAGS', function(assert) {
       //FORBID_TAGS
       assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {FORBID_TAGS: ['b']}), "<a>123456</a>" );
