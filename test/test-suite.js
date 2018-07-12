@@ -140,15 +140,11 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   });
   QUnit.test( 'Config-Flag tests: IN_PLACE', function(assert) {
       //IN_PLACE
-      var dirty = document.createElement('img');
-      try { // IE and Edge cannot use JS URIs here and throw
-        dirty.setAttribute('src', 'javascript:alert(1)');
-      } catch(e) {
-        dirty.setAttribute('src', 'data:,<script>alert(1)</script>');          
-      }
+      var dirty = document.createElement('a');
+      dirty.setAttribute('href', 'javascript:alert(1)');
       var clean = DOMPurify.sanitize( dirty, {IN_PLACE: true} );
       assert.equal(dirty, clean); // should return the input node
-      assert.equal(dirty.src, ''); // should still sanitize
+      assert.equal(dirty.href, ''); // should still sanitize
   });
   QUnit.test( 'Config-Flag tests: FORBID_TAGS', function(assert) {
       //FORBID_TAGS
