@@ -141,7 +141,11 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'Config-Flag tests: IN_PLACE', function(assert) {
       //IN_PLACE
       var dirty = document.createElement('img');
-      dirty.setAttribute('src', 'javascript:alert(1)');
+      try { // IE and Edge cannot use JS URIs here and throw
+        dirty.setAttribute('src', 'javascript:alert(1)');
+      } catch(e) {
+        dirty.setAttribute('src', 'data:,<script>alert(1)</script>');          
+      }
       var clean = DOMPurify.sanitize( dirty, {IN_PLACE: true} );
       assert.equal(dirty, clean); // should return the input node
       assert.equal(dirty.src, ''); // should still sanitize
