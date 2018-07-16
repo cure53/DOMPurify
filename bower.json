@@ -1,6 +1,6 @@
 {
   "name": "DOMPurify",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "homepage": "https://github.com/cure53/DOMPurify",
   "author": "Cure53 <info@cure53.de>",
   "description": "A DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG",
