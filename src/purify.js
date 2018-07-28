@@ -402,6 +402,9 @@ function createDOMPurify(window = getGlobal()) {
   // not be safe if used in a document.write context later.
   //
   // So we feature detect the Firefox bug and use the DOMParser if necessary.
+  //
+  // MS Edge, in older versions, is affected by an mXSS behavior. The second
+  // check tests for the behavior and fixes it if necessary.
   if (DOMPurify.isSupported) {
     (function() {
       try {
@@ -410,6 +413,16 @@ function createDOMPurify(window = getGlobal()) {
         );
         if (doc.querySelector('svg img')) {
           useDOMParser = true;
+        }
+      } catch (err) {}
+    })();
+    (function() {
+      try {
+        const doc = _initDocument(
+          '<x/><title>&amp;lt;/title&amp;gt;&amp;lt;img&gt;'
+        );
+        if (doc.querySelector('img')) {
+          addToSet(FORBID_TAGS, ['title']);
         }
       } catch (err) {}
     })();
