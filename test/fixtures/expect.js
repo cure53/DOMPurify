@@ -725,7 +725,10 @@ module.exports = [
       ]
   }, {
       "payload": "<div id=\"107\"><title onpropertychange=alert(107)></title><title title=></title>//[\"'`-->]]>]</div>",
-      "expected": "<div id=\"107\"><title></title><title title=\"\"></title>//[\"'`--&gt;]]&gt;]</div>"
+      "expected": [
+          "<div id=\"107\"><title></title><title title=\"\"></title>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"107\">//[\"'`--&gt;]]&gt;]</div>"
+      ]
   }, {
       "payload": "<div id=\"108\"><!-- IE 5-8 standards mode -->\n<a href=http://foo.bar/#x=`y></a><img alt=\"`><img src=xx onerror=alert(108)></a>\">\n<!-- IE 5-9 standards mode -->\n<!a foo=x=`y><img alt=\"`><img src=xx onerror=alert(2)//\">\n<?a foo=x=`y><img alt=\"`><img src=xx onerror=alert(3)//\">//[\"'`-->]]>]</div>",
       "expected": [
@@ -934,5 +937,9 @@ module.exports = [
       "title": "See #264 and Edge's weird attribute name errors",
       "payload": "<div &nbsp;=\"\"></div>",
       "expected": "<div></div>"
-}
+  }, {
+      "title": "Tests against mXSS behavior in older MS Edge",
+      "payload": "<x/><title>&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;",
+      "expected": ["<img src=\"1\">", "&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;"]
+  }
 ];
