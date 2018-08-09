@@ -115,6 +115,12 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {RETURN_DOM: true, WHOLE_DOCUMENT: true}).outerHTML, "<html><head></head><body><a>123<b>456</b></a></body></html>" );
       assert.equal( DOMPurify.sanitize( '<a>123<b>456<script>alert(1)<\/script></b></a>', {RETURN_DOM: true, WHOLE_DOCUMENT: true}).outerHTML, "<html><head></head><body><a>123<b>456</b></a></body></html>" );
       assert.equal( DOMPurify.sanitize( '123', {RETURN_DOM: true}).outerHTML, "<body>123</body>" );
+      // Attribute namespaces should be correctly set.
+      var svg = DOMPurify.sanitize( '<svg><g><image xlink:href="foo.svg"></image></g></svg>', {RETURN_DOM: true});
+      var image = svg.querySelector('image');
+      var attr = image.getAttributeNode('xlink:href');
+      assert.equal( attr.namespaceURI, 'http://www.w3.org/1999/xlink' );
+      assert.equal( attr.value, 'foo.svg' );
   });
   QUnit.test( 'Config-Flag tests: RETURN_DOM_IMPORT', function(assert) {
       //RETURN_DOM_IMPORT
@@ -399,7 +405,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize(document.createElement('td'));
       assert.equal(clean, "<td></td>");
   } );
-  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 2', function (assert) {
+  QUnit.test( 'DOMPurify should deliver accurate results when sanitizing nodes 2', function (assert) {
       var clean = DOMPurify.sanitize(document.createElement('td'), {RETURN_DOM: true});
       assert.equal(clean.outerHTML, "<body><td></td></body>");
   } );

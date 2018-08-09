@@ -693,7 +693,7 @@ function createDOMPurify(window = getGlobal()) {
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
       attr = attributes[l];
-      const { name } = attr;
+      const { name, namespaceURI } = attr;
       value = attr.value.trim();
       lcName = name.toLowerCase();
 
@@ -752,7 +752,12 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Handle invalid data-* attribute set by try-catching it */
       try {
-        currentNode.setAttribute(name, value);
+        if (namespaceURI) {
+          currentNode.setAttributeNS(namespaceURI, name, value);
+        } else {
+          /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+          currentNode.setAttribute(name, value);
+        }
         DOMPurify.removed.pop();
       } catch (err) {}
     }
