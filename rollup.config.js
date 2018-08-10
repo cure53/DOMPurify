@@ -8,7 +8,7 @@ const isProd = env === "production";
 const version = process.env.npm_package_version;
 
 const config = {
-  entry: "src/purify.js",
+  input: "src/purify.js",
   external: [],
   output: {
     name: "DOMPurify",
