@@ -1,4 +1,6 @@
-# DOMPurify [![Bower version](https://badge.fury.io/bo/dompurify.svg)](http://badge.fury.io/bo/dompurify) · [![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) · [![Build Status](https://travis-ci.org/cure53/DOMPurify.svg)](https://travis-ci.org/cure53/DOMPurify) · [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify)
+# DOMPurify
+
+[![Bower version](https://badge.fury.io/bo/dompurify.svg)](http://badge.fury.io/bo/dompurify) · [![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) · [![Build Status](https://travis-ci.org/cure53/DOMPurify.svg)](https://travis-ci.org/cure53/DOMPurify) · [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) · [![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js?compression=gzip)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js) · [![install size](https://badgen.net/packagephobia/install/dompurify)](https://packagephobia.now.sh/result?p=dompurify)
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
