@@ -20,11 +20,7 @@
   "module": "dist/purify.es.js",
   "browser": "dist/purify.js",
   "files": [
-    "dist",
-    "package.json",
-    "yarn.lock",
-    "package-lock.json",
-    "README.md"
+    "dist"
   ],
   "pre-commit": [
     "lint",
