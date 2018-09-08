@@ -630,8 +630,10 @@ function createDOMPurify(window = getGlobal()) {
     } else if (IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE, ''))) {
       // This attribute is safe
       /* Keep image data URIs alive if src/xlink:href is allowed */
+      /* Further prevent gadget XSS for dynamically built script tags */
     } else if (
       (lcName === 'src' || lcName === 'xlink:href') &&
+      lcTag !== 'script' &&
       value.indexOf('data:') === 0 &&
       DATA_URI_TAGS[lcTag]
     ) {
