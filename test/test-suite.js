@@ -432,6 +432,10 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize(' AAAAA', {FORCE_BODY: true});
       assert.equal(clean, " AAAAA");
   } );
+  QUnit.test( 'Lack of FORCE_BODY still preserves leading whitespace', function (assert) {
+      var clean = DOMPurify.sanitize(' <b>AAAAA</b>', {FORCE_BODY: false});
+      assert.equal(clean, " <b>AAAAA</b>");
+  } );
   QUnit.test( 'Lack of FORCE_BODY needs to push some elements to document.head', function (assert) {
       var clean = DOMPurify.sanitize('<style>123</style>', {FORCE_BODY: false});
       assert.equal(clean, "");

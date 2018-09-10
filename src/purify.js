@@ -372,9 +372,17 @@ function createDOMPurify(window = getGlobal()) {
   const _initDocument = function(dirty) {
     /* Create a HTML document */
     let doc;
+    let leadingWhitespace;
 
     if (FORCE_BODY) {
       dirty = '<remove></remove>' + dirty;
+    } else {
+      /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
+      const matches = dirty.match(/^[\s]+/);
+      leadingWhitespace = matches && matches[0];
+      if (leadingWhitespace) {
+        dirty = dirty.slice(leadingWhitespace.length);
+      }
     }
 
     /* Use DOMParser to workaround Firefox bug (see comment below) */
@@ -396,6 +404,13 @@ function createDOMPurify(window = getGlobal()) {
       const { body } = doc;
       body.parentNode.removeChild(body.parentNode.firstElementChild);
       body.outerHTML = dirty;
+    }
+
+    if (leadingWhitespace) {
+      doc.body.insertBefore(
+        document.createTextNode(leadingWhitespace),
+        doc.body.childNodes[0] || null
+      );
     }
 
     /* Work on whole document or just its body */
