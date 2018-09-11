@@ -30,7 +30,6 @@ function createDOMPurify(window = getGlobal()) {
 
   const originalDocument = window.document;
   let useDOMParser = false; // See comment below
-  let removeTitle = false; // See comment below
 
   let { document } = window;
   const {
@@ -392,11 +391,6 @@ function createDOMPurify(window = getGlobal()) {
       } catch (err) {}
     }
 
-    /* Remove title to fix an mXSS bug in older MS Edge */
-    if (removeTitle) {
-      addToSet(FORBID_TAGS, ['title']);
-    }
-
     /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
     Safari (see comment below) */
     if (!doc || !doc.documentElement) {
@@ -434,14 +428,6 @@ function createDOMPurify(window = getGlobal()) {
         );
         if (doc.querySelector('svg img')) {
           useDOMParser = true;
-        }
-      } catch (err) {}
-    })();
-    (function() {
-      try {
-        const doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (doc.querySelector('title').textContent.match(/<\/title/)) {
-          removeTitle = true;
         }
       } catch (err) {}
     })();
