@@ -948,10 +948,6 @@ module.exports = [
   }, {
       "title": "Tests against mXSS behavior in older MS Edge",
       "payload": "<x/><title>&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;",
-      "expected": [
-          "<img src=\"1\">", 
-          "&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;",
-          "<title>&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;</title>"
-      ]
+      "expected": ["<img src=\"1\">", "&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;"]
   }
 ];
