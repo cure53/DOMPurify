@@ -1,4 +1,10 @@
-export const html = [
+const freeze =
+  Object.freeze ||
+  function(x) {
+    return x;
+  };
+
+export const html = freeze([
   'a',
   'abbr',
   'acronym',
@@ -114,10 +120,10 @@ export const html = [
   'var',
   'video',
   'wbr',
-];
+]);
 
 // SVG
-export const svg = [
+export const svg = freeze([
   'svg',
   'a',
   'altglyph',
@@ -164,9 +170,9 @@ export const svg = [
   'video',
   'view',
   'vkern',
-];
+]);
 
-export const svgFilters = [
+export const svgFilters = freeze([
   'feBlend',
   'feColorMatrix',
   'feComponentTransfer',
@@ -190,9 +196,9 @@ export const svgFilters = [
   'feSpotLight',
   'feTile',
   'feTurbulence',
-];
+]);
 
-export const mathMl = [
+export const mathMl = freeze([
   'math',
   'menclose',
   'merror',
@@ -222,6 +228,6 @@ export const mathMl = [
   'mtr',
   'munder',
   'munderover',
-];
+]);
 
-export const text = ['#text'];
+export const text = freeze(['#text']);
