@@ -1,4 +1,10 @@
-export const html = [
+const freeze =
+  Object.freeze ||
+  function(x) {
+    return x;
+  };
+
+export const html = freeze([
   'accept',
   'action',
   'align',
@@ -88,9 +94,9 @@ export const html = [
   'value',
   'width',
   'xmlns',
-];
+]);
 
-export const svg = [
+export const svg = freeze([
   'accent-height',
   'accumulate',
   'additivive',
@@ -266,9 +272,9 @@ export const svg = [
   'y2',
   'z',
   'zoomandpan',
-];
+]);
 
-export const mathMl = [
+export const mathMl = freeze([
   'accent',
   'accentunder',
   'align',
@@ -321,12 +327,12 @@ export const mathMl = [
   'voffset',
   'width',
   'xmlns',
-];
+]);
 
-export const xml = [
+export const xml = freeze([
   'xlink:href',
   'xml:id',
   'xlink:title',
   'xml:space',
   'xmlns:xlink',
-];
+]);

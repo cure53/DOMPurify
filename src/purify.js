@@ -3,7 +3,16 @@ import * as ATTRS from './attrs';
 import { addToSet, clone } from './utils';
 import * as EXPRESSIONS from './regexp';
 
+let { apply } = typeof Reflect !== 'undefined' && Reflect;
+const { slice: arraySlice } = Array.prototype;
+const { freeze } = Object;
 const getGlobal = () => (typeof window === 'undefined' ? null : window);
+
+if (!apply) {
+  apply = function(fun, thisValue, args) {
+    return fun.apply(thisValue, args);
+  };
+}
 
 function createDOMPurify(window = getGlobal()) {
   const DOMPurify = root => createDOMPurify(root);
@@ -223,7 +232,7 @@ function createDOMPurify(window = getGlobal()) {
   // eslint-disable-next-line complexity
   const _parseConfig = function(cfg) {
     /* Shield configuration object from tampering */
-    if (typeof cfg !== 'object') {
+    if (!cfg || typeof cfg !== 'object') {
       cfg = {};
     }
     /* Set configuration parameters */
@@ -321,8 +330,8 @@ function createDOMPurify(window = getGlobal()) {
 
     // Prevent further manipulation of configuration.
     // Not available in IE8, Safari 5, etc.
-    if (Object && 'freeze' in Object) {
-      Object.freeze(cfg);
+    if (freeze) {
+      freeze(cfg);
     }
 
     CONFIG = cfg;
@@ -731,7 +740,7 @@ function createDOMPurify(window = getGlobal()) {
         attributes.id
       ) {
         idAttr = attributes.id;
-        attributes = Array.prototype.slice.apply(attributes);
+        attributes = apply(arraySlice, attributes, []);
         _removeAttribute('id', currentNode);
         _removeAttribute(name, currentNode);
         if (attributes.indexOf(idAttr) > l) {
