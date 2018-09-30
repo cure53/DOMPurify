@@ -5983,7 +5983,7 @@
                             configurable : true,
                             writable : false,
                             value : function(node) {
-                                var js, script;
+                                var js, script, code;
                                 if (this.tagName && this.tagName.toUpperCase() == 'SCRIPT') {
                                     while (this.firstChild) {
                                         this.removeChild(this.firstChild);
@@ -6069,7 +6069,7 @@
                             configurable : true,
                             writable : false,
                             value : function(newElement, referenceElement) {
-                                var js, script;
+                                var js, script, code;
                                 if (this.tagName && this.tagName.toUpperCase() == 'SCRIPT') {
                                     while (this.firstChild) {
                                         this.removeChild(this.firstChild);
