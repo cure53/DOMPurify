@@ -14,7 +14,7 @@
                 xhr.onload = function(){
                     var data=JSON.parse(xhr.responseText.slice(17, -2));
                     x.value = '<!-- I am ready now, click one of the buttons! -->\r\n';
-                    for(i in data) {
+                    for(var i in data) {
                         x.value+=data[i].payload+"\r\n\r\n";
                     }
                 }
