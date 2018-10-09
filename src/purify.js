@@ -231,6 +231,10 @@ function createDOMPurify(window = getGlobal()) {
    */
   // eslint-disable-next-line complexity
   const _parseConfig = function(cfg) {
+    if (CONFIG && CONFIG === cfg) {
+      return;
+    }
+
     /* Shield configuration object from tampering */
     if (!cfg || typeof cfg !== 'object') {
       cfg = {};
