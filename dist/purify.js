@@ -949,6 +949,8 @@ function createDOMPurify() {
       oldNode = currentNode;
     }
 
+    oldNode = null;
+
     /* If we sanitized `dirty` in-place, return it. */
     if (IN_PLACE) {
       return dirty;
