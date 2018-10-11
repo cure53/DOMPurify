@@ -168,6 +168,14 @@ const customLaunchers = {
     browser_version: '66.0',
     browser: 'chrome',
     os_version: '10',
+  },
+  bs_win10_chrome_69: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '69.0',
+    browser: 'chrome',
+    os_version: '10',
   }
 };
 
