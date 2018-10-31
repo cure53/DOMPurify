@@ -122,8 +122,6 @@ var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes,
   // Allow the callers to control the unique policy name
   // by adding a data-tt-policy-suffix to the script element with the DOMPurify.
   // Policy creation with duplicate names throws in Trusted Types.
-  // Allow the callers to control the unique policy name
-  // by adding a data-tt-policy-suffix to the script element with the DOMPurify.
   var suffix = null;
   var ATTR_NAME = 'data-tt-policy-suffix';
   if (document.currentScript && document.currentScript.hasAttribute(ATTR_NAME)) {
