@@ -99,7 +99,7 @@ export const html = freeze([
 export const svg = freeze([
   'accent-height',
   'accumulate',
-  'additivive',
+  'additive',
   'alignment-baseline',
   'ascent',
   'attributename',
