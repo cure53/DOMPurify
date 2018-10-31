@@ -14,6 +14,53 @@ if (!apply) {
   };
 }
 
+/**
+ * Creates a no-op policy for internal use only.
+ * Don't export this function outside this module!
+ * @param {?TrustedTypePolicyFactory} trustedTypes The policy factory.
+ * @param {Document} document The document object (to determine policy name suffix)
+ * @return {?TrustedTypePolicy} The policy created (or null, if Trusted Types
+ * are not supported).
+ */
+const _createTrustedTypesPolicy = function(trustedTypes, document) {
+  if (
+    typeof trustedTypes !== 'object' ||
+    typeof trustedTypes.createPolicy !== 'function'
+  ) {
+    return null;
+  }
+
+  // Allow the callers to control the unique policy name
+  // by adding a data-tt-policy-suffix to the script element with the DOMPurify.
+  // Policy creation with duplicate names throws in Trusted Types.
+  let suffix = null;
+  const ATTR_NAME = 'data-tt-policy-suffix';
+  if (
+    document.currentScript &&
+    document.currentScript.hasAttribute(ATTR_NAME)
+  ) {
+    suffix = document.currentScript.getAttribute(ATTR_NAME);
+  }
+
+  const policyName = 'dompurify' + (suffix ? '#' + suffix : '');
+
+  try {
+    return trustedTypes.createPolicy(policyName, {
+      createHTML(html) {
+        return html;
+      },
+    });
+  } catch (e) {
+    // Policy creation failed (most likely another DOMPurify script has
+    // already run). Skip creating the policy, as this will only cause errors
+    // if TT are enforced.
+    console.warn(
+      'TrustedTypes policy ' + policyName + ' could not be created.'
+    );
+    return null;
+  }
+};
+
 function createDOMPurify(window = getGlobal()) {
   const DOMPurify = root => createDOMPurify(root);
 
@@ -51,6 +98,7 @@ function createDOMPurify(window = getGlobal()) {
     Text,
     Comment,
     DOMParser,
+    TrustedTypes,
   } = window;
 
   // As per issue #47, the web-components registry is inherited by a
@@ -65,6 +113,12 @@ function createDOMPurify(window = getGlobal()) {
       document = template.content.ownerDocument;
     }
   }
+
+  const trustedTypesPolicy = _createTrustedTypesPolicy(
+    TrustedTypes,
+    originalDocument
+  );
+  const emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   const {
     implementation,
@@ -151,12 +205,14 @@ function createDOMPurify(window = getGlobal()) {
    * document.body. By default, browsers might move them to document.head */
   let FORCE_BODY = false;
 
-  /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
+  /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
+   * string (or a TrustedHTML object if Trusted Types are supported).
    * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
    */
   let RETURN_DOM = false;
 
-  /* Decide if a DOM `DocumentFragment` should be returned, instead of a html string */
+  /* Decide if a DOM `DocumentFragment` should be returned, instead of a html
+   * string  (or a TrustedHTML object if Trusted Types are supported) */
   let RETURN_DOM_FRAGMENT = false;
 
   /* If `RETURN_DOM` or `RETURN_DOM_FRAGMENT` is enabled, decide if the returned DOM
@@ -351,7 +407,7 @@ function createDOMPurify(window = getGlobal()) {
     try {
       node.parentNode.removeChild(node);
     } catch (err) {
-      node.outerHTML = '';
+      node.outerHTML = emptyHTML;
     }
   };
 
@@ -416,7 +472,9 @@ function createDOMPurify(window = getGlobal()) {
       doc = implementation.createHTMLDocument('');
       const { body } = doc;
       body.parentNode.removeChild(body.parentNode.firstElementChild);
-      body.outerHTML = dirty;
+      body.outerHTML = trustedTypesPolicy
+        ? trustedTypesPolicy.createHTML(dirty)
+        : dirty;
     }
 
     if (leadingWhitespace) {
@@ -574,7 +632,13 @@ function createDOMPurify(window = getGlobal()) {
         typeof currentNode.insertAdjacentHTML === 'function'
       ) {
         try {
-          currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
+          const htmlToInsert = currentNode.innerHTML;
+          currentNode.insertAdjacentHTML(
+            'AfterEnd',
+            trustedTypesPolicy
+              ? trustedTypesPolicy.createHTML(htmlToInsert)
+              : htmlToInsert
+          );
         } catch (err) {}
       }
       _forceRemove(currentNode);
@@ -904,7 +968,9 @@ function createDOMPurify(window = getGlobal()) {
     } else {
       /* Exit directly if we have nothing to do */
       if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
-        return dirty;
+        return trustedTypesPolicy
+          ? trustedTypesPolicy.createHTML(dirty)
+          : dirty;
       }
 
       /* Initialize the document to work on */
@@ -912,7 +978,7 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Check we have a DOM node from the data */
       if (!body) {
-        return RETURN_DOM ? null : '';
+        return RETURN_DOM ? null : emptyHTML;
       }
     }
 
@@ -978,7 +1044,10 @@ function createDOMPurify(window = getGlobal()) {
       return returnNode;
     }
 
-    return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    const serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    return trustedTypesPolicy
+      ? trustedTypesPolicy.createHTML(serializedHTML)
+      : serializedHTML;
   };
 
   /**

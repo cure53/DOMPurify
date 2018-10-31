@@ -112,6 +112,45 @@ if (!apply) {
   };
 }
 
+/**
+ * Creates a no-op policy for internal use only.
+ * Don't export this function outside this module!
+ * @param {?TrustedTypePolicyFactory} trustedTypes The policy factory.
+ * @param {Document} document The document object (to determine policy name suffix)
+ * @return {?TrustedTypePolicy} The policy created (or null, if Trusted Types
+ * are not supported).
+ */
+var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, document) {
+  if ((typeof trustedTypes === 'undefined' ? 'undefined' : _typeof(trustedTypes)) !== 'object' || typeof trustedTypes.createPolicy !== 'function') {
+    return null;
+  }
+
+  // Allow the callers to control the unique policy name
+  // by adding a data-tt-policy-suffix to the script element with the DOMPurify.
+  // Policy creation with duplicate names throws in Trusted Types.
+  var suffix = null;
+  var ATTR_NAME = 'data-tt-policy-suffix';
+  if (document.currentScript && document.currentScript.hasAttribute(ATTR_NAME)) {
+    suffix = document.currentScript.getAttribute(ATTR_NAME);
+  }
+
+  var policyName = 'dompurify' + (suffix ? '#' + suffix : '');
+
+  try {
+    return trustedTypes.createPolicy(policyName, {
+      createHTML: function createHTML(html$$1) {
+        return html$$1;
+      }
+    });
+  } catch (e) {
+    // Policy creation failed (most likely another DOMPurify script has
+    // already run). Skip creating the policy, as this will only cause errors
+    // if TT are enforced.
+    console.warn('TrustedTypes policy ' + policyName + ' could not be created.');
+    return null;
+  }
+};
+
 function createDOMPurify() {
   var window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
 
@@ -152,7 +191,8 @@ function createDOMPurify() {
       NamedNodeMap = _window$NamedNodeMap === undefined ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
       Text = window.Text,
       Comment = window.Comment,
-      DOMParser = window.DOMParser;
+      DOMParser = window.DOMParser,
+      TrustedTypes = window.TrustedTypes;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -167,6 +207,9 @@ function createDOMPurify() {
       document = template.content.ownerDocument;
     }
   }
+
+  var trustedTypesPolicy = _createTrustedTypesPolicy(TrustedTypes, originalDocument);
+  var emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   var _document = document,
       implementation = _document.implementation,
@@ -237,12 +280,14 @@ function createDOMPurify() {
    * document.body. By default, browsers might move them to document.head */
   var FORCE_BODY = false;
 
-  /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html string.
+  /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
+   * string (or a TrustedHTML object if Trusted Types are supported).
    * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
    */
   var RETURN_DOM = false;
 
-  /* Decide if a DOM `DocumentFragment` should be returned, instead of a html string */
+  /* Decide if a DOM `DocumentFragment` should be returned, instead of a html
+   * string  (or a TrustedHTML object if Trusted Types are supported) */
   var RETURN_DOM_FRAGMENT = false;
 
   /* If `RETURN_DOM` or `RETURN_DOM_FRAGMENT` is enabled, decide if the returned DOM
@@ -402,7 +447,7 @@ function createDOMPurify() {
     try {
       node.parentNode.removeChild(node);
     } catch (err) {
-      node.outerHTML = '';
+      node.outerHTML = emptyHTML;
     }
   };
 
@@ -469,7 +514,7 @@ function createDOMPurify() {
           body = _doc.body;
 
       body.parentNode.removeChild(body.parentNode.firstElementChild);
-      body.outerHTML = dirty;
+      body.outerHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
     }
 
     if (leadingWhitespace) {
@@ -600,7 +645,8 @@ function createDOMPurify() {
       /* Keep content except for black-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName] && typeof currentNode.insertAdjacentHTML === 'function') {
         try {
-          currentNode.insertAdjacentHTML('AfterEnd', currentNode.innerHTML);
+          var htmlToInsert = currentNode.innerHTML;
+          currentNode.insertAdjacentHTML('AfterEnd', trustedTypesPolicy ? trustedTypesPolicy.createHTML(htmlToInsert) : htmlToInsert);
         } catch (err) {}
       }
       _forceRemove(currentNode);
@@ -906,7 +952,7 @@ function createDOMPurify() {
     } else {
       /* Exit directly if we have nothing to do */
       if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
-        return dirty;
+        return trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
       }
 
       /* Initialize the document to work on */
@@ -914,7 +960,7 @@ function createDOMPurify() {
 
       /* Check we have a DOM node from the data */
       if (!body) {
-        return RETURN_DOM ? null : '';
+        return RETURN_DOM ? null : emptyHTML;
       }
     }
 
@@ -980,7 +1026,8 @@ function createDOMPurify() {
       return returnNode;
     }
 
-    return WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    var serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    return trustedTypesPolicy ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
   };
 
   /**

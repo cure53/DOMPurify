@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="Content-Security-Policy" content="trusted-types dompurify#demo sanitize-using-dompurify my-policy">
+        <script src="https://wicg.github.io/trusted-types/dist/es5/trustedtypes.build.js"></script>
+        <script src="../dist/purify.js" data-tt-policy-suffix="demo"></script>
+        <style>
+            div {
+                border: 1px solid green;
+                padding: 5px;
+                margin: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <a href="https://github.com/WICG/trusted-types">Trusted Types DOMPurify demo</a>
+        <div id="sanitized-directly"></div>
+        <div id="sanitized-via-policy"></div>
+        <div id="sanitized-via-policy2"></div>
+        <div id="raw"></div>
+        <form name="loadScript">
+            <input name="url">
+            <button type="submit">Load script</button>
+        </form>
+        <form name="loadImage">
+            <input name="url">
+            <button type="submit">Load image</button>
+        </form>
+
+        <script>
+
+            // Specify dirty HTML
+            var dirty = '<p>HELLO<iframe/\/src=JavScript:alert&lpar;1)></ifrAMe><br>goodbye</p>';
+
+            // Use DOMPurify directly.
+            document.getElementById('sanitized-directly').innerHTML = DOMPurify.sanitize(dirty);
+
+            // .. or wrap DOMPurify in TT policy itself.
+            const sanitizer = TrustedTypes.createPolicy('sanitize-using-dompurify', {
+               // This code block needs security review, as it's capable of causing DOM XSS.
+               createHTML(dirty) { return DOMPurify.sanitize(dirty) }
+            });
+
+            // You can use policies that don't use DOMPurify as well.
+            const myPolicy = TrustedTypes.createPolicy('my-policy', {
+               // This code block needs security review, as it's capable of causing DOM XSS.
+               createHTML(dirty) { return dirty.replace(/</g, '&lt;') },
+               createScriptURL(dirty) {
+                    const u = new URL(dirty, document.baseURI);
+                    if (u.origin == window.origin) {
+                        return u.href;
+                    }
+                    throw new Error('Only same-origin scripts, please');
+               },
+               createURL(dirty) {
+                    const u = new URL(dirty, document.baseURI);
+                    if (['https:', 'http:'].includes(u.protocol)) {
+                        return u.href;
+                    }
+                    throw new Error('Only http(s): URLs allowed');
+               },
+            });
+
+
+            document.getElementById('sanitized-via-policy').innerHTML = sanitizer.createHTML(dirty);
+
+            document.getElementById('sanitized-via-policy2').innerHTML = myPolicy.createHTML(dirty);
+
+            // Now you know that any DOM XSS* can only be caused by flaws in configured policies.
+            // (e.g. a bug in DOMPurify.sanitize can cause XSS, but nothing more).
+
+            // This will fail. No more DOM XSSes outside of policy definitions.
+            // Writing strings to DOM is only possible through policies.
+            try {
+                document.getElementById('raw').innerHTML = dirty;
+            } catch(e) {}
+
+            document.forms['loadScript'].onsubmit = (e) => {
+                e.preventDefault();
+                const url = e.target['url'].value;
+                const s = document.createElement('script');
+                try {
+                    // This will fail, you need a TrustedScriptURL.
+                    s.src = url;
+                    console.log('Should not happen');
+                } catch(e) {};
+                s.src = myPolicy.createScriptURL(url);
+                console.log('Will load the script from ' + url);
+                document.body.appendChild(s);
+            };
+
+            document.forms['loadImage'].onsubmit = (e) => {
+                e.preventDefault();
+                const url = e.target['url'].value;
+                const i = document.createElement('img');
+                try {
+                    // This will fail, you need a TrustedScriptURL.
+                    i.src = url;
+                    console.log('Should not happen');
+                } catch(e) {};
+                i.src = myPolicy.createURL(url);
+                console.log('Will load the image from ' + url);
+                document.body.appendChild(i);
+            };
+        </script>
+    </body>
+</html>
