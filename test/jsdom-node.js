@@ -5,7 +5,8 @@
 // Test DOMPurify + jsdom using Node.js (version 6 and up)
 const createDOMPurify = require('../dist/purify.cjs');
 const jsdom = require('jsdom');
-const testSuite = require('./test-suite');
+const sanitizeTestSuite = require('./test-suite');
+const bootstrapTestSuite = require('./bootstrap-test-suite');
 const tests = require('./fixtures/expect');
 const xssTests = tests.filter( element => /alert/.test( element.payload ) );
 
@@ -17,6 +18,8 @@ QUnit.assert.contains = function( needle, haystack, message ) {
 };
 
 QUnit.config.autostart = false;
+
+QUnit.module('DOMPurify - bootstrap', bootstrapTestSuite(jsdom));
 
 jsdom.env({
   html: `<html><head></head><body><div id="qunit-fixture"></div></body></html>`,
@@ -45,7 +48,7 @@ jsdom.env({
         window.xssed = true;
     };
 
-    testSuite(DOMPurify, window, tests, xssTests);
+    sanitizeTestSuite(DOMPurify, window, tests, xssTests);
     QUnit.start();
   }
 });
