@@ -21,7 +21,10 @@ export function addToSet(set, array) {
     if (typeof element === 'string') {
       const lcElement = element.toLowerCase();
       if (lcElement !== element) {
-        array[l] = lcElement;
+        // Config presets (e.g. tags.js, attrs.js) are immutable.
+        if (!Object.isFrozen(array)) {
+          array[l] = lcElement;
+        }
         element = lcElement;
       }
     }
