@@ -463,6 +463,10 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           '<svg><rect height="50"></rect></svg>',
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><rect height=\"50\" /></svg>"
       ] );
+      assert.contains( DOMPurify.sanitize( '<feBlend in="SourceGraphic" mode="multiply" />', {USE_PROFILES: {svgFilters: true}}), [
+        '<feblend in="SourceGraphic" mode="multiply"></feblend>',
+        '<feblend mode="multiply" in="SourceGraphic"></feblend>',
+    ] );
       assert.contains( DOMPurify.sanitize( '<svg><style>.some-class {fill: #fff}</style></svg>', {USE_PROFILES: {svg: true}}), [
           '<svg><style>.some-class {fill: #fff}</style></svg>',
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><style>.some-class {fill: #fff}</style></svg>"] );
