@@ -110,7 +110,7 @@ DOMPurify offers a fall-back behavior for older MSIE browsers. It uses the MSIE-
 
 If not even `toStaticHTML` is supported, DOMPurify does nothing at all. It simply returns exactly the string that you fed it.
 
-## DOMPurify and Trusted Types
+## What about DOMPurify and Trusted Types?
 
 In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify.
 
@@ -120,7 +120,7 @@ That return value is implicitly casted to a string when needed, returning the ac
 
 That said, `TrustedHTML` values are intentionally immutable, and don't inherit from `String.prototype`. In rare cases where you expect the value to implement String prototype functions (e.g. if you want to `String.replace` the sanitized output), cast the value to a string like so:
 
-```
+```javascript
 const sanitizedAsString = (DOMPurify.sanitize(foo) + '');
 sanitizedAsString.replace(...)
 ```
