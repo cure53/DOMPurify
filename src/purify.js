@@ -1049,7 +1049,14 @@ function createDOMPurify(window = getGlobal()) {
       return returnNode;
     }
 
-    const serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+
+    /* Sanitize final string template-safe */
+    if (SAFE_FOR_TEMPLATES) {
+      serializedHTML = serializedHTML.replace(MUSTACHE_EXPR, ' ');
+      serializedHTML = serializedHTML.replace(ERB_EXPR, ' ');
+    }
+
     return trustedTypesPolicy
       ? trustedTypesPolicy.createHTML(serializedHTML)
       : serializedHTML;
