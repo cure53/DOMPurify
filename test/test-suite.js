@@ -86,6 +86,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a href="}}javascript:alert(1)"></a>', {SAFE_FOR_TEMPLATES: true}), "<a></a>" );
       assert.equal( DOMPurify.sanitize( '<a class="{{999-333}}"></a>', {SAFE_FOR_TEMPLATES: true}), '<a class=" "></a>' );
       assert.equal( DOMPurify.sanitize( '{{999-333}}', {SAFE_FOR_TEMPLATES: true}), " " );
+      assert.equal( DOMPurify.sanitize( '{<x>{333+333}<x>}', {SAFE_FOR_TEMPLATES: true}), " " );
   });
   QUnit.test( 'Config-Flag tests: SANITIZE_DOM', function(assert) {
       // SANITIZE_DOM
