@@ -696,12 +696,6 @@ function createDOMPurify(window = getGlobal()) {
       return false;
     }
 
-    /* Sanitize attribute content to be template-safe */
-    if (SAFE_FOR_TEMPLATES) {
-      value = value.replace(MUSTACHE_EXPR, ' ');
-      value = value.replace(ERB_EXPR, ' ');
-    }
-
     /* Allow valid data-* attributes: At least one character after "-"
         (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
         XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
@@ -838,6 +832,12 @@ function createDOMPurify(window = getGlobal()) {
         continue;
       }
 
+      /* Sanitize attribute content to be template-safe */
+      if (SAFE_FOR_TEMPLATES) {
+        value = value.replace(MUSTACHE_EXPR, ' ');
+        value = value.replace(ERB_EXPR, ' ');
+      }
+
       /* Is `value` valid for this attribute? */
       const lcTag = currentNode.nodeName.toLowerCase();
       if (!_isValidAttribute(lcTag, lcName, value)) {
@@ -967,7 +967,12 @@ function createDOMPurify(window = getGlobal()) {
       }
     } else {
       /* Exit directly if we have nothing to do */
-      if (!RETURN_DOM && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
+      if (
+        !RETURN_DOM &&
+        !SAFE_FOR_TEMPLATES &&
+        !WHOLE_DOCUMENT &&
+        dirty.indexOf('<') === -1
+      ) {
         return trustedTypesPolicy
           ? trustedTypesPolicy.createHTML(dirty)
           : dirty;
