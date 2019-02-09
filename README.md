@@ -110,7 +110,24 @@ DOMPurify offers a fall-back behavior for older MSIE browsers. It uses the MSIE-
 
 If not even `toStaticHTML` is supported, DOMPurify does nothing at all. It simply returns exactly the string that you fed it.
 
-## Can I configure it?
+## What about DOMPurify and Trusted Types?
+
+In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify.
+
+When `DOMPurify.sanitize` is used in the environment where the Trusted Types API is available (this happens e.g. in Chrome `chrome://flags/#enable-experimental-web-platform-features`), it returns a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
+
+That return value is implicitly casted to a string when needed, returning the actual sanitized HTML snippet. In particular, you can directly use it with DOM sinks like `innerHTML`, or concatenate it with other strings. For most use cases, the API change does not introduce any visible change.
+
+That said, `TrustedHTML` values are intentionally immutable, and don't inherit from `String.prototype`. In rare cases where you expect the value to implement String prototype functions (e.g. if you want to `String.replace` the sanitized output), cast the value to a string like so:
+
+```javascript
+const sanitizedAsString = (DOMPurify.sanitize(foo) + '');
+sanitizedAsString.replace(...)
+```
+
+Please note, that if that change breaks your application, you *might* be doing something wrong. The sanitized HTML snippet should not be modified, as it might introduce XSS vulnerabilities.
+
+## Can I configure DOMPurify?
 
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/master/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this).
 
@@ -271,7 +288,7 @@ Several people need to be listed here!
 
 Big thanks also go to [@ydaniv](https://github.com/ydaniv), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)!
 
-Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their code reviews and countless small optimizations, fixes and beautifications.
+Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their code reviews and countless small optimizations, fixes and beautifications. Thanks also go out to [@kkotowicz](https://twitter.com/kkotowicz) for his Trusted Types implementation and the connected section on our README page.  
 
 Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack. And thanks to [@Joris-van-der-Wel](https://github.com/Joris-van-der-Wel) for setting up DOMPurify for jsdom and creating the additional test suite. And again [@tdeekens](https://twitter.com/tdeekens) for his [incredible efforts](https://github.com/cure53/DOMPurify/pull/206) and contribution to refactor DOMPurify into using ES201x, proper build tools, better test coverage and much more!
 
