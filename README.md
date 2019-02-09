@@ -136,6 +136,9 @@ Yes. The included default configuration values are pretty good already - but you
 var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
 
 // strip {{ ... }} and <% ... %> to make output safe for template systems
+// be careful please, this mode is not recommended for production usage.
+// allowing template parsing in user-controlled HTML is not advised at all.
+// only use this mode if there is really no alternative.
 var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
 
 // allow only <b>
