@@ -50,9 +50,9 @@ module.exports = function(config) {
     customLaunchers,
     browsers,
 
-    browserDisconnectTimeout: 15000,
+    browserDisconnectTimeout: 10000,
     browserDisconnectTolerance: 1,
-    browserNoActivityTimeout: 360000,
+    browserNoActivityTimeout: 30000,
     captureTimeout: 360000,
 
     plugins: [
