@@ -80,6 +80,7 @@ module.exports = function(jsdom) {
         }
       );
   });
+
   QUnit.test('supports configuring the policy suffix via an attribute', function(assert) {
       let policyCreated;
 
