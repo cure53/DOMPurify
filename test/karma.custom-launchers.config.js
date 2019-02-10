@@ -137,11 +137,11 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: '10',
   },
-  bs_win10_firefox_65: {
+  bs_win10_firefox_64: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
-    browser_version: '65.0',
+    browser_version: '64.0',
     browser: 'firefox',
     os_version: '10',
   },
