@@ -2,7 +2,7 @@
 /* global QUnit */
 'use strict';
 
-// Test DOMPurify + jsdom using Node.js (version 6 and up)
+// Test DOMPurify + jsdom using Node.js (version 8 and up)
 const createDOMPurify = require('../dist/purify.cjs');
 const jsdom = require('jsdom');
 const sanitizeTestSuite = require('./test-suite');
