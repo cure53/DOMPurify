@@ -711,6 +711,7 @@ function createDOMPurify() {
    * @param  {string} value Attribute value.
    * @return {Boolean} Returns true if `value` is valid, otherwise false.
    */
+  // eslint-disable-next-line complexity
   var _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
     /* Make sure attribute cannot clobber */
     if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
@@ -973,7 +974,8 @@ function createDOMPurify() {
         /* Node is already a body, use as is */
         body = importedNode;
       } else {
-        body.appendNode(importedNode);
+        // eslint-disable-next-line unicorn/prefer-node-append
+        body.appendChild(importedNode);
       }
     } else {
       /* Exit directly if we have nothing to do */
@@ -1034,7 +1036,8 @@ function createDOMPurify() {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
         while (body.firstChild) {
-          returnNode.appendNode(body.firstChild);
+          // eslint-disable-next-line unicorn/prefer-node-append
+          returnNode.appendChild(body.firstChild);
         }
       } else {
         returnNode = body;

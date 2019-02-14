@@ -699,6 +699,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {string} value Attribute value.
    * @return {Boolean} Returns true if `value` is valid, otherwise false.
    */
+  // eslint-disable-next-line complexity
   const _isValidAttribute = function(lcTag, lcName, value) {
     /* Make sure attribute cannot clobber */
     if (
@@ -980,7 +981,8 @@ function createDOMPurify(window = getGlobal()) {
         /* Node is already a body, use as is */
         body = importedNode;
       } else {
-        body.appendNode(importedNode);
+        // eslint-disable-next-line unicorn/prefer-node-append
+        body.appendChild(importedNode);
       }
     } else {
       /* Exit directly if we have nothing to do */
@@ -1048,7 +1050,8 @@ function createDOMPurify(window = getGlobal()) {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
         while (body.firstChild) {
-          returnNode.appendNode(body.firstChild);
+          // eslint-disable-next-line unicorn/prefer-node-append
+          returnNode.appendChild(body.firstChild);
         }
       } else {
         returnNode = body;
