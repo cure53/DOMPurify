@@ -967,7 +967,7 @@ function createDOMPurify() {
         /* Node is already a body, use as is */
         body = importedNode;
       } else {
-        body.append(importedNode);
+        body.appendNode(importedNode);
       }
     } else {
       /* Exit directly if we have nothing to do */
@@ -1028,7 +1028,7 @@ function createDOMPurify() {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
         while (body.firstChild) {
-          returnNode.append(body.firstChild);
+          returnNode.appendNode(body.firstChild);
         }
       } else {
         returnNode = body;
