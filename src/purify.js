@@ -50,7 +50,7 @@ const _createTrustedTypesPolicy = function(trustedTypes, document) {
         return html;
       },
     });
-  } catch (e) {
+  } catch (error) {
     // Policy creation failed (most likely another DOMPurify script has
     // already run). Skip creating the policy, as this will only cause errors
     // if TT are enforced.
@@ -295,6 +295,7 @@ function createDOMPurify(window = getGlobal()) {
     if (!cfg || typeof cfg !== 'object') {
       cfg = {};
     }
+
     /* Set configuration parameters */
     ALLOWED_TAGS =
       'ALLOWED_TAGS' in cfg
@@ -339,16 +340,19 @@ function createDOMPurify(window = getGlobal()) {
         addToSet(ALLOWED_TAGS, TAGS.html);
         addToSet(ALLOWED_ATTR, ATTRS.html);
       }
+
       if (USE_PROFILES.svg === true) {
         addToSet(ALLOWED_TAGS, TAGS.svg);
         addToSet(ALLOWED_ATTR, ATTRS.svg);
         addToSet(ALLOWED_ATTR, ATTRS.xml);
       }
+
       if (USE_PROFILES.svgFilters === true) {
         addToSet(ALLOWED_TAGS, TAGS.svgFilters);
         addToSet(ALLOWED_ATTR, ATTRS.svg);
         addToSet(ALLOWED_ATTR, ATTRS.xml);
       }
+
       if (USE_PROFILES.mathMl === true) {
         addToSet(ALLOWED_TAGS, TAGS.mathMl);
         addToSet(ALLOWED_ATTR, ATTRS.mathMl);
@@ -361,14 +365,18 @@ function createDOMPurify(window = getGlobal()) {
       if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
         ALLOWED_TAGS = clone(ALLOWED_TAGS);
       }
+
       addToSet(ALLOWED_TAGS, cfg.ADD_TAGS);
     }
+
     if (cfg.ADD_ATTR) {
       if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
         ALLOWED_ATTR = clone(ALLOWED_ATTR);
       }
+
       addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
     }
+
     if (cfg.ADD_URI_SAFE_ATTR) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
     }
@@ -406,7 +414,7 @@ function createDOMPurify(window = getGlobal()) {
     DOMPurify.removed.push({ element: node });
     try {
       node.parentNode.removeChild(node);
-    } catch (err) {
+    } catch (error) {
       node.outerHTML = emptyHTML;
     }
   };
@@ -423,12 +431,13 @@ function createDOMPurify(window = getGlobal()) {
         attribute: node.getAttributeNode(name),
         from: node,
       });
-    } catch (err) {
+    } catch (error) {
       DOMPurify.removed.push({
         attribute: null,
         from: node,
       });
     }
+
     node.removeAttribute(name);
   };
 
@@ -458,7 +467,7 @@ function createDOMPurify(window = getGlobal()) {
     if (useDOMParser) {
       try {
         doc = new DOMParser().parseFromString(dirty, 'text/html');
-      } catch (err) {}
+      } catch (error) {}
     }
 
     /* Remove title to fix a mXSS bug in older MS Edge */
@@ -506,15 +515,16 @@ function createDOMPurify(window = getGlobal()) {
         if (doc.querySelector('svg img')) {
           useDOMParser = true;
         }
-      } catch (err) {}
+      } catch (error) {}
     })();
+
     (function() {
       try {
         const doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
         if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
           removeTitle = true;
         }
-      } catch (err) {}
+      } catch (error) {}
     })();
   }
 
@@ -546,6 +556,7 @@ function createDOMPurify(window = getGlobal()) {
     if (elm instanceof Text || elm instanceof Comment) {
       return false;
     }
+
     if (
       typeof elm.nodeName !== 'string' ||
       typeof elm.textContent !== 'string' ||
@@ -556,6 +567,7 @@ function createDOMPurify(window = getGlobal()) {
     ) {
       return true;
     }
+
     return false;
   };
 
@@ -639,8 +651,9 @@ function createDOMPurify(window = getGlobal()) {
               ? trustedTypesPolicy.createHTML(htmlToInsert)
               : htmlToInsert
           );
-        } catch (err) {}
+        } catch (error) {}
       }
+
       _forceRemove(currentNode);
       return true;
     }
@@ -740,6 +753,7 @@ function createDOMPurify(window = getGlobal()) {
     } else {
       return false;
     }
+
     return true;
   };
 
@@ -751,9 +765,8 @@ function createDOMPurify(window = getGlobal()) {
    * @protect removeAttribute
    * @protect setAttribute
    *
-   * @param  {Node} node to sanitize
+   * @param  {Node} currentNode to sanitize
    */
-  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function(currentNode) {
     let attr;
     let value;
@@ -824,6 +837,7 @@ function createDOMPurify(window = getGlobal()) {
         if (name === 'id') {
           currentNode.setAttribute(name, '');
         }
+
         _removeAttribute(name, currentNode);
       }
 
@@ -852,8 +866,9 @@ function createDOMPurify(window = getGlobal()) {
           /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
           currentNode.setAttribute(name, value);
         }
+
         DOMPurify.removed.pop();
-      } catch (err) {}
+      } catch (error) {}
     }
 
     /* Execute a hook if present */
@@ -937,10 +952,12 @@ function createDOMPurify(window = getGlobal()) {
         if (typeof dirty === 'string') {
           return window.toStaticHTML(dirty);
         }
+
         if (_isNode(dirty)) {
           return window.toStaticHTML(dirty.outerHTML);
         }
       }
+
       return dirty;
     }
 
@@ -963,7 +980,7 @@ function createDOMPurify(window = getGlobal()) {
         /* Node is already a body, use as is */
         body = importedNode;
       } else {
-        body.appendChild(importedNode);
+        body.append(importedNode);
       }
     } else {
       /* Exit directly if we have nothing to do */
@@ -1031,7 +1048,7 @@ function createDOMPurify(window = getGlobal()) {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
         while (body.firstChild) {
-          returnNode.appendChild(body.firstChild);
+          returnNode.append(body.firstChild);
         }
       } else {
         returnNode = body;
@@ -1098,6 +1115,7 @@ function createDOMPurify(window = getGlobal()) {
     if (!CONFIG) {
       _parseConfig({});
     }
+
     const lcTag = tag.toLowerCase();
     const lcName = attr.toLowerCase();
     return _isValidAttribute(lcTag, lcName, value);
@@ -1114,6 +1132,7 @@ function createDOMPurify(window = getGlobal()) {
     if (typeof hookFunction !== 'function') {
       return;
     }
+
     hooks[entryPoint] = hooks[entryPoint] || [];
     hooks[entryPoint].push(hookFunction);
   };

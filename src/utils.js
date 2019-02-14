@@ -15,6 +15,7 @@ export function addToSet(set, array) {
     // Prevent prototype setters from intercepting set as a this value.
     setPrototypeOf(set, null);
   }
+
   let l = array.length;
   while (l--) {
     let element = array[l];
@@ -25,22 +26,27 @@ export function addToSet(set, array) {
         if (!Object.isFrozen(array)) {
           array[l] = lcElement;
         }
+
         element = lcElement;
       }
     }
+
     set[element] = true;
   }
+
   return set;
 }
 
 /* Shallow clone an object */
 export function clone(object) {
   const newObject = {};
+
   let property;
   for (property in object) {
     if (apply(hasOwnProperty, object, [property])) {
       newObject[property] = object[property];
     }
   }
+
   return newObject;
 }

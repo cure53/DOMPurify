@@ -254,6 +254,7 @@ export const svg = freeze([
   'values',
   'viewbox',
   'visibility',
+  'version',
   'vert-adv-y',
   'vert-origin-x',
   'vert-origin-y',
