@@ -511,4 +511,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize('<table><tr><td></td></tr></table>', {ALLOW_TAGS: ['table', 'tr', 'td']});
       assert.equal(clean, '<table><tbody><tr><td></td></tr></tbody></table>');
   } );
+  QUnit.test( 'Avoid XSS with ALLOW_TAGS permitting noembed, noscript', function (assert) {
+      var clean = DOMPurify.sanitize("a<noembed><p id='</noembed><img src=x onerror=alert(1)>'></p></noembed>", {ADD_TAGS: ['noembed']});
+      assert.equal(clean, '<table><tbody><tr><td></td></tr></tbody></table>');
+  } );
 };

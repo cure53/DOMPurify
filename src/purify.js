@@ -614,6 +614,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param   {Node} currentNode to check for permission to exist
    * @return  {Boolean} true if node was killed, false if left alive
    */
+  // eslint-disable-next-line complexity
   const _sanitizeElements = function(currentNode) {
     let content;
 
@@ -654,6 +655,23 @@ function createDOMPurify(window = getGlobal()) {
         } catch (error) {}
       }
 
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove in case a noscript/noembed XSS is suspected */
+    if (
+      currentNode.tagName === 'noscript' &&
+      currentNode.innerHTML.match(/<\/noscript/i)
+    ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    if (
+      currentNode.tagName === 'noembed' &&
+      currentNode.innerHTML.match(/<\/noembed/i)
+    ) {
       _forceRemove(currentNode);
       return true;
     }
