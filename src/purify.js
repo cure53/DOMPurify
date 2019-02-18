@@ -660,18 +660,12 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Remove in case a noscript/noembed XSS is suspected */
-    if (
-      currentNode.tagName === 'noscript' &&
-      currentNode.innerHTML.match(/<\/noscript/i)
-    ) {
+    if (tagName === 'noscript' && currentNode.innerHTML.match(/<\/noscript/i)) {
       _forceRemove(currentNode);
       return true;
     }
 
-    if (
-      currentNode.tagName === 'noembed' &&
-      currentNode.innerHTML.match(/<\/noembed/i)
-    ) {
+    if (tagName === 'noembed' && currentNode.innerHTML.match(/<\/noembed/i)) {
       _forceRemove(currentNode);
       return true;
     }
