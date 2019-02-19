@@ -35,13 +35,13 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Sierra',
   },
-  bs_sierra_safari_11: {
+  bs_sierra_safari_12: {
     base: 'BrowserStack',
     device: null,
     os: 'OS X',
-    browser_version: '11.0',
+    browser_version: '12.0',
     browser: 'safari',
-    os_version: 'High Sierra',
+    os_version: 'Mojave',
   },
   bs_win81_opera_31: {
     base: 'BrowserStack',
