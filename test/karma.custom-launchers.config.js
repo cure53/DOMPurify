@@ -39,7 +39,7 @@ const customLaunchers = {
     base: 'BrowserStack',
     device: null,
     os: 'OS X',
-    browser_version: '11.1',
+    browser_version: '11.0',
     browser: 'safari',
     os_version: 'High Sierra',
   },
