@@ -87,6 +87,7 @@ export const html = freeze([
   'style',
   'summary',
   'tabindex',
+  'target',
   'title',
   'type',
   'usemap',
