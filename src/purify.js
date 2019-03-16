@@ -306,7 +306,9 @@ function createDOMPurify(window = getGlobal()) {
         ? addToSet({}, cfg.ALLOWED_ATTR)
         : DEFAULT_ALLOWED_ATTR;
     URI_SAFE_ATTRIBUTES =
-      'ADD_URI_SAFE_ATTR' in cfg ? addToSet({}, cfg.ADD_URI_SAFE_ATTR) : {};
+      'ADD_URI_SAFE_ATTR' in cfg
+        ? addToSet({}, cfg.ADD_URI_SAFE_ATTR)
+        : URI_SAFE_ATTRIBUTES;
     FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
     FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
     USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
