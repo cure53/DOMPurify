@@ -256,7 +256,8 @@ function createDOMPurify(window = getGlobal()) {
   ]);
 
   /* Attributes safe for values like "javascript:" */
-  let URI_SAFE_ATTRIBUTES = addToSet({}, [
+  let URI_SAFE_ATTRIBUTES = null;
+  const DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, [
     'alt',
     'class',
     'for',
@@ -308,7 +309,7 @@ function createDOMPurify(window = getGlobal()) {
     URI_SAFE_ATTRIBUTES =
       'ADD_URI_SAFE_ATTR' in cfg
         ? addToSet({}, cfg.ADD_URI_SAFE_ATTR)
-        : URI_SAFE_ATTRIBUTES;
+        : DEFAULT_URI_SAFE_ATTRIBUTES;
     FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
     FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
     USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
