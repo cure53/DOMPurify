@@ -413,9 +413,15 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal(clean.outerHTML, "<body><td></td></body>");
   } );
   // Test to make sure that URI_safe attributes can be configured too
-  QUnit.test( 'DOMPurify should deliver acurate results when sanitizing nodes 2', function (assert) {
+  QUnit.test( 'DOMPurify should allow to define URI safe attributes', function (assert) {
       var clean = DOMPurify.sanitize('<b typeof="bla:h">123</b>', {ALLOWED_ATTR: ['typeof'], ADD_URI_SAFE_ATTR: ['typeof']});
       assert.equal(clean, "<b typeof=\"bla:h\">123</b>");
+  } );
+  // Test to make sure that URI_safe attributes don't persist, see #327
+  QUnit.test( 'DOMPurify should not persist URI safe attributes', function (assert) {
+      var clean = DOMPurify.sanitize('<b typeof="bla:h">123</b>', {ALLOWED_ATTR: ['typeof'], ADD_URI_SAFE_ATTR: ['typeof']});
+      var clean = DOMPurify.sanitize('<b typeof="bla:h">123</b>', {ALLOWED_ATTR: ['typeof']});
+      assert.equal(clean, "<b>123</b>");
   } );
   // Test to make sure that empty HTML doesn't return null on MSIE11 (#198)
   QUnit.test( 'Empty HTML shouldn\'t return null on MSIE11 in RETURN_DOM_FRAGMENT mode', function (assert) {
