@@ -310,6 +310,21 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       DOMPurify.removeHooks('uponSanitizeElement');
       DOMPurify.removeHooks('uponSanitizeAttribute');
   } );
+  // Test to ensure that if input[type=file] is blacklisted and flagged as an
+  // attribute not to keep via hookEvent.keepAttr, it should be removed despite
+  // it being an issue of being able to programmatically add it back in Safari.
+  QUnit.test( 'ensure that input[type=file] is removed via hookEvent keepAttr', function(assert) {
+      DOMPurify.addHook('uponSanitizeAttribute', function(node, data){
+        if(node.nodeName == 'INPUT' && node.getAttribute('type')
+          && node.getAttribute('type') == 'file') {
+            data.keepAttr = false;
+        }
+      });
+      var dirty = '<input type="file" />';
+      var modified = '<input>';
+      assert.equal(DOMPurify.sanitize(dirty), modified);
+      DOMPurify.removeHooks('uponSanitizeAttribute');
+  } );
   QUnit.test( 'sanitize() should allow unknown protocols when ALLOW_UNKNOWN_PROTOCOLS is true', function (assert) {
       var dirty = '<div><a href="spotify:track:12345"><img src="cid:1234567"></a></div>';
       assert.equal(dirty, DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true}));

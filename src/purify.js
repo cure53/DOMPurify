@@ -845,6 +845,7 @@ function createDOMPurify(window = getGlobal()) {
         currentNode.nodeName === 'INPUT' &&
         lcName === 'type' &&
         value === 'file' &&
+        hookEvent.keepAttr &&
         (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])
       ) {
         continue;
