@@ -324,6 +324,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var modified = '<input>';
       if (window.name == 'nodejs') {
         assert.equal(DOMPurify.sanitize(dirty), modified);
+      } else {
+        assert.expect(0)
       }
       DOMPurify.removeHooks('uponSanitizeAttribute');
   } );
