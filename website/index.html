@@ -36,7 +36,7 @@
             var tx1 = Date.now();
             var xss = DOMPurify.sanitize(x.value);
             console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
-            console.log(xss);
+            console.log(xss.toString());
             y.value=xss;
             timing.innerHTML=t+'ms '+timing.innerHTML
         ">Sanitize textarea value, then write result to console</button>
@@ -46,7 +46,7 @@
             var xss = DOMPurify.sanitize(x.value);
             console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
             ifr.contentDocument.open();
-            ifr.contentDocument.write(xss);
+            ifr.contentDocument.write(xss.toString());
             y.value=xss;
             ifr.contentDocument.close();
             timing.innerHTML=t+'ms '+timing.innerHTML
@@ -56,7 +56,7 @@
             var tx1 = Date.now();
             var xss = DOMPurify.sanitize(x.value, {SAFE_FOR_JQUERY: true});
             console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
-            $(ifr.contentDocument.body).html(xss);
+            $(ifr.contentDocument.body).html(xss.toString());
             y.value=$(ifr.contentDocument.body).html();
             ifr.contentDocument.close();
             timing.innerHTML=t+'ms '+timing.innerHTML
