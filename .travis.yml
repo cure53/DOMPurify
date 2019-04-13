@@ -18,6 +18,7 @@ env:
       - CXX=g++-4.8
 matrix:
    include:
+      - node_js: "8"
       - node_js: "9"
       - node_js: "10"
       - node_js: "11"
