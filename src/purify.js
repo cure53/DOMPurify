@@ -749,7 +749,7 @@ function createDOMPurify(window = getGlobal()) {
       /* Keep image data URIs alive if src/xlink:href is allowed */
       /* Further prevent gadget XSS for dynamically built script tags */
     } else if (
-      (lcName === 'src' || lcName === 'xlink:href') &&
+      (lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') &&
       lcTag !== 'script' &&
       value.indexOf('data:') === 0 &&
       DATA_URI_TAGS[lcTag]
