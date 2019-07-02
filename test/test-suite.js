@@ -539,7 +539,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'Avoid XSS with ALLOW_TAGS permitting noembed, noscript', function (assert) {
       var clean = DOMPurify.sanitize("a<noembed><p id='</noembed><img src=x onerror=alert(1)>'></p></noembed>", {ADD_TAGS: ['noembed']});
       assert.contains(clean,  [
-          "a<noembed><p id='</noembed><img src=\"x\">'&gt;<p></p>", 
+          "a<noembed><p id='</noembed><img src=\"x\">'&gt;<p></p>",
           "a",
           "a<noembed>&lt;p id='</noembed><img src=\"x\">'&gt;<p></p>",
           "a<noembed><p id=\"&lt;/noembed&gt;&lt;img src=x onerror=alert(1)&gt;\"></p></noembed>"
