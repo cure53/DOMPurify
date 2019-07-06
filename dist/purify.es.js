@@ -551,7 +551,7 @@ function createDOMPurify() {
   if (DOMPurify.isSupported) {
     (function () {
       try {
-        var doc = _initDocument('<svg><p><style><img src="</style><img src=x onerror=1//">');
+        var doc = _initDocument('<svg><p><textarea><img src="</textarea><img src=x onerror=1//">');
         if (doc.querySelector('svg img')) {
           useDOMParser = true;
         }

@@ -515,7 +515,7 @@ function createDOMPurify(window = getGlobal()) {
     (function() {
       try {
         const doc = _initDocument(
-          '<svg><p><style><img src="</style><img src=x onerror=1//">'
+          '<svg><p><textarea><img src="</textarea><img src=x onerror=1//">'
         );
         if (doc.querySelector('svg img')) {
           useDOMParser = true;
