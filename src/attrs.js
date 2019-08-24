@@ -52,6 +52,7 @@ export const html = freeze([
   'media',
   'method',
   'min',
+  'minlength',
   'multiple',
   'name',
   'noshade',
