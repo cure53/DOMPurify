@@ -4,6 +4,8 @@
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
+**Please Note:** *On Chrome 77 and newer, Trusted Types are now enabled by default. Please [check here](#what-about-dompurify-and-trusted-types) to learn how to elegantly handle this.*
+
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
 It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 1.0.11.
@@ -16,7 +18,7 @@ DOMPurify is written by security people who have vast background in web attacks 
 
 ## What does it do?
 
-DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with string full of dirty HTML and it will return a string with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
+DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with string full of dirty HTML and it will return a string (or, on Chrome 77 and newer a `TrustedHTML` object) with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
 
 ## How do I use it?
 
@@ -114,7 +116,7 @@ If not even `toStaticHTML` is supported, DOMPurify does nothing at all. It simpl
 
 In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify.
 
-When `DOMPurify.sanitize` is used in the environment where the Trusted Types API is available (this happens e.g. in Chrome `chrome://flags/#enable-experimental-web-platform-features`), it returns a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
+When `DOMPurify.sanitize` is used in the environment where the Trusted Types API is available (this happens e.g. in Chrome 77 and newer), it returns a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
 
 That return value is implicitly casted to a string when needed, returning the actual sanitized HTML snippet. In particular, you can directly use it with DOM sinks like `innerHTML`, or concatenate it with other strings. For most use cases, the API change does not introduce any visible change.
 
