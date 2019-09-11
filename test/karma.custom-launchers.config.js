@@ -200,6 +200,14 @@ const customLaunchers = {
     browser_version: '71.0',
     browser: 'chrome',
     os_version: '10',
+  },
+  bs_win10_chrome_77: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '77.0',
+    browser: 'chrome',
+    os_version: '10',
   }
 };
 
