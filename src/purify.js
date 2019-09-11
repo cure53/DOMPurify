@@ -1098,7 +1098,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     return trustedTypesPolicy
-      ? trustedTypesPolicy.createHTML(serializedHTML)
+      ? trustedTypesPolicy.createHTML(serializedHTML).toString()
       : serializedHTML;
   };
 
