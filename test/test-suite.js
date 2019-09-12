@@ -545,4 +545,19 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           "a<noembed><p id=\"&lt;/noembed&gt;&lt;img src=x onerror=alert(1)&gt;\"></p></noembed>"
       ]);
   } );
+  QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is true', function (assert) {
+      var clean = DOMPurify.sanitize("<b>hello goodbye</b>", {RETURN_TRUSTED_TYPE: true});
+      var type = typeof clean; 
+      assert.equal(type, 'TrustedHTML');
+  } );
+  QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is false', function (assert) {
+      var clean = DOMPurify.sanitize("<b>hello goodbye</b>", {RETURN_TRUSTED_TYPE: false});
+      var type = typeof clean; 
+      assert.equal(type, 'string');
+  } );
+QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is not set', function (assert) {
+      var clean = DOMPurify.sanitize("<b>hello goodbye</b>");
+      var type = typeof clean; 
+      assert.equal(type, 'string');
+  } );
 };
