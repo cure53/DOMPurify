@@ -74,7 +74,7 @@ module.exports = function(jsdom) {
         },
         function onload(window) {
           assert.equal(policyCreated, 'dompurify');
-          const output = window.DOMPurify.sanitize('<img>');
+          const output = window.DOMPurify.sanitize('<img>', {RETURN_TRUSTED_TYPE: true});
           assert.equal(output, '<img>');
           assert.ok(output instanceof StringWrapper);
         }
