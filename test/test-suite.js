@@ -548,7 +548,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is true', function (assert) {
       var clean = DOMPurify.sanitize("<b>hello goodbye</b>", {RETURN_TRUSTED_TYPE: true});
       var type = typeof clean; 
-      assert.equal(type, 'TrustedHTML');
+      assert.contains(type, ['TrustedHTML', 'string']); // it can be either - depening on browser versions
   } );
   QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is false', function (assert) {
       var clean = DOMPurify.sanitize("<b>hello goodbye</b>", {RETURN_TRUSTED_TYPE: false});
