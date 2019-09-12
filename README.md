@@ -4,11 +4,11 @@
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
-**Please Note:** *On Chrome 77 and newer, Trusted Types are now enabled by default. Please [check here](#what-about-dompurify-and-trusted-types) to learn how to elegantly handle this.*
-
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 1.0.11.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 2.0.0.
+
+**Note:** *Version 2.0.0 was released to clean up the unfortunate situation with Chrome 77 and unexpected return values of type* `TrustedHTML`*. Now our library behaves as expected and offers a new configuration flag to manually activate Trusted Type support.* 
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
@@ -18,7 +18,7 @@ DOMPurify is written by security people who have vast background in web attacks 
 
 ## What does it do?
 
-DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with string full of dirty HTML and it will return a string (or, on Chrome 77 and newer a `TrustedHTML` object) with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
+DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with string full of dirty HTML and it will return a string (unless configured otherwise) with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
 
 ## How do I use it?
 
@@ -114,20 +114,10 @@ If not even `toStaticHTML` is supported, DOMPurify does nothing at all. It simpl
 
 ## What about DOMPurify and Trusted Types?
 
-In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify.
+In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify. 
+In version 2.0.0, a config flag was added to control DOMPurify's behavior regarding this.
 
-When `DOMPurify.sanitize` is used in the environment where the Trusted Types API is available (this happens e.g. in Chrome 77 and newer), it returns a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
-
-That return value is implicitly casted to a string when needed, returning the actual sanitized HTML snippet. In particular, you can directly use it with DOM sinks like `innerHTML`, or concatenate it with other strings. For most use cases, the API change does not introduce any visible change.
-
-That said, `TrustedHTML` values are intentionally immutable, and don't inherit from `String.prototype`. In rare cases where you expect the value to implement String prototype functions (e.g. if you want to `String.replace` the sanitized output), cast the value to a string like so:
-
-```javascript
-const sanitizedAsString = (DOMPurify.sanitize(foo) + '');
-sanitizedAsString.replace(...)
-```
-
-Please note, that if that change breaks your application, you *might* be doing something wrong. The sanitized HTML snippet should not be modified, as it might introduce XSS vulnerabilities.
+When `DOMPurify.sanitize` is used in the environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
 
 ## Can I configure DOMPurify?
 
@@ -195,6 +185,9 @@ var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
 var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true, RETURN_DOM_IMPORT: true});
 document.body.appendChild(clean);
 
+// use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
+var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPES: true}); // will return a TrustedHTML object instead of a string if possible
+
 // return entire document including <html> tags (default is false)
 var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
 
@@ -207,7 +200,7 @@ var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 // glue elements like style, script or others to document.body and prevent unintuitive browser behavior in several edge-cases (default is false)
 var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 
-// use the IN_PLACE mode to sanitize a node "in place", which is much faster depending on how you use DOMpurify
+// use the IN_PLACE mode to sanitize a node "in place", which is much faster depending on how you use DOMPurify
 var dirty = document.createElement('a');
 dirty.setAttribute('href', 'javascript:alert(1)');
 var clean = DOMPurify.sanitize(dirty, {IN_PLACE: true}); // see https://github.com/cure53/DOMPurify/issues/288 for more info
