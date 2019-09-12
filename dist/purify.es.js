@@ -299,6 +299,10 @@ function createDOMPurify() {
    * DOMPurify. */
   var RETURN_DOM_IMPORT = false;
 
+  /* Try to return a Trusted Type object instead of a string, retrun a string in
+   * case Trusted Types are not supported  */
+  var RETURN_TRUSTED_TYPE = false;
+
   /* Output should be free from DOM clobbering attacks? */
   var SANITIZE_DOM = true;
 
@@ -362,6 +366,7 @@ function createDOMPurify() {
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
     RETURN_DOM_IMPORT = cfg.RETURN_DOM_IMPORT || false; // Default false
+    RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
@@ -989,7 +994,7 @@ function createDOMPurify() {
       }
     } else {
       /* Exit directly if we have nothing to do */
-      if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && dirty.indexOf('<') === -1) {
+      if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && RETURN_TRUSTED_TYPE && dirty.indexOf('<') === -1) {
         return trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
       }
 
