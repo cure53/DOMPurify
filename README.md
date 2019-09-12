@@ -186,7 +186,7 @@ var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true, RETURN_DOM_IMP
 document.body.appendChild(clean);
 
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
-var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPES: true}); // will return a TrustedHTML object instead of a string if possible
+var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
 
 // return entire document including <html> tags (default is false)
 var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
