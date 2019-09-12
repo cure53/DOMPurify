@@ -1103,7 +1103,7 @@ function createDOMPurify(window = getGlobal()) {
       serializedHTML = serializedHTML.replace(ERB_EXPR, ' ');
     }
 
-    return trustedTypesPolicy
+    return trustedTypesPolicy && RETURN_TRUSTED_TYPE
       ? trustedTypesPolicy.createHTML(serializedHTML)
       : serializedHTML;
   };

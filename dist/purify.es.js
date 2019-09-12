@@ -1078,7 +1078,7 @@ function createDOMPurify() {
       serializedHTML = serializedHTML.replace(ERB_EXPR$$1, ' ');
     }
 
-    return trustedTypesPolicy ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
+    return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
   };
 
   /**
