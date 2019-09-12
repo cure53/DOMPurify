@@ -8,7 +8,7 @@ DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathM
 
 It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 2.0.0.
 
-**Note:** *Version 2.0.0 was released to clean up the unfortunate situation with Chrome 77 and unexpected return values of type* `TrustedHTML`*. Now our library behaves as expected and offers a new configuration flag to manually activate Trusted Type support.* 
+**Note:** *Version 2.0.0 was released to clean up the unfortunate situation with Chrome 77 and unexpected return values of type* `TrustedHTML`*. Now our library behaves as expected and offers a new configuration flag to manually activate Trusted Type support. More info [here](https://github.com/cure53/DOMPurify/issues/361).* 
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
@@ -117,7 +117,7 @@ If not even `toStaticHTML` is supported, DOMPurify does nothing at all. It simpl
 In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify. 
 In version 2.0.0, a config flag was added to control DOMPurify's behavior regarding this.
 
-When `DOMPurify.sanitize` is used in the environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
+When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
 
 ## Can I configure DOMPurify?
 
