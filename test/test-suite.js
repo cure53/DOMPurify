@@ -542,7 +542,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           "a<noembed><p id='</noembed><img src=\"x\">'&gt;<p></p>",
           "a",
           "a<noembed>&lt;p id='</noembed><img src=\"x\">'&gt;<p></p>",
-          "a<noembed><p id=\"&lt;/noembed&gt;&lt;img src=x onerror=alert(1)&gt;\"></p></noembed>"
+          "a<noembed><p id=\"&lt;/noembed&gt;&lt;img src=x onerror=alert(1)&gt;\"></p></noembed>",
+          "a<noembed></noembed>"
       ]);
   } );
   QUnit.test( 'Avoid mXSS in Chrome 77 and above using SVG', function (assert) {
@@ -560,7 +561,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           "<svg><p></p><title></title></svg>",
           "<svg></svg><p></p><title>&lt;a href=\"</title>qqq<img src=\"\">\"&gt;",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style /></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style /></svg>",
+          "<svg></svg><p></p><title>&lt;a href=\"</title>qqq"
       ]);
   } );
   QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is true', function (assert) {
