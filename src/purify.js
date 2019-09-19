@@ -828,6 +828,11 @@ function createDOMPurify(window = getGlobal()) {
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
 
+      /* Check for possible Chrome mXSS */
+      if (currentNode.namespaceURI.match(/svg/) && value.match(/<\//)) {
+        currentNode.remove();
+      }
+
       /* Remove attribute */
       // Safari (iOS + Mac), last tested v8.0.5, crashes if you try to
       // remove a "name" attribute from an <img> tag that has an "id"
