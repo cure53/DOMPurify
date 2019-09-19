@@ -554,6 +554,15 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style /></svg>"
       ]);
   } );
+  QUnit.test( 'Avoid mXSS in Chrome 77 and above using HTML', function (assert) {
+      var clean = DOMPurify.sanitize("<svg></p><title><a href=\"</title>qqq");
+      assert.contains(clean,  [
+          "<svg><p></p><title></title></svg>",
+          "<svg></svg><p></p><title>&lt;a href=\"</title>qqq<img src=\"\">\"&gt;",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title /></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style /></svg>"
+      ]);
+  } );
   QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is true', function (assert) {
       var clean = DOMPurify.sanitize("<b>hello goodbye</b>", {RETURN_TRUSTED_TYPE: true});
       var type = typeof clean; 

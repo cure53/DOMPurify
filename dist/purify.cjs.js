@@ -837,7 +837,7 @@ function createDOMPurify() {
 
       /* Check for possible Chrome mXSS */
       if (removeSVGAttr && value.match(/<\//)) {
-        currentNode.remove();
+        _forceRemove(currentNode);
       }
 
       /* Remove attribute */
