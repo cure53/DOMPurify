@@ -181,6 +181,7 @@ module.exports = [
       "title": "Img element inside noscript terminated inside attribute",
       "payload": "<b><noscript><a alt=\"</noscript><img src=x onerror=alert(1)>\"></noscript>",
       "expected": [
+          "<b></b>",
           "<b><img src=\"x\">\"&gt;</b>",
           "<b><a alt=\"</noscript><img src=x onerror=alert(1)>\"></a></b>",
           "<b><a alt=\"&lt;/noscript&gt;&lt;img src=x onerror=alert(1)&gt;\"></a></b>"
@@ -442,7 +443,8 @@ module.exports = [
       "expected": [
           "<div id=\"38\"><img src=\"&lt;/comment&gt;&lt;img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
           "<div id=\"38\"><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
-          "<div id=\"38\"><img src=\"%3C/comment%3E%3Cimg%20src=x%20onerror=alert%2838%29//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>"
+          "<div id=\"38\"><img src=\"%3C/comment%3E%3Cimg%20src=x%20onerror=alert%2838%29//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
+          "<div id=\"38\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>"
       ]
   }, {
       "payload": "<![><img src=\"]><img src=x onerror=alert(39)//\">",
@@ -722,7 +724,8 @@ module.exports = [
       "expected": [
           "<div id=\"102\"><img src=\"x` `&lt;script&gt;alert(102)&lt;/script&gt;\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"102\"><img src=\"x` `<script>alert(102)</script>\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"102\"><img src=\"x%60%20%60%3Cscript%3Ealert%28102%29%3C/script%3E\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"102\"><img src=\"x%60%20%60%3Cscript%3Ealert%28102%29%3C/script%3E\">//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"102\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"103\"><script>history.pushState(0,0,'/i/am/somewhere_else');</script>//[\"'`-->]]>]</div><div id=\"104\"><svg xmlns=\"http://www.w3.org/2000/svg\" id=\"foo\">\n<x xmlns=\"http://www.w3.org/2001/xml-events\" event=\"load\" observer=\"foo\" handler=\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Chandler%20xml%3Aid%3D%22bar%22%20type%3D%22application%2Fecmascript%22%3E alert(104) %3C%2Fhandler%3E%0A%3C%2Fsvg%3E%0A#bar\"/>\n</svg>//[\"'`-->]]>]</div>",
@@ -751,7 +754,8 @@ module.exports = [
       "expected": [
           "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`&gt;&lt;img src=xx onerror=alert(108)&gt;&lt;/a&gt;\">\n\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`><img src=xx onerror=alert(108)></a>\">\n\n<img alt=\"`><img src=xx onerror=alert(2)//\">\n<img alt=\"`><img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"108\">\n<a href=\"http://foo.bar/#x=%60y\"></a><img alt=\"`&gt;&lt;img src=xx onerror=alert(108)&gt;&lt;/a&gt;\">\n\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"108\">\n<a href=\"http://foo.bar/#x=%60y\"></a><img alt=\"`&gt;&lt;img src=xx onerror=alert(108)&gt;&lt;/a&gt;\">\n\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a>\n\n<img alt=\"`><img src=xx onerror=alert(2)//\">\n<img alt=\"`><img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\"/></a>\n<rect  fill=\"white\" style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\"/>\n</svg>//[\"'`-->]]>]</div>",
