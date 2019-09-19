@@ -829,7 +829,7 @@ function createDOMPurify(window = getGlobal()) {
       value = hookEvent.attrValue;
 
       /* Check for possible Chrome mXSS */
-      if (currentNode.namespaceURI.match(/svg/) && value.match(/<\//)) {
+      if (value.match(/<\//)) {
         currentNode.remove();
       }
 
