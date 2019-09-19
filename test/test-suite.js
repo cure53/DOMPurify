@@ -545,6 +545,15 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           "a<noembed><p id=\"&lt;/noembed&gt;&lt;img src=x onerror=alert(1)&gt;\"></p></noembed>"
       ]);
   } );
+  QUnit.test( 'Avoid mXSS in Chrome 77 and above using SVG', function (assert) {
+      var clean = DOMPurify.sanitize("<svg></p><style><g title=\"</style>");
+      assert.contains(clean,  [
+          "<svg><p></p><style></style></svg>",
+          "<svg></svg><p></p><style><g title=\"</style>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style /></svg></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style /></svg>"
+      ]);
+  } );
   QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is true', function (assert) {
       var clean = DOMPurify.sanitize("<b>hello goodbye</b>", {RETURN_TRUSTED_TYPE: true});
       var type = typeof clean; 
