@@ -185,6 +185,7 @@ function createDOMPurify() {
 
   var originalDocument = window.document;
   var useDOMParser = false;
+  var removeSVGAttr = false;
   var removeTitle = false;
 
   var document = window.document;
@@ -567,6 +568,15 @@ function createDOMPurify() {
 
     (function () {
       try {
+        var doc = _initDocument('<svg></p></svg>');
+        if (doc.querySelector('svg p')) {
+          removeSVGAttr = true;
+        }
+      } catch (error) {}
+    })();
+
+    (function () {
+      try {
         var doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
         if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
           removeTitle = true;
@@ -826,7 +836,7 @@ function createDOMPurify() {
       value = hookEvent.attrValue;
 
       /* Check for possible Chrome mXSS */
-      if (value.match(/<\//)) {
+      if (removeSVGAttr && value.match(/<\//)) {
         currentNode.remove();
       }
 

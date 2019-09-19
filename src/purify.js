@@ -86,6 +86,7 @@ function createDOMPurify(window = getGlobal()) {
 
   const originalDocument = window.document;
   let useDOMParser = false;
+  let removeSVGAttr = false;
   let removeTitle = false;
 
   let { document } = window;
@@ -530,6 +531,15 @@ function createDOMPurify(window = getGlobal()) {
 
     (function() {
       try {
+        const doc = _initDocument('<svg></p></svg>');
+        if (doc.querySelector('svg p')) {
+          removeSVGAttr = true;
+        }
+      } catch (error) {}
+    })();
+
+    (function() {
+      try {
         const doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
         if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
           removeTitle = true;
@@ -829,7 +839,7 @@ function createDOMPurify(window = getGlobal()) {
       value = hookEvent.attrValue;
 
       /* Check for possible Chrome mXSS */
-      if (value.match(/<\//)) {
+      if (removeSVGAttr && value.match(/<\//)) {
         currentNode.remove();
       }
 
