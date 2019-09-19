@@ -906,7 +906,8 @@ module.exports = [
       "payload": "<div id=\"134\"><xmp>\n<%\n</xmp>\n<img alt='%></xmp><img src=xx onerror=alert(134)//'>\n\n<script>\nx='<%'\n</script> %>/\nalert(2)\n</script>\n\nXXX\n<style>\n*['<!--']{}\n</style>\n-->{}\n*{color:red}</style>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"134\">\n&lt;%\n\n<img alt=\"%></xmp><img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"134\">\n&lt;%\n\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"134\">\n&lt;%\n\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"134\">\n&lt;%\n\n\n%&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "SVG",
