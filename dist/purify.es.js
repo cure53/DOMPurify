@@ -184,6 +184,7 @@ function createDOMPurify() {
   var originalDocument = window.document;
   var useDOMParser = false;
   var removeSVGAttr = false;
+  var removeTitle = false;
 
   var document = window.document;
   var DocumentFragment = window.DocumentFragment,
@@ -522,6 +523,11 @@ function createDOMPurify() {
       } catch (error) {}
     }
 
+    /* Remove title to fix a mXSS bug in older MS Edge */
+    if (removeTitle) {
+      addToSet(FORBID_TAGS, ['title']);
+    }
+
     /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
     Safari (see comment below) */
     if (!doc || !doc.documentElement) {
@@ -556,6 +562,15 @@ function createDOMPurify() {
         var doc = _initDocument('<svg><p><textarea><img src="</textarea><img src=x abc=1//">');
         if (doc.querySelector('svg img')) {
           useDOMParser = true;
+        }
+      } catch (error) {}
+    })();
+
+    (function () {
+      try {
+        var doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
+        if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
+          removeTitle = true;
         }
       } catch (error) {}
     })();
