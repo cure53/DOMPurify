@@ -241,11 +241,13 @@ function createDOMPurify(window = getGlobal()) {
   /* Tags to ignore content of when KEEP_CONTENT is true */
   const FORBID_CONTENTS = addToSet({}, [
     'audio',
+    'colgroup',
     'head',
     'math',
     'script',
     'style',
     'template',
+    'thead',
     'svg',
     'video',
   ]);
