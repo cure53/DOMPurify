@@ -87,7 +87,6 @@ function createDOMPurify(window = getGlobal()) {
   const originalDocument = window.document;
   let useDOMParser = false;
   let removeSVGAttr = false;
-  let removeTitle = false;
 
   let { document } = window;
   const {
@@ -242,13 +241,11 @@ function createDOMPurify(window = getGlobal()) {
   /* Tags to ignore content of when KEEP_CONTENT is true */
   const FORBID_CONTENTS = addToSet({}, [
     'audio',
-    'colgroup',
     'head',
     'math',
     'script',
     'style',
     'template',
-    'thead',
     'svg',
     'video',
   ]);
@@ -397,7 +394,6 @@ function createDOMPurify(window = getGlobal()) {
     /* Add #text in case KEEP_CONTENT is set to true */
     if (KEEP_CONTENT) {
       ALLOWED_TAGS['#text'] = true;
-      delete FORBID_TAGS.tbody;
     }
 
     /* Add html, head and body to ALLOWED_TAGS in case WHOLE_DOCUMENT is true */
@@ -408,6 +404,7 @@ function createDOMPurify(window = getGlobal()) {
     /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286 */
     if (ALLOWED_TAGS.table) {
       addToSet(ALLOWED_TAGS, ['tbody']);
+      delete FORBID_TAGS.tbody;
     }
 
     // Prevent further manipulation of configuration.
@@ -484,11 +481,6 @@ function createDOMPurify(window = getGlobal()) {
       } catch (error) {}
     }
 
-    /* Remove title to fix a mXSS bug in older MS Edge */
-    if (removeTitle) {
-      addToSet(FORBID_TAGS, ['title']);
-    }
-
     /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
     Safari (see comment below) */
     if (!doc || !doc.documentElement) {
@@ -537,15 +529,6 @@ function createDOMPurify(window = getGlobal()) {
         const doc = _initDocument('<svg></p></svg>');
         if (doc.querySelector('svg p')) {
           removeSVGAttr = true;
-        }
-      } catch (error) {}
-    })();
-
-    (function() {
-      try {
-        const doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
-          removeTitle = true;
         }
       } catch (error) {}
     })();

@@ -577,9 +577,23 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var type = typeof clean; 
       assert.equal(type, 'string');
   } );
-QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is not set', function (assert) {
+  QUnit.test( 'Test for correct return value when RETURN_TRUSTED_TYPE is not set', function (assert) {
       var clean = DOMPurify.sanitize("<b>hello goodbye</b>");
       var type = typeof clean; 
       assert.equal(type, 'string');
+  } );
+  QUnit.test( 'Test for DoS coming from table sanitization 1/2 See #365', function (assert) {
+      var config = {FORBID_TAGS: ['tbody']};
+      var clean = DOMPurify.sanitize("<table><tbody><tr><td>test</td></tr></tbody></table>", config);
+      assert.equal(clean, '<table><tbody><tr><td>test</td></tr></tbody></table>');
+  } );
+  QUnit.test( 'Test for DoS coming from table sanitization 2/2 See #365', function (assert) {
+      var config = {
+        ALLOWED_TAGS: [ 'b', 'strong', 'i', 'italic', 'div', 'p', 'span', 'ul', 'li', 'ol', 'a', 'img', 'br', 'tr', 'td', 'th', 'table', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+        ALLOW_DATA_ATTR: false,
+        ALLOWED_ATTR: ['src', 'class', 'target', 'href']
+      };
+      var clean = DOMPurify.sanitize("<table><colgroup><col></col></colgroup><tbody><tr><td >test</td></tr></tbody></table>", config);
+      assert.equal(clean, '<table><tbody><tr><td>test</td></tr></tbody></table>');
   } );
 };

@@ -186,7 +186,6 @@ function createDOMPurify() {
   var originalDocument = window.document;
   var useDOMParser = false;
   var removeSVGAttr = false;
-  var removeTitle = false;
 
   var document = window.document;
   var DocumentFragment = window.DocumentFragment,
@@ -320,7 +319,7 @@ function createDOMPurify() {
   var USE_PROFILES = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
-  var FORBID_CONTENTS = addToSet({}, ['audio', 'colgroup', 'head', 'math', 'script', 'style', 'template', 'thead', 'svg', 'video']);
+  var FORBID_CONTENTS = addToSet({}, ['audio', 'head', 'math', 'script', 'style', 'template', 'svg', 'video']);
 
   /* Tags that are safe for data: URIs */
   var DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image']);
@@ -437,7 +436,6 @@ function createDOMPurify() {
     /* Add #text in case KEEP_CONTENT is set to true */
     if (KEEP_CONTENT) {
       ALLOWED_TAGS['#text'] = true;
-      delete FORBID_TAGS.tbody;
     }
 
     /* Add html, head and body to ALLOWED_TAGS in case WHOLE_DOCUMENT is true */
@@ -448,6 +446,7 @@ function createDOMPurify() {
     /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286 */
     if (ALLOWED_TAGS.table) {
       addToSet(ALLOWED_TAGS, ['tbody']);
+      delete FORBID_TAGS.tbody;
     }
 
     // Prevent further manipulation of configuration.
@@ -524,11 +523,6 @@ function createDOMPurify() {
       } catch (error) {}
     }
 
-    /* Remove title to fix a mXSS bug in older MS Edge */
-    if (removeTitle) {
-      addToSet(FORBID_TAGS, ['title']);
-    }
-
     /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
     Safari (see comment below) */
     if (!doc || !doc.documentElement) {
@@ -572,15 +566,6 @@ function createDOMPurify() {
         var doc = _initDocument('<svg></p></svg>');
         if (doc.querySelector('svg p')) {
           removeSVGAttr = true;
-        }
-      } catch (error) {}
-    })();
-
-    (function () {
-      try {
-        var doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
-          removeTitle = true;
         }
       } catch (error) {}
     })();
