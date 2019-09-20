@@ -242,11 +242,14 @@ function createDOMPurify(window = getGlobal()) {
   /* Tags to ignore content of when KEEP_CONTENT is true */
   const FORBID_CONTENTS = addToSet({}, [
     'audio',
+    'colgroup',
     'head',
     'math',
     'script',
     'style',
     'template',
+    'tbody',
+    'thead',
     'svg',
     'video',
   ]);
@@ -400,11 +403,6 @@ function createDOMPurify(window = getGlobal()) {
     /* Add html, head and body to ALLOWED_TAGS in case WHOLE_DOCUMENT is true */
     if (WHOLE_DOCUMENT) {
       addToSet(ALLOWED_TAGS, ['html', 'head', 'body']);
-    }
-
-    /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286 */
-    if (ALLOWED_TAGS.table) {
-      addToSet(ALLOWED_TAGS, ['tbody']);
     }
 
     // Prevent further manipulation of configuration.
