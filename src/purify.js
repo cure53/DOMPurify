@@ -148,6 +148,7 @@ function createDOMPurify(window = getGlobal()) {
   } = EXPRESSIONS;
 
   let { IS_ALLOWED_URI } = EXPRESSIONS;
+
   /**
    * We consider the elements and attributes below to be safe. Ideally
    * don't add any new ones but feel free to remove unwanted ones.
@@ -403,7 +404,7 @@ function createDOMPurify(window = getGlobal()) {
       addToSet(ALLOWED_TAGS, ['html', 'head', 'body']);
     }
 
-    /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286 */
+    /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286, #365 */
     if (ALLOWED_TAGS.table) {
       addToSet(ALLOWED_TAGS, ['tbody']);
       delete FORBID_TAGS.tbody;
@@ -512,13 +513,13 @@ function createDOMPurify(window = getGlobal()) {
   //
   // So we feature detect the Firefox bug and use the DOMParser if necessary.
   //
-  // MS Edge, in older versions, is affected by an mXSS behavior. The second
-  // check tests for the behavior and fixes it if necessary.
+  // Chrome 77 and other versions ship an mXSS bug that caused a bypass to
+  // happen. We now check for the mXSS trigger and react accordingly.
   if (DOMPurify.isSupported) {
     (function() {
       try {
         const doc = _initDocument(
-          '<svg><p><textarea><img src="</textarea><img src=x onerror=1//">'
+          '<svg><p><textarea><img src="</textarea><img src=x abc=1//">'
         );
         if (doc.querySelector('svg img')) {
           useDOMParser = true;
@@ -788,6 +789,7 @@ function createDOMPurify(window = getGlobal()) {
    *
    * @param  {Node} currentNode to sanitize
    */
+  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function(currentNode) {
     let attr;
     let value;
