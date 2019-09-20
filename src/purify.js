@@ -397,6 +397,7 @@ function createDOMPurify(window = getGlobal()) {
     /* Add #text in case KEEP_CONTENT is set to true */
     if (KEEP_CONTENT) {
       ALLOWED_TAGS['#text'] = true;
+      delete FORBID_TAGS.tbody;
     }
 
     /* Add html, head and body to ALLOWED_TAGS in case WHOLE_DOCUMENT is true */
