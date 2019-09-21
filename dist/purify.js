@@ -706,6 +706,12 @@ function createDOMPurify() {
       return true;
     }
 
+    /* Remove in case an mXSS is suspected */
+    if (currentNode.namespaceURI && currentNode.namespaceURI.match(/svg|math/i) && currentNode.textContent && currentNode.textContent.match(new RegExp('</' + tagName, 'i'))) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Convert markup to cover jQuery behavior */
     if (SAFE_FOR_JQUERY && !currentNode.firstElementChild && (!currentNode.content || !currentNode.content.firstElementChild) && /</g.test(currentNode.textContent)) {
       DOMPurify.removed.push({ element: currentNode.cloneNode() });
