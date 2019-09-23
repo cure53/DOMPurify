@@ -700,13 +700,13 @@ function createDOMPurify() {
       return true;
     }
 
-    if (tagName === 'svg' && currentNode.innerHTML.match(/<template/i)) {
+    /* Remove in case an mXSS is suspected */
+    if (currentNode.namespaceURI && currentNode.namespaceURI.match(/svg|math/i) && currentNode.textContent && currentNode.textContent.match(new RegExp('</' + tagName, 'i'))) {
       _forceRemove(currentNode);
       return true;
     }
 
-    /* Remove in case an mXSS is suspected */
-    if (currentNode.namespaceURI && currentNode.namespaceURI.match(/svg|math/i) && currentNode.textContent && currentNode.textContent.match(new RegExp('</' + tagName, 'i'))) {
+    if (tagName === 'svg' && currentNode.innerHTML && currentNode.innerHTML.match(/<template/i)) {
       _forceRemove(currentNode);
       return true;
     }
