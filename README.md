@@ -6,7 +6,7 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 2.0.1.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 2.0.2.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
@@ -280,11 +280,11 @@ Feature releases will not be announced to this list.
 
 Several people need to be listed here!
 
-[@garethheyes](https://twitter.com/garethheyes) and [@filedescriptor](https://twitter.com/filedescriptor) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same. And lastly, thanks to  @ShikariSenpai and @ansjdnakjdnajkd for spotting the [massive Safari 10.1 bug](https://github.com/cure53/DOMPurify/releases/tag/0.8.6) in the first place.
+[@garethheyes](https://twitter.com/garethheyes) and [@filedescriptor](https://twitter.com/filedescriptor) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it in the early days, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same. And lastly, thanks to  @ShikariSenpai and @ansjdnakjdnajkd for spotting a [massive Safari 10.1 bug](https://github.com/cure53/DOMPurify/releases/tag/0.8.6) early on and reporting it.
 
-Big thanks also go to [@ydaniv](https://github.com/ydaniv), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)!
+Big thanks also go to [@ydaniv](https://github.com/ydaniv), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)! Further, we would like to thank @masatokinugawa for his continuous and extremely valuable help in the past and present.  
 
-Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their code reviews and countless small optimizations, fixes and beautifications. Thanks also go out to [@kkotowicz](https://twitter.com/kkotowicz) for his Trusted Types implementation and the connected section on our README page.  
+Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their early code reviews and countless small optimizations, fixes and beautifications. Thanks also go out to [@kkotowicz](https://twitter.com/kkotowicz) for his Trusted Types implementation and the connected section on our README page.  
 
 Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack. And thanks to [@Joris-van-der-Wel](https://github.com/Joris-van-der-Wel) for setting up DOMPurify for jsdom and creating the additional test suite. And again [@tdeekens](https://twitter.com/tdeekens) for his [incredible efforts](https://github.com/cure53/DOMPurify/pull/206) and contribution to refactor DOMPurify into using ES201x, proper build tools, better test coverage and much more!
 
