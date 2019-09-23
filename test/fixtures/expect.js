@@ -980,8 +980,8 @@ module.exports = [
       "payload": "<svg></p><textarea><title><style></textarea><img src=x onerror=alert(1)></style></title></svg>",
       "expected": [
           "<svg><p></p></svg>",
-          "<svg></svg><p></p><textarea>&lt;desc&gt;&lt;style&gt;</textarea><img src=\"x\">",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>",
+          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
