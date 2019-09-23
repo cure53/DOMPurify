@@ -975,5 +975,20 @@ module.exports = [
           "&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;",
           "<title>&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;</title>"
       ]
+  }, {
+      "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike",
+      "payload": "<svg></p><textarea><title><style></textarea><img src=x onerror=alert(1)></style></title></svg>",
+      "expected": [
+          "<svg><p></p></svg>",
+          "<svg></svg><p></p><textarea>&lt;desc&gt;&lt;style&gt;</textarea><img src=\"x\">",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>"
+      ]
+  }, {
+      "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
+      "payload": "<math></p><textarea><mi><style></textarea><img src=x onerror=alert(1)></mi></math>",
+      "expected": [
+          "",
+          "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img src=\"x\">"
+      ]
   }
 ];
