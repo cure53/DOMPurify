@@ -694,6 +694,11 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
+    if (tagName === 'template' && currentNode.innerHTML.match(/<\/template/i)) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Remove in case an mXSS is suspected */
     if (
       currentNode.namespaceURI &&
