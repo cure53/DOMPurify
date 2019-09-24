@@ -454,7 +454,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.contains(clean, [
           '<div style="color: red">Test</div>',
           '<div style="color: red;">Test</div>'
-      );
+      ]);
   } );
   // Test to make sure that empty HTML doesn't return null on MSIE11 (#198)
   QUnit.test( 'Empty HTML shouldn\'t return null on MSIE11 in RETURN_DOM_FRAGMENT mode', function (assert) {
