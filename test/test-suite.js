@@ -445,10 +445,16 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   // Test to make sure that URI_safe attributes don't overwrite default, see #366
   QUnit.test( 'DOMPurify should not overwrite default URI safe attributes', function (assert) {
       var clean = DOMPurify.sanitize('<div poster="x:y" style="color: red">Test</div>', {ADD_URI_SAFE_ATTR: ['poster']});
-      assert.equal(clean, '<div style="color: red" poster="x:y">Test</div>');
+      assert.contains(clean, [
+          '<div style="color: red" poster="x:y">Test</div>',
+          '<div style="color: red;" poster="x:y">Test</div>',
+      ]);
       
       clean = DOMPurify.sanitize('<div poster="x:y" style="color: red">Test</div>');
-      assert.equal(clean, '<div style="color: red">Test</div>');
+      assert.contains(clean, [
+          '<div style="color: red">Test</div>',
+          '<div style="color: red;">Test</div>'
+      );
   } );
   // Test to make sure that empty HTML doesn't return null on MSIE11 (#198)
   QUnit.test( 'Empty HTML shouldn\'t return null on MSIE11 in RETURN_DOM_FRAGMENT mode', function (assert) {
