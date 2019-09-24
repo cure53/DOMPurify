@@ -706,7 +706,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     if (
-      tagName === 'svg' &&
+      (tagName === 'svg' || tagName === 'math') &&
       currentNode.innerHTML &&
       currentNode.innerHTML.match(/<template/i)
     ) {

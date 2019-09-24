@@ -991,12 +991,20 @@ module.exports = [
           "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img src=\"x\">"
       ]
   }, {
-      "title": "Tests against mXSS behavior with Templates in Chrome 77 and alike",
+      "title": "Tests against mXSS behavior with SVG Templates in Chrome 77 and alike",
       "payload": "<svg></p><title><template><style></title><img>",
       "expected": [
           "",
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg></svg>"
+      ]
+  }, {
+      "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
+      "payload": "<math></br><textarea><mtext><template><style></textarea><img>",
+      "expected": [
+          "",
+          "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img src=\"\">",
+          "<math><br></math>"
       ]
   }
 ];

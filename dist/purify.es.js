@@ -706,7 +706,7 @@ function createDOMPurify() {
       return true;
     }
 
-    if (tagName === 'svg' && currentNode.innerHTML && currentNode.innerHTML.match(/<template/i)) {
+    if ((tagName === 'svg' || tagName === 'math') && currentNode.innerHTML && currentNode.innerHTML.match(/<template/i)) {
       _forceRemove(currentNode);
       return true;
     }
