@@ -708,7 +708,7 @@ function createDOMPurify(window = getGlobal()) {
     if (
       (tagName === 'svg' || tagName === 'math') &&
       ((currentNode.innerHTML && currentNode.innerHTML.match(/<template/i)) ||
-        !currentNode.innerHTML) // Early Safari has no innerHTML for SVG
+        typeof currentNode.innerHTML === 'undefined') // Early Safari has no innerHTML for SVG
     ) {
       _forceRemove(currentNode);
       return true;

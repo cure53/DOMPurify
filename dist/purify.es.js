@@ -706,7 +706,7 @@ function createDOMPurify() {
       return true;
     }
 
-    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || !currentNode.innerHTML) // Early Safari has no innerHTML for SVG
+    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || typeof currentNode.innerHTML === 'undefined') // Early Safari has no innerHTML for SVG
     ) {
         _forceRemove(currentNode);
         return true;
