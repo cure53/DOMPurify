@@ -708,7 +708,7 @@ function createDOMPurify() {
       return true;
     }
 
-    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || currentNode.toString() === '[object SVGAnimatedString]')) {
+    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || typeof currentNode.innerHTML === 'undefined' && removeSVGAttr)) {
       _forceRemove(currentNode);
       return true;
     }
