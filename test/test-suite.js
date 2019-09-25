@@ -573,7 +573,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'Avoid mXSS in Chrome 77 and above using HTML', function (assert) {
       var clean = DOMPurify.sanitize("<svg></p><title><a href=\"</title>qqq");
       assert.contains(clean,  [
-          "";
+          "",
           "<svg><p></p><title></title></svg>",
           "<svg></svg><p></p><title>&lt;a href=\"</title>qqq<img src=\"\">\"&gt;",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title /></svg>",
