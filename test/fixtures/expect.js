@@ -1003,7 +1003,7 @@ module.exports = [
       "payload": "<math></br><textarea><mtext><template><style></textarea><img>",
       "expected": [
           "",
-          "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img",
+          "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img>",
           "<math><br></math>"
       ]
   }
