@@ -708,7 +708,7 @@ function createDOMPurify(window = getGlobal()) {
     if (
       (tagName === 'svg' || tagName === 'math') &&
       ((currentNode.innerHTML && currentNode.innerHTML.match(/<template/i)) ||
-        typeof currentNode === 'SVGAnimatedString') // eslint-disable-line valid-typeof
+        currentNode instanceof 'SVGAnimatedString')
     ) {
       _forceRemove(currentNode);
       return true;

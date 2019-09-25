@@ -712,11 +712,10 @@ function createDOMPurify() {
       return true;
     }
 
-    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || typeof currentNode === 'SVGAnimatedString') // eslint-disable-line valid-typeof
-    ) {
-        _forceRemove(currentNode);
-        return true;
-      }
+    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || currentNode instanceof 'SVGAnimatedString')) {
+      _forceRemove(currentNode);
+      return true;
+    }
 
     /* Convert markup to cover jQuery behavior */
     if (SAFE_FOR_JQUERY && !currentNode.firstElementChild && (!currentNode.content || !currentNode.content.firstElementChild) && /</g.test(currentNode.textContent)) {
