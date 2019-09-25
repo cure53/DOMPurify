@@ -118,12 +118,6 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.equal( DOMPurify.sanitize( '<a>123<b>456</b></a>', {RETURN_DOM: true, WHOLE_DOCUMENT: true}).outerHTML, "<html><head></head><body><a>123<b>456</b></a></body></html>" );
       assert.equal( DOMPurify.sanitize( '<a>123<b>456<script>alert(1)<\/script></b></a>', {RETURN_DOM: true, WHOLE_DOCUMENT: true}).outerHTML, "<html><head></head><body><a>123<b>456</b></a></body></html>" );
       assert.equal( DOMPurify.sanitize( '123', {RETURN_DOM: true}).outerHTML, "<body>123</body>" );
-      // Attribute namespaces should be correctly set.
-      var svg = DOMPurify.sanitize( '111<svg><g><image xlink:href="foo.svg"></image></g></svg>', {RETURN_DOM: true});
-      var image = svg.querySelector('image');
-      var attr = image.getAttributeNode('xlink:href');
-      assert.equal( attr.namespaceURI, 'http://www.w3.org/1999/xlink' );
-      assert.equal( attr.value, 'foo.svg' );
   });
   QUnit.test( 'Config-Flag tests: RETURN_DOM_IMPORT', function(assert) {
       //RETURN_DOM_IMPORT
@@ -494,10 +488,10 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'Config-Flag tests: USE_PROFILES', function(assert) {
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: {html: false}}), 'HELLO' );
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: {html: true}}), '<h1>HELLO</h1>' );
-      assert.contains( DOMPurify.sanitize( '<h1>HELLO</h1><math></math>', {USE_PROFILES: {html: true, mathMl: true}}), ['', '<h1>HELLO</h1><math></math>'] );
-      assert.contains( DOMPurify.sanitize( '<h1>HELLO</h1><math><mi></mi></math>', {USE_PROFILES: {html: true, mathMl: true}}), ['', '<h1>HELLO</h1><math><mi></mi></math>'] );
-      assert.contains( DOMPurify.sanitize( '<h1>HELLO</h1><math><mi></mi></math>', {USE_PROFILES: {html: true, mathMl: true}, FORBID_TAGS: ['mi']}), ['', '<h1>HELLO</h1><math></math>'] );
-      assert.contains( DOMPurify.sanitize( '<h1>HELLO</h1><math class="foo"><mi></mi></math>', {USE_PROFILES: {html: true, mathMl: true}, FORBID_ATTR: ['class']}), ['', '<h1>HELLO</h1><math><mi></mi></math>'] );
+      assert.contains( DOMPurify.sanitize( '<h1>HELLO</h1><math></math>', {USE_PROFILES: {html: true, mathMl: true}}), ['<h1>HELLO</h1>', '<h1>HELLO</h1><math></math>'] );
+      assert.contains( DOMPurify.sanitize( '<h1>HELLO</h1><math><mi></mi></math>', {USE_PROFILES: {html: true, mathMl: true}}), ['<h1>HELLO</h1>', '<h1>HELLO</h1><math><mi></mi></math>'] );
+      assert.contains( DOMPurify.sanitize( '<h1>HELLO</h1><math><mi></mi></math>', {USE_PROFILES: {html: true, mathMl: true}, FORBID_TAGS: ['mi']}), ['<h1>HELLO</h1>', '<h1>HELLO</h1><math></math>'] );
+      assert.contains( DOMPurify.sanitize( '<h1>HELLO</h1><math class="foo"><mi></mi></math>', {USE_PROFILES: {html: true, mathMl: true}, FORBID_ATTR: ['class']}), ['<h1>HELLO</h1>', '<h1>HELLO</h1><math><mi></mi></math>'] );
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: {bogus: true}}), 'HELLO' );
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: 123}), 'HELLO' );
       assert.equal( DOMPurify.sanitize( '<h1>HELLO</h1>', {USE_PROFILES: []}), 'HELLO' );
@@ -509,17 +503,22 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.contains( DOMPurify.sanitize( '<feBlend in="SourceGraphic" mode="multiply" />', {USE_PROFILES: {svgFilters: true}}), [
         '<feblend in="SourceGraphic" mode="multiply"></feblend>',
         '<feblend mode="multiply" in="SourceGraphic"></feblend>',
-    ] );
+      ] );
       assert.contains( DOMPurify.sanitize( '<svg><style>.some-class {fill: #fff}</style></svg>', {USE_PROFILES: {svg: true}}), [
+          '',
           '<svg><style>.some-class {fill: #fff}</style></svg>',
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><style>.some-class {fill: #fff}</style></svg>"] );
       assert.contains( DOMPurify.sanitize( '<svg><text>SEE ME</text></svg>', {USE_PROFILES: {svg: true}, KEEP_CONTENT: false} ), [
-          '<svg><text>SEE ME</text></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>SEE ME</text></svg>"
+          '', 
+          '<svg><text>SEE ME</text></svg>', 
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><text>SEE ME</text></svg>"
       ] );
       assert.equal( DOMPurify.sanitize( '<span>SEE ME</span>', {USE_PROFILES: {html: true}, KEEP_CONTENT: false} ), '<span>SEE ME</span>' );
       assert.equal( DOMPurify.sanitize( '<div></div>', {USE_PROFILES: {svg: true}, ADD_TAGS: ['div']} ), '<div></div>' );
       assert.contains( DOMPurify.sanitize( '<svg keep="me"></svg>', {USE_PROFILES: {svg: true}, ADD_ATTR: ['keep']} ), [
-          '<svg keep="me"></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\" keep=\"me\" />"
+          '',
+          '<svg keep="me"></svg>', 
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" keep=\"me\" />"
       ] );
   });
   QUnit.test( 'Config-Flag tests: ALLOWED_URI_REGEXP', function(assert) {
