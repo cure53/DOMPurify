@@ -708,7 +708,7 @@ function createDOMPurify(window = getGlobal()) {
     if (
       (tagName === 'svg' || tagName === 'math') &&
       ((currentNode.innerHTML && currentNode.innerHTML.match(/<template/i)) ||
-        currentNode instanceof 'SVGAnimatedString')
+        currentNode.toString() === '[object SVGAnimatedString]')
     ) {
       _forceRemove(currentNode);
       return true;
