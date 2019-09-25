@@ -712,10 +712,11 @@ function createDOMPurify() {
       return true;
     }
 
-    if ((tagName === 'svg' || tagName === 'math') && currentNode.innerHTML && currentNode.innerHTML.match(/<template/i)) {
-      _forceRemove(currentNode);
-      return true;
-    }
+    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || !currentNode.innerHTML) // Early Safari has no innerHTML for SVG
+    ) {
+        _forceRemove(currentNode);
+        return true;
+      }
 
     /* Convert markup to cover jQuery behavior */
     if (SAFE_FOR_JQUERY && !currentNode.firstElementChild && (!currentNode.content || !currentNode.content.firstElementChild) && /</g.test(currentNode.textContent)) {
