@@ -536,7 +536,7 @@ function createDOMPurify(window = getGlobal()) {
     (function() {
       try {
         const doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
+        if (/<\/title/.test(doc.querySelector('title').innerHTML)) {
           removeTitle = true;
         }
       } catch (error) {}
@@ -684,12 +684,12 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Remove in case a noscript/noembed XSS is suspected */
-    if (tagName === 'noscript' && currentNode.innerHTML.match(/<\/noscript/i)) {
+    if (tagName === 'noscript' && /<\/noscript/i.test(currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
     }
 
-    if (tagName === 'noembed' && currentNode.innerHTML.match(/<\/noembed/i)) {
+    if (tagName === 'noembed' && /<\/noembed/i.test(currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -697,9 +697,9 @@ function createDOMPurify(window = getGlobal()) {
     /* Remove in case an mXSS is suspected */
     if (
       currentNode.namespaceURI &&
-      currentNode.namespaceURI.match(/svg|math/i) &&
+      /svg|math/i.test(currentNode.namespaceURI) &&
       currentNode.textContent &&
-      currentNode.textContent.match(new RegExp('</' + tagName, 'i'))
+      new RegExp('</' + tagName, 'i').test(currentNode.textContent)
     ) {
       _forceRemove(currentNode);
       return true;
@@ -707,7 +707,7 @@ function createDOMPurify(window = getGlobal()) {
 
     if (
       (tagName === 'svg' || tagName === 'math') &&
-      ((currentNode.innerHTML && currentNode.innerHTML.match(/<template/i)) ||
+      ((currentNode.innerHTML && /<template/i.test(currentNode.innerHTML)) ||
         (typeof currentNode.innerHTML === 'undefined' && removeSVGAttr))
     ) {
       _forceRemove(currentNode);
@@ -864,7 +864,7 @@ function createDOMPurify(window = getGlobal()) {
       value = hookEvent.attrValue;
 
       /* Check for possible Chrome mXSS */
-      if (removeSVGAttr && value.match(/<\//)) {
+      if (removeSVGAttr && /<\//.test(value)) {
         _forceRemove(currentNode);
       }
 
