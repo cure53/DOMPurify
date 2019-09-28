@@ -575,7 +575,7 @@ function createDOMPurify() {
     (function () {
       try {
         var doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (doc.querySelector('title').innerHTML.match(/<\/title/)) {
+        if (/<\/title/.test(doc.querySelector('title').innerHTML)) {
           removeTitle = true;
         }
       } catch (error) {}
@@ -696,23 +696,23 @@ function createDOMPurify() {
     }
 
     /* Remove in case a noscript/noembed XSS is suspected */
-    if (tagName === 'noscript' && currentNode.innerHTML.match(/<\/noscript/i)) {
+    if (tagName === 'noscript' && /<\/noscript/i.test(currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
     }
 
-    if (tagName === 'noembed' && currentNode.innerHTML.match(/<\/noembed/i)) {
+    if (tagName === 'noembed' && /<\/noembed/i.test(currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
     }
 
     /* Remove in case an mXSS is suspected */
-    if (currentNode.namespaceURI && currentNode.namespaceURI.match(/svg|math/i) && currentNode.textContent && currentNode.textContent.match(new RegExp('</' + tagName, 'i'))) {
+    if (currentNode.namespaceURI && /svg|math/i.test(currentNode.namespaceURI) && currentNode.textContent && new RegExp('</' + tagName, 'i').test(currentNode.textContent)) {
       _forceRemove(currentNode);
       return true;
     }
 
-    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && currentNode.innerHTML.match(/<template/i) || typeof currentNode.innerHTML === 'undefined' && removeSVGAttr)) {
+    if ((tagName === 'svg' || tagName === 'math') && (currentNode.innerHTML && /<template/i.test(currentNode.innerHTML) || typeof currentNode.innerHTML === 'undefined' && removeSVGAttr)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -854,7 +854,7 @@ function createDOMPurify() {
       value = hookEvent.attrValue;
 
       /* Check for possible Chrome mXSS */
-      if (removeSVGAttr && value.match(/<\//)) {
+      if (removeSVGAttr && /<\//.test(value)) {
         _forceRemove(currentNode);
       }
 
