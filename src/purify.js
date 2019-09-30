@@ -863,9 +863,14 @@ function createDOMPurify(window = getGlobal()) {
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
 
-      /* Check for possible Chrome mXSS */
-      if (removeSVGAttr && /<\//.test(value)) {
-        _forceRemove(currentNode);
+      /* Check for possible Chrome mXSS, least aggressively */
+      if (
+        (!ALLOWED_TAGS.svg || FORBID_TAGS.svg) &&
+        (!ALLOWED_TAGS.math || FORBID_TAGS.math)
+      ) {
+        if (removeSVGAttr && /<\//.test(value)) {
+          _forceRemove(currentNode);
+        }
       }
 
       /* Remove attribute */
