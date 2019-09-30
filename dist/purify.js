@@ -854,7 +854,7 @@ function createDOMPurify() {
       value = hookEvent.attrValue;
 
       /* Check for possible Chrome mXSS, least aggressively */
-      if ((!ALLOWED_TAGS.svg || FORBID_TAGS.svg) && (!ALLOWED_TAGS.math || FORBID_TAGS.math)) {
+      if (ALLOWED_TAGS.svg && !FORBID_TAGS.svg || ALLOWED_TAGS.math && !FORBID_TAGS.math) {
         if (removeSVGAttr && /<\//.test(value)) {
           _forceRemove(currentNode);
         }
