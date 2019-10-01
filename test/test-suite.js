@@ -612,4 +612,11 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize("<table><colgroup><col></col></colgroup><tbody><tr><td >test</td></tr></tbody></table>", config);
       assert.equal(clean, '<table><tbody><tr><td>test</td></tr></tbody></table>');
   } );
+  QUnit.test( 'Test for less agressive mXSS handling, See #369', function (assert) {
+      var config = {
+        FORBID_TAGS: ['svg', 'math']
+      };
+      var clean = DOMPurify.sanitize("<b data-test=\"<span>content</span>\"></b>", config);
+      assert.equal(clean, '<b data-test=\"<span>content</span>\"></b>');
+  } );
 };
