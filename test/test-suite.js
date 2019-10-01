@@ -617,7 +617,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
         FORBID_TAGS: ['svg', 'math']
       };
       var clean = DOMPurify.sanitize("<b data-test=\"<span>content</span>\"></b>", config);
-      assert.contai8ns(clean, [
+      assert.contains(clean, [
           '<b data-test=\"<span>content</span>\"></b>',
           "<b data-test=\"&lt;span&gt;content&lt;/span&gt;\"></b>"
       ]);
