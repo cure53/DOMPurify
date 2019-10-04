@@ -1035,5 +1035,11 @@ module.exports = [
           "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img>",
           "<math><br></math>"
       ]
+  }, {
+      "title": "Fixed an exception coming from missing clobbering protection",
+      "payload": "<form><input name=namespaceURI>",
+      "expected": [
+          "", "<form><input></form>"
+      ]
   }
 ];
