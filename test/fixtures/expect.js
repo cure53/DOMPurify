@@ -1041,5 +1041,13 @@ module.exports = [
       "expected": [
           "", "<form><input></form>"
       ]
+  }, {
+      "title": "Tests against mXSS behavior with embedded MathML/SVG",
+      "payload": "<svg></p><math><title><style><img></style></title>",
+      "expected": [
+          "",
+          "<svg></p><math><title><style><img></style></title>",
+          "<svg></svg><p></p><math><title><style></style></title></math><img>"
+      ]
   }
 ];
