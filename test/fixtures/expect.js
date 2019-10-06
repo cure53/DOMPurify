@@ -1014,14 +1014,16 @@ module.exports = [
           "",
           "<svg><p></p></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>",
-          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img>"
+          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img>",
+          "<p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
       "payload": "<math></p><textarea><mi><style></textarea><img></mi></math>",
       "expected": [
           "",
-          "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img>"
+          "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img>",
+          "<p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img>"
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG Templates in Chrome 77 and alike",
@@ -1029,7 +1031,8 @@ module.exports = [
       "expected": [
           "",
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg></svg>",
+          "<p></p><title>&lt;template&gt;&lt;style&gt;</title><img>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
@@ -1037,7 +1040,8 @@ module.exports = [
       "expected": [
           "",
           "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img>",
-          "<math><br></math>"
+          "<math><br></math>",
+          "<br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img>"
       ]
   }, {
       "title": "Fixed an exception coming from missing clobbering protection",
@@ -1051,7 +1055,8 @@ module.exports = [
       "expected": [
           "",
           "<svg></p><math><title><style><img></style></title>",
-          "<svg></svg><p></p><math><title><style></style></title></math><img>"
+          "<svg></svg><p></p><math><title><style></style></title></math><img>",
+          "<p></p><img>"
       ]
   }
 ];
