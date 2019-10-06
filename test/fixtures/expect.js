@@ -470,7 +470,8 @@ module.exports = [
           "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></img></svg>//[\"'`--&gt;]]&gt;]",
           "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
           "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
-          "<img src=\"x\">//[\"'`--&gt;]]&gt;]"
+          "<img src=\"x\">//[\"'`--&gt;]]&gt;]",
+          "//[\"'`--&gt;]]&gt;]"
       ]
   }, {
       "payload": "<div id=\"40\"><style><img src=\"</style><img src=x onerror=alert(40)//\">//[\"'`-->]]>]</div>",
@@ -753,7 +754,9 @@ module.exports = [
       ]
   }, {
       "payload": "<div id=\"105\"><iframe src=\"data:image/svg-xml,%1F%8B%08%00%00%00%00%00%02%03%B3)N.%CA%2C(Q%A8%C8%CD%C9%2B%B6U%CA())%B0%D2%D7%2F%2F%2F%D7%2B7%D6%CB%2FJ%D77%B4%B4%B4%D4%AF%C8(%C9%CDQ%B2K%CCI-*%D10%D4%B4%D1%87%E8%B2%03\"></iframe>//[\"'`-->]]>]</div>",
-      "expected": "<div id=\"105\">//[\"'`--&gt;]]&gt;]</div>"
+      "expected": [
+          "<div id=\"105\">//[\"'`--&gt;]]&gt;]</div>"
+      ]
   }, {
       "payload": "<div id=\"106\"><img src onerror /\" '\"= alt=alert(106)//\">//[\"'`-->]]>]</div>",
       "expected": [
@@ -887,7 +890,8 @@ module.exports = [
           "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"128\"><svg><style><img src=\"x\"></style></svg></div>",
           "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"128\"><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"128\"><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"128\"></div>"
       ]
   }, {
       "title": "Inline SVG (data-uri)",
