@@ -1041,7 +1041,7 @@ module.exports = [
           "",
           "<svg></p><math><title><style><img></style></title>",
           "<svg></svg><p></p><math><title><style></style></title></math><img>",
-          "<svg><p></p><math><title><style><img></style></title></math></svg>"
+          "<svg><p></p><math><title><style><img></style></title></math></svg>" // jsdom
       ]
   }
 ];
