@@ -708,9 +708,7 @@ function createDOMPurify(window = getGlobal()) {
 
     if (
       (tagName === 'svg' || tagName === 'math') &&
-      (currentNode.querySelectorAll('template') ||
-        currentNode.querySelectorAll('svg') ||
-        currentNode.querySelectorAll('math'))
+      currentNode.querySelectorAll('template, svg, math').length !== 0
     ) {
       _forceRemove(currentNode);
       return true;
