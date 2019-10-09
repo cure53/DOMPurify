@@ -630,7 +630,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       };
       var clean = DOMPurify.sanitize("<math><mi><b><style><b title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>", config);
       assert.contains(clean, [
-          "<math><b><style><b title=\"</style></b></math>"
+          "<math><b><style><b title=\"</style></b></math>",
+          "<math></math>"
       ]);
   } );
 };
