@@ -994,27 +994,31 @@ module.exports = [
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike",
-      "payload": "<svg></p><textarea><title><style></textarea><img></style></title></svg>",
+      "payload": "<svg></p><textarea><title><style></textarea><img src=x onerror=alert(1)></style></title></svg>",
       "expected": [
-          ""
+          "", 
+          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
-      "payload": "<math></p><textarea><mi><style></textarea><img></mi></math>",
+      "payload": "<math></p><textarea><mi><style></textarea><img src=x onerror=alert(1)></mi></math>",
       "expected": [
-          ""
+          "", 
+          "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img src=\"x\">"
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG Templates in Chrome 77 and alike",
-      "payload": "<svg></p><title><template><style></title><img>",
+      "payload": "<svg></p><title><template><style></title><img src=x onerror=alert(1)>",
       "expected": [
-          ""
+          "",
+          "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
-      "payload": "<math></br><textarea><mtext><template><style></textarea><img>",
+      "payload": "<math></br><textarea><mtext><template><style></textarea><img src=x onerror=alert(1)>",
       "expected": [
-          ""
+          "",
+          "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img src=\"x\">"
       ]
   }, {
       "title": "Fixed an exception coming from missing clobbering protection",
@@ -1024,15 +1028,17 @@ module.exports = [
       ]
   }, {
       "title": "Tests against mXSS behavior with embedded MathML/SVG",
-      "payload": "<svg></p><math><title><style><img></style></title>",
+      "payload": "<svg></p><math><title><style><img src=x onerror=alert(1)></style></title>",
       "expected": [
-          ""
+          "",
+          "<svg></svg><p></p><math><title><style></style></title></math><img src=\"x\">"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
-      "payload": "<svg></p><style><g title=\"</style><img>\">",
+      "payload": "<svg></p><style><g title=\"</style><img src=x onerror=alert(1)>\">",
       "expected": [
-          ""
+          "",
+          "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",
