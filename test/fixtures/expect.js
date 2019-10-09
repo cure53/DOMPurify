@@ -1046,8 +1046,7 @@ module.exports = [
       "expected": [
           ""
       ]
-  }
-  , {
+  }, {
       "title": "Tests against attribute-based mXSS behavior 3/3",
       "payload": "<math><annotation-xml encoding=\"text/html\"><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
       "expected": [

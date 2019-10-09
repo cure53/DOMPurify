@@ -624,4 +624,13 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           "<b data-test=\"&lt;span&gt;content&lt;/span&gt;\"></b>"
       ]);
   } );
+  QUnit.test( 'Test against mXSS using text integration points and removal', function (assert) {
+      var config = {
+        FORBID_TAGS: ['mi']
+      };
+      var clean = DOMPurify.sanitize("<math><mi><b><style><b title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>", config);
+      assert.contains(clean, [
+          "<math><b><style><b title=\"</style></b></math>"
+      ]);
+  } );
 };
