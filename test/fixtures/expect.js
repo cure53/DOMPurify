@@ -990,7 +990,8 @@ module.exports = [
       "expected": [
           "<img src=\"1\">",
           "&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;",
-          "<title>&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;</title>"
+          "<title>&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;</title>",
+          ""
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike",
