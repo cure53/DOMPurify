@@ -1043,5 +1043,24 @@ module.exports = [
           "<svg></svg><p></p><math><title><style></style></title></math><img>",
           "<svg><p></p><math><title><style><img></style></title></math></svg>"
       ]
+  }, {
+      "title": "Tests against attribute-based mXSS behavior 1/3",
+      "payload": "<svg></p><style><g title=\"</style><img>\">",
+      "expected": [
+          "<svg><p></p><style><g title=\"</style><img>\"></g></style></svg>"
+      ]
+  }, {
+      "title": "Tests against attribute-based mXSS behavior 2/3",
+      "payload": "<svg><foreignobject><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
+      "expected": [
+          "<svg><p><style><p title=\"</style></p></svg>"
+      ]
+  }
+  , {
+      "title": "Tests against attribute-based mXSS behavior 3/3",
+      "payload": "<math><annotation-xml encoding=\"text/html\"><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
+      "expected": [
+          "<math><p><style><p title=\"</style></p></math>"
+      ]
   }
 ];

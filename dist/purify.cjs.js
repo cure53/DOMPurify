@@ -185,7 +185,6 @@ function createDOMPurify() {
 
   var originalDocument = window.document;
   var useDOMParser = false;
-  var removeSVGAttr = false;
   var removeTitle = false;
 
   var document = window.document;
@@ -321,7 +320,7 @@ function createDOMPurify() {
   var USE_PROFILES = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
-  var FORBID_CONTENTS = addToSet({}, ['audio', 'colgroup', 'head', 'math', 'script', 'style', 'template', 'thead', 'svg', 'video']);
+  var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'foreignobject', 'head', 'math', 'script', 'style', 'template', 'thead', 'title', 'svg', 'video']);
 
   /* Tags that are safe for data: URIs */
   var DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image']);
@@ -576,15 +575,6 @@ function createDOMPurify() {
         }
       } catch (error) {}
     })();
-
-    (function () {
-      try {
-        var doc = _initDocument('<svg></p></svg>');
-        if (doc.querySelector('svg p')) {
-          removeSVGAttr = true;
-        }
-      } catch (error) {}
-    })();
   }
 
   /**
@@ -677,6 +667,12 @@ function createDOMPurify() {
       allowedTags: ALLOWED_TAGS
     });
 
+    /* Take care of an mXSS pattern using p, br inside svg, math */
+    if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('p, br, template, svg, math').length !== 0) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for black-listed elements */
@@ -698,17 +694,6 @@ function createDOMPurify() {
     }
 
     if (tagName === 'noembed' && /<\/noembed/i.test(currentNode.innerHTML)) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
-    /* Remove in case an mXSS is suspected */
-    if (currentNode.namespaceURI && /svg|math/i.test(currentNode.namespaceURI) && currentNode.textContent && new RegExp('</' + tagName, 'i').test(currentNode.textContent)) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
-    if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('template, svg, math').length !== 0) {
       _forceRemove(currentNode);
       return true;
     }
@@ -806,7 +791,6 @@ function createDOMPurify() {
    *
    * @param  {Node} currentNode to sanitize
    */
-  // eslint-disable-next-line complexity
   var _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
     var attr = void 0;
     var value = void 0;
@@ -848,13 +832,6 @@ function createDOMPurify() {
       hookEvent.keepAttr = true;
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
-
-      /* Check for possible Chrome mXSS, least aggressively */
-      if (ALLOWED_TAGS.svg && !FORBID_TAGS.svg || ALLOWED_TAGS.math && !FORBID_TAGS.math) {
-        if (removeSVGAttr && /<\//.test(value)) {
-          _forceRemove(currentNode);
-        }
-      }
 
       /* Remove attribute */
       // Safari (iOS + Mac), last tested v8.0.5, crashes if you try to
