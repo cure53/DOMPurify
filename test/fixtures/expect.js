@@ -996,37 +996,25 @@ module.exports = [
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike",
       "payload": "<svg></p><textarea><title><style></textarea><img></style></title></svg>",
       "expected": [
-          "",
-          "<svg><p></p></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>",
-          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img>",
-          "<p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img>"
+          ""
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
       "payload": "<math></p><textarea><mi><style></textarea><img></mi></math>",
       "expected": [
-          "",
-          "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img>",
-          "<p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img>"
+          ""
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG Templates in Chrome 77 and alike",
       "payload": "<svg></p><title><template><style></title><img>",
       "expected": [
-          "",
-          "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg></svg>",
-          "<p></p><title>&lt;template&gt;&lt;style&gt;</title><img>"
+          ""
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
       "payload": "<math></br><textarea><mtext><template><style></textarea><img>",
       "expected": [
-          "",
-          "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img>",
-          "<math><br></math>",
-          "<br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img>"
+          ""
       ]
   }, {
       "title": "Fixed an exception coming from missing clobbering protection",
@@ -1038,29 +1026,26 @@ module.exports = [
       "title": "Tests against mXSS behavior with embedded MathML/SVG",
       "payload": "<svg></p><math><title><style><img></style></title>",
       "expected": [
-          "",
-          "<svg></p><math><title><style><img></style></title>",
-          "<svg></svg><p></p><math><title><style></style></title></math><img>",
-          "<svg><p></p><math><title><style><img></style></title></math></svg>"
+          ""
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
       "payload": "<svg></p><style><g title=\"</style><img>\">",
       "expected": [
-          "<svg><p></p><style><g title=\"</style><img>\"></g></style></svg>"
+          ""
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",
       "payload": "<svg><foreignobject><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
       "expected": [
-          "<svg><p><style><p title=\"</style></p></svg>"
+          ""
       ]
   }
   , {
       "title": "Tests against attribute-based mXSS behavior 3/3",
       "payload": "<math><annotation-xml encoding=\"text/html\"><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
       "expected": [
-          "<math><p><style><p title=\"</style></p></math>"
+          ""
       ]
   }
 ];

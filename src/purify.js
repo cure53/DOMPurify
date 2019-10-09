@@ -657,7 +657,7 @@ function createDOMPurify(window = getGlobal()) {
     /* Take care of an mXSS pattern using p, br inside svg, math */
     if (
       (tagName === 'svg' || tagName === 'math') &&
-      currentNode.querySelectorAll('p, br, template, svg, math').length !== 0
+      currentNode.querySelectorAll('p, br').length !== 0
     ) {
       _forceRemove(currentNode);
       return true;
