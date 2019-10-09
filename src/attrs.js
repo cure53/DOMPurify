@@ -293,6 +293,7 @@ export const mathMl = freeze([
   'dir',
   'display',
   'displaystyle',
+  'encoding',
   'fence',
   'frame',
   'height',
