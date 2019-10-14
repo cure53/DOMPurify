@@ -1066,7 +1066,9 @@ module.exports = [
       "title": "Tests against removal-based mXSS behavior 2/2",
       "payload": "<noembed><svg><b><style><b title='</style><img>'>",
       "expected": [
-          ""
+          "",
+          "<svg><b><style><b></b></style></b></svg>",
+          "<svg></svg><b><style><b title='</style><img>'&gt;</b>"
       ]
   }
 ];

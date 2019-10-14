@@ -247,12 +247,16 @@ function createDOMPurify(window = getGlobal()) {
     'desc',
     'foreignobject',
     'head',
+    'iframe',
     'math',
     'mi',
     'mn',
     'mo',
     'ms',
     'mtext',
+    'noembed',
+    'noframes',
+    'plaintext',
     'script',
     'style',
     'template',
@@ -898,7 +902,7 @@ function createDOMPurify(window = getGlobal()) {
       /* Take care of an mXSS pattern using namespace switches */
       if (
         /svg/.test(currentNode.namespaceURI) &&
-        /<\/(style|textarea)/.test(value)
+        new RegExp('</' + FORBID_CONTENTS.join('|')).test(value)
       ) {
         _removeAttribute(name, currentNode);
         continue;

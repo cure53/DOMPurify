@@ -318,7 +318,7 @@ function createDOMPurify() {
   var USE_PROFILES = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
-  var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'script', 'style', 'template', 'thead', 'title', 'svg', 'video', 'xmp']);
+  var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'iframe', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'noembed', 'noframes', 'plaintext', 'script', 'style', 'template', 'thead', 'title', 'svg', 'video', 'xmp']);
 
   /* Tags that are safe for data: URIs */
   var DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image']);
@@ -866,7 +866,7 @@ function createDOMPurify() {
       }
 
       /* Take care of an mXSS pattern using namespace switches */
-      if (/svg/.test(currentNode.namespaceURI) && /<\/(style|textarea)/.test(value)) {
+      if (/svg/.test(currentNode.namespaceURI) && new RegExp('</' + FORBID_CONTENTS.join('|')).test(value)) {
         _removeAttribute(name, currentNode);
         continue;
       }
