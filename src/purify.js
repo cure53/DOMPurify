@@ -814,6 +814,7 @@ function createDOMPurify(window = getGlobal()) {
    *
    * @param  {Node} currentNode to sanitize
    */
+  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function(currentNode) {
     let attr;
     let value;
@@ -895,7 +896,10 @@ function createDOMPurify(window = getGlobal()) {
       }
 
       /* Take care of an mXSS pattern using namespace switches */
-      if (/svg/.test(namespaceURI) && /<\/(style|textarea)/.test(value)) {
+      if (
+        /svg/.test(currentNode.namespaceURI) &&
+        /<\/(style|textarea)/.test(value)
+      ) {
         _removeAttribute(name, currentNode);
         continue;
       }

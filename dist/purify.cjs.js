@@ -791,6 +791,7 @@ function createDOMPurify() {
    *
    * @param  {Node} currentNode to sanitize
    */
+  // eslint-disable-next-line complexity
   var _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
     var attr = void 0;
     var value = void 0;
@@ -867,7 +868,7 @@ function createDOMPurify() {
       }
 
       /* Take care of an mXSS pattern using namespace switches */
-      if (/svg/.test(namespaceURI) && /<\/(style|textarea)/.test(value)) {
+      if (/svg/.test(currentNode.namespaceURI) && /<\/(style|textarea)/.test(value)) {
         _removeAttribute(name, currentNode);
         continue;
       }
