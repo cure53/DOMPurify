@@ -901,7 +901,7 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Take care of an mXSS pattern using namespace switches */
       if (
-        /svg/.test(currentNode.namespaceURI) &&
+        /svg|math/i.test(currentNode.namespaceURI) &&
         new RegExp('</(' + Object.keys(FORBID_CONTENTS).join('|') + ')').test(
           value
         )
