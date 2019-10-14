@@ -865,8 +865,9 @@ function createDOMPurify() {
       }
 
       /* Take care of an mXSS pattern using namespace switches */
-      if (/<\/(style|textarea)/.test(value)) {
+      if (/svg/.test(namespaceURI) && /<\/(style|textarea)/.test(value)) {
         _removeAttribute(name, currentNode);
+        continue;
       }
 
       /* Sanitize attribute content to be template-safe */
