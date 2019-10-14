@@ -262,7 +262,6 @@ function createDOMPurify(window = getGlobal()) {
     'template',
     'thead',
     'title',
-    'svg',
     'video',
     'xmp',
   ]);
