@@ -386,7 +386,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_JQUERY mode', function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)<\/script>';
       DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
-      assert.equal(DOMPurify.removed.length, 2);
+      assert.equal(DOMPurify.removed.length, 1);
   } );
 
   // Test 8 to check that DOMPurify.removed is correct if tags are clean
@@ -640,8 +640,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       };
       var clean = DOMPurify.sanitize("x<noframes><svg><b><xmp><b title='</xmp><img src=x onerror=alert(1)>'>", config)
       assert.contains(clean, [
-          "<math><b><style><b title=\"</style></b></math>",
-          "<math></math>"
+          "x"
       ]);
   } );
 };

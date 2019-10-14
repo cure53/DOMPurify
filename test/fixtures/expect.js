@@ -894,7 +894,8 @@ module.exports = [
           "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"129\"><svg></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"129\"><svg><image>\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "MathML",
