@@ -259,6 +259,7 @@ function createDOMPurify(window = getGlobal()) {
     'plaintext',
     'script',
     'style',
+    'svg',
     'template',
     'thead',
     'title',
