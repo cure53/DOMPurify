@@ -324,7 +324,7 @@ function createDOMPurify() {
   var USE_PROFILES = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
-  var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'script', 'style', 'template', 'thead', 'title', 'svg', 'video']);
+  var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'script', 'style', 'template', 'thead', 'title', 'svg', 'video', 'xmp']);
 
   /* Tags that are safe for data: URIs */
   var DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image']);
@@ -868,6 +868,11 @@ function createDOMPurify() {
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
         continue;
+      }
+
+      /* Take care of an mXSS pattern using namespace switches */
+      if (/<\/(style|textarea)/.test(value)) {
+        _removeAttribute(name, currentNode);
       }
 
       /* Sanitize attribute content to be template-safe */

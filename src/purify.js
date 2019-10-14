@@ -260,6 +260,7 @@ function createDOMPurify(window = getGlobal()) {
     'title',
     'svg',
     'video',
+    'xmp',
   ]);
 
   /* Tags that are safe for data: URIs */
@@ -891,6 +892,11 @@ function createDOMPurify(window = getGlobal()) {
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
         continue;
+      }
+
+      /* Take care of an mXSS pattern using namespace switches */
+      if (/<\/(style|textarea)/.test(value)) {
+        _removeAttribute(name, currentNode);
       }
 
       /* Sanitize attribute content to be template-safe */
