@@ -868,7 +868,7 @@ function createDOMPurify() {
       }
 
       /* Take care of an mXSS pattern using namespace switches */
-      if (/svg|math/i.test(currentNode.namespaceURI) && new RegExp('</(' + Object.keys(FORBID_CONTENTS).join('|') + ')').test(value)) {
+      if (/svg|math/i.test(currentNode.namespaceURI) && new RegExp('</(' + Object.keys(FORBID_CONTENTS).join('|') + ')', 'i').test(value)) {
         _removeAttribute(name, currentNode);
         continue;
       }
