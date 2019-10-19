@@ -544,7 +544,7 @@ function createDOMPurify() {
       body.outerHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
     }
 
-    if (leadingWhitespace) {
+    if (dirty && leadingWhitespace) {
       doc.body.insertBefore(document.createTextNode(leadingWhitespace), doc.body.childNodes[0] || null);
     }
 

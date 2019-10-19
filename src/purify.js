@@ -514,7 +514,7 @@ function createDOMPurify(window = getGlobal()) {
         : dirty;
     }
 
-    if (leadingWhitespace) {
+    if (dirty && leadingWhitespace) {
       doc.body.insertBefore(
         document.createTextNode(leadingWhitespace),
         doc.body.childNodes[0] || null
