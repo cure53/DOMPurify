@@ -520,6 +520,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           '<svg keep="me"></svg>', 
           "<svg xmlns=\"http://www.w3.org/2000/svg\" keep=\"me\" />"
       ] );
+      assert.equal( DOMPurify.sanitize( ' ', {USE_PROFILES: {html: true}} ), '' );
   });
   QUnit.test( 'Config-Flag tests: ALLOWED_URI_REGEXP', function(assert) {
       var tests = [
