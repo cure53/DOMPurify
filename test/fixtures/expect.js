@@ -1074,5 +1074,11 @@ module.exports = [
           "<svg><b><style><b></b></style></b></svg>",
           "<svg></svg><b><style><b title='</style><img>'&gt;</b>"
       ]
+  }, {
+      "title": "Tests against proper handling of leading whitespaces",
+      "payload": " ",
+      "expected": [
+          " "
+      ]
   }
 ];

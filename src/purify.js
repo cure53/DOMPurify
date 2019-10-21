@@ -486,9 +486,6 @@ function createDOMPurify(window = getGlobal()) {
       /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
       const matches = dirty.match(/^[\s]+/);
       leadingWhitespace = matches && matches[0];
-      if (leadingWhitespace) {
-        dirty = dirty.slice(leadingWhitespace.length);
-      }
     }
 
     /* Use DOMParser to workaround Firefox bug (see comment below) */
