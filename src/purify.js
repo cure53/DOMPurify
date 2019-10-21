@@ -247,19 +247,24 @@ function createDOMPurify(window = getGlobal()) {
     'desc',
     'foreignobject',
     'head',
+    'iframe',
     'math',
     'mi',
     'mn',
     'mo',
     'ms',
     'mtext',
+    'noembed',
+    'noframes',
+    'plaintext',
     'script',
     'style',
+    'svg',
     'template',
     'thead',
     'title',
-    'svg',
     'video',
+    'xmp',
   ]);
 
   /* Tags that are safe for data: URIs */
@@ -509,7 +514,7 @@ function createDOMPurify(window = getGlobal()) {
         : dirty;
     }
 
-    if (leadingWhitespace) {
+    if (dirty && leadingWhitespace) {
       doc.body.insertBefore(
         document.createTextNode(leadingWhitespace),
         doc.body.childNodes[0] || null
@@ -813,6 +818,7 @@ function createDOMPurify(window = getGlobal()) {
    *
    * @param  {Node} currentNode to sanitize
    */
+  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function(currentNode) {
     let attr;
     let value;
@@ -890,6 +896,18 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
+        continue;
+      }
+
+      /* Take care of an mXSS pattern using namespace switches */
+      if (
+        /svg|math/i.test(currentNode.namespaceURI) &&
+        new RegExp(
+          '</(' + Object.keys(FORBID_CONTENTS).join('|') + ')',
+          'i'
+        ).test(value)
+      ) {
+        _removeAttribute(name, currentNode);
         continue;
       }
 

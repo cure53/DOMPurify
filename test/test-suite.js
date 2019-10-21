@@ -386,7 +386,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
   QUnit.test( 'DOMPurify.removed should be correct in SAFE_FOR_JQUERY mode', function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)<\/script>';
       DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
-      assert.equal(DOMPurify.removed.length, 2);
+      assert.equal(DOMPurify.removed.length, 1);
   } );
 
   // Test 8 to check that DOMPurify.removed is correct if tags are clean
@@ -624,7 +624,7 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           "<b data-test=\"&lt;span&gt;content&lt;/span&gt;\"></b>"
       ]);
   } );
-  QUnit.test( 'Test against mXSS using text integration points and removal', function (assert) {
+  QUnit.test( 'Test against mXSS using text integration points and removal 1/2', function (assert) {
       var config = {
         FORBID_TAGS: ['mi']
       };
@@ -632,6 +632,15 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       assert.contains(clean, [
           "<math><b><style><b title=\"</style></b></math>",
           "<math></math>"
+      ]);
+  } );
+  QUnit.test( 'Test against mXSS using text integration points and removal 2/2', function (assert) {
+      var config = {
+        ADD_TAGS: ['xmp']
+      };
+      var clean = DOMPurify.sanitize("x<noframes><svg><b><xmp><b title='</xmp><img>", config)
+      assert.contains(clean, [
+          "x"
       ]);
   } );
 };

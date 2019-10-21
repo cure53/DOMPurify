@@ -206,7 +206,8 @@ module.exports = [
       "payload": "<option><iframe></select><b><script>alert(1)</script>",
       "expected": [
           "<option><b></b></option>",
-          "<option>&lt;/select&gt;&lt;b&gt;&lt;script&gt;alert(1)&lt;/script&gt;</option>"
+          "<option>&lt;/select&gt;&lt;b&gt;&lt;script&gt;alert(1)&lt;/script&gt;</option>",
+          "<option></option>"
       ]
   }, {
       "title": "Closing Iframe and option",
@@ -834,7 +835,8 @@ module.exports = [
       "payload": "<div id=\"121\"><html xmlns=\"http://www.w3.org/1999/xhtml\"\nxmlns:svg=\"http://www.w3.org/2000/svg\">\n<body style=\"background:gray\">\n<iframe src=\"http://example.com/\" style=\"width:800px; height:350px; border:none; mask: url(#maskForClickjacking);\"/>\n<svg:svg>\n<svg:mask id=\"maskForClickjacking\" maskUnits=\"objectBoundingBox\" maskContentUnits=\"objectBoundingBox\">\n    <svg:rect x=\"0.0\" y=\"0.0\" width=\"0.373\" height=\"0.3\" fill=\"white\"/>\n    <svg:circle cx=\"0.45\" cy=\"0.7\" r=\"0.075\" fill=\"white\"/>\n</svg:mask>\n</svg:svg>\n</body>\n</html>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"121\">\n\n\n\n\n    \n    \n\n\n\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"121\">\n\n\n&lt;svg:svg&gt;\n&lt;svg:mask id=\"maskForClickjacking\" maskUnits=\"objectBoundingBox\" maskContentUnits=\"objectBoundingBox\"&gt;\n    &lt;svg:rect x=\"0.0\" y=\"0.0\" width=\"0.373\" height=\"0.3\" fill=\"white\"/&gt;\n    &lt;svg:circle cx=\"0.45\" cy=\"0.7\" r=\"0.075\" fill=\"white\"/&gt;\n&lt;/svg:mask&gt;\n&lt;/svg:svg&gt;\n&lt;/body&gt;\n&lt;/html&gt;//[\"'`--&gt;]]&gt;]&lt;/div&gt;</div>"
+          "<div id=\"121\">\n\n\n&lt;svg:svg&gt;\n&lt;svg:mask id=\"maskForClickjacking\" maskUnits=\"objectBoundingBox\" maskContentUnits=\"objectBoundingBox\"&gt;\n    &lt;svg:rect x=\"0.0\" y=\"0.0\" width=\"0.373\" height=\"0.3\" fill=\"white\"/&gt;\n    &lt;svg:circle cx=\"0.45\" cy=\"0.7\" r=\"0.075\" fill=\"white\"/&gt;\n&lt;/svg:mask&gt;\n&lt;/svg:svg&gt;\n&lt;/body&gt;\n&lt;/html&gt;//[\"'`--&gt;]]&gt;]&lt;/div&gt;</div>",
+          "<div id=\"121\">\n\n</div>"
       ]
   }, {
       "title": "iframe (sandboxed)",
@@ -892,7 +894,9 @@ module.exports = [
           "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></image></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"129\"><svg></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"129\"><svg><image>\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image>\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "MathML",
@@ -926,7 +930,10 @@ module.exports = [
       "expected": [
           "<div id=\"134\">\n&lt;%\n\n<img alt=\"%></xmp><img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"134\">\n&lt;%\n\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"134\">\n&lt;%\n\n\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"134\">\n&lt;%\n\n\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"134\">\n<img alt=\"%></xmp><img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n%&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n-&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "SVG",
@@ -1052,6 +1059,20 @@ module.exports = [
       "payload": "<math><annotation-xml encoding=\"text/html\"><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
       "expected": [
           ""
+      ]
+  }, {
+      "title": "Tests against removal-based mXSS behavior 1/2",
+      "payload": "<xmp><svg><b><style><b title='</style><img>'>",
+      "expected": [
+          ""
+      ]
+  }, {
+      "title": "Tests against removal-based mXSS behavior 2/2",
+      "payload": "<noembed><svg><b><style><b title='</style><img>'>",
+      "expected": [
+          "",
+          "<svg><b><style><b></b></style></b></svg>",
+          "<svg></svg><b><style><b title='</style><img>'&gt;</b>"
       ]
   }
 ];

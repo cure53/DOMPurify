@@ -167,7 +167,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '2.0.6';
+  DOMPurify.version = '2.0.7';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.
@@ -320,7 +320,7 @@ function createDOMPurify() {
   var USE_PROFILES = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
-  var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'script', 'style', 'template', 'thead', 'title', 'svg', 'video']);
+  var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'iframe', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'noembed', 'noframes', 'plaintext', 'script', 'style', 'svg', 'template', 'thead', 'title', 'video', 'xmp']);
 
   /* Tags that are safe for data: URIs */
   var DATA_URI_TAGS = addToSet({}, ['audio', 'video', 'img', 'source', 'image']);
@@ -540,7 +540,7 @@ function createDOMPurify() {
       body.outerHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
     }
 
-    if (leadingWhitespace) {
+    if (dirty && leadingWhitespace) {
       doc.body.insertBefore(document.createTextNode(leadingWhitespace), doc.body.childNodes[0] || null);
     }
 
@@ -791,6 +791,7 @@ function createDOMPurify() {
    *
    * @param  {Node} currentNode to sanitize
    */
+  // eslint-disable-next-line complexity
   var _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
     var attr = void 0;
     var value = void 0;
@@ -863,6 +864,12 @@ function createDOMPurify() {
 
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
+        continue;
+      }
+
+      /* Take care of an mXSS pattern using namespace switches */
+      if (/svg|math/i.test(currentNode.namespaceURI) && new RegExp('</(' + Object.keys(FORBID_CONTENTS).join('|') + ')', 'i').test(value)) {
+        _removeAttribute(name, currentNode);
         continue;
       }
 
