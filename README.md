@@ -280,14 +280,8 @@ Feature releases will not be announced to this list.
 
 ## Who contributed?
 
-Several people need to be listed here!
+Many people helped DOMPurify become what it is and need to be acknowledged here!
 
-[@garethheyes](https://twitter.com/garethheyes) and [@filedescriptor](https://twitter.com/filedescriptor) for invaluable help, [@shafigullin](https://twitter.com/shafigullin) for breaking the library multiple times and thereby strengthening it in the early days, [@mmrupp](https://twitter.com/mmrupp) and [@irsdl](https://twitter.com/irsdl) for doing the same. And lastly, thanks to  @ShikariSenpai and @ansjdnakjdnajkd for spotting a [massive Safari 10.1 bug](https://github.com/cure53/DOMPurify/releases/tag/0.8.6) early on and reporting it.
-
-Big thanks also go to [@ydaniv](https://github.com/ydaniv), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and [@fhemberger](https://twitter.com/fhemberger)! Further, we would like to thank @masatokinugawa for his continuous and extremely valuable help in the past and present.  
-
-Further, thanks [@neilj](https://twitter.com/neilj) and [@0xsobky](https://twitter.com/0xsobky) for their early code reviews and countless small optimizations, fixes and beautifications. Thanks also go out to [@kkotowicz](https://twitter.com/kkotowicz) for his Trusted Types implementation and the connected section on our README page.  
-
-Big thanks also go to [@tdeekens](https://twitter.com/tdeekens) for doing all the hard work and getting us on track with Travis CI and BrowserStack. And thanks to [@Joris-van-der-Wel](https://github.com/Joris-van-der-Wel) for setting up DOMPurify for jsdom and creating the additional test suite. And again [@tdeekens](https://twitter.com/tdeekens) for his [incredible efforts](https://github.com/cure53/DOMPurify/pull/206) and contribution to refactor DOMPurify into using ES201x, proper build tools, better test coverage and much more!
+@tdeekens, @neilj, @fhemberger, @Joris-van-der-Wel, @ydaniv, @filedescriptor, @ConradIrwin, @gibson042, @choumx, @0xSobky, @styfle, @koto, @tlau88, @strugee, @oparoz, @mathiasbynens, @edg2s, @dnkolegov, @dhardtke, @wirehead, @thorn0, @styu, @mozfreddyb, @mikesamuel, @jorangreef, @jimmyhchan, @jameydeorio, @jameskraus, @hyderali, @hansottowirtz, @hackvertor, @freddyb, @flavorjones, @djfarrelly, @devd, @camerondunford, @buu700, @buildog, @alabiaga, @Vector919, @Robbert, @GreLI, @FuzzySockets, @ArtemBernatskyy, [@garethheyes](https://twitter.com/garethheyes), [@filedescriptor](https://twitter.com/filedescriptor), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl), @ShikariSenpai, @ansjdnakjdnajkd, [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and especially @masatokinugawa
 
 And last but not least, thanks to [BrowserStack](https://browserstack.com) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
