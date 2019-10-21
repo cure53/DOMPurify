@@ -895,7 +895,8 @@ module.exports = [
           "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image style=\"filter:url(&quot;data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22&gt;&lt;script&gt;parent.alert(129)&lt;/script&gt;&lt;/svg&gt;&quot;)\">\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"129\"><svg></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"129\"><svg><image>\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"129\"><svg><image>\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"129\"><svg xmlns=\"http://www.w3.org/2000/svg\"><image>\n\n</image></svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "MathML",
@@ -930,7 +931,8 @@ module.exports = [
           "<div id=\"134\">\n&lt;%\n\n<img alt=\"%></xmp><img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"134\">\n&lt;%\n\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"134\">\n&lt;%\n\n\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"134\">\n<img alt=\"%></xmp><img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"134\">\n<img alt=\"%></xmp><img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n%&gt;/\nalert(2)\n\nXXX\n<style>\n*['<!--']{}\n</style>\n-&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "SVG",
