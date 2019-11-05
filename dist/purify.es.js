@@ -195,7 +195,7 @@ function createDOMPurify() {
       Text = window.Text,
       Comment = window.Comment,
       DOMParser = window.DOMParser,
-      TrustedTypes = window.TrustedTypes;
+      trustedTypes = window.trustedTypes;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -211,7 +211,7 @@ function createDOMPurify() {
     }
   }
 
-  var trustedTypesPolicy = _createTrustedTypesPolicy(TrustedTypes, originalDocument);
+  var trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, originalDocument);
   var emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   var _document = document,
@@ -372,9 +372,7 @@ function createDOMPurify() {
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
-
     IS_ALLOWED_URI$$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$$1;
-
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
     }
@@ -512,10 +510,11 @@ function createDOMPurify() {
       leadingWhitespace = matches && matches[0];
     }
 
+    var dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
     /* Use DOMParser to workaround Firefox bug (see comment below) */
     if (useDOMParser) {
       try {
-        doc = new DOMParser().parseFromString(dirty, 'text/html');
+        doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
       } catch (error) {}
     }
 
@@ -532,7 +531,7 @@ function createDOMPurify() {
           body = _doc.body;
 
       body.parentNode.removeChild(body.parentNode.firstElementChild);
-      body.outerHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
+      body.outerHTML = dirtyPayload;
     }
 
     if (dirty && leadingWhitespace) {
