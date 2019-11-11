@@ -43,7 +43,7 @@ module.exports = function(jsdom) {
         assert,
         '<script src="dist/purify.js"></script>',
         function setup(window) {
-          delete window.TrustedTypes;
+          delete window.trustedTypes;
         },
         function onload(window) {
           const output = window.DOMPurify.sanitize('<img>');
@@ -61,7 +61,7 @@ module.exports = function(jsdom) {
         function setup(window) {
 
 
-          window.TrustedTypes = {
+          window.trustedTypes = {
             createPolicy(name, rules) {
               policyCreated = name;
               return {
@@ -88,7 +88,7 @@ module.exports = function(jsdom) {
         assert,
         '<script data-tt-policy-suffix="suffix" src="dist/purify.js"></script>',
         function setup(window) {
-          window.TrustedTypes = {
+          window.trustedTypes = {
             createPolicy(name, rules) {
               policyCreated = name;
               return rules;
