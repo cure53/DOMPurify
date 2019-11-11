@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta http-equiv="Content-Security-Policy" content="trusted-types dompurify#demo sanitize-using-dompurify my-policy">
-        <script src="https://wicg.github.io/trusted-types/dist/es5/trustedtypes.build.js"></script>
+        <script src="https://w3c.github.io/webappsec-trusted-types/dist/es5/trustedtypes.build.js"></script>
         <script src="../dist/purify.js" data-tt-policy-suffix="demo"></script>
         <style>
             div {
@@ -22,27 +22,22 @@
             <input name="url">
             <button type="submit">Load script</button>
         </form>
-        <form name="loadImage">
-            <input name="url">
-            <button type="submit">Load image</button>
-        </form>
-
         <script>
 
             // Specify dirty HTML
-            var dirty = '<p>HELLO<iframe/\/src=JavScript:alert&lpar;1)></ifrAMe><br>goodbye</p>';
+            var dirty = '<p onclick=alert(2)>HELLO<iframe srcdoc="<script>alert(1)</scr'+'ipt>"></ifrAMe><br>goodbye</p>';
 
             // Use DOMPurify directly.
-            document.getElementById('sanitized-directly').innerHTML = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized-directly').innerHTML = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true});
 
             // .. or wrap DOMPurify in TT policy itself.
-            const sanitizer = TrustedTypes.createPolicy('sanitize-using-dompurify', {
+            const sanitizer = trustedTypes.createPolicy('sanitize-using-dompurify', {
                // This code block needs security review, as it's capable of causing DOM XSS.
-               createHTML(dirty) { return DOMPurify.sanitize(dirty) }
+               createHTML(dirty) { return DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}) }
             });
 
             // You can use policies that don't use DOMPurify as well.
-            const myPolicy = TrustedTypes.createPolicy('my-policy', {
+            const myPolicy = trustedTypes.createPolicy('my-policy', {
                // This code block needs security review, as it's capable of causing DOM XSS.
                createHTML(dirty) { return dirty.replace(/</g, '&lt;') },
                createScriptURL(dirty) {
@@ -51,13 +46,6 @@
                         return u.href;
                     }
                     throw new Error('Only same-origin scripts, please');
-               },
-               createURL(dirty) {
-                    const u = new URL(dirty, document.baseURI);
-                    if (['https:', 'http:'].includes(u.protocol)) {
-                        return u.href;
-                    }
-                    throw new Error('Only http(s): URLs allowed');
                },
             });
 
@@ -87,20 +75,6 @@
                 s.src = myPolicy.createScriptURL(url);
                 console.log('Will load the script from ' + url);
                 document.body.appendChild(s);
-            };
-
-            document.forms['loadImage'].onsubmit = (e) => {
-                e.preventDefault();
-                const url = e.target['url'].value;
-                const i = document.createElement('img');
-                try {
-                    // This will fail, you need a TrustedScriptURL.
-                    i.src = url;
-                    console.log('Should not happen');
-                } catch(e) {};
-                i.src = myPolicy.createURL(url);
-                console.log('Will load the image from ' + url);
-                document.body.appendChild(i);
             };
         </script>
     </body>
