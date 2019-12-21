@@ -82,6 +82,7 @@ export const html = freeze([
   'option',
   'output',
   'p',
+  'picture',
   'pre',
   'progress',
   'q',
