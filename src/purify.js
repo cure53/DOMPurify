@@ -1030,6 +1030,11 @@ function createDOMPurify(window = getGlobal()) {
     /* Clean up removed elements */
     DOMPurify.removed = [];
 
+    /* Check if dirty is correctly typed for IN_PLACE */
+    if (typeof dirty === 'string') {
+      IN_PLACE = false;
+    }
+
     if (IN_PLACE) {
       /* No special handling necessary for in-place sanitization */
     } else if (dirty instanceof Node) {
