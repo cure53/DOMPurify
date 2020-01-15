@@ -48,27 +48,30 @@ If you're using an [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) module loa
 
 ```javascript
 require(['dompurify'], function(DOMPurify) {
-    var clean = DOMPurify.sanitize(dirty);
+  var clean = DOMPurify.sanitize(dirty);
 });
 ```
 
-DOMPurify also works server-side with node.js as well as client-side via [Browserify](http://browserify.org/) or similar translators.  Node.js 0.x is not supported; either [io.js](https://iojs.org) or Node.js 4.x or newer is required.
+DOMPurify also works server-side with node.js as well as client-side via [Browserify](http://browserify.org/) or similar translators. Node.js 0.x is not supported; either [io.js](https://iojs.org) or Node.js 4.x or newer is required.
 
 ```bash
 npm install dompurify
 ```
+
 For JSDOM v10 or newer
+
 ```javascript
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 
-const window = (new JSDOM('')).window;
+const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
 const clean = DOMPurify.sanitize(dirty);
 ```
 
 For JSDOM versions older than v10
+
 ```javascript
 const createDOMPurify = require('dompurify');
 const jsdom = require('jsdom').jsdom;
@@ -96,7 +99,7 @@ How does purified markup look like? Well, [the demo](https://cure53.de/purify) s
 ```javascript
 DOMPurify.sanitize('<img src=x onerror=alert(1)//>'); // becomes <img src="x">
 DOMPurify.sanitize('<svg><g/onload=alert(2)//<p>'); // becomes <svg><g></g></svg>
-DOMPurify.sanitize('<p>abc<iframe/\/src=jAva&Tab;script:alert(3)>def'); // becomes <p>abcdef</p>
+DOMPurify.sanitize('<p>abc<iframe//src=jAva&Tab;script:alert(3)>def'); // becomes <p>abcdef</p>
 DOMPurify.sanitize('<math><mi//xlink:href="data:x,<script>alert(4)</script>">'); // becomes <math><mi></mi></math>
 DOMPurify.sanitize('<TABLE><tr><td>HELLO</tr></TABL>'); // becomes <table><tbody><tr><td>HELLO</td></tr></tbody></table>
 DOMPurify.sanitize('<UL><li><A HREF=//google.com>click</UL>'); // becomes <ul><li><a href="//google.com">click</a></li></ul>
@@ -114,7 +117,7 @@ If not even `toStaticHTML` is supported, DOMPurify does nothing at all. It simpl
 
 ## What about DOMPurify and Trusted Types?
 
-In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify. 
+In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify.
 In version 2.0.0, a config flag was added to control DOMPurify's behavior regarding this.
 
 When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
@@ -205,6 +208,7 @@ var dirty = document.createElement('a');
 dirty.setAttribute('href', 'javascript:alert(1)');
 var clean = DOMPurify.sanitize(dirty, {IN_PLACE: true}); // see https://github.com/cure53/DOMPurify/issues/288 for more info
 ```
+
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
 
 ## Persistent Configuration
@@ -230,9 +234,13 @@ It passes the currently processed DOM node, when needed a literal with verified 
 _Example_:
 
 ```javascript
-DOMPurify.addHook('beforeSanitizeElements', function(currentNode, data, config) {
-    // Do something with the current node and return it
-    return currentNode;
+DOMPurify.addHook('beforeSanitizeElements', function(
+  currentNode,
+  data,
+  config
+) {
+  // Do something with the current node and return it
+  return currentNode;
 });
 ```
 
@@ -282,7 +290,6 @@ Feature releases will not be announced to this list.
 
 Many people helped and help DOMPurify become what it is and need to be acknowledged here!
 
-[oreoshake 💸](https://github.com/oreoshake), [dcramer 💸](https://github.com/dcramer),[tdeekens](https://github.com/tdeekens), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@filedescriptor](https://twitter.com/filedescriptor), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd),  [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and especially [@masatokinugawa](https://twitter.com/masatokinugawa)
+[oreoshake 💸](https://github.com/oreoshake), [dcramer 💸](https://github.com/dcramer),[tdeekens](https://github.com/tdeekens), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@filedescriptor](https://twitter.com/filedescriptor), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro) and especially [@masatokinugawa](https://twitter.com/masatokinugawa)
 
 And last but not least, thanks to [BrowserStack](https://browserstack.com) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
- 
