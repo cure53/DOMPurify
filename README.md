@@ -220,7 +220,7 @@ Instead of repeatedly passing the same configuration to `DOMPurify.sanitize`, yo
 DOMPurify allows you to augment its functionality by attaching one or more functions with the `DOMPurify.addHook` method to one of the following hooks:
 
 - `beforeSanitizeElements`
-- `uponSanitizeElement`
+- `uponSanitizeElement` (No 's' - called for every element)
 - `afterSanitizeElements`
 - `beforeSanitizeAttributes`
 - `uponSanitizeAttribute`
@@ -236,10 +236,11 @@ _Example_:
 ```javascript
 DOMPurify.addHook('beforeSanitizeElements', function(
   currentNode,
-  data,
+  hookEvent,
   config
 ) {
   // Do something with the current node and return it
+  // You can also mutate hookEvent (i.e. set hookEvent.forceKeepAttr = true)
   return currentNode;
 });
 ```
