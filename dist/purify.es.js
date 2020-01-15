@@ -824,9 +824,17 @@ function createDOMPurify() {
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
       hookEvent.attrValue = value;
-      hookEvent.keepAttr = true;
+      hookEvent.keepAttr = undefined; // Allows developers to see this is a property they can set
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
+      if (hookEvent.keepAttr === undefined) {
+        hookEvent.keepAttr = true;
+      }
+
+      /* Did the hooks approve of the attribute? */
+      if (hookEvent.keepAttr) {
+        continue;
+      }
 
       /* Remove attribute */
       // Safari (iOS + Mac), last tested v8.0.5, crashes if you try to
@@ -854,11 +862,6 @@ function createDOMPurify() {
         }
 
         _removeAttribute(name, currentNode);
-      }
-
-      /* Did the hooks approve of the attribute? */
-      if (!hookEvent.keepAttr) {
-        continue;
       }
 
       /* Take care of an mXSS pattern using namespace switches */
