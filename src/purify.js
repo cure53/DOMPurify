@@ -1,18 +1,28 @@
 import * as TAGS from './tags';
 import * as ATTRS from './attrs';
-import { addToSet, clone } from './utils';
 import * as EXPRESSIONS from './regexp';
+import {
+  addToSet,
+  clone,
+  freeze,
+  objectKeys,
+  arrayForEach,
+  arrayIndexOf,
+  arrayJoin,
+  arrayPop,
+  arrayPush,
+  arraySlice,
+  stringMatch,
+  stringReplace,
+  stringToLowerCase,
+  stringIndexOf,
+  stringTrim,
+  regExpTest,
+  regExpCreate,
+  typeErrorCreate,
+} from './utils';
 
-let { apply } = typeof Reflect !== 'undefined' && Reflect;
-const { slice: arraySlice } = Array.prototype;
-const { freeze } = Object;
 const getGlobal = () => (typeof window === 'undefined' ? null : window);
-
-if (!apply) {
-  apply = function(fun, thisValue, args) {
-    return fun.apply(thisValue, args);
-  };
-}
 
 /**
  * Creates a no-op policy for internal use only.
@@ -437,7 +447,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {Node} node a DOM node
    */
   const _forceRemove = function(node) {
-    DOMPurify.removed.push({ element: node });
+    arrayPush(DOMPurify.removed, { element: node });
     try {
       node.parentNode.removeChild(node);
     } catch (error) {
@@ -453,12 +463,12 @@ function createDOMPurify(window = getGlobal()) {
    */
   const _removeAttribute = function(name, node) {
     try {
-      DOMPurify.removed.push({
+      arrayPush(DOMPurify.removed, {
         attribute: node.getAttributeNode(name),
         from: node,
       });
     } catch (error) {
-      DOMPurify.removed.push({
+      arrayPush(DOMPurify.removed, {
         attribute: null,
         from: node,
       });
@@ -482,7 +492,7 @@ function createDOMPurify(window = getGlobal()) {
       dirty = '<remove></remove>' + dirty;
     } else {
       /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
-      const matches = dirty.match(/^[\s]+/);
+      const matches = stringMatch(dirty, /^[\s]+/);
       leadingWhitespace = matches && matches[0];
     }
 
@@ -545,7 +555,7 @@ function createDOMPurify(window = getGlobal()) {
     (function() {
       try {
         const doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (/<\/title/.test(doc.querySelector('title').innerHTML)) {
+        if (regExpTest(/<\/title/, doc.querySelector('title').innerHTML)) {
           removeTitle = true;
         }
       } catch (error) {}
@@ -624,7 +634,7 @@ function createDOMPurify(window = getGlobal()) {
       return;
     }
 
-    hooks[entryPoint].forEach(hook => {
+    arrayForEach(hooks[entryPoint], hook => {
       hook.call(DOMPurify, currentNode, data, CONFIG);
     });
   };
@@ -653,7 +663,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Now let's check the element's type and name */
-    const tagName = currentNode.nodeName.toLowerCase();
+    const tagName = stringToLowerCase(currentNode.nodeName);
 
     /* Execute a hook if present */
     _executeHook('uponSanitizeElement', currentNode, {
@@ -694,12 +704,18 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Remove in case a noscript/noembed XSS is suspected */
-    if (tagName === 'noscript' && /<\/noscript/i.test(currentNode.innerHTML)) {
+    if (
+      tagName === 'noscript' &&
+      regExpTest(/<\/noscript/i, currentNode.innerHTML)
+    ) {
       _forceRemove(currentNode);
       return true;
     }
 
-    if (tagName === 'noembed' && /<\/noembed/i.test(currentNode.innerHTML)) {
+    if (
+      tagName === 'noembed' &&
+      regExpTest(/<\/noembed/i, currentNode.innerHTML)
+    ) {
       _forceRemove(currentNode);
       return true;
     }
@@ -709,13 +725,21 @@ function createDOMPurify(window = getGlobal()) {
       SAFE_FOR_JQUERY &&
       !currentNode.firstElementChild &&
       (!currentNode.content || !currentNode.content.firstElementChild) &&
-      /</g.test(currentNode.textContent)
+      regExpTest(/</g, currentNode.textContent)
     ) {
-      DOMPurify.removed.push({ element: currentNode.cloneNode() });
+      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
       if (currentNode.innerHTML) {
-        currentNode.innerHTML = currentNode.innerHTML.replace(/</g, '&lt;');
+        currentNode.innerHTML = stringReplace(
+          currentNode.innerHTML,
+          /</g,
+          '&lt;'
+        );
       } else {
-        currentNode.innerHTML = currentNode.textContent.replace(/</g, '&lt;');
+        currentNode.innerHTML = stringReplace(
+          currentNode.textContent,
+          /</g,
+          '&lt;'
+        );
       }
     }
 
@@ -723,10 +747,10 @@ function createDOMPurify(window = getGlobal()) {
     if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
       /* Get the element's text content */
       content = currentNode.textContent;
-      content = content.replace(MUSTACHE_EXPR, ' ');
-      content = content.replace(ERB_EXPR, ' ');
+      content = stringReplace(content, MUSTACHE_EXPR, ' ');
+      content = stringReplace(content, ERB_EXPR, ' ');
       if (currentNode.textContent !== content) {
-        DOMPurify.removed.push({ element: currentNode.cloneNode() });
+        arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
         currentNode.textContent = content;
       }
     }
@@ -760,9 +784,9 @@ function createDOMPurify(window = getGlobal()) {
         (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
         XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
         We don't need to check the value; it's always URI safe. */
-    if (ALLOW_DATA_ATTR && DATA_ATTR.test(lcName)) {
+    if (ALLOW_DATA_ATTR && regExpTest(DATA_ATTR, lcName)) {
       // This attribute is safe
-    } else if (ALLOW_ARIA_ATTR && ARIA_ATTR.test(lcName)) {
+    } else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) {
       // This attribute is safe
       /* Otherwise, check the name is permitted */
     } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
@@ -773,14 +797,16 @@ function createDOMPurify(window = getGlobal()) {
       // This attribute is safe
       /* Check no script, data or unknown possibly unsafe URI
         unless we know URI values are safe for that attribute */
-    } else if (IS_ALLOWED_URI.test(value.replace(ATTR_WHITESPACE, ''))) {
+    } else if (
+      regExpTest(IS_ALLOWED_URI, stringReplace(value, ATTR_WHITESPACE, ''))
+    ) {
       // This attribute is safe
       /* Keep image data URIs alive if src/xlink:href is allowed */
       /* Further prevent gadget XSS for dynamically built script tags */
     } else if (
       (lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') &&
       lcTag !== 'script' &&
-      value.indexOf('data:') === 0 &&
+      stringIndexOf(value, 'data:') === 0 &&
       DATA_URI_TAGS[lcTag]
     ) {
       // This attribute is safe
@@ -789,7 +815,7 @@ function createDOMPurify(window = getGlobal()) {
         time, e.g. fb:, spotify: */
     } else if (
       ALLOW_UNKNOWN_PROTOCOLS &&
-      !IS_SCRIPT_OR_DATA.test(value.replace(ATTR_WHITESPACE, ''))
+      !regExpTest(IS_SCRIPT_OR_DATA, stringReplace(value, ATTR_WHITESPACE, ''))
     ) {
       // This attribute is safe
       /* Check for binary attributes */
@@ -843,8 +869,8 @@ function createDOMPurify(window = getGlobal()) {
     while (l--) {
       attr = attributes[l];
       const { name, namespaceURI } = attr;
-      value = attr.value.trim();
-      lcName = name.toLowerCase();
+      value = stringTrim(attr.value);
+      lcName = stringToLowerCase(name);
 
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
@@ -868,10 +894,10 @@ function createDOMPurify(window = getGlobal()) {
         attributes.id
       ) {
         idAttr = attributes.id;
-        attributes = apply(arraySlice, attributes, []);
+        attributes = arraySlice(attributes, []);
         _removeAttribute('id', currentNode);
         _removeAttribute(name, currentNode);
-        if (attributes.indexOf(idAttr) > l) {
+        if (arrayIndexOf(attributes, idAttr) > l) {
           currentNode.setAttribute('id', idAttr.value);
         }
       } else if (
@@ -902,11 +928,14 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Take care of an mXSS pattern using namespace switches */
       if (
-        /svg|math/i.test(currentNode.namespaceURI) &&
-        new RegExp(
-          '</(' + Object.keys(FORBID_CONTENTS).join('|') + ')',
-          'i'
-        ).test(value)
+        regExpTest(/svg|math/i, currentNode.namespaceURI) &&
+        regExpTest(
+          regExpCreate(
+            '</(' + arrayJoin(objectKeys(FORBID_CONTENTS), '|') + ')',
+            'i'
+          ),
+          value
+        )
       ) {
         _removeAttribute(name, currentNode);
         continue;
@@ -914,8 +943,8 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
-        value = value.replace(MUSTACHE_EXPR, ' ');
-        value = value.replace(ERB_EXPR, ' ');
+        value = stringReplace(value, MUSTACHE_EXPR, ' ');
+        value = stringReplace(value, ERB_EXPR, ' ');
       }
 
       /* Is `value` valid for this attribute? */
@@ -933,7 +962,7 @@ function createDOMPurify(window = getGlobal()) {
           currentNode.setAttribute(name, value);
         }
 
-        DOMPurify.removed.pop();
+        arrayPop(DOMPurify.removed);
       } catch (error) {}
     }
 
@@ -1000,11 +1029,11 @@ function createDOMPurify(window = getGlobal()) {
     if (typeof dirty !== 'string' && !_isNode(dirty)) {
       // eslint-disable-next-line no-negated-condition
       if (typeof dirty.toString !== 'function') {
-        throw new TypeError('toString is not a function');
+        throw typeErrorCreate('toString is not a function');
       } else {
         dirty = dirty.toString();
         if (typeof dirty !== 'string') {
-          throw new TypeError('dirty is not a string, aborting');
+          throw typeErrorCreate('dirty is not a string, aborting');
         }
       }
     }
@@ -1146,8 +1175,8 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
-      serializedHTML = serializedHTML.replace(MUSTACHE_EXPR, ' ');
-      serializedHTML = serializedHTML.replace(ERB_EXPR, ' ');
+      serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR, ' ');
+      serializedHTML = stringReplace(serializedHTML, ERB_EXPR, ' ');
     }
 
     return trustedTypesPolicy && RETURN_TRUSTED_TYPE
@@ -1192,8 +1221,8 @@ function createDOMPurify(window = getGlobal()) {
       _parseConfig({});
     }
 
-    const lcTag = tag.toLowerCase();
-    const lcName = attr.toLowerCase();
+    const lcTag = stringToLowerCase(tag);
+    const lcName = stringToLowerCase(attr);
     return _isValidAttribute(lcTag, lcName, value);
   };
 
@@ -1210,7 +1239,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     hooks[entryPoint] = hooks[entryPoint] || [];
-    hooks[entryPoint].push(hookFunction);
+    arrayPush(hooks[entryPoint], hookFunction);
   };
 
   /**
@@ -1222,7 +1251,7 @@ function createDOMPurify(window = getGlobal()) {
    */
   DOMPurify.removeHook = function(entryPoint) {
     if (hooks[entryPoint]) {
-      hooks[entryPoint].pop();
+      arrayPop(hooks[entryPoint]);
     }
   };
 
