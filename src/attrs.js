@@ -1,8 +1,4 @@
-const freeze =
-  Object.freeze ||
-  function(x) {
-    return x;
-  };
+import { freeze } from './utils';
 
 export const html = freeze([
   'accept',

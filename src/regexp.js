@@ -1,8 +1,4 @@
-const seal =
-  Object.seal ||
-  function(x) {
-    return x;
-  };
+import { seal } from './utils';
 
 export const MUSTACHE_EXPR = seal(/\{\{[\s\S]*|[\s\S]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
 export const ERB_EXPR = seal(/<%[\s\S]*|[\s\S]*%>/gm);
