@@ -905,6 +905,12 @@ function createDOMPurify() {
         continue;
       }
 
+      /* Work around a security issue in jQuery 3.0 */
+      if (SAFE_FOR_JQUERY && regExpTest(/\/>/i, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
+
       /* Take care of an mXSS pattern using namespace switches */
       if (regExpTest(/svg|math/i, currentNode.namespaceURI) && regExpTest(regExpCreate('</(' + arrayJoin(objectKeys(FORBID_CONTENTS), '|') + ')', 'i'), value)) {
         _removeAttribute(name, currentNode);

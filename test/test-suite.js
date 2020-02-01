@@ -643,4 +643,22 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
           "x"
       ]);
   } );
+  QUnit.test( 'Test against insecure behavior in jQUery v3.0 and newer 1/2', function (assert) {
+      var config = {
+        SAFE_FOR_JQUERY: true
+      };
+      var clean = DOMPurify.sanitize('<img x="/><img src=x onerror=alert(1)>" y="<x">', config)
+      assert.contains(clean, [
+          "<img y=\"<x\" x=\"/><img src=x onerror=alert(1)>\">" // jsdom
+      ]);
+  } );
+  QUnit.test( 'Test against insecure behavior in jQUery v3.0 and newer 2/2', function (assert) {
+      var config = {
+        SAFE_FOR_JQUERY: true, ADD_TAGS: ['noscript']
+      };
+      var clean = DOMPurify.sanitize("a<noscript><p id='><noscript /><img src=x onerror=alert(1)>'></noscript>", config)
+      assert.contains(clean, [
+          "a<noscript>&lt;p id='>&lt;noscript />&lt;img src=x onerror=alert(1)>'></noscript>" // jsdom
+      ]);
+  } );
 };
