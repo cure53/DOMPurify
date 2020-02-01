@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../dist/purify.js"></script>
+    </head>
+    <body>
+        <!-- Our PRE to receive content -->
+        <pre id="sanitized"></pre>
+
+        <!-- Now let's sanitize that content -->
+        <script>
+            /* jshint globalstrict:true */
+            /* global DOMPurify */
+            'use strict';
+
+            /**
+             * In this example, we have some subset of tags that we want to allow, and we we have some tags that, if
+             * encountered, need to be removed completely, including any nested content.  An example might be stripping
+             * out the footer.
+             *
+             * We can't simply remove the footer tag from the ALLOWED_TAGS configuration because all that will do is
+             * strip out the footer tag but leave the nested content.  And we can't register 'footer' in the FORBID_TAGS
+             * config because you can't use both FORBID_TAGS and ALLOWED_TAGS together.
+             *
+             * So in this scenario, we only want to allow divs, and we want footers removed entirely.
+             */
+
+            // Specify dirty HTML
+            var dirty = '<div><span>This should remain</span><footer>This should be stripped</footer></div>';
+
+            // What we want is '<div>This should remain</div>' -- span is removed but content kept, but the footer is
+            // completely removed.
+
+            DOMPurify.setConfig({
+              ALLOWED_TAGS: [
+                // because we really want it
+                'div',
+                // because we really want it
+                '#text',
+                // not because we want it, but because if we don't add it here the default behavior would be to strip
+                // the tag but keep the content, which we don't want.  So we are going to use a hook to do the actual
+                // removal.  But that hook requires that the tag to be removed be an allowed tag or errors are thrown.
+                'footer'
+              ]
+            });
+
+            /**
+             * This hook removes the footer element and its children entirely.  Note that if we did not also register
+             * the footer as an allowed tag, we would get an error.  So, it's important to do both.
+             */
+            DOMPurify.addHook('uponSanitizeElement', function(node) {
+                if (node.tagName === 'FOOTER') {
+                    node.remove();
+                }
+            });
+
+            // Clean HTML string and write into our DIV
+            var clean = DOMPurify.sanitize(dirty);
+            document.getElementById('sanitized').innerText = clean;
+        </script>
+    </body>
+</html>
