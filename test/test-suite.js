@@ -650,6 +650,8 @@ module.exports = function(DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize('<img x="/><img src=x onerror=alert(1)>" y="<x">', config)
       assert.contains(clean, [
           "<img y=\"<x\" x=\"/><img src=x onerror=alert(1)>\">", // jsdom
+          "<img y=\"<x\">",
+          "<img y=\"&lt;x\">",
           "<img y=\"<x\">"
       ]);
   } );
