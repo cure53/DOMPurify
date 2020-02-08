@@ -115,6 +115,8 @@ DOMPurify offers a fall-back behavior for older MSIE browsers. It uses the MSIE-
 
 If not even `toStaticHTML` is supported, DOMPurify does nothing at all. It simply returns exactly the string that you fed it.
 
+DOMPurify also exposes a property called `isSupported`, which tells you whether DOMPurify will be able to do its job.
+
 ## What about DOMPurify and Trusted Types?
 
 In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify.
