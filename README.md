@@ -40,9 +40,15 @@ Afterwards you can sanitize strings by executing the following code:
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you. But keep in mind, if you use the sanitized HTML with jQuery's very insecure `elm.html()` method, then the `SAFE_FOR_JQUERY` flag has to be set to make sure it's safe! Other than that, all is fine. Also, please note, if you *first* sanitize HTML and then modify it *afterwards*, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library *after* sanitization, please be certain that the library doesn't mess around with the HTML on its own. 
+The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you. But keep in mind, if you use the sanitized HTML with jQuery's very insecure `elm.html()` method, then the `SAFE_FOR_JQUERY` flag has to be set to make sure it's safe! Other than that, all is fine. 
+
+### Is there any footgun potential?
+
+Well, please note, if you *first* sanitize HTML and then modify it *afterwards*, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library *after* sanitization, please be certain that the library doesn't mess around with the HTML on its own. 
 
 jQuery does exactly that and that is why we have this flag mentioned above.
+
+### Okay, makes sense, let's move on
 
 After sanitizing your markup, you can also have a look at the property `DOMPurify.removed` and find out, what elements and attributes were thrown out.
 
