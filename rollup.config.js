@@ -21,7 +21,6 @@ const config = {
   plugins: [
     nodeResolve(),
     babel({
-      plugins: ['external-helpers'],
       exclude: "**/node_modules/**"
     }),
     replace({
