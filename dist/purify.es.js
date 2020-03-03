@@ -1,6 +1,74 @@
 /*! DOMPurify | (c) Cure53 and other contributors | github.com/cure53/DOMPurify/blob/master/LICENSE */
 
-function _toConsumableArray$1(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
+  return typeof obj;
+} : function (obj) {
+  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var toConsumableArray = function (arr) {
+  if (Array.isArray(arr)) {
+    for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+    return arr2;
+  } else {
+    return Array.from(arr);
+  }
+};
 
 var hasOwnProperty = Object.hasOwnProperty;
 var setPrototypeOf = Object.setPrototypeOf;
@@ -33,7 +101,7 @@ if (!seal) {
 
 if (!construct) {
   construct = function construct(Func, args) {
-    return new (Function.prototype.bind.apply(Func, [null].concat(_toConsumableArray$1(args))))();
+    return new (Function.prototype.bind.apply(Func, [null].concat(toConsumableArray(args))))();
   };
 }
 
@@ -76,12 +144,12 @@ function unconstruct(func) {
 }
 
 /* Add properties to a lookup table */
-function addToSet(set, array) {
+function addToSet(set$$1, array) {
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
     // independent of any properties defined on Object.prototype.
     // Prevent prototype setters from intercepting set as a this value.
-    setPrototypeOf(set, null);
+    setPrototypeOf(set$$1, null);
   }
 
   var l = array.length;
@@ -99,10 +167,10 @@ function addToSet(set, array) {
       }
     }
 
-    set[element] = true;
+    set$$1[element] = true;
   }
 
-  return set;
+  return set$$1;
 }
 
 /* Shallow clone an object */
@@ -147,10 +215,6 @@ var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-
 var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
 var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g // eslint-disable-line no-control-regex
 );
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 var getGlobal = function getGlobal() {
   return typeof window === 'undefined' ? null : window;
@@ -286,11 +350,11 @@ function createDOMPurify() {
   /* allowed element names */
 
   var ALLOWED_TAGS = null;
-  var DEFAULT_ALLOWED_TAGS = addToSet({}, [].concat(_toConsumableArray(html), _toConsumableArray(svg), _toConsumableArray(svgFilters), _toConsumableArray(mathMl), _toConsumableArray(text)));
+  var DEFAULT_ALLOWED_TAGS = addToSet({}, [].concat(toConsumableArray(html), toConsumableArray(svg), toConsumableArray(svgFilters), toConsumableArray(mathMl), toConsumableArray(text)));
 
   /* Allowed attribute names */
   var ALLOWED_ATTR = null;
-  var DEFAULT_ALLOWED_ATTR = addToSet({}, [].concat(_toConsumableArray(html$1), _toConsumableArray(svg$1), _toConsumableArray(mathMl$1), _toConsumableArray(xml)));
+  var DEFAULT_ALLOWED_ATTR = addToSet({}, [].concat(toConsumableArray(html$1), toConsumableArray(svg$1), toConsumableArray(mathMl$1), toConsumableArray(xml)));
 
   /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
   var FORBID_TAGS = null;
@@ -424,7 +488,7 @@ function createDOMPurify() {
 
     /* Parse profile info */
     if (USE_PROFILES) {
-      ALLOWED_TAGS = addToSet({}, [].concat(_toConsumableArray(text)));
+      ALLOWED_TAGS = addToSet({}, [].concat(toConsumableArray(text)));
       ALLOWED_ATTR = [];
       if (USE_PROFILES.html === true) {
         addToSet(ALLOWED_TAGS, html);
