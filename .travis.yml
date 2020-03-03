@@ -1,6 +1,6 @@
 sudo: false
 language: node_js
-cache: yarn
+cache: npm
 script: npm run test:ci
 dist: trusty
 notifications:
