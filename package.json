@@ -128,5 +128,9 @@
   "bugs": {
     "url": "https://github.com/cure53/DOMPurify/issues"
   },
-  "homepage": "https://github.com/cure53/DOMPurify"
+  "homepage": "https://github.com/cure53/DOMPurify",
+  "dependencies": {
+    "node": "^13.9.0",
+    "nvm": "0.0.4"
+  }
 }
