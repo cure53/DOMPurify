@@ -33,9 +33,7 @@ const config = {
 if (isProd) {
   config.plugins.push(
     uglify({
-      compress: {
-        warnings: false
-      },
+      warnings: false,
       output: {
         comments: 'some'
       }
