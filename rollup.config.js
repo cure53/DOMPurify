@@ -35,7 +35,7 @@ if (isProd) {
     uglify({
       warnings: false,
       output: {
-        comments: 'some'
+        comments: /^!/
       }
     })
   );
