@@ -225,6 +225,7 @@ export const svg = freeze([
   'specularconstant',
   'specularexponent',
   'spreadmethod',
+  'startoffset',
   'stddeviation',
   'stitchtiles',
   'stop-color',
