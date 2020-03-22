@@ -284,6 +284,7 @@ function createDOMPurify(window = getGlobal()) {
     'img',
     'source',
     'image',
+    'track',
   ]);
 
   /* Attributes safe for values like "javascript:" */
