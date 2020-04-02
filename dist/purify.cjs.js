@@ -225,7 +225,6 @@ function createDOMPurify() {
   }
 
   var originalDocument = window.document;
-  var useDOMParser = false;
   var removeTitle = false;
 
   var document = window.document;
@@ -554,12 +553,9 @@ function createDOMPurify() {
     }
 
     var dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
-    /* Use DOMParser to workaround Firefox bug (see comment below) */
-    if (useDOMParser) {
-      try {
-        doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
-      } catch (error) {}
-    }
+    try {
+      doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
+    } catch (error) {}
 
     /* Remove title to fix a mXSS bug in older MS Edge */
     if (removeTitle) {
@@ -595,15 +591,6 @@ function createDOMPurify() {
   // Chrome 77 and other versions ship an mXSS bug that caused a bypass to
   // happen. We now check for the mXSS trigger and react accordingly.
   if (DOMPurify.isSupported) {
-    (function () {
-      try {
-        var doc = _initDocument('<svg><p><textarea><img src="</textarea><img src=x abc=1//">');
-        if (doc.querySelector('svg img')) {
-          useDOMParser = true;
-        }
-      } catch (error) {}
-    })();
-
     (function () {
       try {
         var doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
