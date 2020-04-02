@@ -499,6 +499,7 @@ function createDOMPurify(window = getGlobal()) {
     const dirtyPayload = trustedTypesPolicy
       ? trustedTypesPolicy.createHTML(dirty)
       : dirty;
+    /* Use the DOMParser API by default, fallback later if needs be */
     try {
       doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
     } catch (error) {}
