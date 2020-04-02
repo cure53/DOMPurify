@@ -563,8 +563,7 @@ function createDOMPurify() {
       addToSet(FORBID_TAGS, ['title']);
     }
 
-    /* Otherwise use createHTMLDocument, because DOMParser is unsafe in
-    Safari (see comment below) */
+    /* Use createHTMLDocument in case DOMParser is not available */
     if (!doc || !doc.documentElement) {
       doc = implementation.createHTMLDocument('');
       var _doc = doc,
@@ -582,15 +581,7 @@ function createDOMPurify() {
     return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
   };
 
-  // Firefox uses a different parser for innerHTML rather than
-  // DOMParser (see https://bugzilla.mozilla.org/show_bug.cgi?id=1205631)
-  // which means that you *must* use DOMParser, otherwise the output may
-  // not be safe if used in a document.write context later.
-  //
-  // So we feature detect the Firefox bug and use the DOMParser if necessary.
-  //
-  // Chrome 77 and other versions ship an mXSS bug that caused a bypass to
-  // happen. We now check for the mXSS trigger and react accordingly.
+  /* Here we test for a broken feature in Edge that might cause mXSS */
   if (DOMPurify.isSupported) {
     (function () {
       try {
