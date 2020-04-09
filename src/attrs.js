@@ -32,6 +32,7 @@ export const html = freeze([
   'dir',
   'disabled',
   'disablepictureinpicture',
+  'disableremoteplayback',
   'download',
   'enctype',
   'enterkeyhint',
