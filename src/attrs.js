@@ -5,6 +5,7 @@ export const html = freeze([
   'action',
   'align',
   'alt',
+  'autocapitalize',
   'autocomplete',
   'background',
   'bgcolor',
