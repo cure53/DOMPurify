@@ -41,6 +41,7 @@ export const html = freeze([
   'label',
   'lang',
   'list',
+  'loading',
   'loop',
   'low',
   'max',
