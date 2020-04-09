@@ -10,6 +10,7 @@ export const html = freeze([
   'background',
   'bgcolor',
   'border',
+  'capture',
   'cellpadding',
   'cellspacing',
   'checked',
