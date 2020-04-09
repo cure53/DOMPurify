@@ -92,6 +92,7 @@ export const html = freeze([
   'summary',
   'tabindex',
   'title',
+  'translate',
   'type',
   'usemap',
   'valign',
