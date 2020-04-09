@@ -66,6 +66,7 @@ export const html = freeze([
   'optimum',
   'pattern',
   'placeholder',
+  'playsinline',
   'poster',
   'preload',
   'pubdate',
