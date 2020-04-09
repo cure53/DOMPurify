@@ -38,6 +38,7 @@ export const html = freeze([
   'href',
   'hreflang',
   'id',
+  'inputmode',
   'integrity',
   'ismap',
   'label',
