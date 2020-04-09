@@ -22,6 +22,7 @@ export const html = freeze([
   'cols',
   'colspan',
   'controls',
+  'controlslist',
   'coords',
   'crossorigin',
   'datetime',
