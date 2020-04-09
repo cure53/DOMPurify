@@ -59,6 +59,7 @@ export const html = freeze([
   'min',
   'minlength',
   'multiple',
+  'muted',
   'name',
   'noshade',
   'novalidate',
