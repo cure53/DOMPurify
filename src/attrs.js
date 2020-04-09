@@ -7,6 +7,7 @@ export const html = freeze([
   'alt',
   'autocapitalize',
   'autocomplete',
+  'autoplay',
   'background',
   'bgcolor',
   'border',
