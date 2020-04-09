@@ -22,6 +22,7 @@ export const html = freeze([
   'coords',
   'crossorigin',
   'datetime',
+  'decoding',
   'default',
   'dir',
   'disabled',
