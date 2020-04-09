@@ -29,6 +29,7 @@ export const html = freeze([
   'disabled',
   'download',
   'enctype',
+  'enterkeyhint',
   'face',
   'for',
   'headers',
