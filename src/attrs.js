@@ -47,7 +47,6 @@ export const html = freeze([
   'id',
   'inputmode',
   'integrity',
-  'is',
   'ismap',
   'kind',
   'label',
