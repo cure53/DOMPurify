@@ -1,7 +1,7 @@
 const nodeResolve = require("rollup-plugin-node-resolve");
 const babel = require("rollup-plugin-babel");
 const replace = require("rollup-plugin-replace");
-const uglify = require("rollup-plugin-uglify");
+const { terser } = require('rollup-plugin-terser');
 const fs = require("fs");
 
 const env = process.env.NODE_ENV;
@@ -31,14 +31,7 @@ const config = {
 };
 
 if (isProd) {
-  config.plugins.push(
-    uglify({
-      warnings: false,
-      output: {
-        comments: /^!/
-      }
-    })
-  );
+  config.plugins.push(terser());
 }
 
 module.exports = config;
