@@ -4,25 +4,25 @@ let { freeze, seal } = Object; // eslint-disable-line import/no-mutable-exports
 let { apply, construct } = typeof Reflect !== 'undefined' && Reflect;
 
 if (!apply) {
-  apply = function(fun, thisValue, args) {
+  apply = function (fun, thisValue, args) {
     return fun.apply(thisValue, args);
   };
 }
 
 if (!freeze) {
-  freeze = function(x) {
+  freeze = function (x) {
     return x;
   };
 }
 
 if (!seal) {
-  seal = function(x) {
+  seal = function (x) {
     return x;
   };
 }
 
 if (!construct) {
-  construct = function(Func, args) {
+  construct = function (Func, args) {
     return new Func(...args);
   };
 }
