@@ -1,4 +1,4 @@
-const commonjs = require("rollup-plugin-commonjs");
+const commonjs require('@rollup/plugin-commonjs');
 const includePaths = require("rollup-plugin-includepaths");
 const rollupConfig = require("../rollup.config.js");
 const customLaunchers = require("./karma.custom-launchers.config.js")
