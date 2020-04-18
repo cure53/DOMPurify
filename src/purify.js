@@ -60,7 +60,7 @@ const _createTrustedTypesPolicy = function (trustedTypes, document) {
         return html;
       },
     });
-  } catch (error) {
+  } catch (_) {
     // Policy creation failed (most likely another DOMPurify script has
     // already run). Skip creating the policy, as this will only cause errors
     // if TT are enforced.
@@ -449,8 +449,9 @@ function createDOMPurify(window = getGlobal()) {
   const _forceRemove = function (node) {
     arrayPush(DOMPurify.removed, { element: node });
     try {
+      // eslint-disable-next-line unicorn/prefer-node-remove
       node.parentNode.removeChild(node);
-    } catch (error) {
+    } catch (_) {
       node.outerHTML = emptyHTML;
     }
   };
@@ -467,7 +468,7 @@ function createDOMPurify(window = getGlobal()) {
         attribute: node.getAttributeNode(name),
         from: node,
       });
-    } catch (error) {
+    } catch (_) {
       arrayPush(DOMPurify.removed, {
         attribute: null,
         from: node,
@@ -492,6 +493,7 @@ function createDOMPurify(window = getGlobal()) {
       dirty = '<remove></remove>' + dirty;
     } else {
       /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
+      // eslint-disable-next-line unicorn/better-regex
       const matches = stringMatch(dirty, /^[\s]+/);
       leadingWhitespace = matches && matches[0];
     }
@@ -502,7 +504,7 @@ function createDOMPurify(window = getGlobal()) {
     /* Use the DOMParser API by default, fallback later if needs be */
     try {
       doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
-    } catch (error) {}
+    } catch (_) {}
 
     /* Remove title to fix a mXSS bug in older MS Edge */
     if (removeTitle) {
@@ -536,7 +538,7 @@ function createDOMPurify(window = getGlobal()) {
         if (regExpTest(/<\/title/, doc.querySelector('title').innerHTML)) {
           removeTitle = true;
         }
-      } catch (error) {}
+      } catch (_) {}
     })();
   }
 
@@ -590,13 +592,13 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {Node} obj object to check whether it's a DOM node
    * @return {Boolean} true is object is a DOM node
    */
-  const _isNode = function (obj) {
+  const _isNode = function (object) {
     return typeof Node === 'object'
-      ? obj instanceof Node
-      : obj &&
-          typeof obj === 'object' &&
-          typeof obj.nodeType === 'number' &&
-          typeof obj.nodeName === 'string';
+      ? object instanceof Node
+      : object &&
+          typeof object === 'object' &&
+          typeof object.nodeType === 'number' &&
+          typeof object.nodeName === 'string';
   };
 
   /**
@@ -674,7 +676,7 @@ function createDOMPurify(window = getGlobal()) {
               ? trustedTypesPolicy.createHTML(htmlToInsert)
               : htmlToInsert
           );
-        } catch (error) {}
+        } catch (_) {}
       }
 
       _forceRemove(currentNode);
@@ -947,7 +949,7 @@ function createDOMPurify(window = getGlobal()) {
         }
 
         arrayPop(DOMPurify.removed);
-      } catch (error) {}
+      } catch (_) {}
     }
 
     /* Execute a hook if present */
@@ -1076,6 +1078,7 @@ function createDOMPurify(window = getGlobal()) {
         !SAFE_FOR_TEMPLATES &&
         !WHOLE_DOCUMENT &&
         RETURN_TRUSTED_TYPE &&
+        // eslint-disable-next-line unicorn/prefer-includes
         dirty.indexOf('<') === -1
       ) {
         return trustedTypesPolicy
@@ -1144,11 +1147,13 @@ function createDOMPurify(window = getGlobal()) {
       }
 
       if (RETURN_DOM_IMPORT) {
-        /* AdoptNode() is not used because internal state is not reset
-               (e.g. the past names map of a HTMLFormElement), this is safe
-               in theory but we would rather not risk another attack vector.
-               The state that is cloned by importNode() is explicitly defined
-               by the specs. */
+        /*
+          AdoptNode() is not used because internal state is not reset
+          (e.g. the past names map of a HTMLFormElement), this is safe
+          in theory but we would rather not risk another attack vector.
+          The state that is cloned by importNode() is explicitly defined
+          by the specs.
+        */
         returnNode = importNode.call(originalDocument, returnNode, true);
       }
 
