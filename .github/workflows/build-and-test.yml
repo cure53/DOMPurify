@@ -42,9 +42,11 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Test
+        uses: GabrielBB/xvfb-action@v1.0
+        with:
+          run: npm test test:ci
         env:
           TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '13') }}
           TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/master' }}
           BS_USERNAME: ${{ secrets.BS_USERNAME }}
-          BS_ACCESS_KEY: ${{ secrets.BS_ACCESS_KEY }}
-        run: yarn test:ci
+          BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
