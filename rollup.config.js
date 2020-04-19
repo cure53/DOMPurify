@@ -21,7 +21,7 @@ const config = {
   plugins: [
     nodeResolve(),
     babel({
-      exclude: '**/node_modules/**',
+      exclude: ['**/node_modules/**'],
     }),
     replace({
       'process.env.NODE_ENV': JSON.stringify(env),
