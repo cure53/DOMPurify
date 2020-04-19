@@ -2,7 +2,9 @@
   "scripts": {
     "build-demo": "node scripts/build-demo.js",
     "lint": "xo src/*.js",
-    "format": "prettier --write 'src/*.js'",
+    "format": "yarn format:js && yarn format:md",
+    "format:md": "prettier --write --parser markdown '**/*.md'",
+    "format:js": "prettier --write '{src,demos,scripts,test,website}/*.js'",
     "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist/**",
     "dev": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
