@@ -1,6 +1,6 @@
 # DOMPurify
 
-[![Bower version](https://badge.fury.io/bo/dompurify.svg)](http://badge.fury.io/bo/dompurify) · [![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) · [![Build Status](https://travis-ci.org/cure53/DOMPurify.svg)](https://travis-ci.org/cure53/DOMPurify) · [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) · [![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js?compression=gzip)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js) · [![install size](https://badgen.net/packagephobia/install/dompurify)](https://packagephobia.now.sh/result?p=dompurify)
+[![Bower version](https://badge.fury.io/bo/dompurify.svg)](http://badge.fury.io/bo/dompurify) · [![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) · ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=master) · [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) · [![gzip size](http://img.badgesize.io/https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js?compression=gzip)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js) · [![install size](https://badgen.net/packagephobia/install/dompurify)](https://packagephobia.now.sh/result?p=dompurify)
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
@@ -40,11 +40,11 @@ Afterwards you can sanitize strings by executing the following code:
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you. But keep in mind, if you use the sanitized HTML with jQuery's very insecure `elm.html()` method, then the `SAFE_FOR_JQUERY` flag has to be set to make sure it's safe! Other than that, all is fine. 
+The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you. But keep in mind, if you use the sanitized HTML with jQuery's very insecure `elm.html()` method, then the `SAFE_FOR_JQUERY` flag has to be set to make sure it's safe! Other than that, all is fine.
 
 ### Is there any footgun potential?
 
-Well, please note, if you *first* sanitize HTML and then modify it *afterwards*, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library *after* sanitization, please be certain that the library doesn't mess around with the HTML on its own. 
+Well, please note, if you *first* sanitize HTML and then modify it *afterwards*, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library *after* sanitization, please be certain that the library doesn't mess around with the HTML on its own.
 
 jQuery does exactly that and that is why we have this flag mentioned above.
 
