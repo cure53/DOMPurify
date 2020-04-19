@@ -1,0 +1,50 @@
+name: Build and Test
+
+# The event triggers are configured as following:
+# - on `master` -> trigger the workflow on every push
+# - on any pull request -> trigger the workflow
+# This is to avoid running the workflow twice on pull requests.
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 13.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: yarn cache directory
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Setup node_modules cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install
+        run: yarn install --frozen-lockfile
+      - name: Build
+        run: npm run build
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        env:
+          TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '13') }}
+          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/master' }}
+          BS_USERNAME: ${{ secrets.BS_USERNAME }}
+          BS_ACCESS_KEY: ${{ secrets.BS_ACCESS_KEY }}
+        run: yarn test:ci
