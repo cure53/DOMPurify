@@ -44,7 +44,7 @@ jobs:
       - name: Test
         uses: GabrielBB/xvfb-action@v1.0
         with:
-          run: npm test test:ci
+          run: npm run test:ci
         env:
           TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '13') }}
           TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/master' }}
