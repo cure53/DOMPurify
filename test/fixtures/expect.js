@@ -819,7 +819,7 @@ module.exports = [
   }, {
       "title": "Drag & drop",
       "payload": "<div id=\"118\"><div draggable=\"true\" ondragstart=\"event.dataTransfer.setData('text/plain','malicious code');\">\n    <h1>Drop me</h1>\n</div>\n<iframe src=\"http://www.example.org/dropHere.html\"></iframe>//[\"'`-->]]>]</div>",
-      "expected": "<div id=\"118\"><div>\n    <h1>Drop me</h1>\n</div>\n//[\"'`--&gt;]]&gt;]</div>"
+      "expected": "<div id=\"118\"><div draggable=\"true\">\n    <h1>Drop me</h1>\n</div>\n//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "title": "view-source",
       "payload": "<div id=\"119\"><iframe src=\"view-source:http://www.example.org/\" frameborder=\"0\" style=\"width:400px;height:180px\"></iframe>",
