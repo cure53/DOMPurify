@@ -223,8 +223,8 @@ const getRandomBrowser = () => sample(getAllBrowsers());
  * - If none of the prior mentioned holds we assume to be running local and respect the passed
  *   in borwsers argv
  */
-const shouldProbeOnly = argv.shouldProbeOnly !== 'false';
-const shouldTestOnBrowserStack = argv.shouldTestOnBrowserStack !== '';
+const shouldProbeOnly = argv.shouldProbeOnly === 'true';
+const shouldTestOnBrowserStack = argv.shouldTestOnBrowserStack === 'true';
 const defaultBrowsers = ['Firefox'];
 const argvBrowsers = isArray(argv.browsers)
   ? argv.browsers.split(' ')
