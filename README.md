@@ -36,15 +36,15 @@ It's easy. Just include DOMPurify on your website.
 
 Afterwards you can sanitize strings by executing the following code:
 
-```javascript
+```js
 var clean = DOMPurify.sanitize(dirty);
 ```
 
 The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you. But keep in mind, if you use the sanitized HTML with jQuery's very insecure `elm.html()` method, then the `SAFE_FOR_JQUERY` flag has to be set to make sure it's safe! Other than that, all is fine.
 
-### Is there any footgun potential?
+### Is there any foot-gun potential?
 
-Well, please note, if you *first* sanitize HTML and then modify it *afterwards*, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library *after* sanitization, please be certain that the library doesn't mess around with the HTML on its own.
+Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library _after_ sanitization, please be certain that the library doesn't mess around with the HTML on its own.
 
 jQuery does exactly that and that is why we have this flag mentioned above.
 
@@ -54,13 +54,13 @@ After sanitizing your markup, you can also have a look at the property `DOMPurif
 
 If you're using an [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) module loader like [Require.js](http://requirejs.org/), you can load this script asynchronously as well:
 
-```javascript
-require(['dompurify'], function(DOMPurify) {
-  var clean = DOMPurify.sanitize(dirty);
-});
+```js
+import DOMPurify from 'dompurify';
+
+var clean = DOMPurify.sanitize(dirty);
 ```
 
-DOMPurify also works server-side with node.js as well as client-side via [Browserify](http://browserify.org/) or similar translators. Node.js 0.x is not supported; either [io.js](https://iojs.org) or Node.js 4.x or newer is required.
+DOMPurify also works server-side with Node.js as well as client-side via [Browserify](http://browserify.org/) or similar translators. At least Node.js 4.x or newer is required. Our support strives to follow the [Node.js release cycle](https://nodejs.org/en/about/releases/). DOMPurify intends to support any version being flagged as active. At the same time we phase out support for any version flagged as maintenance. DOMPurify might not break with all versions in maintenance immediately but stops to run tests against these older versions.
 
 ```bash
 npm install dompurify
@@ -68,7 +68,7 @@ npm install dompurify
 
 For JSDOM v10 or newer
 
-```javascript
+```js
 const createDOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
 
@@ -80,7 +80,7 @@ const clean = DOMPurify.sanitize(dirty);
 
 For JSDOM versions older than v10
 
-```javascript
+```js
 const createDOMPurify = require('dompurify');
 const jsdom = require('jsdom').jsdom;
 
@@ -104,7 +104,7 @@ Also, you probably qualify for a bug bounty! The fine folks over at [FastMail](h
 
 How does purified markup look like? Well, [the demo](https://cure53.de/purify) shows it for a big bunch of nasty elements. But let's also show some smaller examples!
 
-```javascript
+```js
 DOMPurify.sanitize('<img src=x onerror=alert(1)//>'); // becomes <img src="x">
 DOMPurify.sanitize('<svg><g/onload=alert(2)//<p>'); // becomes <svg><g></g></svg>
 DOMPurify.sanitize('<p>abc<iframe//src=jAva&Tab;script:alert(3)>def</p>'); // becomes <p>abcdef</p>
@@ -136,7 +136,7 @@ When `DOMPurify.sanitize` is used in an environment where the Trusted Types API 
 
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/master/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this).
 
-```javascript
+```js
 // make output safe for usage in jQuery's $()/html() method (default is false)
 var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
 
@@ -243,8 +243,8 @@ It passes the currently processed DOM node, when needed a literal with verified 
 
 _Example_:
 
-```javascript
-DOMPurify.addHook('beforeSanitizeElements', function(
+```js
+DOMPurify.addHook('beforeSanitizeElements', function (
   currentNode,
   hookEvent,
   config
