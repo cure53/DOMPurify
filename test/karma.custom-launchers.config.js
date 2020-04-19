@@ -81,7 +81,7 @@ const customLaunchers = {
     browser: 'edge',
     os_version: '10',
   },
-   bs_win10_edge_17: {
+  bs_win10_edge_17: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
@@ -89,7 +89,7 @@ const customLaunchers = {
     browser: 'edge',
     os_version: '10',
   },
-   bs_win10_edge_18: {
+  bs_win10_edge_18: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
@@ -200,7 +200,7 @@ const customLaunchers = {
     browser_version: '71.0',
     browser: 'chrome',
     os_version: '10',
-  }//,
+  }, //,
   //bs_win10_chrome_77: {
   //  base: 'BrowserStack',
   //  device: null,
@@ -230,7 +230,9 @@ const argvBrowsers = isArray(argv.browsers)
   ? argv.browsers.split(' ')
   : defaultBrowsers;
 const browsers = shouldTestOnBrowserStack
-  ? shouldProbeOnly ? defaultBrowsers : getAllBrowsers()
+  ? shouldProbeOnly
+    ? defaultBrowsers
+    : getAllBrowsers()
   : argvBrowsers;
 
 module.exports = {

@@ -1,44 +1,37 @@
-const nodeResolve = require("rollup-plugin-node-resolve");
-const babel = require("rollup-plugin-babel");
-const replace = require("rollup-plugin-replace");
-const uglify = require("rollup-plugin-uglify");
-const fs = require("fs");
+const nodeResolve = require('rollup-plugin-node-resolve');
+const babel = require('rollup-plugin-babel');
+const replace = require('rollup-plugin-replace');
+const { terser } = require('rollup-plugin-terser');
+const fs = require('fs');
 
 const env = process.env.NODE_ENV;
-const isProd = env === "production";
+const isProd = env === 'production';
 const version = process.env.npm_package_version;
 
 const config = {
-  input: "src/purify.js",
+  input: 'src/purify.js',
   external: [],
   output: {
-    name: "DOMPurify",
+    name: 'DOMPurify',
     globals: {},
-    format: "umd",
+    format: 'umd',
     sourcemap: true,
-    banner: fs.readFileSync("./src/license_header")
+    banner: fs.readFileSync('./src/license_header'),
   },
   plugins: [
     nodeResolve(),
     babel({
-      exclude: "**/node_modules/**"
+      exclude: ['**/node_modules/**'],
     }),
     replace({
-      "process.env.NODE_ENV": JSON.stringify(env),
-      VERSION: `'${version}'`
-    })
-  ]
+      'process.env.NODE_ENV': JSON.stringify(env),
+      VERSION: `'${version}'`,
+    }),
+  ],
 };
 
 if (isProd) {
-  config.plugins.push(
-    uglify({
-      warnings: false,
-      output: {
-        comments: /^!/
-      }
-    })
-  );
+  config.plugins.push(terser());
 }
 
 module.exports = config;
