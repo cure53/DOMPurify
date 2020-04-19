@@ -23,6 +23,7 @@ matrix:
       - node_js: "10"
       - node_js: "11"
         env: TEST_BROWSERSTACK=true
+      - node_js: "13"
 addons:
   apt:
     sources:
