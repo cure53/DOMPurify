@@ -3,3 +3,4 @@ node_modules
 bower_components
 npm-debug.log
 .vscode
+yarn-error.log
