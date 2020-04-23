@@ -1294,7 +1294,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         RETURN_TRUSTED_TYPE: true,
       });
       var type = typeof clean;
-      assert.contains(type, ['TrustedHTML', 'string']); // it can be either - depening on browser versions
+      assert.contains(type, ['TrustedHTML', 'string', 'object']);
     }
   );
   QUnit.test(
