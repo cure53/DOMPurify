@@ -344,7 +344,7 @@ function createDOMPurify(window = getGlobal()) {
         : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS =
       'DATA_URI_TAGS' in cfg
-        ? addToSet({}, cfg.DATA_URI_TAGS)
+        ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.DATA_URI_TAGS)
         : DEFAULT_DATA_URI_TAGS;
     FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
     FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
