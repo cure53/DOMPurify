@@ -343,8 +343,8 @@ function createDOMPurify(window = getGlobal()) {
         ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR)
         : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS =
-      'DATA_URI_TAGS' in cfg
-        ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.DATA_URI_TAGS)
+      'ADD_DATA_URI_TAGS' in cfg
+        ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS)
         : DEFAULT_DATA_URI_TAGS;
     FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
     FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
