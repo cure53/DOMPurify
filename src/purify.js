@@ -277,7 +277,8 @@ function createDOMPurify(window = getGlobal()) {
   ]);
 
   /* Tags that are safe for data: URIs */
-  const DATA_URI_TAGS = addToSet({}, [
+  let DATA_URI_TAGS = null;
+  const DEFAULT_DATA_URI_TAGS = addToSet({}, [
     'audio',
     'video',
     'img',
@@ -341,6 +342,10 @@ function createDOMPurify(window = getGlobal()) {
       'ADD_URI_SAFE_ATTR' in cfg
         ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR)
         : DEFAULT_URI_SAFE_ATTRIBUTES;
+    DATA_URI_TAGS =
+      'DATA_URI_TAGS' in cfg
+        ? addToSet({}, cfg.DATA_URI_TAGS)
+        : DEFAULT_DATA_URI_TAGS;
     FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
     FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
     USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
