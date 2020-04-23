@@ -1461,7 +1461,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     'Test against data URIs in anchors using proper config flag',
     function (assert) {
       var clean = DOMPurify.sanitize('<a href="data:image/gif;base64,123">icon.gif</a>', {
-          DATA_URI_TAGS: ['a', 'b']
+          ADD_DATA_URI_TAGS: ['a', 'b']
       });
       assert.equal(clean, '<a href="data:image/gif;base64,123">icon.gif</a>');
     }
