@@ -552,8 +552,7 @@ function createDOMPurify() {
       dirty = '<remove></remove>' + dirty;
     } else {
       /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
-      // eslint-disable-next-line unicorn/better-regex
-      var matches = stringMatch(dirty, /^[\s]+/);
+      var matches = stringMatch(dirty, /^[\r\n\t ]+/);
       leadingWhitespace = matches && matches[0];
     }
 
