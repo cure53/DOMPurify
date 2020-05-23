@@ -127,7 +127,7 @@ function createDOMPurify(window = getGlobal()) {
     trustedTypes,
     originalDocument
   );
-  const emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
+  const emptyHTML = trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML('') : '';
 
   const {
     implementation,
@@ -1085,7 +1085,7 @@ function createDOMPurify(window = getGlobal()) {
         // eslint-disable-next-line unicorn/prefer-includes
         dirty.indexOf('<') === -1
       ) {
-        return trustedTypesPolicy
+        return trustedTypesPolicy && RETURN_TRUSTED_TYPE
           ? trustedTypesPolicy.createHTML(dirty)
           : dirty;
       }
