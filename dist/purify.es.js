@@ -215,7 +215,7 @@ function createDOMPurify() {
    */
   DOMPurify.removed = [];
 
-  if (!window || !window.document || window.document.nodeType !== 9) {
+  if (!window || !window.document || window.document.nodeType !== Node.DOCUMENT_NODE) {
     // Not running in a browser, provide a factory function
     // so that you can pass your own Window
     DOMPurify.isSupported = false;
@@ -727,7 +727,7 @@ function createDOMPurify() {
     }
 
     /* Sanitize element content to be template-safe */
-    if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
+    if (SAFE_FOR_TEMPLATES && currentNode.nodeType === Node.TEXT_NODE) {
       /* Get the element's text content */
       content = currentNode.textContent;
       content = stringReplace(content, MUSTACHE_EXPR$$1, ' ');
@@ -1007,7 +1007,7 @@ function createDOMPurify() {
          elements being stripped by the parser */
       body = _initDocument('<!-->');
       importedNode = body.ownerDocument.importNode(dirty, true);
-      if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+      if (importedNode.nodeType === Node.ELEMENT_NODE && importedNode.nodeName === 'BODY') {
         /* Node is already a body, use as is */
         body = importedNode;
       } else if (importedNode.nodeName === 'HTML') {
@@ -1044,7 +1044,7 @@ function createDOMPurify() {
     /* Now start iterating over the created document */
     while (currentNode = nodeIterator.nextNode()) {
       /* Fix IE's strange behavior with manipulated textNodes #89 */
-      if (currentNode.nodeType === 3 && currentNode === oldNode) {
+      if (currentNode.nodeType === Node.TEXT_NODE && currentNode === oldNode) {
         continue;
       }
 
