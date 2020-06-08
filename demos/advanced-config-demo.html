@@ -31,8 +31,8 @@
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty, config);
 
-            // grab outerHTML from returned document
-            document.getElementById('sanitized').innerHTML = clean;
+            // Grab innerHTML from returned clean body node
+            document.getElementById('sanitized').innerHTML = clean.innerHTML;
         </script>
     </body>
 </html>
