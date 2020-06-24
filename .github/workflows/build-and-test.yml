@@ -7,7 +7,7 @@ name: Build and Test
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 
 jobs:
@@ -47,6 +47,6 @@ jobs:
           run: npm run test:ci
         env:
           TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '13') }}
-          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/master' }}
+          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' }}
           BS_USERNAME: ${{ secrets.BS_USERNAME }}
           BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}

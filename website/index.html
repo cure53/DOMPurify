@@ -10,7 +10,7 @@
             if(typeof console === 'undefined') {console={}; console.log=function(){}}
             window.onload = function(){
                 var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://cdn.rawgit.com/cure53/DOMPurify/master/test/fixtures/expect.js');
+                xhr.open('GET', 'https://cdn.rawgit.com/cure53/DOMPurify/main/test/fixtures/expect.js');
                 xhr.onload = function(){
                     var data=JSON.parse(xhr.responseText.slice(17, -2));
                     x.value = '<!-- I am ready now, click one of the buttons! -->\r\n';
@@ -25,7 +25,7 @@
     <body>
         <h4>DOMPurify 2.0.11 "Wash Hands"</h4>
         <p>
-            <a href="http://badge.fury.io/bo/dompurify"><img style="max-width:100%;" alt="Bower version" src="https://badge.fury.io/bo/dompurify.svg"></a> · <a href="http://badge.fury.io/js/dompurify"><img style="max-width:100%;" alt="npm version" src="https://badge.fury.io/js/dompurify.svg"></a> · <a href="https://github.com/cure53/DOMPurify/actions"><img style="max-width:100%;" alt="Build Status" src="https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=master"></a>
+            <a href="http://badge.fury.io/bo/dompurify"><img style="max-width:100%;" alt="Bower version" src="https://badge.fury.io/bo/dompurify.svg"></a> · <a href="http://badge.fury.io/js/dompurify"><img style="max-width:100%;" alt="npm version" src="https://badge.fury.io/js/dompurify.svg"></a> · <a href="https://github.com/cure53/DOMPurify/actions"><img style="max-width:100%;" alt="Build Status" src="https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main"></a>
         </p>
         <p>
         This is the demo for <a href="https://github.com/cure53/DOMPurify">DOMPurify</a>, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML. 
