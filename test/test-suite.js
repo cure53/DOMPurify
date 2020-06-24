@@ -774,7 +774,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       DOMPurify.removeHooks('uponSanitizeAttribute');
     }
   );
-  // Test to ensure that if input[type=file] is blacklisted and flagged as an
+  // Test to ensure that if input[type=file] is badlisted and flagged as an
   // attribute not to keep via hookEvent.keepAttr, it should be removed despite
   // it being an issue of being able to programmatically add it back in Safari.
   QUnit.test(

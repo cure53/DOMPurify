@@ -58,7 +58,7 @@
                     }
                 });
 
-                // Add a hook to sanitize all white-listed events with MentalJS
+                // Add a hook to sanitize all allow-listed events with MentalJS
                 DOMPurify.addHook('uponSanitizeAttribute', function(node, data) {
                     if (data.attrName.match(/^on\w+/)) {
                         var script = data.attrValue;

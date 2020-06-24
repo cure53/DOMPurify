@@ -40,7 +40,7 @@ This is the relevant code:
 // Specify a configuration directive
 var config = {
   ALLOWED_TAGS: ['p', '#text'], // only <P> and text nodes
-  KEEP_CONTENT: false, // remove content from non-white-listed nodes too
+  KEEP_CONTENT: false, // remove content from non-allow-listed nodes too
   ADD_ATTR: ['kitty-litter'], // permit kitty-litter attributes
   ADD_TAGS: ['ying', 'yang'], // permit additional custom tags
   RETURN_DOM: true, // return a document object instead of a string
@@ -120,7 +120,7 @@ DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 var clean = DOMPurify.sanitize(dirty);
 ```
 
-### Hook to white-list safe URI Schemes [Link](hooks-scheme-whitelist.html)
+### Hook to white-list safe URI Schemes [Link](hooks-scheme-allowlist.html)
 
 Depending on where you show your sanitized HTML, different URI schemes might cause trouble. And in most situations, you only want to allow HTTP and HTTPS - but not any of those fancy URI schemes supported on mobile devices or even on the desktop with Windows 10. This hook demo shows how to easily make sure only HTTP, HTTPS and FTP URIs are permitted while all others are eliminated for good.
 
@@ -130,12 +130,12 @@ This is the relevant code:
 
 ```javascript
 // allowed URI schemes
-var whitelist = ['http', 'https', 'ftp'];
+var allowlist = ['http', 'https', 'ftp'];
 
 // build fitting regex
-var regex = RegExp('^(' + whitelist.join('|') + '):', 'gim');
+var regex = RegExp('^(' + allowlist.join('|') + '):', 'gim');
 
-// Add a hook to enforce URI scheme whitelist
+// Add a hook to enforce URI scheme allow-list
 DOMPurify.addHook('afterSanitizeAttributes', function (node) {
   // build an anchor to map URLs to
   var anchor = document.createElement('a');

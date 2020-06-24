@@ -35,12 +35,12 @@
                          <svg xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="?secure"><circle r=40 fill=green></a></svg>';
 
             // allowed URI schemes
-            var whitelist = ['http', 'https', 'ftp'];
+            var allowlist = ['http', 'https', 'ftp'];
 
             // build fitting regex
-            var regex = RegExp('^('+whitelist.join('|')+'):', 'im');
+            var regex = RegExp('^('+allowlist.join('|')+'):', 'im');
 
-            // Add a hook to enforce URI scheme whitelist
+            // Add a hook to enforce URI scheme allow-list
             DOMPurify.addHook('afterSanitizeAttributes', function(node){
 
                 // build an anchor to map URLs to

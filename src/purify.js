@@ -669,7 +669,7 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
-      /* Keep content except for black-listed elements */
+      /* Keep content except for bad-listed elements */
       if (
         KEEP_CONTENT &&
         !FORBID_CONTENTS[tagName] &&

@@ -22,7 +22,7 @@
                     FORBID_TAGS: ['svg'] // SVG is not yet supported. Too messy.
                 };
 
-                // Specify CSS property whitelist
+                // Specify CSS property allow-list
                 var allowed_properties = [
                     'color',
                     'background',
@@ -38,7 +38,7 @@
                 var allow_css_functions = true;
 
                 /**
-                 *  Take CSS property-value pairs and validate against white-list,
+                 *  Take CSS property-value pairs and validate against allow-list,
                  *  then add the styles to an array of property-value pairs
                  */
                 function validateStyles(output, styles) {
