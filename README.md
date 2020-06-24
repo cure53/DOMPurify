@@ -10,7 +10,7 @@ It's also very simple to use and get started with. DOMPurify was [started in Feb
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
-Our automated tests cover [26 different browsers](https://github.com/cure53/DOMPurify/blob/master/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v12.0.0 and v13.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom). Older Node.js versions are known to work as well.
+Our automated tests cover [26 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v12.0.0 and v13.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom). Older Node.js versions are known to work as well.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
@@ -134,7 +134,7 @@ When `DOMPurify.sanitize` is used in an environment where the Trusted Types API 
 
 ## Can I configure DOMPurify?
 
-Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/master/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this).
+Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/main/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this).
 
 ```js
 // make output safe for usage in jQuery's $()/html() method (default is false)
@@ -222,7 +222,7 @@ dirty.setAttribute('href', 'javascript:alert(1)');
 var clean = DOMPurify.sanitize(dirty, {IN_PLACE: true}); // see https://github.com/cure53/DOMPurify/issues/288 for more info
 ```
 
-There is even [more examples here](https://github.com/cure53/DOMPurify/tree/master/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
+There is even [more examples here](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
 
 ## Persistent Configuration
 
@@ -242,7 +242,7 @@ DOMPurify allows you to augment its functionality by attaching one or more funct
 - `uponSanitizeShadowNode`
 - `afterSanitizeShadowDOM`
 
-It passes the currently processed DOM node, when needed a literal with verified node and attribute data and the DOMPurify configuration to the callback. Check out the [MentalJS hook demo](https://github.com/cure53/DOMPurify/blob/master/demos/hooks-mentaljs-demo.html) to see how the API can be used nicely.
+It passes the currently processed DOM node, when needed a literal with verified node and attribute data and the DOMPurify configuration to the callback. Check out the [MentalJS hook demo](https://github.com/cure53/DOMPurify/blob/main/demos/hooks-mentaljs-demo.html) to see how the API can be used nicely.
 
 _Example_:
 
