@@ -1460,8 +1460,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, [
             '<svg></svg><blockquote>foo</blockquote>', 
             '<svg><blockquote>foo</blockquote></svg>',
-            '<svg xmlns="http://www.w3.org/2000/svg" /><blockquote>foo</blockquote>',
-            '<svg xmlns="http://www.w3.org/2000/svg" />'
+            '<svg xmlns="http://www.w3.org/2000/svg" /><blockquote>foo</blockquote>'
       ]);
     }
   );
