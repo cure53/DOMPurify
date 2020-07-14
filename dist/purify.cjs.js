@@ -678,6 +678,12 @@ function createDOMPurify() {
       return true;
     }
 
+    /* Check if tagname contains Unicode */
+    if (!currentNode.nodeName.match(/^[\w-]+$/)) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Now let's check the element's type and name */
     var tagName = stringToLowerCase(currentNode.nodeName);
 

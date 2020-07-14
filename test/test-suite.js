@@ -1466,4 +1466,14 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.equal(clean, '<a href="data:image/gif;base64,123">icon.gif</a>');
     }
   );
+  QUnit.test(
+    'Test against Unicode tag names and proper removal',
+    function (assert) {
+      var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
+      assert.equal(clean, '<svg><blockquote>foo</blockquote></svg>');
+      
+      var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
+      assert.equal(clean, '<svg><blockquote>foo</blockquote></svg>');
+    }
+  );
 };
