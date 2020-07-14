@@ -1456,7 +1456,8 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
       assert.contains(clean, [
             '<svg></svg><blockquote>foo</blockquote>', 
-            '<svg><blockquote>foo</blockquote></svg>'
+            '<svg><blockquote>foo</blockquote></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg" /><blockquote>foo</blockquote>'
       ]);
     }
   );
