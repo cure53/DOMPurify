@@ -1451,7 +1451,10 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     'Test against Unicode tag names and proper removal',
     function (assert) {
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
-      assert.equal(clean, '<svg></svg>');
+      assert.contains(clean, [
+          '<svg></svg>', 
+          '<svg xmlns="http://www.w3.org/2000/svg" />'
+      ]);
       
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
       assert.contains(clean, [
