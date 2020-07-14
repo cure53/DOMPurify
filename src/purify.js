@@ -650,7 +650,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Check if tagname contains Unicode */
-    if (currentNode.nodeName.match(/[\u0080-\uFFFF]/)) {
+    if (stringMatch(currentNode.nodeName, /[\u0080-\uFFFF]/)) {
       _forceRemove(currentNode);
       return true;
     }
