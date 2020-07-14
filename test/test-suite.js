@@ -132,12 +132,6 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       }),
       '<my-component>abc</my-component>'
     );
-    assert.equal(
-      DOMPurify.sanitize('<my-ĸompønent>abc</my-ĸompønent>', {
-        ADD_TAGS: ['my-ĸompønent'],
-      }),
-      '<my-ĸompønent>abc</my-ĸompønent>'
-    );
   });
   QUnit.test('Config-Flag tests: ADD_TAGS + ADD_ATTR', function (assert) {
     // ADD_TAGS + ADD_ATTR
@@ -153,19 +147,6 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         ADD_ATTR: ['my-attr'],
       }),
       '<my-component my-attr="foo">abc</my-component>'
-    );
-    assert.equal(
-      DOMPurify.sanitize('<my-ĸompønent my-æŧŧr="foo">abc</my-ĸompønent>', {
-        ADD_TAGS: ['my-ĸompønent'],
-      }),
-      '<my-ĸompønent>abc</my-ĸompønent>'
-    );
-    assert.equal(
-      DOMPurify.sanitize('<my-ĸompønent my-æŧŧr="foo">abc</my-ĸompønent>', {
-        ADD_TAGS: ['my-ĸompønent'],
-        ADD_ATTR: ['my-æŧŧr'],
-      }),
-      '<my-ĸompønent my-æŧŧr="foo">abc</my-ĸompønent>'
     );
   });
   QUnit.test('Config-Flag tests: SAFE_FOR_JQUERY', function (assert) {
@@ -1470,10 +1451,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     'Test against Unicode tag names and proper removal',
     function (assert) {
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
-      assert.equal(clean, '<svg><blockquote>foo</blockquote></svg>');
+      assert.equal(clean, '<svg></svg>');
       
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
-      assert.equal(clean, '<svg><blockquote>foo</blockquote></svg>');
+      assert.contains(clean, [
+            '<svg></svg><blockquote>foo</blockquote>', 
+            '<svg><blockquote>foo</blockquote></svg>'
+      ]);
     }
   );
 };
