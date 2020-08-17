@@ -1,6 +1,6 @@
 # DOMPurify
 
-[![Bower version](https://badge.fury.io/bo/dompurify.svg)](http://badge.fury.io/bo/dompurify)  [![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify)  ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main)  [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify)  [![minified size](https://badgen.net/bundlephobia/min/dompurify)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js)  [![gzip size](https://badgen.net/bundlephobia/minzip/dompurify)](https://packagephobia.now.sh/result?p=dompurify)
+[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify)  ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main)  [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify)  [![minified size](https://badgen.net/bundlephobia/min/dompurify)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js)  [![gzip size](https://badgen.net/bundlephobia/minzip/dompurify)](https://packagephobia.now.sh/result?p=dompurify)
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
