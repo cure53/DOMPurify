@@ -735,7 +735,7 @@
       }
 
       /* Convert markup to cover jQuery behavior */
-      if (SAFE_FOR_JQUERY && !currentNode.firstElementChild && (!currentNode.content || !currentNode.content.firstElementChild) && regExpTest(/</g, currentNode.textContent)) {
+      if (SAFE_FOR_JQUERY && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/</g, currentNode.textContent)) {
         arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
         if (currentNode.innerHTML) {
           currentNode.innerHTML = stringReplace(currentNode.innerHTML, /</g, '&lt;');
