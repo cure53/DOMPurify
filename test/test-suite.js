@@ -1464,4 +1464,16 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       ]);
     }
   );
+  QUnit.test(
+    'Test protection from prototype pollution attacks',
+    function (assert) {
+
+      const obj = JSON.parse('{"ALLOWED_ATTR":["onerror","src"]}');
+      for (let [k, v] of Object.entries(obj)) {
+        Object.prototype[k] = v;
+      }
+      var clean = DOMPurify.sanitize('<img src=x onerror=alert(1)>');
+      assert.equal(clean, '<img src="x">');
+    }
+  );
 };
