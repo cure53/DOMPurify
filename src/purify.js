@@ -140,6 +140,10 @@ function createDOMPurify(window = getGlobal()) {
   } = document;
   const { importNode } = originalDocument;
 
+  const documentMode = clone(document).documentMode
+    ? document.documentMode
+    : null;
+
   let hooks = {};
 
   /**
@@ -148,7 +152,7 @@ function createDOMPurify(window = getGlobal()) {
   DOMPurify.isSupported =
     implementation &&
     typeof implementation.createHTMLDocument !== 'undefined' &&
-    document.documentMode !== 9;
+    documentMode !== 9;
 
   const {
     MUSTACHE_EXPR,

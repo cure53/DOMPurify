@@ -264,12 +264,14 @@ function createDOMPurify() {
   var importNode = originalDocument.importNode;
 
 
+  var documentMode = clone(document).documentMode ? document.documentMode : null;
+
   var hooks = {};
 
   /**
    * Expose whether this browser supports running the full DOMPurify.
    */
-  DOMPurify.isSupported = implementation && typeof implementation.createHTMLDocument !== 'undefined' && document.documentMode !== 9;
+  DOMPurify.isSupported = implementation && typeof implementation.createHTMLDocument !== 'undefined' && documentMode !== 9;
 
   var MUSTACHE_EXPR$$1 = MUSTACHE_EXPR,
       ERB_EXPR$$1 = ERB_EXPR,
