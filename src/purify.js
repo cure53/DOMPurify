@@ -332,6 +332,9 @@ function createDOMPurify(window = getGlobal()) {
       cfg = {};
     }
 
+    /* Shield configuration object from prototype pollution */
+    cfg = clone(cfg);
+
     /* Set configuration parameters */
     ALLOWED_TAGS =
       'ALLOWED_TAGS' in cfg
