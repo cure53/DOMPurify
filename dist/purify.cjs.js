@@ -210,7 +210,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '2.0.13';
+  DOMPurify.version = '2.0.14';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.
@@ -266,7 +266,7 @@ function createDOMPurify() {
   var importNode = originalDocument.importNode;
 
 
-  var documentMode = clone(document).documentMode ? document.documentMode : null;
+  var documentMode = clone(document).documentMode ? document.documentMode : {};
 
   var hooks = {};
 

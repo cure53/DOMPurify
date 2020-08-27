@@ -142,7 +142,7 @@ function createDOMPurify(window = getGlobal()) {
 
   const documentMode = clone(document).documentMode
     ? document.documentMode
-    : null;
+    : {};
 
   let hooks = {};
 
