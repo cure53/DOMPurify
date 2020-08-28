@@ -137,6 +137,9 @@ When `DOMPurify.sanitize` is used in an environment where the Trusted Types API 
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/main/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this).
 
 ```js
+/**
+ * General settings
+ */
 // make output safe for usage in jQuery's $()/html() method (default is false)
 var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
 
@@ -146,48 +149,63 @@ var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_JQUERY: true});
 // only use this mode if there is really no alternative.
 var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
 
-// allow only <b>
+/**
+ * Control our allow-lists and block-lists
+ */
+// allow only <b> elements, very strict
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 
-// allow only <b> and <q> with style attributes (for whatever reason)
+// allow only <b> and <q> with style attributes
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
 // allow all safe HTML elements but neither SVG nor MathML
 var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {html: true}});
 
-// allow all safe SVG elements and SVG Filters
+// allow all safe SVG elements and SVG Filters, no HTML or MathML
 var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {svg: true, svgFilters: true}});
 
-// allow all safe MathML elements and SVG
+// allow all safe MathML elements and SVG, but no SVG Filters
 var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {mathMl: true, svg: true}});
 
-// leave all as it is but forbid <style>
+// leave all safe HTML as it is and add <style> elements to block-list
 var clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
 
-// leave all as it is but forbid style attributes
+// leave all safe HTML as it is and add style attributes to block-list
 var clean = DOMPurify.sanitize(dirty, {FORBID_ATTR: ['style']});
 
-// extend the existing array of allowed tags
+// extend the existing array of allowed tags and add <my-tag> to allow-list
 var clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 
-// extend the existing array of attributes
+// extend the existing array of allowed attributes and add my-attr to allow-list
 var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 
-// extend the existing array of tags that can use Data URIs
-var clean = DOMPurify.sanitize(dirty, {ADD_DATA_URI_TAGS: ['a', 'area']});
-
-// prohibit HTML5 data attributes (default is true)
+// prohibit HTML5 data attributes, leave other safe HTML as is (default is true)
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 
-// allow external protocol handlers in URL attributes (default is false)
+/**
+ * Control behavior relating to URI values
+ */
+// extend the existing array of elements that can use Data URIs
+var clean = DOMPurify.sanitize(dirty, {ADD_DATA_URI_TAGS: ['a', 'area']});
+
+// extend the existing array of elements that are safe for URI-like values (be careful, XSS risk)
+var clean = DOMPurify.sanitize(dirty, {ADD_URI_SAFE_ATTR: ['my-attr']});
+
+/**
+ * Control permitted attribute values
+ */
+// allow external protocol handlers in URL attributes (default is false, be careful, XSS risk)
 // by default only http, https, ftp, ftps, tel, mailto, callto, cid and xmpp are allowed.
 var clean = DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true});
 
-// allow specific protocols handlers in URL attributes (default is false)
+// allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
 // by default only http, https, ftp, ftps, tel, mailto, callto, cid and xmpp are allowed.
 // Default RegExp: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;});
 
+/**
+ * Influence the return-type
+ */
 // return a DOM HTMLBodyElement instead of an HTML string (default is false)
 var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
 
@@ -204,18 +222,24 @@ document.body.appendChild(clean);
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
 var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
 
+/**
+ * Influence how we sanitize
+ */
 // return entire document including <html> tags (default is false)
 var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
 
-// disable DOM Clobbering protection on output (default is true, handle with care!)
+// disable DOM Clobbering protection on output (default is true, handle with care, minor XSS risks here)
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 
-// keep an element's content when the element is removed (default is true)
+// keep an element's content when the element is removed (default is true, careful, minor XSS risks here)
 var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 
 // glue elements like style, script or others to document.body and prevent unintuitive browser behavior in several edge-cases (default is false)
 var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 
+/**
+ * Influence where we sanitize
+ */
 // use the IN_PLACE mode to sanitize a node "in place", which is much faster depending on how you use DOMPurify
 var dirty = document.createElement('a');
 dirty.setAttribute('href', 'javascript:alert(1)');
