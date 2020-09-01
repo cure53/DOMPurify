@@ -125,7 +125,7 @@ module.exports = [
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: nodeName",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeName>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": ["", "<form><input>123</form>", "<input>123"]
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: nodeType",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeType>123</form>",

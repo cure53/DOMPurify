@@ -344,7 +344,7 @@ function createDOMPurify() {
    * DOMPurify. */
   var RETURN_DOM_IMPORT = false;
 
-  /* Try to return a Trusted Type object instead of a string, retrun a string in
+  /* Try to return a Trusted Type object instead of a string, return a string in
    * case Trusted Types are not supported  */
   var RETURN_TRUSTED_TYPE = false;
 
