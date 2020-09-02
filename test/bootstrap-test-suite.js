@@ -1,4 +1,6 @@
-module.exports = function (jsdom) {
+const fs = require('fs');
+
+module.exports = function (JSDOM) {
   class StringWrapper {
     constructor(s) {
       this.s = s;
@@ -9,32 +11,31 @@ module.exports = function (jsdom) {
     }
   }
 
-  function loadDOMPurify(assert, head, setup, onload) {
+  function loadDOMPurify(assert, addScriptAttribute, setup, onload) {
     const testDone = assert.async();
-    jsdom.env({
-      html: '<head>' + head + '</head>',
-      features: {
-        FetchExternalResources: ['script'],
-        ProcessExternalResources: ['script'],
-      },
-      created(err, window) {
-        if (setup) {
-          setup(window);
-        }
-      },
-      done(err, window) {
-        assert.ok(window.DOMPurify.sanitize);
-        // Sanity check
-        assert.equal(
-          window.DOMPurify.sanitize('<img src=x onerror=alert(1)>'),
-          '<img src="x">'
-        );
-        if (onload) {
-          onload(window);
-        }
-        testDone();
-      },
-    });
+    const { window } = new JSDOM('<head></head>', { runScripts: "dangerously" });
+    require('jquery')(window);
+    if (setup) {
+      setup(window);
+    }
+
+    const myLibrary = fs.readFileSync('dist/purify.js', { encoding: "utf-8" });
+    const scriptEl = window.document.createElement("script");
+    if (addScriptAttribute) scriptEl.setAttribute('data-tt-policy-suffix', 'suffix');
+
+    scriptEl.textContent = myLibrary;
+    window.document.body.appendChild(scriptEl);
+
+    assert.ok(window.DOMPurify.sanitize);
+    // Sanity check
+    assert.equal(
+      window.DOMPurify.sanitize('<img src=x onerror=alert(1)>'),
+      '<img src="x">'
+    );
+    if (onload) {
+      onload(window);
+    }
+    testDone();
   }
 
   QUnit.test('works in a non-Trusted Type environment', function (assert) {
@@ -42,7 +43,7 @@ module.exports = function (jsdom) {
 
     loadDOMPurify(
       assert,
-      '<script src="dist/purify.js"></script>',
+      false,
       function setup(window) {
         delete window.trustedTypes;
       },
@@ -58,7 +59,7 @@ module.exports = function (jsdom) {
 
     loadDOMPurify(
       assert,
-      '<script src="dist/purify.js"></script>',
+      false,
       function setup(window) {
         window.trustedTypes = {
           createPolicy(name, rules) {
@@ -89,7 +90,7 @@ module.exports = function (jsdom) {
 
       loadDOMPurify(
         assert,
-        '<script data-tt-policy-suffix="suffix" src="dist/purify.js"></script>',
+        true,
         function setup(window) {
           window.trustedTypes = {
             createPolicy(name, rules) {
