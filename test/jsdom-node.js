@@ -5,8 +5,9 @@
 // Test DOMPurify + jsdom using Node.js (version 8 and up)
 const createDOMPurify = require('../dist/purify.cjs');
 const jsdom = require('jsdom');
-const { JSDOM } = jsdom;
-const { window } = new JSDOM(`<html><head></head><body><div id="qunit-fixture"></div></body></html>`, { runScripts: "dangerously" });
+const { JSDOM, VirtualConsole } = jsdom;
+const virtualConsole = new VirtualConsole();
+const { window } = new JSDOM(`<html><head></head><body><div id="qunit-fixture"></div></body></html>`, { runScripts: "dangerously", virtualConsole });
 require('jquery')(window);
 
 const sanitizeTestSuite = require('./test-suite');
