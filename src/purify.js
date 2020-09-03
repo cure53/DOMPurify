@@ -178,6 +178,7 @@ function createDOMPurify(window = getGlobal()) {
     ...TAGS.svgFilters,
     ...TAGS.mathMl,
     ...TAGS.text,
+    ...TAGS.comment,
   ]);
 
   /* Allowed attribute names */
@@ -384,7 +385,7 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Parse profile info */
     if (USE_PROFILES) {
-      ALLOWED_TAGS = addToSet({}, [...TAGS.text]);
+      ALLOWED_TAGS = addToSet({}, [...TAGS.text, ...TAGS.comment]);
       ALLOWED_ATTR = [];
       if (USE_PROFILES.html === true) {
         addToSet(ALLOWED_TAGS, TAGS.html);

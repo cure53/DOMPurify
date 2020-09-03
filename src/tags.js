@@ -228,3 +228,5 @@ export const mathMl = freeze([
 ]);
 
 export const text = freeze(['#text']);
+
+export const comment = freeze(['#comment']);

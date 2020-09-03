@@ -1478,4 +1478,11 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.equal(clean, '<img src="x">');
     }
   );
+  QUnit.test(
+    'Test that comments are not removed during sanitization',
+    function (assert) {
+      var clean = DOMPurify.sanitize('<!-- Comment Here -->');
+      assert.contains(clean, '<!-- Comment Here -->');
+    }
+  );
 };
