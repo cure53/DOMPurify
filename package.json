@@ -40,6 +40,8 @@
     ],
     "rules": {
       "import/no-useless-path-segments": 0,
+      "unicorn/prefer-optional-catch-binding": 0,
+      "unicorn/prefer-node-remove": 0,
       "prettier/prettier": [
         "error",
         {

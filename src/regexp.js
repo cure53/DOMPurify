@@ -10,5 +10,5 @@ export const IS_ALLOWED_URI = seal(
 );
 export const IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
 export const ATTR_WHITESPACE = seal(
-  /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205f\u3000]/g // eslint-disable-line no-control-regex
+  /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
 );
