@@ -140,9 +140,10 @@ function createDOMPurify(window = getGlobal()) {
   } = document;
   const { importNode } = originalDocument;
 
-  const documentMode = clone(document).documentMode
-    ? document.documentMode
-    : {};
+  let documentMode = {};
+  try {
+    documentMode = clone(document).documentMode ? document.documentMode : {};
+  } catch (_) {}
 
   let hooks = {};
 

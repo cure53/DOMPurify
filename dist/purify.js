@@ -270,7 +270,10 @@
     var importNode = originalDocument.importNode;
 
 
-    var documentMode = clone(document).documentMode ? document.documentMode : {};
+    var documentMode = {};
+    try {
+      documentMode = clone(document).documentMode ? document.documentMode : {};
+    } catch (_) {}
 
     var hooks = {};
 
