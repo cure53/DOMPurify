@@ -1429,6 +1429,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, [
         "a<noscript>&lt;p id='>&lt;noscript />&lt;img src=x onerror=alert(1)>'></noscript>", // jsdom
         'a<noscript><p></p></noscript>',
+        "a<noscript><p id='><noscript /><img src=x onerror=alert(1)>'></noscript>"
       ]);
     }
   );
