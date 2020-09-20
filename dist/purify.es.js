@@ -671,7 +671,6 @@ function createDOMPurify() {
    * @param   {Node} currentNode to check for permission to exist
    * @return  {Boolean} true if node was killed, false if left alive
    */
-  // eslint-disable-next-line complexity
   var _sanitizeElements = function _sanitizeElements(currentNode) {
     var content = void 0;
 
@@ -700,7 +699,7 @@ function createDOMPurify() {
     });
 
     /* Take care of several mXSS patterns abusing namespace confusion */
-    if (tagName === 'style' && currentNode.namespaceURI === 'http://www.w3.org/1999/xhtml' && regExpTest(/<\w/g, currentNode.textContent)) {
+    if (tagName === 'style' && currentNode.namespaceURI === 'http://www.w3.org/1999/xhtml' && regExpTest(/<\/*\w/g, currentNode.textContent)) {
       _forceRemove(currentNode);
     }
 
@@ -727,16 +726,6 @@ function createDOMPurify() {
     if (tagName === 'noembed' && regExpTest(/<\/noembed/i, currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
-    }
-
-    /* Convert markup to cover jQuery behavior */
-    if (SAFE_FOR_JQUERY && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/</g, currentNode.textContent)) {
-      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
-      if (currentNode.innerHTML) {
-        currentNode.innerHTML = stringReplace(currentNode.innerHTML, /</g, '&lt;');
-      } else {
-        currentNode.innerHTML = stringReplace(currentNode.textContent, /</g, '&lt;');
-      }
     }
 
     /* Sanitize element content to be template-safe */
