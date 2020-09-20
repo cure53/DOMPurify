@@ -205,6 +205,9 @@ function createDOMPurify(window = getGlobal()) {
   /* Decide if unknown protocols are okay */
   let ALLOW_UNKNOWN_PROTOCOLS = false;
 
+  /* Output should be safe for jQuery's $() factory? */
+  let SAFE_FOR_JQUERY = false;
+
   /* Output should be safe for common template engines.
    * This means, DOMPurify removes data attributes, mustaches and ERB
    */
@@ -360,6 +363,7 @@ function createDOMPurify(window = getGlobal()) {
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
     ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
+    SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY || false; // Default false
     SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
     WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
@@ -464,8 +468,6 @@ function createDOMPurify(window = getGlobal()) {
       node.parentNode.removeChild(node);
     } catch (_) {
       node.outerHTML = emptyHTML;
-    } finally {
-      node.remove();
     }
   };
 
@@ -641,6 +643,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param   {Node} currentNode to check for permission to exist
    * @return  {Boolean} true if node was killed, false if left alive
    */
+  // eslint-disable-next-line complexity
   const _sanitizeElements = function (currentNode) {
     let content;
 
@@ -668,13 +671,13 @@ function createDOMPurify(window = getGlobal()) {
       allowedTags: ALLOWED_TAGS,
     });
 
-    /* Take care of several mXSS patterns abusing namespace confusion */
+    /* Take care of an mXSS pattern using p, br inside svg, math */
     if (
-      FORBID_CONTENTS[tagName] &&
-      currentNode.namespaceURI === 'http://www.w3.org/1999/xhtml' &&
-      regExpTest(/<\/*\w/g, currentNode.textContent)
+      (tagName === 'svg' || tagName === 'math') &&
+      currentNode.querySelectorAll('p, br, form, table').length !== 0
     ) {
       _forceRemove(currentNode);
+      return true;
     }
 
     /* Remove element if anything forbids its presence */
@@ -715,6 +718,30 @@ function createDOMPurify(window = getGlobal()) {
     ) {
       _forceRemove(currentNode);
       return true;
+    }
+
+    /* Convert markup to cover jQuery behavior */
+    if (
+      SAFE_FOR_JQUERY &&
+      !_isNode(currentNode.firstElementChild) &&
+      (!_isNode(currentNode.content) ||
+        !_isNode(currentNode.content.firstElementChild)) &&
+      regExpTest(/</g, currentNode.textContent)
+    ) {
+      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
+      if (currentNode.innerHTML) {
+        currentNode.innerHTML = stringReplace(
+          currentNode.innerHTML,
+          /</g,
+          '&lt;'
+        );
+      } else {
+        currentNode.innerHTML = stringReplace(
+          currentNode.textContent,
+          /</g,
+          '&lt;'
+        );
+      }
     }
 
     /* Sanitize element content to be template-safe */
@@ -897,6 +924,12 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
+        continue;
+      }
+
+      /* Work around a security issue in jQuery 3.0 */
+      if (SAFE_FOR_JQUERY && regExpTest(/\/>/i, value)) {
+        _removeAttribute(name, currentNode);
         continue;
       }
 

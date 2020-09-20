@@ -156,28 +156,28 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         '<a>123</a><option><style><img src=x onerror=alert(1)>',
         { SAFE_FOR_JQUERY: false }
       ),
-      '<a>123</a><option></option>'
+      '<a>123</a><option><style><img src=x onerror=alert(1)></style></option>'
     );
     assert.equal(
       DOMPurify.sanitize(
         '<a>123</a><option><style><img src=x onerror=alert(1)>',
         { SAFE_FOR_JQUERY: true }
       ),
-      '<a>123</a><option></option>'
+      '<a>123</a><option><style>&lt;img src=x onerror=alert(1)></style></option>'
     );
     assert.equal(
       DOMPurify.sanitize(
         '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>',
         { SAFE_FOR_JQUERY: false }
       ),
-      '<option></option>'
+      '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>'
     );
     assert.equal(
       DOMPurify.sanitize(
         '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>',
         { SAFE_FOR_JQUERY: true }
       ),
-      '<option></option>'
+      '<option><style>&lt;/option>&lt;/select>&lt;b>&lt;img src=xx: onerror=alert(1)></style></option>'
     );
     assert.equal(
       DOMPurify.sanitize(
@@ -197,13 +197,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       DOMPurify.sanitize('<b><style><style/><img src=xx: onerror=alert(1)>', {
         SAFE_FOR_JQUERY: false,
       }),
-      '<b></b>'
+      '<b><style><style/><img src=xx: onerror=alert(1)></style></b>'
     );
     assert.equal(
       DOMPurify.sanitize('<b><style><style/><img src=xx: onerror=alert(1)>', {
         SAFE_FOR_JQUERY: true,
       }),
-      '<b></b>'
+      '<b><style>&lt;style/>&lt;img src=xx: onerror=alert(1)></style></b>'
     );
     assert.contains(
       DOMPurify.sanitize('1<template><s>000</s></template>2', {
@@ -886,7 +886,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)</script>';
       DOMPurify.sanitize(dirty, { SAFE_FOR_JQUERY: true });
-      assert.equal(DOMPurify.removed.length, 2);
+      assert.equal(DOMPurify.removed.length, 1);
     }
   );
 
@@ -1240,7 +1240,6 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         'a<noembed>&lt;p id=\'</noembed><img src="x">\'&gt;<p></p>',
         'a<noembed><p id="&lt;/noembed&gt;&lt;img src=x onerror=alert(1)&gt;"></p></noembed>',
         'a<noembed></noembed>',
-        "a<img src=\"x\">'&gt;<p></p>"
       ]);
     }
   );
@@ -1248,12 +1247,11 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     var clean = DOMPurify.sanitize('<svg></p><style><g title="</style>');
     assert.contains(clean, [
       '',
-      '<svg><p></p></svg>',
-      '<svg></svg><p></p>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p></svg></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p></svg>',
+      '<svg><p></p><style></style></svg>',
+      '<svg></svg><p></p><style><g title="</style>',
+      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><style /></svg></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><style /></svg>',
       '<p></p><style><g title="</style>',
-      '<svg><p></p><style></style></svg>'
     ]);
   });
   QUnit.test('Avoid mXSS in Chrome 77 and above using HTML', function (assert) {
@@ -1268,7 +1266,6 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<svg xmlns="http://www.w3.org/2000/svg"><p></p><title /></svg></svg>',
       '<svg xmlns="http://www.w3.org/2000/svg"><p></p></svg>',
       '<p></p><title>&lt;a href="</title>qqq',
-      "<svg></svg><p></p>qqq"
     ]);
   });
   QUnit.test(
@@ -1431,8 +1428,6 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, [
         "a<noscript>&lt;p id='>&lt;noscript />&lt;img src=x onerror=alert(1)>'></noscript>", // jsdom
         'a<noscript><p></p></noscript>',
-        "a<noscript><p id='><noscript /><img src=x onerror=alert(1)>'></noscript>",
-        "a<noscript><p id=\"><noscript /><img src=x onerror=alert(1)>\"></p></noscript>"
       ]);
     }
   );
