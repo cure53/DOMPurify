@@ -515,7 +515,7 @@ function createDOMPurify() {
     } catch (_) {
       node.remove();
     } finally {
-      node.outerHTML = emptyHTML;
+      node.innerHTML = emptyHTML;
     }
   };
 
