@@ -1075,10 +1075,16 @@ module.exports = [
           "<svg></svg><b><style><b title='</style><img>'&gt;</b>"
       ]
   }, {
-      "title": "Tests against nesting-based mXSS behavior 1/1",
+      "title": "Tests against nesting-based mXSS behavior 1/2",
       "payload": "<form><math><mtext></form><form><mglyph><style><img>",
       "expected": [
           "<form></form>"
+      ]
+  }, {
+      "title": "Tests against nesting-based mXSS behavior 2/2",
+      "payload": "<math><mtext><table><mglyph><style><math>CLICKME</math>",
+      "expected": [
+          ""
       ]
   }, {
       "title": "Tests against proper handling of leading whitespaces",
