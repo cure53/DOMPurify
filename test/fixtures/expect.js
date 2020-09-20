@@ -944,7 +944,8 @@ module.exports = [
       "expected": [
           "<div id=\"135\">\n\n<template>\n\n\n</template>\n//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n\n</template>\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n<head></head><body></body>\n</template>\n//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n<head></head><body></body>\n</template>\n//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"135\">\n\n\n\n//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"136\"><form action=\"x\" method=\"post\">\n<input name=\"username\" value=\"admin\" />\n<input name=\"password\" type=\"password\" value=\"secret\" />\n<input name=\"injected\" value=\"injected\" dirname=\"password\" />\n<input type=\"submit\">\n</form>//[\"'`-->]]>]</div>",
@@ -1030,7 +1031,8 @@ module.exports = [
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
           "<svg><p></p><title><template></template></title></svg>",
           "<svg></svg><p></p><img src=\"x\">",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title><template></template></title></title></svg></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title><template></template></title></title></svg></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title /></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
@@ -1039,7 +1041,8 @@ module.exports = [
           "",
           "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img src=\"x\">",
           "<math><br><textarea><mtext><template></template></mtext></textarea></math>",
-          "<math></math><br><img src=\"x\">"
+          "<math></math><br><img src=\"x\">",
+          "<math><br><textarea><mtext></mtext></textarea></math>"
       ]
   }, {
       "title": "Fixed an exception coming from missing clobbering protection",
@@ -1054,7 +1057,8 @@ module.exports = [
           "",
           "<svg></svg><p></p><math><title><style></style></title></math><img src=\"x\">",
           "<svg><p></p><math><title></title></math></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math><title /></math></svg></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math><title /></math></svg></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math><title /></math></svg>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
@@ -1064,7 +1068,8 @@ module.exports = [
           "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;",
           "<svg><p></p><style><g></g></style></svg>",
           "<svg></svg><p></p><img src=\"x\">\"&gt;",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></style></svg></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></style></svg></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></svg>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",

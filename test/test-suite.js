@@ -209,7 +209,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       DOMPurify.sanitize('1<template><s>000</s></template>2', {
         SAFE_FOR_JQUERY: true,
       }),
-      ['1<template><s>000</s></template>2', '1<template></template>2']
+      ['1<template><s>000</s></template>2', '1<template></template>2', '12']
     );
     assert.contains(
       DOMPurify.sanitize('<template><s>000</s></template>', {
