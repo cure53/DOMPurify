@@ -682,6 +682,7 @@ function createDOMPurify() {
 
     /* Check if element is clobbered or can clobber */
     if (_isClobbered(currentNode)) {
+      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
       _forceRemove(currentNode);
       return true;
     }
@@ -701,8 +702,9 @@ function createDOMPurify() {
       allowedTags: ALLOWED_TAGS
     });
 
-    /* Take care of an mXSS pattern using p, br inside svg, math */
-    if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('p, br, form, table').length !== 0) {
+    /* Detect mXSS attempts abusing namespace confusion */
+    if (!_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<\/*\w/g, currentNode.textContent)) {
+      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
       _forceRemove(currentNode);
       return true;
     }
@@ -730,16 +732,6 @@ function createDOMPurify() {
     if (tagName === 'noembed' && regExpTest(/<\/noembed/i, currentNode.innerHTML)) {
       _forceRemove(currentNode);
       return true;
-    }
-
-    /* Convert markup to cover jQuery behavior */
-    if (SAFE_FOR_JQUERY && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/</g, currentNode.textContent)) {
-      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
-      if (currentNode.innerHTML) {
-        currentNode.innerHTML = stringReplace(currentNode.innerHTML, /</g, '&lt;');
-      } else {
-        currentNode.innerHTML = stringReplace(currentNode.textContent, /</g, '&lt;');
-      }
     }
 
     /* Sanitize element content to be template-safe */
