@@ -945,7 +945,7 @@ module.exports = [
           "<div id=\"135\">\n\n<template>\n\n\n</template>\n//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n\n</template>\n//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"135\">\n\n<template>\nnew ActiveXObject('htmlfile').parentWindow.alert(135)\n<head></head><body></body>\n</template>\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"135\">\n\n\n\n//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"135\">\n\n\n//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"136\"><form action=\"x\" method=\"post\">\n<input name=\"username\" value=\"admin\" />\n<input name=\"password\" type=\"password\" value=\"secret\" />\n<input name=\"injected\" value=\"injected\" dirname=\"password\" />\n<input type=\"submit\">\n</form>//[\"'`-->]]>]</div>",
@@ -1032,7 +1032,8 @@ module.exports = [
           "<svg><p></p><title><template></template></title></svg>",
           "<svg></svg><p></p><img src=\"x\">",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title><template></template></title></title></svg></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title /></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title /></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title><template></template></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
