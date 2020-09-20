@@ -319,9 +319,6 @@
     /* Decide if unknown protocols are okay */
     var ALLOW_UNKNOWN_PROTOCOLS = false;
 
-    /* Output should be safe for jQuery's $() factory? */
-    var SAFE_FOR_JQUERY = false;
-
     /* Output should be safe for common template engines.
      * This means, DOMPurify removes data attributes, mustaches and ERB
      */
@@ -419,7 +416,6 @@
       ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
       ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
       ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
-      SAFE_FOR_JQUERY = cfg.SAFE_FOR_JQUERY || false; // Default false
       SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
       WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
       RETURN_DOM = cfg.RETURN_DOM || false; // Default false
@@ -870,12 +866,6 @@
 
         /* Did the hooks approve of the attribute? */
         if (!hookEvent.keepAttr) {
-          continue;
-        }
-
-        /* Work around a security issue in jQuery 3.0 */
-        if (SAFE_FOR_JQUERY && regExpTest(/\/>/i, value)) {
-          _removeAttribute(name, currentNode);
           continue;
         }
 
