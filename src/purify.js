@@ -463,6 +463,8 @@ function createDOMPurify(window = getGlobal()) {
     try {
       node.parentNode.removeChild(node);
     } catch (_) {
+      node.remove();
+    } finally {
       node.outerHTML = emptyHTML;
     }
   };

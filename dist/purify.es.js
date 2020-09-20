@@ -513,6 +513,8 @@ function createDOMPurify() {
     try {
       node.parentNode.removeChild(node);
     } catch (_) {
+      node.remove();
+    } finally {
       node.outerHTML = emptyHTML;
     }
   };

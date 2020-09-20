@@ -1026,7 +1026,8 @@ module.exports = [
           "<svg><p></p><title><template></template></title></svg>",
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title><template></template></title></title></svg></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>",
+          "<svg></svg><p></p><img src=\"x\">"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",

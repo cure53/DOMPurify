@@ -886,7 +886,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)</script>';
       DOMPurify.sanitize(dirty, { SAFE_FOR_JQUERY: true });
-      assert.equal(DOMPurify.removed.length, 1);
+      assert.equal(DOMPurify.removed.length, 2);
     }
   );
 
@@ -1240,6 +1240,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         'a<noembed>&lt;p id=\'</noembed><img src="x">\'&gt;<p></p>',
         'a<noembed><p id="&lt;/noembed&gt;&lt;img src=x onerror=alert(1)&gt;"></p></noembed>',
         'a<noembed></noembed>',
+        "a<img src=\"x\">'&gt;<p></p>"
       ]);
     }
   );
@@ -1267,6 +1268,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<svg xmlns="http://www.w3.org/2000/svg"><p></p><title /></svg></svg>',
       '<svg xmlns="http://www.w3.org/2000/svg"><p></p></svg>',
       '<p></p><title>&lt;a href="</title>qqq',
+      "<svg></svg><p></p>qqq"
     ]);
   });
   QUnit.test(
