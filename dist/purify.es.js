@@ -695,7 +695,7 @@ function createDOMPurify() {
     });
 
     /* Take care of several mXSS patterns abusing namespace confusion */
-    if (tagName === 'style' && currentNode.namespaceURI === 'http://www.w3.org/1999/xhtml' && regExpTest(/<\/*\w/g, currentNode.textContent)) {
+    if (FORBID_CONTENTS[tagName] && currentNode.namespaceURI === 'http://www.w3.org/1999/xhtml' && regExpTest(/<\/*\w/g, currentNode.textContent)) {
       _forceRemove(currentNode);
     }
 

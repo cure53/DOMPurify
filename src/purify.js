@@ -668,7 +668,7 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Take care of several mXSS patterns abusing namespace confusion */
     if (
-      tagName === 'style' &&
+      FORBID_CONTENTS[tagName] &&
       currentNode.namespaceURI === 'http://www.w3.org/1999/xhtml' &&
       regExpTest(/<\/*\w/g, currentNode.textContent)
     ) {

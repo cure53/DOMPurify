@@ -1006,7 +1006,9 @@ module.exports = [
       "expected": [
           "", 
           "<svg><p></p><textarea><title></title></textarea></svg>",
-          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">"
+          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><textarea><title /></textarea></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><textarea></textarea></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
@@ -1022,7 +1024,9 @@ module.exports = [
       "expected": [
           "",
           "<svg><p></p><title><template></template></title></svg>",
-          "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">"
+          "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title><template></template></title></title></svg></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
@@ -1044,7 +1048,9 @@ module.exports = [
       "expected": [
           "",
           "<svg><p></p><math><title></title></math></svg>",
-          "<svg></svg><p></p><math><title><style></style></title></math><img src=\"x\">"
+          "<svg></svg><p></p><math><title><style></style></title></math><img src=\"x\">",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math><title /></math></svg></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math></math></svg>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
@@ -1052,14 +1058,17 @@ module.exports = [
       "expected": [
           "",
           "<svg><p></p><style><g></g></style></svg>",
-          "<svg></svg><p></p><img src=\"x\">\"&gt;"
+          "<svg></svg><p></p><img src=\"x\">\"&gt;",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></style></svg></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></svg>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",
       "payload": "<svg><foreignobject><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
       "expected": [
           "",
-          "<svg></svg>"
+          "<svg></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 3/3",
