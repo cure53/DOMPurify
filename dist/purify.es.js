@@ -679,7 +679,6 @@ function createDOMPurify() {
 
     /* Check if element is clobbered or can clobber */
     if (_isClobbered(currentNode)) {
-      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
       _forceRemove(currentNode);
       return true;
     }
@@ -701,7 +700,6 @@ function createDOMPurify() {
 
     /* Detect mXSS attempts abusing namespace confusion */
     if (!_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<\/*\w/g, currentNode.textContent)) {
-      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
       _forceRemove(currentNode);
       return true;
     }

@@ -651,7 +651,6 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Check if element is clobbered or can clobber */
     if (_isClobbered(currentNode)) {
-      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
       _forceRemove(currentNode);
       return true;
     }
@@ -678,7 +677,6 @@ function createDOMPurify(window = getGlobal()) {
         !_isNode(currentNode.content.firstElementChild)) &&
       regExpTest(/<\/*\w/g, currentNode.textContent)
     ) {
-      arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
       _forceRemove(currentNode);
       return true;
     }

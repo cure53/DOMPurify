@@ -163,7 +163,8 @@ module.exports = [
       "payload": "<listing>&lt;img onerror=\"alert(1);//\" src=x&gt;<t t></listing>",
       "expected": [
         "&lt;img onerror=\"alert(1);//\" src=x&gt;",
-        "<img src=\"x\">"
+        "<img src=\"x\">",
+        ""
       ]
   }, {
       "title": "mXSS Variation II",
@@ -200,14 +201,15 @@ module.exports = [
   }, {
       "title": "Img inside style inside broken option element",
       "payload": "\u0001<option><style></option></select><b><img src=x onerror=alert(1)></style></option>",
-      "expected": "\u0001<option><style></option></select><b><img src=x onerror=alert(1)></style></option>"
+      "expected": "\u0001<option></option>"
   }, {
       "title": "Iframe inside option element",
       "payload": "<option><iframe></select><b><script>alert(1)</script>",
       "expected": [
           "<option><b></b></option>",
           "<option>&lt;/select&gt;&lt;b&gt;&lt;script&gt;alert(1)&lt;/script&gt;</option>",
-          "<option></option>"
+          "<option></option>",
+          "<b></b>"
       ]
   }, {
       "title": "Closing Iframe and option",
@@ -216,11 +218,11 @@ module.exports = [
   }, {
       "title": "Image after style to trick jQuery tag-completion",
       "payload": "<b><style><style/><img src=x onerror=alert(1)>",
-      "expected": "<b><style><style/><img src=x onerror=alert(1)></style></b>"
+      "expected": "<b></b>"
   }, {
       "title": "Image after self-closing style to trick jQuery tag-completion",
       "payload": "<b><style><style////><img src=x onerror=alert(1)></style>",
-      "expected": "<b><style><style////><img src=x onerror=alert(1)></style></b>"
+      "expected": "<b></b>"
   }, {
       "title": "MathML example",
       "payload": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
@@ -466,11 +468,12 @@ module.exports = [
           "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></svg>//[\"'`--&gt;]]&gt;]",
           "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></img></svg>//[\"'`--&gt;]]&gt;]",
           "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
+          "<img src=\"x\">//[\"'`--&gt;]]&gt;]"
       ]
   }, {
       "payload": "<div id=\"40\"><style><img src=\"</style><img src=x onerror=alert(40)//\">//[\"'`-->]]>]</div>",
-      "expected": "<div id=\"40\"><style><img src=\"</style><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
+      "expected": "<div id=\"40\"><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"41\"><li style=list-style:url() onerror=alert(41)></li>",
       "expected": [
@@ -1005,28 +1008,36 @@ module.exports = [
       "payload": "<svg></p><textarea><title><style></textarea><img src=x onerror=alert(1)></style></title></svg>",
       "expected": [
           "", 
-          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">"
+          "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">",
+          "<svg><p></p><textarea><title></title></textarea></svg>",
+          "<svg></svg><p></p><img src=\"x\">"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
       "payload": "<math></p><textarea><mi><style></textarea><img src=x onerror=alert(1)></mi></math>",
       "expected": [
           "", 
-          "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img src=\"x\">"
+          "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img src=\"x\">",
+          "<math><p></p><textarea><mi></mi></textarea></math>",
+          "<math></math><p></p><img src=\"x\">"
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG Templates in Chrome 77 and alike",
       "payload": "<svg></p><title><template><style></title><img src=x onerror=alert(1)>",
       "expected": [
           "",
-          "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">"
+          "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
+          "<svg><p></p><title><template></template></title></svg>",
+          "<svg></svg><p></p><img src=\"x\">"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
       "payload": "<math></br><textarea><mtext><template><style></textarea><img src=x onerror=alert(1)>",
       "expected": [
           "",
-          "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img src=\"x\">"
+          "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img src=\"x\">",
+          "<math><br><textarea><mtext><template></template></mtext></textarea></math>",
+          "<math></math><br><img src=\"x\">"
       ]
   }, {
       "title": "Fixed an exception coming from missing clobbering protection",
@@ -1039,26 +1050,31 @@ module.exports = [
       "payload": "<svg></p><math><title><style><img src=x onerror=alert(1)></style></title>",
       "expected": [
           "",
-          "<svg></svg><p></p><math><title><style></style></title></math><img src=\"x\">"
+          "<svg></svg><p></p><math><title><style></style></title></math><img src=\"x\">",
+          "<svg><p></p><math><title></title></math></svg>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
       "payload": "<svg></p><style><g title=\"</style><img src=x onerror=alert(1)>\">",
       "expected": [
           "",
-          "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;"
+          "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;",
+          "<svg><p></p><style><g></g></style></svg>",
+          "<svg></svg><p></p><img src=\"x\">\"&gt;"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",
       "payload": "<svg><foreignobject><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
       "expected": [
-          ""
+          "",
+          "<svg></svg>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 3/3",
       "payload": "<math><annotation-xml encoding=\"text/html\"><p><style><p title=\"</style><iframe onload&#x3d;alert(1)<!--\"></style>",
       "expected": [
-          ""
+          "",
+          "<math></math>"
       ]
   }, {
       "title": "Tests against removal-based mXSS behavior 1/2",
@@ -1076,15 +1092,17 @@ module.exports = [
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 1/2",
-      "payload": "<form><math><mtext></form><form><mglyph><style><img>",
+      "payload": "<form><math><mtext></form><form><mglyph><style><img src=x onerror=alert(1)>",
       "expected": [
-          "<form></form>"
+          "<form></form>",
+          "<form><math><mtext><form><mglyph></mglyph></form></mtext></math></form>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 2/2",
-      "payload": "<math><mtext><table><mglyph><style><math>CLICKME</math>",
+      "payload": "<math><mtext><table><mglyph><style><math href=javascript:alert(1)>CLICKME</math>",
       "expected": [
-          ""
+          "",
+          "<math><mtext><mglyph></mglyph><table></table></mtext></math>"
       ]
   }, {
       "title": "Tests against proper handling of leading whitespaces",
