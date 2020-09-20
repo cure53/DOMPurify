@@ -886,7 +886,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)</script>';
       DOMPurify.sanitize(dirty, { SAFE_FOR_JQUERY: true });
-      assert.equal(DOMPurify.removed.length, 2);
+      assert.equal(DOMPurify.removed.length, 1);
     }
   );
 
