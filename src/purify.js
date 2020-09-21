@@ -675,7 +675,7 @@ function createDOMPurify(window = getGlobal()) {
       !_isNode(currentNode.firstElementChild) &&
       (!_isNode(currentNode.content) ||
         !_isNode(currentNode.content.firstElementChild)) &&
-      regExpTest(/</g, currentNode.innerHTML)
+      regExpTest(/<[!/\w]/g, currentNode.innerHTML)
     ) {
       _forceRemove(currentNode);
       return true;
