@@ -452,7 +452,8 @@ module.exports = [
           "<div id=\"38\"><img src=\"&lt;/comment&gt;&lt;img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
           "<div id=\"38\"><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
           "<div id=\"38\"><img src=\"%3C/comment%3E%3Cimg%20src=x%20onerror=alert%2838%29//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
-          "<div id=\"38\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>"
+          "<div id=\"38\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
+          "<div id=\"38\"><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<![><img src=\"]><img src=x onerror=alert(39)//\">",
@@ -579,7 +580,8 @@ module.exports = [
           "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\"></svg>//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>",
           "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>",
           "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>",
-          "<div id=\"65\">//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>"
+          "<div id=\"65\">//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>",
+          "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\"></svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<?xml-stylesheet type=\"text/xsl\" href=\"data:,%3Cxsl:transform version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform' id='xss'%3E%3Cxsl:output method='html'/%3E%3Cxsl:template match='/'%3E%3Cscript%3Ealert(66)%3C/script%3E%3C/xsl:template%3E%3C/xsl:transform%3E\"?>\n<root/>//[\"'`-->]]>]</div>\n<div id=\"67\"><!DOCTYPE x [\n    <!ATTLIST img xmlns CDATA \"http://www.w3.org/1999/xhtml\" src CDATA \"xx\"\n onerror CDATA \"alert(67)\"\n onload CDATA \"alert(2)\">\n]><img />//[\"'`-->]]>]</div>",
@@ -636,7 +638,8 @@ module.exports = [
       "payload": "<div id=\"82\"><?xml-stylesheet type=\"text/css\" href=\"data:,*%7bx:expression(write(2));%7d\"?>//[\"'`-->]]>]</div><div id=\"83\"><x:template xmlns:x=\"http://www.wapforum.org/2001/wml\"  x:ontimer=\"$(x:unesc)j$(y:escape)a$(z:noecs)v$(x)a$(y)s$(z)cript$x:alert(83)\"><x:timer value=\"1\"/></x:template>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"82\">//[\"'`--&gt;]]&gt;]</div><div id=\"83\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"82\">//[\"'`--&gt;]]&gt;]</div><div id=\"83\"></div>"
+          "<div id=\"82\">//[\"'`--&gt;]]&gt;]</div><div id=\"83\"></div>",
+          "<div id=\"83\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"84\"><x xmlns:ev=\"http://www.w3.org/2001/xml-events\" ev:event=\"load\" ev:handler=\"javascript:alert(84)//#x\"/>//[\"'`-->]]>]</div>",
@@ -723,7 +726,11 @@ module.exports = [
       ]
   }, {
       "payload": "<div id=\"99\">XXX<style>\n\n*{color:gre/**/en !/**/important} /* IE 6-9 Standards mode */\n\n<!--\n--><!--*{color:red}   /* all UA */\n\n*{background:url(xx //**/\red/*)} /* IE 6-7 Standards mode */\n\n</style>//[\"'`-->]]>]</div>",
-      "expected": "<div id=\"99\">XXX<style>\n\n*{color:gre/**/en !/**/important} /* IE 6-9 Standards mode */\n\n<!--\n--><!--*{color:red}   /* all UA */\n\n*{background:url(xx //**/\ned/*)} /* IE 6-7 Standards mode */\n\n</style>//[\"'`--&gt;]]&gt;]</div>"
+      "expected": [
+          "<div id=\"99\">XXX<style>\n\n*{color:gre/**/en !/**/important} /* IE 6-9 Standards mode */\n\n<!--\n--><!--*{color:red}   /* all UA */\n\n*{background:url(xx //**/\ned/*)} /* IE 6-7 Standards mode */\n\n</style>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"99\">XXX//[\"'`--&gt;]]&gt;]</div>"
+      ]
+      
   }, {
       "payload": "<div id=\"100\"><img[a][b]src=x[d]onerror[c]=[e]\"alert(100)\">//[\"'`-->]]>]</div>",
       "expected": "<div id=\"100\">//[\"'`--&gt;]]&gt;]</div>"
@@ -935,8 +942,8 @@ module.exports = [
           "<div id=\"134\">\n&lt;%\n\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"134\">\n&lt;%\n\n\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"134\">\n<img alt=\"%></xmp><img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n%&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n-&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"134\">\n<img alt=\"%&gt;&lt;/xmp&gt;&lt;img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n<style>\n*['<!--']{}\n</style>\n-&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"134\">\n<img alt=\"%></xmp><img src=xx onerror=alert(134)//\">\n\n %&gt;/\nalert(2)\n\n\nXXX\n\n--&gt;{}\n*{color:red}//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "SVG",

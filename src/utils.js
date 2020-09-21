@@ -1,4 +1,4 @@
-const { hasOwnProperty, setPrototypeOf, isFrozen, keys: objectKeys } = Object;
+const { hasOwnProperty, setPrototypeOf, isFrozen } = Object;
 
 let { freeze, seal, create } = Object; // eslint-disable-line import/no-mutable-exports
 let { apply, construct } = typeof Reflect !== 'undefined' && Reflect;
@@ -29,7 +29,6 @@ if (!construct) {
 
 const arrayForEach = unapply(Array.prototype.forEach);
 const arrayIndexOf = unapply(Array.prototype.indexOf);
-const arrayJoin = unapply(Array.prototype.join);
 const arrayPop = unapply(Array.prototype.pop);
 const arrayPush = unapply(Array.prototype.push);
 const arraySlice = unapply(Array.prototype.slice);
@@ -41,7 +40,6 @@ const stringIndexOf = unapply(String.prototype.indexOf);
 const stringTrim = unapply(String.prototype.trim);
 
 const regExpTest = unapply(RegExp.prototype.test);
-const regExpCreate = unconstruct(RegExp);
 
 const typeErrorCreate = unconstruct(TypeError);
 
@@ -101,7 +99,6 @@ export {
   // Array
   arrayForEach,
   arrayIndexOf,
-  arrayJoin,
   arrayPop,
   arrayPush,
   arraySlice,
@@ -109,11 +106,9 @@ export {
   freeze,
   hasOwnProperty,
   isFrozen,
-  objectKeys,
   setPrototypeOf,
   seal,
   // RegExp
-  regExpCreate,
   regExpTest,
   // String
   stringIndexOf,

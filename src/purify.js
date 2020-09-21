@@ -5,10 +5,8 @@ import {
   addToSet,
   clone,
   freeze,
-  objectKeys,
   arrayForEach,
   arrayIndexOf,
-  arrayJoin,
   arrayPop,
   arrayPush,
   arraySlice,
@@ -18,7 +16,6 @@ import {
   stringIndexOf,
   stringTrim,
   regExpTest,
-  regExpCreate,
   typeErrorCreate,
 } from './utils';
 
@@ -704,15 +701,6 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
-    /* Remove in case a noscript/noembed XSS is suspected */
-    if (
-      (tagName === 'noscript' || tagName === 'noembed') &&
-      regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)
-    ) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
     /* Sanitize element content to be template-safe */
     if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
       /* Get the element's text content */
@@ -898,21 +886,6 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Work around a security issue in jQuery 3.0 */
       if (SAFE_FOR_JQUERY && regExpTest(/\/>/i, value)) {
-        _removeAttribute(name, currentNode);
-        continue;
-      }
-
-      /* Take care of an mXSS pattern using namespace switches */
-      if (
-        regExpTest(/svg|math/i, currentNode.namespaceURI) &&
-        regExpTest(
-          regExpCreate(
-            '</(' + arrayJoin(objectKeys(FORBID_CONTENTS), '|') + ')',
-            'i'
-          ),
-          value
-        )
-      ) {
         _removeAttribute(name, currentNode);
         continue;
       }

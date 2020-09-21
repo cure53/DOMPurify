@@ -10,8 +10,7 @@
 
   var hasOwnProperty = Object.hasOwnProperty,
       setPrototypeOf = Object.setPrototypeOf,
-      isFrozen = Object.isFrozen,
-      objectKeys = Object.keys;
+      isFrozen = Object.isFrozen;
   var freeze = Object.freeze,
       seal = Object.seal,
       create = Object.create; // eslint-disable-line import/no-mutable-exports
@@ -46,7 +45,6 @@
 
   var arrayForEach = unapply(Array.prototype.forEach);
   var arrayIndexOf = unapply(Array.prototype.indexOf);
-  var arrayJoin = unapply(Array.prototype.join);
   var arrayPop = unapply(Array.prototype.pop);
   var arrayPush = unapply(Array.prototype.push);
   var arraySlice = unapply(Array.prototype.slice);
@@ -58,7 +56,6 @@
   var stringTrim = unapply(String.prototype.trim);
 
   var regExpTest = unapply(RegExp.prototype.test);
-  var regExpCreate = unconstruct(RegExp);
 
   var typeErrorCreate = unconstruct(TypeError);
 
@@ -724,12 +721,6 @@
         return true;
       }
 
-      /* Remove in case a noscript/noembed XSS is suspected */
-      if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
-        _forceRemove(currentNode);
-        return true;
-      }
-
       /* Sanitize element content to be template-safe */
       if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
         /* Get the element's text content */
@@ -871,12 +862,6 @@
 
         /* Work around a security issue in jQuery 3.0 */
         if (SAFE_FOR_JQUERY && regExpTest(/\/>/i, value)) {
-          _removeAttribute(name, currentNode);
-          continue;
-        }
-
-        /* Take care of an mXSS pattern using namespace switches */
-        if (regExpTest(/svg|math/i, currentNode.namespaceURI) && regExpTest(regExpCreate('</(' + arrayJoin(objectKeys(FORBID_CONTENTS), '|') + ')', 'i'), value)) {
           _removeAttribute(name, currentNode);
           continue;
         }
