@@ -1074,14 +1074,15 @@ module.exports = [
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
-      "payload": "<svg></p><style><g title=\"</style><img src=x onerror=alert(1)>\">",
+      "payload": "<svg><p><style><g title=\"</style><img src=x onerror=alert(1)>\">",
       "expected": [
           "",
           "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;",
           "<svg><p></p><style><g></g></style></svg>",
           "<svg></svg><p></p><img src=\"x\">\"&gt;",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></style></svg></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></svg>",
+          "<svg></svg><p><img src=\"x\">\"&gt;</p>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",
