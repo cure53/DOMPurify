@@ -92,7 +92,6 @@ function createDOMPurify(window = getGlobal()) {
   }
 
   const originalDocument = window.document;
-  let removeTitle = false;
 
   let { document } = window;
   const {
@@ -513,11 +512,6 @@ function createDOMPurify(window = getGlobal()) {
       doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
     } catch (_) {}
 
-    /* Remove title to fix a mXSS bug in older MS Edge */
-    if (removeTitle) {
-      addToSet(FORBID_TAGS, ['title']);
-    }
-
     /* Use createHTMLDocument in case DOMParser is not available */
     if (!doc || !doc.documentElement) {
       doc = implementation.createHTMLDocument('');
@@ -536,18 +530,6 @@ function createDOMPurify(window = getGlobal()) {
     /* Work on whole document or just its body */
     return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
   };
-
-  /* Here we test for a broken feature in Edge that might cause mXSS */
-  if (DOMPurify.isSupported) {
-    (function () {
-      try {
-        const doc = _initDocument('<x/><title>&lt;/title&gt;&lt;img&gt;');
-        if (regExpTest(/<\/title/, doc.querySelector('title').innerHTML)) {
-          removeTitle = true;
-        }
-      } catch (_) {}
-    })();
-  }
 
   /**
    * _createIterator
