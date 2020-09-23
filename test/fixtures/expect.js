@@ -977,13 +977,6 @@ module.exports = [
           "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>"
       ]
   }, {
-      "title": "Removing name attr from img with id can crash Safari",
-      "payload": "<img name=\"bar\" id=\"foo\">",
-      "expected": [
-          "<img id=\"foo\" name=\"bar\">",
-          "<img name=\"bar\">"
-      ]
-  }, {
       "title": "DOM clobbering: submit",
       "payload": "<input name=submit>123",
       "expected": "<input>123"
