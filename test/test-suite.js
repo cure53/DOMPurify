@@ -149,77 +149,50 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<my-component my-attr="foo">abc</my-component>'
     );
   });
-  QUnit.test('Config-Flag tests: SAFE_FOR_JQUERY', function (assert) {
-    //SAFE_FOR_JQUERY
+  QUnit.test('Config-Flag tests: SAFE_FOR_JQUERY (now inactive, secure by default)', function (assert) {
     assert.equal(
-      DOMPurify.sanitize(
-        '<a>123</a><option><style><img src=x onerror=alert(1)>',
-        { SAFE_FOR_JQUERY: false }
-      ),
+      DOMPurify.sanitize('<a>123</a><option><style><img src=x onerror=alert(1)>'),
+      "<a>123</a><option></option>"
+    );
+    assert.equal(
+      DOMPurify.sanitize('<a>123</a><option><style><img src=x onerror=alert(1)>'),
       "<a>123</a><option></option>"
     );
     assert.equal(
       DOMPurify.sanitize(
-        '<a>123</a><option><style><img src=x onerror=alert(1)>',
-        { SAFE_FOR_JQUERY: true }
-      ),
-      "<a>123</a><option></option>"
-    );
-    assert.equal(
-      DOMPurify.sanitize(
-        '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>',
-        { SAFE_FOR_JQUERY: false }
+        '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>'
       ),
       "<option></option>"
     );
     assert.equal(
       DOMPurify.sanitize(
-        '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>',
-        { SAFE_FOR_JQUERY: true }
-      ),
-      "<option></option>"
-    );
-    assert.equal(
-      DOMPurify.sanitize(
-        '<option><iframe></select><b><script>alert(1)</script>',
-        { SAFE_FOR_JQUERY: false, KEEP_CONTENT: false }
-      ),
+        '<option><iframe></select><b><script>alert(1)</script>'),
       '<option></option>'
     );
     assert.equal(
       DOMPurify.sanitize(
-        '<option><iframe></select><b><script>alert(1)</script>',
-        { SAFE_FOR_JQUERY: true, KEEP_CONTENT: false }
-      ),
+        '<option><iframe></select><b><script>alert(1)</script>'),
       '<option></option>'
     );
     assert.equal(
-      DOMPurify.sanitize('<b><style><style/><img src=xx: onerror=alert(1)>', {
-        SAFE_FOR_JQUERY: false,
-      }),
+      DOMPurify.sanitize('<b><style><style/><img src=xx: onerror=alert(1)>'),
       '<b></b>'
     );
     assert.equal(
-      DOMPurify.sanitize('<b><style><style/><img src=xx: onerror=alert(1)>', {
-        SAFE_FOR_JQUERY: true,
-      }),
+      DOMPurify.sanitize('<b><style><style/><img src=xx: onerror=alert(1)>'),
       '<b></b>'
     );
     assert.contains(
-      DOMPurify.sanitize('1<template><s>000</s></template>2', {
-        SAFE_FOR_JQUERY: true,
-      }),
+      DOMPurify.sanitize('1<template><s>000</s></template>2'),
       ['1<template><s>000</s></template>2', '1<template></template>2', '12']
     );
     assert.contains(
-      DOMPurify.sanitize('<template><s>000</s></template>', {
-        SAFE_FOR_JQUERY: true,
-      }),
+      DOMPurify.sanitize('<template><s>000</s></template>'),
       ['', '<template><s>000</s></template>']
     );
     // see https://github.com/cure53/DOMPurify/issues/283
     assert.equal(
-      DOMPurify.sanitize('<i>&amp;amp; &lt;</i>', { SAFE_FOR_JQUERY: true }),
+      DOMPurify.sanitize('<i>&amp;amp; &lt;</i>'),
       '<i>&amp;amp; &lt;</i>'
     );
   });
@@ -590,7 +563,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     assert
   ) {
     jQuery('#qunit-fixture').html(
-      DOMPurify.sanitize(params.payload, { SAFE_FOR_JQUERY: true })
+      DOMPurify.sanitize(params.payload)
     );
     setTimeout(function () {
       QUnit.start();
@@ -880,12 +853,12 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     }
   );
 
-  // Test 7 to check that DOMPurify.removed is correct in SAFE_FOR_JQUERY mode
+  // Test 7 to check that DOMPurify.removed is correct
   QUnit.test(
-    'DOMPurify.removed should be correct in SAFE_FOR_JQUERY mode',
+    'DOMPurify.removed should be correct',
     function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)</script>';
-      DOMPurify.sanitize(dirty, { SAFE_FOR_JQUERY: true });
+      DOMPurify.sanitize(dirty);
       assert.equal(DOMPurify.removed.length, 1);
     }
   );
@@ -923,14 +896,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     }
   );
 
-  // Test 11 to check that DOMPurify.removed does not have false positive elements in SAFE_FOR_JQUERY mode
+  // Test 11 to check that DOMPurify.removed does not have false positive elements
   QUnit.test(
-    'DOMPurify.removed should not contain elements for valid data in SAFE_FOR_JQUERY mode',
+    'DOMPurify.removed should not contain elements for valid data',
     function (assert) {
       var dirty = '1';
       DOMPurify.sanitize(dirty, {
-        WHOLE_DOCUMENT: true,
-        SAFE_FOR_JQUERY: true,
+        WHOLE_DOCUMENT: true
       });
       assert.equal(DOMPurify.removed.length, 0);
     }
@@ -1402,9 +1374,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
   QUnit.test(
     'Test against insecure behavior in jQUery v3.0 and newer 1/2',
     function (assert) {
-      var config = {
-        SAFE_FOR_JQUERY: true,
-      };
+      var config = {};
       var clean = DOMPurify.sanitize(
         '<img x="/><img src=x onerror=alert(1)>" y="<x">',
         config
@@ -1420,10 +1390,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
   QUnit.test(
     'Test against insecure behavior in jQUery v3.0 and newer 2/2',
     function (assert) {
-      var config = {
-        SAFE_FOR_JQUERY: true,
-        ADD_TAGS: ['noscript'],
-      };
+      var config = {};
       var clean = DOMPurify.sanitize(
         "a<noscript><p id='><noscript /><img src=x onerror=alert(1)>'></noscript>",
         config
@@ -1431,6 +1398,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, [
         "a<noscript>&lt;p id='>&lt;noscript />&lt;img src=x onerror=alert(1)>'></noscript>", // jsdom
         'a<noscript><p></p></noscript>',
+        "a<p></p>",
         "a"
       ]);
     }
