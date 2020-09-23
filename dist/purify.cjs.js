@@ -857,6 +857,12 @@ function createDOMPurify() {
         continue;
       }
 
+      /* Work around a security issue in jQuery 3.0 */
+      if (regExpTest(/\/>/i, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
+
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
         value = stringReplace(value, MUSTACHE_EXPR$$1, ' ');
