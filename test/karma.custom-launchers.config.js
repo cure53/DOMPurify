@@ -3,6 +3,14 @@ const argv = require('minimist')(process.argv.slice(2));
 const isArray = require('lodash.isarray');
 
 const customLaunchers = {
+  bs_sierra_safari_10: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'OS X',
+    browser_version: '10.0',
+    browser: 'safari',
+    os_version: 'Sierra',
+  },
   bs_sierra_safari_11: {
     base: 'BrowserStack',
     device: null,
@@ -70,6 +78,14 @@ const customLaunchers = {
     device: null,
     os: 'Windows',
     browser_version: '60.0',
+    browser: 'firefox',
+    os_version: '10',
+  },
+  bs_win10_firefox_70: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '70.0',
     browser: 'firefox',
     os_version: '10',
   },
