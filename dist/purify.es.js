@@ -943,7 +943,7 @@ function createDOMPurify() {
     if (IN_PLACE) ; else if (dirty instanceof Node) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
-      body = _initDocument('<!-->');
+      body = _initDocument('<!---->');
       importedNode = body.ownerDocument.importNode(dirty, true);
       if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
         /* Node is already a body, use as is */
