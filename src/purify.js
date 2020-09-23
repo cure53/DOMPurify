@@ -6,10 +6,8 @@ import {
   clone,
   freeze,
   arrayForEach,
-  arrayIndexOf,
   arrayPop,
   arrayPush,
-  arraySlice,
   stringMatch,
   stringReplace,
   stringToLowerCase,
@@ -790,12 +788,11 @@ function createDOMPurify(window = getGlobal()) {
     let attr;
     let value;
     let lcName;
-    let idAttr;
     let l;
     /* Execute a hook if present */
     _executeHook('beforeSanitizeAttributes', currentNode, null);
 
-    let { attributes } = currentNode;
+    const { attributes } = currentNode;
 
     /* Check if we have attributes; if not we might have a text node */
     if (!attributes) {
@@ -830,41 +827,7 @@ function createDOMPurify(window = getGlobal()) {
       }
 
       /* Remove attribute */
-      // Safari (iOS + Mac), last tested v8.0.5, crashes if you try to
-      // remove a "name" attribute from an <img> tag that has an "id"
-      // attribute at the time.
-      if (
-        lcName === 'name' &&
-        currentNode.nodeName === 'IMG' &&
-        attributes.id
-      ) {
-        idAttr = attributes.id;
-        attributes = arraySlice(attributes, []);
-        _removeAttribute('id', currentNode);
-        _removeAttribute(name, currentNode);
-        if (arrayIndexOf(attributes, idAttr) > l) {
-          currentNode.setAttribute('id', idAttr.value);
-        }
-      } else if (
-        // This works around a bug in Safari, where input[type=file]
-        // cannot be dynamically set after type has been removed
-        currentNode.nodeName === 'INPUT' &&
-        lcName === 'type' &&
-        value === 'file' &&
-        hookEvent.keepAttr &&
-        (ALLOWED_ATTR[lcName] || !FORBID_ATTR[lcName])
-      ) {
-        continue;
-      } else {
-        // This avoids a crash in Safari v9.0 with double-ids.
-        // The trick is to first set the id to be empty and then to
-        // remove the attribute
-        if (name === 'id') {
-          currentNode.setAttribute(name, '');
-        }
-
-        _removeAttribute(name, currentNode);
-      }
+      _removeAttribute(name, currentNode);
 
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
