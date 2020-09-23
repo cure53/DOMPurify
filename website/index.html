@@ -56,6 +56,7 @@
             ifr.contentDocument.close();
             timing.innerHTML=t+'ms '+timing.innerHTML
         ">Sanitize textarea value, then write result to DOM</button>
+        <label for="auto">Auto convert?</label><input type="checkbox" id="auto">
         <button title="This might not work with the large default payload. Better try with smaller, realistic values" onclick="
             var ifr = document.getElementById('ifr');
             var tx1 = Date.now();
@@ -71,7 +72,17 @@
             Timings: <code id="timing"> </code>
         </p>
         <p><label for="x">Dirty HTML</label></p>
-        <textarea placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:100px"><!-- Loading Test-Vectors ... --></textarea>
+        <textarea onkeyup="
+            if(!document.getElementById('auto').checked) {
+              return;
+            }
+            var ifr = document.getElementById('ifr');
+            var xss = DOMPurify.sanitize(x.value);
+            ifr.contentDocument.open();
+            ifr.contentDocument.write(xss.toString());
+            y.value=xss;
+            ifr.contentDocument.close();
+        " placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:100px"><!-- Loading Test-Vectors ... --></textarea>
         <p><label for="y">Clean HTML</label></p>
         <textarea placeholder="Here be the sanitized markup to inspect!" id="y" style="width:95%;height:100px"></textarea>
         <p><label for="ifr">Clean DOM</label></p>
