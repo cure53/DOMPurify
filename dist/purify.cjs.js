@@ -673,6 +673,12 @@ function createDOMPurify() {
       allowedTags: ALLOWED_TAGS
     });
 
+    /* Take care of an mXSS pattern using p, br inside svg, math */
+    if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('p, br').length !== 0) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Detect mXSS attempts abusing namespace confusion */
     if (!_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[!/\w]/g, currentNode.innerHTML) && regExpTest(/<[!/\w]/g, currentNode.textContent)) {
       _forceRemove(currentNode);
@@ -813,12 +819,6 @@ function createDOMPurify() {
 
       /* Work around a security issue in jQuery 3.0 */
       if (regExpTest(/\/>/i, value)) {
-        _removeAttribute(name, currentNode);
-        continue;
-      }
-
-      /* Take care of an mXSS pattern using namespace switches */
-      if (regExpTest(/svg|math/i, currentNode.namespaceURI) && regExpTest(/<\//, value)) {
         _removeAttribute(name, currentNode);
         continue;
       }
