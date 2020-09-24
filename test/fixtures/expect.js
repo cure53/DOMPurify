@@ -1005,7 +1005,7 @@ module.exports = [
           ""
       ]
   }, {
-      "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike",
+      "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike 1/2",
       "payload": "<svg></p><textarea><title><style></textarea><img src=x onerror=alert(1)></style></title></svg>",
       "expected": [
           "", 
@@ -1014,6 +1014,14 @@ module.exports = [
           "<svg></svg><p></p><img src=\"x\">",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><textarea><title /></textarea></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><textarea></textarea></svg>"
+      ]
+  }, {
+      "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike 2/2",
+      "payload": "<svg></p><title><a id=\"</title><img src=x onerror=alert()>\"></textarea></svg>",
+      "expected": [
+          "",
+          "<svg><p></p><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
+          "<svg></svg><p></p><title>&lt;a id=\"</title><img src=\"x\">\"&gt;"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",

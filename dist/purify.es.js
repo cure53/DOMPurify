@@ -815,6 +815,12 @@ function createDOMPurify() {
         continue;
       }
 
+      /* Take care of an mXSS pattern using namespace switches */
+      if (regExpTest(/svg|math/i, currentNode.namespaceURI) && regExpTest(/<\//, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
+
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
         value = stringReplace(value, MUSTACHE_EXPR$$1, ' ');
