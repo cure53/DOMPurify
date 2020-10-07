@@ -46,8 +46,6 @@ The resulting HTML can be written into a DOM element using `innerHTML` or the DO
 
 Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library _after_ sanitization, please be certain that the library doesn't mess around with the HTML on its own.
 
-jQuery does exactly that and that is why we have this flag mentioned above.
-
 ### Okay, makes sense, let's move on
 
 After sanitizing your markup, you can also have a look at the property `DOMPurify.removed` and find out, what elements and attributes were thrown out. Please **do not use** this property for making any security critical decisions. This is just a little helper for curious minds.
