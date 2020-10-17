@@ -415,7 +415,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
   });
   QUnit.test('Config-Flag tests: RETURN_DOM_IMPORT', function (assert) {
     //RETURN_DOM_IMPORT
-    assert.notEqual(
+    assert.equal(
       DOMPurify.sanitize('123', { RETURN_DOM: true }).ownerDocument,
       document
     );
@@ -429,7 +429,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         .ownerDocument,
       document
     );
-    assert.notEqual(
+    assert.equal(
       DOMPurify.sanitize('123', { RETURN_DOM_FRAGMENT: true }).ownerDocument,
       document
     );
@@ -455,7 +455,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       RETURN_DOM_FRAGMENT: true,
     });
     assert.equal(fragment.nodeType, 11);
-    assert.notEqual(fragment.ownerDocument, document);
+    assert.equal(fragment.ownerDocument, document);
     assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
     // again, but without SANITIZE_DOM
     fragment = DOMPurify.sanitize('foo<img id="createDocumentFragment">', {
@@ -463,8 +463,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       SANITIZE_DOM: false,
     });
     assert.equal(fragment.nodeType, 11);
-    assert.notEqual(fragment.ownerDocument, document);
+    assert.equal(fragment.ownerDocument, document);
     assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
+  });
+  QUnit.test('Config-Flag tests: RETURN_DOM_FRAGMENT', function (assert) {
+      var xss = `<body><div><template shadowroot=open><img src=x onerror=alert(3)></template></div></body>`;
+      var dom_body = DOMPurify.sanitize(xss, {RETURN_DOM: true});
+      assert.equal(dom_body.outerHTML, "<body><div><template><img src=\"x\"></template></div></body>");
   });
   QUnit.test('Config-Flag tests: IN_PLACE', function (assert) {
     //IN_PLACE
