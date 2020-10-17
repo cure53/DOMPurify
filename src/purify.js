@@ -227,8 +227,13 @@ function createDOMPurify(window = getGlobal()) {
   /* If `RETURN_DOM` or `RETURN_DOM_FRAGMENT` is enabled, decide if the returned DOM
    * `Node` is imported into the current `Document`. If this flag is not enabled the
    * `Node` will belong (its ownerDocument) to a fresh `HTMLDocument`, created by
-   * DOMPurify. */
-  let RETURN_DOM_IMPORT = false;
+   * DOMPurify.
+   *
+   * This defaults to `true` starting DOMPurify 2.2.0. Note that setting it to `false`
+   * might cause XSS from attacks hidden in closed shadowroots in case the browser
+   * supports Declarative Shadow: DOM https://web.dev/declarative-shadow-dom/
+   */
+  let RETURN_DOM_IMPORT = true;
 
   /* Try to return a Trusted Type object instead of a string, return a string in
    * case Trusted Types are not supported  */
