@@ -363,7 +363,7 @@ function createDOMPurify(window = getGlobal()) {
     WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
-    RETURN_DOM_IMPORT = cfg.RETURN_DOM_IMPORT || true; // Default true
+    RETURN_DOM_IMPORT = cfg.RETURN_DOM_IMPORT !== false; // Default true
     RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
