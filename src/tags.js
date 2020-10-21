@@ -33,6 +33,7 @@ export const html = freeze([
   'del',
   'details',
   'dfn',
+  'dialog',
   'dir',
   'div',
   'dl',
