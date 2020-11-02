@@ -683,7 +683,7 @@
       });
 
       /* Take care of an mXSS pattern using p, br inside svg, math */
-      if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('p, br').length !== 0) {
+      if ((tagName === 'svg' || tagName === 'math') && currentNode.querySelectorAll('p, br, form').length !== 0) {
         _forceRemove(currentNode);
         return true;
       }
