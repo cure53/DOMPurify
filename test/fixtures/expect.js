@@ -1116,32 +1116,38 @@ module.exports = [
           "<svg></svg><b><style><b title='</style><img>'&gt;</b>"
       ]
   }, {
-      "title": "Tests against nesting-based mXSS behavior 1/4",
+      "title": "Tests against nesting-based mXSS behavior 1/5",
       "payload": "<form><math><mtext></form><form><mglyph><style><img src=x onerror=alert(1)>",
       "expected": [
           "<form></form>",
           "<form><math><mtext><form><mglyph></mglyph></form></mtext></math></form>"
       ]
   }, {
-      "title": "Tests against nesting-based mXSS behavior 2/4",
+      "title": "Tests against nesting-based mXSS behavior 2/5",
       "payload": "<math><mtext><table><mglyph><style><math href=javascript:alert(1)>CLICKME</math>",
       "expected": [
           "",
           "<math><mtext><mglyph></mglyph><table></table></mtext></math>"
       ]
   }, {
-      "title": "Tests against nesting-based mXSS behavior 3/4",
+      "title": "Tests against nesting-based mXSS behavior 3/5",
       "payload": "<math><mtext><table><mglyph><style><!--</style><img title=\"--&gt;&lt;img src=1 onerror=alert(1)&gt;\">",
       "expected": [
           "",
           "<math><mtext><mglyph><img title=\"--><img src=1 onerror=alert(1)>\"></mglyph><table></table></mtext></math>"
       ]
   }, {
-      "title": "Tests against nesting-based mXSS behavior 4/4",
+      "title": "Tests against nesting-based mXSS behavior 4/5",
       "payload": "<form><math><mtext></form><form><mglyph><svg><mtext><style><path id=\"</style><img onerror=alert(1) src>\">",
       "expected": [
           "",
           "<form></form>"
+      ]
+  }, {
+      "title": "Tests against nesting-based mXSS behavior 5/5",
+      "payload": "<math><mtext><table><mglyph><svg><mtext><style><path id=\"</style><img onerror=alert(1) src>\">",
+      "expected": [
+          ""
       ]
   }, {
       "title": "Tests against proper handling of leading whitespaces",
