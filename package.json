@@ -128,7 +128,7 @@
     "purify"
   ],
   "author": "Mario Heiderich <mario@cure53.de> (https://cure53.de/)",
-  "license": "MPL-2.0 OR Apache-2.0",
+  "license": "(MPL-2.0 OR Apache-2.0)",
   "bugs": {
     "url": "https://github.com/cure53/DOMPurify/issues"
   },
