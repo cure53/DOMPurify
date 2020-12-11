@@ -1360,6 +1360,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, [
         '<math><b><style><b title="</style></b></math>',
         '<math></math>',
+        ''
       ]);
     }
   );

