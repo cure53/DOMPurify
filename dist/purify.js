@@ -707,13 +707,13 @@
         return true;
       }
 
-      if (tagName === 'math' && _isNode(currentNode.firstElementChild) && currentNode.querySelectorAll(':not(' + mathMl.join('):not(') + ')').length !== 0) {
+      if (tagName === 'math' && _isNode(currentNode.firstElementChild) && currentNode.querySelectorAll(':not(' + mathMl.join('):not(') + ')').length > 0) {
         _forceRemove(currentNode);
         return true;
       }
 
       /* Take care of an mXSS using HTML inside SVG affecting old Chrome */
-      if (tagName === 'svg' && currentNode.querySelectorAll('p, br, table, form').length !== 0) {
+      if (tagName === 'svg' && currentNode.querySelectorAll('p, br, table, form').length > 0) {
         _forceRemove(currentNode);
         return true;
       }
