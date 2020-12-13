@@ -702,13 +702,6 @@
         return true;
       }
 
-      /* Remove in case a noscript/noembed XSS is suspected */
-      if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
-        _forceRemove(currentNode);
-        return true;
-      }
-
-      /* Take care of an mXSS pattern using HTML inside math */
       if (tagName === 'math' && _isNode(currentNode.firstElementChild) && currentNode.querySelectorAll(':not(' + mathMl.join('):not(') + ')').length !== 0) {
         _forceRemove(currentNode);
         return true;
