@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 15.x, 16.x]
+        node-version: [14.x, 15.x]
 
     steps:
       - name: Checkout
@@ -46,7 +46,7 @@ jobs:
         with:
           run: npm run test:ci
         env:
-          TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '16') }}
+          TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '15') }}
           TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' }}
           BS_USERNAME: ${{ secrets.BS_USERNAME }}
           BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
