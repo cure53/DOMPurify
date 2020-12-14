@@ -288,7 +288,7 @@ DOMPurify.addHook('beforeSanitizeElements', function (
 
 ## Continuous Integration
 
-We are currently using Travis CI in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://travis-ci.org/cure53/DOMPurify
+We are currently using Github Actions in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://github.com/cure53/DOMPurify/actions
 
 You can further run local tests by executing `npm test`. The tests work fine with Node.js v0.6.2 and jsdom@8.5.0.
 
