@@ -464,7 +464,7 @@ function createDOMPurify(window = getGlobal()) {
     } catch (_) {
       node.outerHTML = emptyHTML;
     } finally {
-      node.innerHTML = emptyHTML;
+      node.remove();
     }
   };
 
