@@ -10,7 +10,7 @@ It's also very simple to use and get started with. DOMPurify was [started in Feb
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
-Our automated tests cover [15 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v12, v13, v14.0.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom). Older Node.js versions are known to work as well.
+Our automated tests cover [15 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v14.15.1, v15.4.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom). Older Node.js versions are known to work as well.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 

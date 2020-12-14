@@ -514,9 +514,11 @@ function createDOMPurify() {
     try {
       node.parentNode.removeChild(node);
     } catch (_) {
-      node.outerHTML = emptyHTML;
-    } finally {
-      node.remove();
+      try {
+        node.outerHTML = emptyHTML;
+      } catch (_) {
+        node.remove();
+      }
     }
   };
 
