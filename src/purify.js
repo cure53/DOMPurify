@@ -463,6 +463,8 @@ function createDOMPurify(window = getGlobal()) {
       node.parentNode.removeChild(node);
     } catch (_) {
       node.outerHTML = emptyHTML;
+    } finally {
+      node.innerHTML = emptyHTML;
     }
   };
 
@@ -704,7 +706,7 @@ function createDOMPurify(window = getGlobal()) {
     /* Take care of an mXSS using HTML inside SVG affecting old Chrome */
     if (
       tagName === 'svg' &&
-      currentNode.querySelectorAll('p, br, table, form').length > 0
+      currentNode.querySelectorAll('p, br, table, form, noscript').length > 0
     ) {
       _forceRemove(currentNode);
       return true;
