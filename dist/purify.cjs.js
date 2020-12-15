@@ -692,10 +692,12 @@ function createDOMPurify() {
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for bad-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName] && typeof currentNode.insertAdjacentHTML === 'function') {
-        try {
-          var htmlToInsert = currentNode.innerHTML;
-          currentNode.insertAdjacentHTML('AfterEnd', trustedTypesPolicy ? trustedTypesPolicy.createHTML(htmlToInsert) : htmlToInsert);
-        } catch (_) {}
+        var nextSibling = currentNode.nextSibling;
+        var parentNode = currentNode.parentNode;
+        var childCount = currentNode.childNodes.length;
+        for (var i = childCount - 1; i >= 0; --i) {
+          parentNode.insertBefore(currentNode.childNodes[i], nextSibling);
+        }
       }
 
       _forceRemove(currentNode);

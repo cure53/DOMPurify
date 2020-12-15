@@ -672,15 +672,12 @@ function createDOMPurify(window = getGlobal()) {
         !FORBID_CONTENTS[tagName] &&
         typeof currentNode.insertAdjacentHTML === 'function'
       ) {
-        try {
-          const htmlToInsert = currentNode.innerHTML;
-          currentNode.insertAdjacentHTML(
-            'AfterEnd',
-            trustedTypesPolicy
-              ? trustedTypesPolicy.createHTML(htmlToInsert)
-              : htmlToInsert
-          );
-        } catch (_) {}
+        const nextSibling = currentNode.nextSibling;
+        const parentNode = currentNode.parentNode;
+        const childCount = currentNode.childNodes.length;
+        for (let i = childCount - 1; i >= 0; --i) {
+          parentNode.insertBefore(currentNode.childNodes[i], nextSibling);
+        }
       }
 
       _forceRemove(currentNode);
