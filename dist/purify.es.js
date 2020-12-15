@@ -680,12 +680,6 @@ function createDOMPurify() {
       allowedTags: ALLOWED_TAGS
     });
 
-    /* Detect mXSS attempts abusing namespace confusion */
-    if (!_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for bad-listed elements */
@@ -703,17 +697,6 @@ function createDOMPurify() {
     }
 
     if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
-    if (tagName === 'math' && _isNode(currentNode.firstElementChild) && currentNode.querySelectorAll(':not(' + mathMl.join('):not(') + ')').length > 0) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
-    /* Take care of an mXSS using HTML inside SVG affecting old Chrome */
-    if (tagName === 'svg' && currentNode.querySelectorAll('p, br, table, form, noscript').length > 0) {
       _forceRemove(currentNode);
       return true;
     }
