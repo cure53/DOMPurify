@@ -270,6 +270,7 @@ function createDOMPurify(window = getGlobal()) {
     'mtext',
     'noembed',
     'noframes',
+    'noscript',
     'plaintext',
     'script',
     'style',
