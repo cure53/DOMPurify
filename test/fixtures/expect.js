@@ -1017,8 +1017,8 @@ module.exports = [
       "payload": "<svg></p><title><a id=\"</title><img src=x onerror=alert()>\"></textarea></svg>",
       "expected": [
           "",
-          "<svg><p></p><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
-          "<svg></svg><p></p><title>&lt;a id=\"</title><img src=\"x\">\"&gt;"
+          "<svg></svg><p></p><title>&lt;a id=\"</title><img src=\"x\">\"&gt;",
+          "<svg><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
@@ -1026,8 +1026,8 @@ module.exports = [
       "expected": [
           "",
           "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img src=\"x\">",
-          "<math><p></p><textarea><mi></mi></textarea></math>",
-          "<math></math><p></p><img src=\"x\">"
+          "<math></math><p></p><img src=\"x\">",
+          "<math></math>",
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG Templates in Chrome 77 and alike",
@@ -1035,23 +1035,17 @@ module.exports = [
       "expected": [
           "",
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
-          "<svg><p></p><title><template></template></title></svg>",
           "<svg></svg><p></p><img src=\"x\">",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title><template></template></title></title></svg></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><title><template></template></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>",
-          "<svg><p></p><title></title></svg>"
+          "<svg><title><template></template></title></svg>",
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
       "payload": "<math></br><textarea><mtext><template><style></textarea><img src=x onerror=alert(1)>",
       "expected": [
           "",
+          "<math></math>",
           "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img src=\"x\">",
-          "<math><br><textarea><mtext><template></template></mtext></textarea></math>",
           "<math></math><br><img src=\"x\">",
-          "<math><br><textarea><mtext></mtext></textarea></math>"
       ]
   }, {
       "title": "Fixed an exception coming from missing clobbering protection",
@@ -1064,13 +1058,8 @@ module.exports = [
       "payload": "<svg></p><math><title><style><img src=x onerror=alert(1)></style></title>",
       "expected": [
           "",
-          "<svg></svg><p></p><math><title><style></style></title></math><img src=\"x\">",
-          "<svg><p></p><math><title></title></math></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math><title /></math></svg></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math><title /></math></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><math></math></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p></svg>",
-          "<svg><p></p></svg>",
+          "<svg></svg>",
+          "<svg></svg><p></p><math></math><img src=\"x\">",
           "<svg></svg><p></p><img src=\"x\">"
       ]
   }, {
@@ -1078,13 +1067,10 @@ module.exports = [
       "payload": "<svg><p><style><g title=\"</style><img src=x onerror=alert(1)>\">",
       "expected": [
           "",
+          "<svg></svg>",
           "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;",
-          "<svg><p></p><style><g></g></style></svg>",
           "<svg></svg><p></p><img src=\"x\">\"&gt;",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></style></svg></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><style><g /></style></svg>",
           "<svg></svg><p><img src=\"x\">\"&gt;</p>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" /><p><img src=\"x\">\"&gt;</p>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",
@@ -1120,40 +1106,43 @@ module.exports = [
       "payload": "<form><math><mtext></form><form><mglyph><style><img src=x onerror=alert(1)>",
       "expected": [
           "<form></form>",
-          "<form><math><mtext><form><mglyph></mglyph></form></mtext></math></form>"
+          "<form><math><mtext><form></form></mtext></math></form>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 2/5",
       "payload": "<math><mtext><table><mglyph><style><math href=javascript:alert(1)>CLICKME</math>",
       "expected": [
           "",
-          "<math><mtext><mglyph></mglyph><table></table></mtext></math>"
+          "<math><mtext><table></table></mtext></math>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 3/5",
       "payload": "<math><mtext><table><mglyph><style><!--</style><img title=\"--&gt;&lt;img src=1 onerror=alert(1)&gt;\">",
       "expected": [
           "",
-          "<math><mtext><mglyph><img title=\"--><img src=1 onerror=alert(1)>\"></mglyph><table></table></mtext></math>"
+          "<math><mtext><table></table></mtext></math>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 4/5",
       "payload": "<form><math><mtext></form><form><mglyph><svg><mtext><style><path id=\"</style><img onerror=alert(1) src>\">",
       "expected": [
           "",
-          "<form></form>"
+          "<form></form>",
+          "<form><math><mtext><form></form></mtext></math></form>",
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 5/5",
       "payload": "<math><mtext><table><mglyph><svg><mtext><style><path id=\"</style><img onerror=alert(1) src>\">",
       "expected": [
-          ""
+          "",
+          "<math><mtext><table></table></mtext></math>"
       ]
   }, {
       "title": "Tests against additonal problems regarding HTML inside MathML 1/2",
       "payload": "<math><mtext><h1><a><h6></a></h6><mglyph><svg><mtext><style><a title=\"</style><img src onerror='alert(1)'>\"></style></h1>",
       "expected": [
-          ""
+          "",
+          "<math><mtext><h1><a></a><h6><a></a></h6></h1></mtext></math>",
       ]
   }, {
       "title": "Tests against additonal problems regarding HTML inside MathML 2/2",
