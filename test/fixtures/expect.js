@@ -1009,10 +1009,8 @@ module.exports = [
       "expected": [
           "",
           "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">",
-          "<svg><p></p><textarea><title></title></textarea></svg>",
+          "<svg></svg>",
           "<svg></svg><p></p><img src=\"x\">",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><textarea><title /></textarea></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><p></p><textarea></textarea></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike 2/2",
