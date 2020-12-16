@@ -492,7 +492,17 @@ function createDOMPurify(window = getGlobal()) {
    *  return. Return true otherwise.
    */
   const _checkValidNamespace = function (element) {
-    const parent = element.parentElement;
+    let parent = element.parentElement;
+
+    // In JSDOM, if we're inside shadow DOM, then parentElement
+    // can be null. We just simulate parent in this case.
+    if (!element.parentElement) {
+      parent = {
+        namespaceURI: HTML_NAMESPACE,
+        tagName: 'template',
+      };
+    }
+
     const tagName = stringToLowerCase(element.tagName);
     const parentTagName = stringToLowerCase(parent.tagName);
 
@@ -782,6 +792,18 @@ function createDOMPurify(window = getGlobal()) {
       tagName,
       allowedTags: ALLOWED_TAGS,
     });
+
+    /* Detect mXSS attempts abusing namespace confusion */
+    if (
+      !_isNode(currentNode.firstElementChild) &&
+      (!_isNode(currentNode.content) ||
+        !_isNode(currentNode.content.firstElementChild)) &&
+      regExpTest(/<[/\w]/g, currentNode.innerHTML) &&
+      regExpTest(/<[/\w]/g, currentNode.textContent)
+    ) {
+      _forceRemove(currentNode);
+      return true;
+    }
 
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
