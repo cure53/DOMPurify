@@ -1115,12 +1115,15 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       ]
     );
     assert.contains(
-      DOMPurify.sanitize('<feBlend in="SourceGraphic" mode="multiply" />', {
+      DOMPurify.sanitize('<svg><feBlend in="SourceGraphic" mode="multiply" /></svg>', {
         USE_PROFILES: { svgFilters: true },
+        ADD_TAGS: ['svg'],
       }),
       [
-        '<feblend in="SourceGraphic" mode="multiply"></feblend>',
-        '<feblend mode="multiply" in="SourceGraphic"></feblend>',
+        '<svg><feblend in="SourceGraphic" mode="multiply"></feblend></svg>',
+        '<svg><feblend mode="multiply" in="SourceGraphic"></feblend></svg>',
+        '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
+        '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
       ]
     );
     assert.contains(
