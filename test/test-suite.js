@@ -1225,27 +1225,21 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     var clean = DOMPurify.sanitize('<svg></p><style><g title="</style>');
     assert.contains(clean, [
       '',
-      '<svg><p></p><style></style></svg>',
       '<svg></svg><p></p><style><g title="</style>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><style /></svg></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><style /></svg>',
       '<p></p><style><g title="</style>',
-      "<svg></svg><p></p>"
+      "<svg></svg><p></p>",
+      "<svg><style></style></svg>"
     ]);
   });
   QUnit.test('Avoid mXSS in Chrome 77 and above using HTML', function (assert) {
     var clean = DOMPurify.sanitize('<svg></p><title><a href="</title>qqq');
     assert.contains(clean, [
       '',
-      '<svg><p></p><title></title></svg>',
       '<svg></svg><p></p><title>&lt;a href="</title>qqq<img src="">"&gt;',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><title /></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><style /></svg>',
       '<svg></svg><p></p><title>&lt;a href="</title>qqq',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><title /></svg></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p></svg>',
       '<p></p><title>&lt;a href="</title>qqq',
-      "<svg></svg><p></p>qqq"
+      "<svg></svg><p></p>qqq",
+      "<svg><title></title></svg>",
     ]);
   });
   QUnit.test(
@@ -1430,13 +1424,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     function (assert) {
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
       assert.contains(clean, [
-          '<svg></svg>', 
+          '<svg></svg>',
           '<svg xmlns="http://www.w3.org/2000/svg" />'
       ]);
-      
+
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
       assert.contains(clean, [
-            '<svg></svg><blockquote>foo</blockquote>', 
+            '<svg></svg><blockquote>foo</blockquote>',
             '<svg><blockquote>foo</blockquote></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" /><blockquote>foo</blockquote>'
       ]);
