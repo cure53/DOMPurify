@@ -130,8 +130,6 @@ export const svg = freeze([
   'animatecolor',
   'animatemotion',
   'animatetransform',
-  'audio',
-  'canvas',
   'circle',
   'clippath',
   'defs',
@@ -165,7 +163,6 @@ export const svg = freeze([
   'title',
   'tref',
   'tspan',
-  'video',
   'view',
   'vkern',
 ]);
