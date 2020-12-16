@@ -728,7 +728,7 @@ function createDOMPurify() {
       return false;
     }
 
-    if (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string') {
+    if (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function') {
       return true;
     }
 
@@ -809,11 +809,14 @@ function createDOMPurify() {
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for bad-listed elements */
-      if (KEEP_CONTENT && !FORBID_CONTENTS[tagName] && typeof currentNode.insertAdjacentHTML === 'function') {
-        var parentNode = currentNode.parentNode;
-        var childCount = currentNode.childNodes.length;
+      if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+        var parentNode = Element.prototype.__lookupGetter__('parentNode').call(currentNode);
+        var childNodes = Element.prototype.__lookupGetter__('childNodes').call(currentNode);
+        var getNextSibling = Element.prototype.__lookupGetter__('nextSibling');
+        var cloneNode = Element.prototype.cloneNode;
+        var childCount = childNodes.length;
         for (var i = childCount - 1; i >= 0; --i) {
-          parentNode.insertBefore(currentNode.childNodes[i].cloneNode(true), currentNode.nextSibling);
+          parentNode.insertBefore(cloneNode.call(childNodes[i], true), getNextSibling.call(currentNode));
         }
       }
 
