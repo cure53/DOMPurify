@@ -432,9 +432,7 @@ module.exports = [
   }, {
       "payload": "<div id=\"35\">1<a href=#><line xmlns=urn:schemas-microsoft-com:vml style=behavior:url(#default#vml);position:absolute href=javascript:alert(35) strokecolor=white strokeweight=1000px from=0 to=1000 /></a>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"35\">1<a href=\"#\"><line style=\"behavior:url(#default#vml);position:absolute\" xmlns=\"urn:schemas-microsoft-com:vml\"></line></a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"35\">1<a href=\"#\"><line style=\"position: absolute; behavior: url(#default#vml);\" xmlns=\"urn:schemas-microsoft-com:vml\"></line></a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"35\">1<a href=\"#\"><line style=\"position: absolute; -ms-behavior: url(#default#vml);\" xmlns=\"urn:schemas-microsoft-com:vml\"></line></a>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"35\">1<a href=\"#\"></a>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"36\"><a style=\"behavior:url(#default#AnchorClick);\" folder=\"javascript:alert(36)\">XXX</a>//[\"'`-->]]>]</div>",
@@ -730,7 +728,7 @@ module.exports = [
           "<div id=\"99\">XXX<style>\n\n*{color:gre/**/en !/**/important} /* IE 6-9 Standards mode */\n\n<!--\n--><!--*{color:red}   /* all UA */\n\n*{background:url(xx //**/\ned/*)} /* IE 6-7 Standards mode */\n\n</style>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"99\">XXX//[\"'`--&gt;]]&gt;]</div>"
       ]
-      
+
   }, {
       "payload": "<div id=\"100\"><img[a][b]src=x[d]onerror[c]=[e]\"alert(100)\">//[\"'`-->]]>]</div>",
       "expected": "<div id=\"100\">//[\"'`--&gt;]]&gt;]</div>"
@@ -1009,7 +1007,7 @@ module.exports = [
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike 1/2",
       "payload": "<svg></p><textarea><title><style></textarea><img src=x onerror=alert(1)></style></title></svg>",
       "expected": [
-          "", 
+          "",
           "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">",
           "<svg><p></p><textarea><title></title></textarea></svg>",
           "<svg></svg><p></p><img src=\"x\">",
@@ -1028,7 +1026,7 @@ module.exports = [
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
       "payload": "<math></p><textarea><mi><style></textarea><img src=x onerror=alert(1)></mi></math>",
       "expected": [
-          "", 
+          "",
           "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img src=\"x\">",
           "<math><p></p><textarea><mi></mi></textarea></math>",
           "<math></math><p></p><img src=\"x\">"
