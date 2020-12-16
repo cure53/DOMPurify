@@ -96,6 +96,7 @@ function createDOMPurify(window = getGlobal()) {
     DocumentFragment,
     HTMLTemplateElement,
     Node,
+    Element,
     NodeFilter,
     NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
     Text,
@@ -452,6 +453,135 @@ function createDOMPurify(window = getGlobal()) {
     CONFIG = cfg;
   };
 
+  const MATHML_TEXT_INTEGRATION_POINTS = new Set([
+    'mi',
+    'mo',
+    'mn',
+    'ms',
+    'mtext',
+  ]);
+
+  const HTML_INTEGRATION_POINTS = new Set([
+    'foreignobject',
+    'desc',
+    'title',
+    'annotation-xml',
+  ]);
+
+  /* Keep track of all possible SVG and MathML tags
+   * so that we can perform the namespace checks
+   * correctly. */
+  const ALL_SVG_TAGS = addToSet({}, TAGS.svg);
+  addToSet(ALL_SVG_TAGS, TAGS.svgFilters);
+  addToSet(ALL_SVG_TAGS, TAGS.svgDisallowed);
+
+  const ALL_MATHML_TAGS = addToSet({}, TAGS.mathMl);
+  addToSet(ALL_MATHML_TAGS, TAGS.mathMlDisallowed);
+
+  const MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
+  const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+  const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+
+  /**
+   *
+   *
+   * @param  {Element} element a DOM element whose namespace is being checked
+   * @returns {boolean} Return false if the element has a
+   *  namespace that a spec-compliant parser would never
+   *  return. Return true otherwise.
+   */
+  const _checkValidNamespace = function (element) {
+    const parent = element.parentElement;
+    const tagName = stringToLowerCase(element.tagName);
+    const parentTagName = stringToLowerCase(parent.tagName);
+
+    if (element.namespaceURI === SVG_NAMESPACE) {
+      // The only way to switch from HTML namespace to SVG
+      // is via <svg>. If it happens via any other tag, then
+      // it should be killed.
+      if (parent.namespaceURI === HTML_NAMESPACE) {
+        return tagName === 'svg';
+      }
+
+      // The only way to switch from MathML to SVG is via
+      // svg if parent is either <annotation-xml> or MathML
+      // text integration points.
+      if (parent.namespaceURI === MATHML_NAMESPACE) {
+        return (
+          tagName === 'svg' &&
+          (parentTagName === 'annotation-xml' ||
+            MATHML_TEXT_INTEGRATION_POINTS.has(parentTagName))
+        );
+      }
+
+      // We only allow elements that are defined in SVG
+      // spec. All others are disallowed in SVG namespace.
+      return Boolean(ALL_SVG_TAGS[tagName]);
+    }
+
+    if (element.namespaceURI === MATHML_NAMESPACE) {
+      // The only way to switch from HTML namespace to MathML
+      // is via <math>. If it happens via any other tag, then
+      // it should be killed.
+      if (parent.namespaceURI === HTML_NAMESPACE) {
+        return tagName === 'math';
+      }
+
+      // The only way to switch from SVG to MathML is via
+      // <math> and HTML integration points
+      if (parent.namespaceURI === SVG_NAMESPACE) {
+        return tagName === 'math' && HTML_INTEGRATION_POINTS.has(parentTagName);
+      }
+
+      // We only allow elements that are defined in MathML
+      // spec. All others are disallowed in MathML namespace.
+      return Boolean(ALL_MATHML_TAGS[tagName]);
+    }
+
+    if (element.namespaceURI === HTML_NAMESPACE) {
+      // The only way to switch from SVG to HTML is via
+      // HTML integration points, and from MathML to HTML
+      // is via MathML text integration points
+      if (
+        parent.namespaceURI === SVG_NAMESPACE &&
+        !HTML_INTEGRATION_POINTS.has(parentTagName)
+      ) {
+        return false;
+      }
+
+      if (
+        parent.namespaceURI === MATHML_NAMESPACE &&
+        !MATHML_TEXT_INTEGRATION_POINTS.has(parentTagName)
+      ) {
+        return false;
+      }
+
+      // Certain elements are allowed in both SVG and HTML
+      // namespace. We need to specify them explicitly
+      // so that they don't get erronously deleted from
+      // HTML namespace.
+      const commonSvgAndHTMLElements = new Set([
+        'title',
+        'style',
+        'font',
+        'a',
+        'script',
+      ]);
+
+      // We disallow tags that are specific for MathML
+      // or SVG and should never appear in HTML namespace
+      return (
+        !ALL_MATHML_TAGS[tagName] &&
+        (commonSvgAndHTMLElements.has(tagName) || !ALL_SVG_TAGS[tagName])
+      );
+    }
+
+    // The code should never reach this place (this means
+    // that the element somehow got namespace that is not
+    // HTML, SVG or MathML). Return false just in case.
+    return false;
+  };
+
   /**
    * _forceRemove
    *
@@ -660,14 +790,22 @@ function createDOMPurify(window = getGlobal()) {
         !FORBID_CONTENTS[tagName] &&
         typeof currentNode.insertAdjacentHTML === 'function'
       ) {
-        const nextSibling = currentNode.nextSibling;
         const parentNode = currentNode.parentNode;
         const childCount = currentNode.childNodes.length;
         for (let i = childCount - 1; i >= 0; --i) {
-          parentNode.insertBefore(currentNode.childNodes[i], nextSibling);
+          parentNode.insertBefore(
+            currentNode.childNodes[i],
+            currentNode.nextSibling
+          );
         }
       }
 
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Check whether element has a valid namespace */
+    if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
       _forceRemove(currentNode);
       return true;
     }
