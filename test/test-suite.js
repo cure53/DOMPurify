@@ -1453,4 +1453,43 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.equal(clean, '<img src="x">');
     }
   );
+  QUnit.test(
+    'Test if namespaces are properly enforced',
+    function (assert) {
+      var tests = [
+        {
+          test: '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
+          expected: '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
+        },
+        {
+          test: '<svg><canvas></canvas><textarea></textarea></svg>',
+          expected: '<svg></svg>',
+        },
+        {
+          test: '<math><canvas></canvas><textarea></textarea></math>',
+          expected: '<math></math>'
+        },
+        {
+          test: '<math><mi><canvas></canvas><textarea></textarea></mi></math>',
+          expected: '<math><mi><canvas></canvas><textarea></textarea></mi></math>'
+        },
+        {
+          test: '<svg><math></math><title><math></math></title></svg>',
+          expected: '<svg><title><math></math></title></svg>'
+        },
+        {
+          test: '<math><svg></svg><mi><svg></svg></mi></math>',
+          expected: '<math><mi><svg></svg></mi></math>'
+        },
+        {
+          test: '<form><math><mi><mglyph></form><form>',
+          expected: '<form><math><mi><mglyph></mglyph></mi></math></form>'
+        },
+      ];
+      tests.forEach(function (test) {
+        var clean = DOMPurify.sanitize(test.test);
+        assert.equal(clean, test.expected)
+      });
+    }
+  );
 };
