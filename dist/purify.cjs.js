@@ -6,7 +6,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var hasOwnProperty = Object.hasOwnProperty,
     setPrototypeOf = Object.setPrototypeOf,
-    isFrozen = Object.isFrozen;
+    isFrozen = Object.isFrozen,
+    getPrototypeOf = Object.getPrototypeOf;
 var freeze = Object.freeze,
     seal = Object.seal,
     create = Object.create; // eslint-disable-line import/no-mutable-exports
@@ -52,6 +53,9 @@ var stringTrim = unapply(String.prototype.trim);
 var regExpTest = unapply(RegExp.prototype.test);
 
 var typeErrorCreate = unconstruct(TypeError);
+
+/* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
+var __lookupGetter__ = unapply(Object.prototype.__lookupGetter__);
 
 function unapply(func) {
   return function (thisArg) {
@@ -156,6 +160,17 @@ var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-
 var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
 var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
 );
+
+var _window = window,
+    Element = _window.Element;
+
+
+var ElementPrototype = getPrototypeOf(Element);
+
+var cloneNode = unapply(ElementPrototype.cloneNode);
+var getNextSibling = unapply(__lookupGetter__(ElementPrototype, 'nextSibling'));
+var getChildNodes = unapply(__lookupGetter__(ElementPrototype, 'getChildNodes'));
+var getParentNode = unapply(__lookupGetter__(ElementPrototype, 'parentNode'));
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -812,13 +827,11 @@ function createDOMPurify() {
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for bad-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
-        var parentNode = Element.prototype.__lookupGetter__('parentNode').call(currentNode);
-        var childNodes = Element.prototype.__lookupGetter__('childNodes').call(currentNode);
-        var getNextSibling = Element.prototype.__lookupGetter__('nextSibling');
-        var cloneNode = Element.prototype.cloneNode;
+        var parentNode = getParentNode(currentNode);
+        var childNodes = getChildNodes(currentNode);
         var childCount = childNodes.length;
         for (var i = childCount - 1; i >= 0; --i) {
-          parentNode.insertBefore(cloneNode.call(childNodes[i], true), getNextSibling.call(currentNode));
+          parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
         }
       }
 

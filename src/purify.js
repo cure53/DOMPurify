@@ -17,6 +17,8 @@ import {
   typeErrorCreate,
 } from './utils';
 
+import * as anticlobber from './anti-clobber';
+
 const getGlobal = () => (typeof window === 'undefined' ? null : window);
 
 /**
@@ -810,21 +812,13 @@ function createDOMPurify(window = getGlobal()) {
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for bad-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
-        const parentNode = Element.prototype
-          .__lookupGetter__('parentNode')
-          .call(currentNode);
-        const childNodes = Element.prototype
-          .__lookupGetter__('childNodes')
-          .call(currentNode);
-        const getNextSibling = Element.prototype.__lookupGetter__(
-          'nextSibling'
-        );
-        const cloneNode = Element.prototype.cloneNode;
+        const parentNode = anticlobber.getParentNode(currentNode);
+        const childNodes = anticlobber.getChildNodes(currentNode);
         const childCount = childNodes.length;
         for (let i = childCount - 1; i >= 0; --i) {
           parentNode.insertBefore(
-            cloneNode.call(childNodes[i], true),
-            getNextSibling.call(currentNode)
+            anticlobber.cloneNode(childNodes[i], true),
+            anticlobber.getNextSibling(currentNode)
           );
         }
       }
