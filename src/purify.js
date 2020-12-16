@@ -817,7 +817,7 @@ function createDOMPurify(window = getGlobal()) {
         const childCount = currentNode.childNodes.length;
         for (let i = childCount - 1; i >= 0; --i) {
           parentNode.insertBefore(
-            currentNode.childNodes[i],
+            currentNode.childNodes[i].cloneNode(true),
             currentNode.nextSibling
           );
         }

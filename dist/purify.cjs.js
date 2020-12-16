@@ -815,7 +815,7 @@ function createDOMPurify() {
         var parentNode = currentNode.parentNode;
         var childCount = currentNode.childNodes.length;
         for (var i = childCount - 1; i >= 0; --i) {
-          parentNode.insertBefore(currentNode.childNodes[i], currentNode.nextSibling);
+          parentNode.insertBefore(currentNode.childNodes[i].cloneNode(true), currentNode.nextSibling);
         }
       }
 
