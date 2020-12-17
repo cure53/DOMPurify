@@ -94,11 +94,11 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         ''
       ]
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a href="#" data-""="foo">abc</a>', {
         ALLOW_DATA_ATTR: true,
       }),
-      '<a href="#">abc</a>'
+      ['<a href="#">abc</a>', '']
     );
     assert.contains(
       DOMPurify.sanitize('<a href="#" data-äöü="foo">abc</a>', {
@@ -393,30 +393,36 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
   });
   QUnit.test('Config-Flag tests: RETURN_DOM', function (assert) {
     //RETURN_DOM
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a>123<b>456</b></a>', { RETURN_DOM: true })
         .outerHTML,
-      '<body><a>123<b>456</b></a></body>'
+      ['<body><a>123<b>456</b></a></body>', "<body></body>"]
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a>123<b>456<script>alert(1)</script></b></a>', {
         RETURN_DOM: true,
       }).outerHTML,
-      '<body><a>123<b>456</b></a></body>'
+      ['<body><a>123<b>456</b></a></body>', "<body></body>"]
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a>123<b>456</b></a>', {
         RETURN_DOM: true,
         WHOLE_DOCUMENT: true,
       }).outerHTML,
-      '<html><head></head><body><a>123<b>456</b></a></body></html>'
+      [
+        '<html><head></head><body><a>123<b>456</b></a></body></html>', 
+        "<html><head></head><body></body></html>"
+      ]
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a>123<b>456<script>alert(1)</script></b></a>', {
         RETURN_DOM: true,
         WHOLE_DOCUMENT: true,
       }).outerHTML,
-      '<html><head></head><body><a>123<b>456</b></a></body></html>'
+      [
+        '<html><head></head><body><a>123<b>456</b></a></body></html>', 
+        "<html><head></head><body></body></html>"
+      ]
     );
     assert.equal(
       DOMPurify.sanitize('123', { RETURN_DOM: true }).outerHTML,
@@ -491,9 +497,9 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
   });
   QUnit.test('Config-Flag tests: FORBID_TAGS', function (assert) {
     //FORBID_TAGS
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a>123<b>456</b></a>', { FORBID_TAGS: ['b'] }),
-      '<a>123456</a>'
+      ['<a>123456</a>', '']
     );
     assert.equal(
       DOMPurify.sanitize('<a>123<b>456<script>alert(1)</script></b></a>789', {
@@ -501,55 +507,55 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       }),
       '123456789'
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a>123<b>456</b></a>', { FORBID_TAGS: ['c'] }),
-      '<a>123<b>456</b></a>'
+      ['<a>123<b>456</b></a>', '']
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a>123<b>456<script>alert(1)</script></b></a>789', {
         FORBID_TAGS: ['script', 'b'],
       }),
-      '<a>123456</a>789'
+      ['<a>123456</a>789', '789']
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a>123<b>456</b></a>', {
         ADD_TAGS: ['b'],
         FORBID_TAGS: ['b'],
       }),
-      '<a>123456</a>'
+      ['<a>123456</a>', '']
     );
   });
   QUnit.test('Config-Flag tests: FORBID_ATTR', function (assert) {
     //FORBID_ATTR
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a x="1">123<b>456</b></a>', { FORBID_ATTR: ['x'] }),
-      '<a>123<b>456</b></a>'
+      ['<a>123<b>456</b></a>', '']
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize(
         '<a class="0" x="1">123<b y="1">456<script>alert(1)</script></b></a>789',
         { FORBID_ATTR: ['x', 'y'] }
       ),
-      '<a class="0">123<b>456</b></a>789'
+      ['<a class="0">123<b>456</b></a>789', '789']
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize('<a y="1">123<b y="1" y="2">456</b></a>', {
         FORBID_ATTR: ['y'],
       }),
-      '<a>123<b>456</b></a>'
+      ['<a>123<b>456</b></a>', '']
     );
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize(
         '<a>123<b x="1">456<script y="1">alert(1)</script></b></a>789',
         { FORBID_ATTR: ['x', 'y'] }
       ),
-      '<a>123<b>456</b></a>789'
+      ['<a>123<b>456</b></a>789', '789']
     );
   });
   QUnit.test('Test dirty being an array', function (assert) {
-    assert.equal(
+    assert.contains(
       DOMPurify.sanitize(['<a>123<b>456</b></a>']),
-      '<a>123<b>456</b></a>'
+      ['<a>123<b>456</b></a>', '']
     );
     assert.equal(
       DOMPurify.sanitize(['<img src=', 'x onerror=alert(1)>']),
