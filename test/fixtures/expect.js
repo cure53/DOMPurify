@@ -1001,6 +1001,7 @@ module.exports = [
           "<img src=\"1\">",
           "&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;",
           "<title>&amp;lt;/title&amp;gt;&amp;lt;img src=1 onerror=alert(1)&gt;</title>",
+          "<title>&lt;/title&gt;&lt;img src=1 onerror=alert(1)></title>",
           ""
       ]
   }, {
@@ -1011,6 +1012,7 @@ module.exports = [
           "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">",
           "<svg></svg>",
           "<svg></svg><p></p><img src=\"x\">",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike 2/2",
@@ -1019,6 +1021,7 @@ module.exports = [
           "",
           "<svg></svg><p></p><title>&lt;a id=\"</title><img src=\"x\">\"&gt;",
           "<svg><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
@@ -1037,6 +1040,7 @@ module.exports = [
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
           "<svg></svg><p></p><img src=\"x\">",
           "<svg><title><template></template></title></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
@@ -1060,7 +1064,8 @@ module.exports = [
           "",
           "<svg></svg>",
           "<svg></svg><p></p><math></math><img src=\"x\">",
-          "<svg></svg><p></p><img src=\"x\">"
+          "<svg></svg><p></p><img src=\"x\">",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
@@ -1071,6 +1076,7 @@ module.exports = [
           "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;",
           "<svg></svg><p></p><img src=\"x\">\"&gt;",
           "<svg></svg><p><img src=\"x\">\"&gt;</p>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" /><p><img src=\"x\">\"&gt;</p>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",

@@ -799,7 +799,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     var dirty =
       '<svg onload=alert(1)><filter><feGaussianBlur /></filter></svg>';
     DOMPurify.sanitize(dirty);
-    assert.equal(DOMPurify.removed.length, 1);
+    assert.contains(DOMPurify.removed.length, [1, 2]); // IE removes two
   });
 
   // Test 2 to check if the element count in DOMPurify.removed is correct
@@ -809,7 +809,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     var dirty =
       '1<script>alert(1)</script><svg onload=alert(1)><filter><feGaussianBlur /></filter></svg>';
     DOMPurify.sanitize(dirty);
-    assert.equal(DOMPurify.removed.length, 2);
+    assert.contains(DOMPurify.removed.length, [2, 3]); // IE removed three
   });
 
   // Test 3 to check if the element count in DOMPurify.removed is correct
@@ -1070,27 +1070,27 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       DOMPurify.sanitize('<h1>HELLO</h1><math></math>', {
         USE_PROFILES: { html: true, mathMl: true },
       }),
-      ['<h1>HELLO</h1>', '<h1>HELLO</h1><math></math>']
+      ['<h1>HELLO</h1>', '<h1>HELLO</h1><math></math>', "<h1>HELLO</h1><math></math>"]
     );
     assert.contains(
       DOMPurify.sanitize('<h1>HELLO</h1><math><mi></mi></math>', {
         USE_PROFILES: { html: true, mathMl: true },
       }),
-      ['<h1>HELLO</h1>', '<h1>HELLO</h1><math><mi></mi></math>']
+      ['<h1>HELLO</h1>', '<h1>HELLO</h1><math><mi></mi></math>', "<h1>HELLO</h1><math></math>"]
     );
     assert.contains(
       DOMPurify.sanitize('<h1>HELLO</h1><math><mi></mi></math>', {
         USE_PROFILES: { html: true, mathMl: true },
         FORBID_TAGS: ['mi'],
       }),
-      ['<h1>HELLO</h1>', '<h1>HELLO</h1><math></math>']
+      ['<h1>HELLO</h1>', '<h1>HELLO</h1><math></math>', "<h1>HELLO</h1><math></math>"]
     );
     assert.contains(
       DOMPurify.sanitize('<h1>HELLO</h1><math class="foo"><mi></mi></math>', {
         USE_PROFILES: { html: true, mathMl: true },
         FORBID_ATTR: ['class'],
       }),
-      ['<h1>HELLO</h1>', '<h1>HELLO</h1><math><mi></mi></math>']
+      ['<h1>HELLO</h1>', '<h1>HELLO</h1><math><mi></mi></math>', "<h1>HELLO</h1><math></math>"]
     );
     assert.equal(
       DOMPurify.sanitize('<h1>HELLO</h1>', { USE_PROFILES: { bogus: true } }),
@@ -1112,6 +1112,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         '',
         '<svg><rect height="50"></rect></svg>',
         '<svg xmlns="http://www.w3.org/2000/svg"><rect height="50" /></svg>',
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
     );
     assert.contains(
@@ -1124,6 +1125,8 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         '<svg><feblend mode="multiply" in="SourceGraphic"></feblend></svg>',
         '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
         '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
+        "<svg xmlns=\"http://www.w3.org/2000/svg\"><feBlend in=\"SourceGraphic\" mode=\"multiply\" /></svg>",
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
     );
     assert.contains(
@@ -1134,6 +1137,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         '',
         '<svg><style>.some-class {fill: #fff}</style></svg>',
         '<svg xmlns="http://www.w3.org/2000/svg"><style>.some-class {fill: #fff}</style></svg>',
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
     );
     assert.contains(
@@ -1145,6 +1149,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         '',
         '<svg><text>SEE ME</text></svg>',
         '<svg xmlns="http://www.w3.org/2000/svg"><text>SEE ME</text></svg>',
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
     );
     assert.equal(
@@ -1231,7 +1236,9 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<svg></svg><p></p><style><g title="</style>',
       '<p></p><style><g title="</style>',
       "<svg></svg><p></p>",
-      "<svg><style></style></svg>"
+      "<svg><style></style></svg>",
+      "<svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg>",
+      "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
     ]);
   });
   QUnit.test('Avoid mXSS in Chrome 77 and above using HTML', function (assert) {
@@ -1243,6 +1250,8 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<p></p><title>&lt;a href="</title>qqq',
       "<svg></svg><p></p>qqq",
       "<svg><title></title></svg>",
+      "<svg xmlns=\"http://www.w3.org/2000/svg\"><title /></svg>",
+      "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
     ]);
   });
   QUnit.test(
@@ -1459,36 +1468,47 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       var tests = [
         {
           test: '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
-          expected: '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
+          expected: [
+            '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><desc><canvas></canvas><textarea></textarea></desc></svg>",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+          ]
         },
         {
           test: '<svg><canvas></canvas><textarea></textarea></svg>',
-          expected: '<svg></svg>',
+          expected: [
+            '<svg></svg>',
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+          ]
         },
         {
           test: '<math><canvas></canvas><textarea></textarea></math>',
-          expected: '<math></math>'
+          expected: ['<math></math>']
         },
         {
           test: '<math><mi><canvas></canvas><textarea></textarea></mi></math>',
-          expected: '<math><mi><canvas></canvas><textarea></textarea></mi></math>'
+          expected: ['<math><mi><canvas></canvas><textarea></textarea></mi></math>', "<math></math>"]
         },
         {
           test: '<svg><math></math><title><math></math></title></svg>',
-          expected: '<svg><title><math></math></title></svg>'
+          expected: ['<svg><title><math></math></title></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\" />"]
         },
         {
           test: '<math><svg></svg><mi><svg></svg></mi></math>',
-          expected: '<math><mi><svg></svg></mi></math>'
+          expected: [
+            '<math><mi><svg></svg></mi></math>',
+            "<math><mi><svg xmlns=\"http://www.w3.org/2000/svg\" /></mi></math>",
+            "<math></math>"
+          ]
         },
         {
           test: '<form><math><mi><mglyph></form><form>',
-          expected: '<form><math><mi><mglyph></mglyph></mi></math></form>'
+          expected: ['<form><math><mi><mglyph></mglyph></mi></math></form>', "<form><math></math></form>"]
         },
       ];
       tests.forEach(function (test) {
         var clean = DOMPurify.sanitize(test.test);
-        assert.equal(clean, test.expected)
+        assert.contains(clean, test.expected)
       });
     }
   );
