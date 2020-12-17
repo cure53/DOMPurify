@@ -6,8 +6,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var hasOwnProperty = Object.hasOwnProperty,
     setPrototypeOf = Object.setPrototypeOf,
-    isFrozen = Object.isFrozen,
-    getPrototypeOf = Object.getPrototypeOf;
+    isFrozen = Object.isFrozen;
 var freeze = Object.freeze,
     seal = Object.seal,
     create = Object.create; // eslint-disable-line import/no-mutable-exports
@@ -165,7 +164,7 @@ var _window = window,
     Element = _window.Element;
 
 
-var ElementPrototype = getPrototypeOf(Element);
+var ElementPrototype = Element.prototype;
 
 var cloneNode = unapply(ElementPrototype.cloneNode);
 var getNextSibling = unapply(__lookupGetter__(ElementPrototype, 'nextSibling'));

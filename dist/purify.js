@@ -10,8 +10,7 @@
 
   var hasOwnProperty = Object.hasOwnProperty,
       setPrototypeOf = Object.setPrototypeOf,
-      isFrozen = Object.isFrozen,
-      getPrototypeOf = Object.getPrototypeOf;
+      isFrozen = Object.isFrozen;
   var freeze = Object.freeze,
       seal = Object.seal,
       create = Object.create; // eslint-disable-line import/no-mutable-exports
@@ -169,7 +168,7 @@
       Element = _window.Element;
 
 
-  var ElementPrototype = getPrototypeOf(Element);
+  var ElementPrototype = Element.prototype;
 
   var cloneNode = unapply(ElementPrototype.cloneNode);
   var getNextSibling = unapply(__lookupGetter__(ElementPrototype, 'nextSibling'));

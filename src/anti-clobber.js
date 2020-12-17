@@ -1,7 +1,7 @@
-import { unapply, __lookupGetter__, getPrototypeOf } from './utils';
+import { unapply, __lookupGetter__ } from './utils';
 const { Element } = window;
 
-const ElementPrototype = getPrototypeOf(Element);
+const ElementPrototype = Element.prototype;
 
 const cloneNode = unapply(ElementPrototype.cloneNode);
 const getNextSibling = unapply(
