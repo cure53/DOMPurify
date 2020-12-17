@@ -507,11 +507,11 @@ function createDOMPurify(window = getGlobal()) {
    *  return. Return true otherwise.
    */
   const _checkValidNamespace = function (element) {
-    let parent = element.parentElement;
+    let parent = element.parentNode;
 
-    // In JSDOM, if we're inside shadow DOM, then parentElement
+    // In JSDOM, if we're inside shadow DOM, then parentNode
     // can be null. We just simulate parent in this case.
-    if (!element.parentElement) {
+    if (!parent || !parent.tagName) {
       parent = {
         namespaceURI: HTML_NAMESPACE,
         tagName: 'template',
