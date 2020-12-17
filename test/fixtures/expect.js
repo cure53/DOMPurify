@@ -8,8 +8,7 @@ module.exports = [
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" /></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:NS1=\"\" NS1:xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:NS2=\"\" NS2:xmlns:xlink=\"http://www.w3.org/1999/xlink\" /></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>"
       ]
   },
   {
@@ -23,8 +22,7 @@ module.exports = [
          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" /></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>"
     ]
   },
   {
@@ -55,8 +53,7 @@ module.exports = [
           "<svg><defs><filter id=\"f1\"><fegaussianblur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
           "<svg><defs><filter id=\"f1\"><fegaussianblur stdDeviation=\"15\" in=\"SourceGraphic\"></fegaussianblur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" STROKE-WIDTH=\"3\" STROKE=\"green\" FILL=\"yellow\" FILTER=\"url(#f1)\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" /></svg>"
         ]
      },
   {
@@ -199,8 +196,7 @@ module.exports = [
       "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
       "expected": [
           "<a>@shafigullin</a><a></a>",
-          "<a>@shafigullin<a></a>",
-          ""
+          "<a>@shafigullin<a></a>"
       ]
   }, {
       "title": "Img inside style inside broken option element",
@@ -233,8 +229,7 @@ module.exports = [
       "expected": [
           "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
           "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
-          "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
-          "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  \n</math>"
+          "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>"
       ]
   }, {
       "title": "DOM clobbering attack using name=body",
@@ -348,8 +343,7 @@ module.exports = [
       "payload": "<div id=\"9\"><a style=\"-o-link:'javascript:alert(9)';-o-link-source:current\">X</a>//[\"'`-->]]>]</div>\n\n<div id=\"10\"><video poster=javascript:alert(10)//></video>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"9\"><a style=\"-o-link:'javascript:alert(9)';-o-link-source:current\">X</a>//[\"'`--&gt;]]&gt;]</div>\n\n<div id=\"10\"><video></video>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"9\"><a style='-o-link: \"javascript:alert(9)\"; -o-link-source: current;'>X</a>//[\"'`--&gt;]]&gt;]</div>\n\n<div id=\"10\"><video></video>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"9\">//[\"'`--&gt;]]&gt;]</div>\n\n<div id=\"10\"><video></video>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"9\"><a style='-o-link: \"javascript:alert(9)\"; -o-link-source: current;'>X</a>//[\"'`--&gt;]]&gt;]</div>\n\n<div id=\"10\"><video></video>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\"><g onload=\"javascript:alert(11)\"></g></svg>//[\"'`-->]]>]</div>",
@@ -357,8 +351,7 @@ module.exports = [
           "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\"><g></g></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\"><g /></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\"><g /></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"11\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"11\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"12\"><body onscroll=alert(12)><br><br><br><br><br><br>...<br><br><br><br><input autofocus>//[\"'`-->]]>]</div>",
@@ -413,19 +406,13 @@ module.exports = [
       "expected": "<div id=\"26\">+ADw-html+AD4APA-body+AD4APA-div+AD4-top secret+ADw-/div+AD4APA-/body+AD4APA-/html+AD4-.toXMLString().match(/.*/m),alert(RegExp.input);//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"27\"><style>p[foo=bar{}*{-o-link:'javascript:alert(27)'}{}*{-o-link-source:current}*{background:red}]{background:green};</style>//[\"'`-->]]>]</div><div id=\"28\">1<animate/xmlns=urn:schemas-microsoft-com:time style=behavior:url(#default#time2)  attributename=innerhtml values=<img/src=\".\"onerror=alert(28)>>//[\"'`-->]]>]</div>",
-      "expected": [
-            "<div id=\"27\"><style>p[foo=bar{}*{-o-link:'javascript:alert(27)'}{}*{-o-link-source:current}*{background:red}]{background:green};</style>//[\"'`--&gt;]]&gt;]</div><div id=\"28\">1&gt;//[\"'`--&gt;]]&gt;]</div>",
-            "<div id=\"27\">//[\"'`--&gt;]]&gt;]</div><div id=\"28\">1&gt;//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"27\"><style>p[foo=bar{}*{-o-link:'javascript:alert(27)'}{}*{-o-link-source:current}*{background:red}]{background:green};</style>//[\"'`--&gt;]]&gt;]</div><div id=\"28\">1&gt;//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"29\"><link rel=stylesheet href=data:,*%7bx:expression(alert(29))%7d//[\"'`-->]]>]</div>",
       "expected": "<div id=\"29\">]]&gt;]</div>"
   }, {
       "payload": "<div id=\"30\"><style>@import \"data:,*%7bx:expression(alert(30))%7D\";</style>//[\"'`-->]]>]</div>",
-      "expected": [
-        "<div id=\"30\"><style>@import \"data:,*%7bx:expression(alert(30))%7D\";</style>//[\"'`--&gt;]]&gt;]</div>",
-        "<div id=\"30\">//[\"'`--&gt;]]&gt;]</div>"
-       ]
+      "expected": "<div id=\"30\"><style>@import \"data:,*%7bx:expression(alert(30))%7D\";</style>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"31\"><frameset onload=alert(31)>//[\"'`-->]]>]</div>",
       "expected": ""
@@ -437,8 +424,7 @@ module.exports = [
       "expected": [
           "<div id=\"33\"><a style=\"pointer-events:none;position:absolute;\"></a><a style=\"position:absolute;\">XXX</a><a>XXX</a>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"33\"><a style=\"position: absolute; pointer-events: none;\"><a style=\"position: absolute;\">XXX</a><a>XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"33\"><a style=\"pointer-events:none;position:absolute;\"><a style=\"position:absolute;\">XXX</a><a>XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"33\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"33\"><a style=\"pointer-events:none;position:absolute;\"><a style=\"position:absolute;\">XXX</a><a>XXX</a>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"34\">1<vmlframe xmlns=urn:schemas-microsoft-com:vml style=behavior:url(#default#vml);position:absolute;width:100%;height:100% src=test.vml#xss></vmlframe>//[\"'`-->]]>]</div>",
@@ -446,16 +432,14 @@ module.exports = [
   }, {
       "payload": "<div id=\"35\">1<a href=#><line xmlns=urn:schemas-microsoft-com:vml style=behavior:url(#default#vml);position:absolute href=javascript:alert(35) strokecolor=white strokeweight=1000px from=0 to=1000 /></a>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"35\">1<a href=\"#\"></a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"35\">1//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"35\">1<a href=\"#\"></a>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"36\"><a style=\"behavior:url(#default#AnchorClick);\" folder=\"javascript:alert(36)\">XXX</a>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"36\"><a style=\"behavior:url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"36\"><a style=\"behavior: url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"36\"><a style=\"-ms-behavior: url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"36\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"36\"><a style=\"-ms-behavior: url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"37\"><!--<img src=\"--><img src=x onerror=alert(37)//\">//[\"'`-->]]>]</div>",
@@ -505,8 +489,7 @@ module.exports = [
       "payload": "<div id=\"42\"><head><base href=\"javascript://\"/></head><body><a href=\"/. /,alert(42)//#\">XXX</a></body>//[\"'`-->]]>]</div>",
       "expected": [
             "<div id=\"42\"><a href=\"/. /,alert(42)//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-            "<div id=\"42\"><a href=\"/.%20/,alert%2842%29//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-            "<div id=\"42\">//[\"'`--&gt;]]&gt;]</div>"
+            "<div id=\"42\"><a href=\"/.%20/,alert%2842%29//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"43\"><?xml version=\"1.0\" standalone=\"no\"?>",
@@ -516,10 +499,7 @@ module.exports = [
       "expected": "Hello\n//[\"'`--&gt;]]&gt;]"
   }, {
       "payload": "<div id=\"44\"><style>*[{}@import'test.css?]{color: green;}</style>X//[\"'`-->]]>]</div>",
-      "expected": [
-        "<div id=\"44\"><style>*[{}@import'test.css?]{color: green;}</style>X//[\"'`--&gt;]]&gt;]</div>",
-        "<div id=\"44\">X//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"44\"><style>*[{}@import'test.css?]{color: green;}</style>X//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"45\"><div style=\"font-family:'foo[a];color:red;';\">XXX</div>//[\"'`-->]]>]</div>",
       "expected": [
@@ -630,10 +610,7 @@ module.exports = [
       "expected": "<div id=\"73\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"74\"><a href=\"javascript:alert(74)\"><event-source src=\"data:application/x-dom-event-stream,Event:click%0Adata:XXX%0A%0A\" /></a>//[\"'`-->]]>]</div>",
-      "expected": [
-        "<div id=\"74\"><a></a>//[\"'`--&gt;]]&gt;]</div>",
-        "<div id=\"74\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"74\"><a></a>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"75\"><script<{alert(75)}/></script </>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"75\">//[\"'`--&gt;]]&gt;]</div>"
@@ -651,10 +628,7 @@ module.exports = [
       "expected": "<div id=\"79\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"80\"><style>*{x:\uFF45\uFF58\uFF50\uFF52\uFF45\uFF53\uFF53\uFF49\uFF4F\uFF4E(alert(80))}</style>//[\"'`-->]]>]</div>",
-      "expected": [
-        "<div id=\"80\"><style>*{x:\uFF45\uFF58\uFF50\uFF52\uFF45\uFF53\uFF53\uFF49\uFF4F\uFF4E(alert(80))}</style>//[\"'`--&gt;]]&gt;]</div>",
-        "<div id=\"80\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"80\"><style>*{x:\uFF45\uFF58\uFF50\uFF52\uFF45\uFF53\uFF53\uFF49\uFF4F\uFF4E(alert(80))}</style>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"81\"><x xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:actuate=\"onLoad\" xlink:href=\"javascript:alert(81)\" xlink:type=\"simple\"/>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"81\">//[\"'`--&gt;]]&gt;]</div>"
@@ -681,8 +655,7 @@ module.exports = [
           "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" FILL=\"white\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"89\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<set attributeName=\"onmouseover\" to=\"alert(89)\"/>\n<animate attributeName=\"onunload\" to=\"alert(89)\"/>\n</svg>//[\"'`-->]]>]</div>",
@@ -763,8 +736,7 @@ module.exports = [
       "payload": "<div id=\"101\"><a href=\"[a]java[b]script[c]:alert(101)\">XXX</a>//[\"'`-->]]>]</div>",
       "expected": [
            "<div id=\"101\"><a href=\"[a]java[b]script[c]:alert(101)\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-           "<div id=\"101\"><a href=\"[a]java[b]script[c]:alert%28101%29\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-           "<div id=\"101\">//[\"'`--&gt;]]&gt;]</div>"
+           "<div id=\"101\"><a href=\"[a]java[b]script[c]:alert%28101%29\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"102\"><img src=\"x` `<script>alert(102)</script>\"` `>//[\"'`-->]]>]</div>",
@@ -806,8 +778,7 @@ module.exports = [
           "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a><img alt=\"`><img src=xx onerror=alert(108)></a>\">\n\n<img alt=\"`><img src=xx onerror=alert(2)//\">\n<img alt=\"`><img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"108\">\n<a href=\"http://foo.bar/#x=%60y\"></a><img alt=\"`&gt;&lt;img src=xx onerror=alert(108)&gt;&lt;/a&gt;\">\n\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a>\n\n<img alt=\"`><img src=xx onerror=alert(2)//\">\n<img alt=\"`><img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a>\n\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"108\">\n<img alt=\"`><img src=xx onerror=alert(108)></a>\">\n\n<img alt=\"`><img src=xx onerror=alert(2)//\">\n<img alt=\"`><img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"108\">\n<a href=\"http://foo.bar/#x=`y\"></a>\n\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(2)//\">\n<img alt=\"`&gt;&lt;img src=xx onerror=alert(3)//\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\"/></a>\n<rect  fill=\"white\" style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\"/>\n</svg>//[\"'`-->]]>]</div>",
@@ -819,8 +790,7 @@ module.exports = [
           "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" FILL=\"white\" /></a>\n<rect style=\"clip-path:url(test3.svg#a);fill:url(#b);filter:url(#c);marker:url(#d);mask:url(#e);stroke:url(#f);\" fill=\"white\" FILL=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"filter: url(&quot;#c&quot;); clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"109\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a id=\"x\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n<rect style=\"clip-path: url(&quot;test3.svg#a&quot;); fill: url(#b); marker-end: url(&quot;#d&quot;); marker-mid: url(&quot;#d&quot;); marker-start: url(&quot;#d&quot;); mask: url(&quot;#e&quot;); stroke: url(#f);\" fill=\"white\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"110\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M0,0\" style=\"marker-start:url(test4.svg#a)\"/>\n</svg>//[\"'`-->]]>]</div>",
@@ -828,8 +798,8 @@ module.exports = [
           "<div id=\"110\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<path style=\"marker-start:url(test4.svg#a)\" d=\"M0,0\"></path>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"110\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<path style=\"marker-start: url(&quot;test4.svg#a&quot;);\" d=\"M 0 0\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"110\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<path style=\"marker-start:url(test4.svg#a)\" d=\"M 0 0\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"110\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<path style=\"marker-start: url(&quot;test4.svg#a&quot;);\" d=\"M 0 0\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"110\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"110\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<path style=\"marker-start: url(&quot;test4.svg#a&quot;);\" d=\"M 0 0\" />\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+
       ]
   }, {
       "payload": "<div id=\"111\"><div style=\"background:url(/f#[a]oo/;color:red/*/foo.jpg);\">X</div>//[\"'`-->]]>]</div>",
@@ -841,8 +811,7 @@ module.exports = [
       "payload": "<div id=\"112\"><div style=\"font-family:foo{bar;background:url(http://foo.f/oo};color:red/*/foo.jpg);\">X</div>//[\"'`-->]]>]</div><div id=\"113\"><div id=\"x\">XXX</div>\n<style>\n\n#x{font-family:foo[bar;color:green;}\n\n#y];color:red;{}\n\n</style>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"112\"><div style=\"font-family:foo{bar;background:url(http://foo.f/oo};color:red/*/foo.jpg);\">X</div>//[\"'`--&gt;]]&gt;]</div><div id=\"113\"><div id=\"x\">XXX</div>\n<style>\n\n#x{font-family:foo[bar;color:green;}\n\n#y];color:red;{}\n\n</style>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"112\"><div>X</div>//[\"'`--&gt;]]&gt;]</div><div id=\"113\"><div id=\"x\">XXX</div>\n<style>\n\n#x{font-family:foo[bar;color:green;}\n\n#y];color:red;{}\n\n</style>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"112\"><div>X</div>//[\"'`--&gt;]]&gt;]</div><div id=\"113\"><div id=\"x\">XXX</div>\n//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"112\"><div>X</div>//[\"'`--&gt;]]&gt;]</div><div id=\"113\"><div id=\"x\">XXX</div>\n<style>\n\n#x{font-family:foo[bar;color:green;}\n\n#y];color:red;{}\n\n</style>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"114\"><x style=\"background:url('x[a];color:red;/*')\">XXX</x>//[\"'`-->]]>]</div><div id=\"115\"><!--[if]><script>alert(115)</script -->\n<!--[if<img src=x onerror=alert(2)//]> -->//[\"'`-->]]>]</div>",
@@ -854,10 +823,7 @@ module.exports = [
   }, {
       "title": "iframe",
       "payload": "<div id=\"117\"><a href=\"http://attacker.org\">\n    <iframe src=\"http://example.org/\"></iframe>\n</a>//[\"'`-->]]>]</div>",
-      "expected": [
-        "<div id=\"117\"><a href=\"http://attacker.org\">\n    \n</a>//[\"'`--&gt;]]&gt;]</div>",
-        "<div id=\"117\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"117\"><a href=\"http://attacker.org\">\n    \n</a>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "title": "Drag & drop",
       "payload": "<div id=\"118\"><div draggable=\"true\" ondragstart=\"event.dataTransfer.setData('text/plain','malicious code');\">\n    <h1>Drop me</h1>\n</div>\n<iframe src=\"http://www.example.org/dropHere.html\"></iframe>//[\"'`-->]]>]</div>",
@@ -872,10 +838,7 @@ module.exports = [
   }, {
       "title": "window.open",
       "payload": "<div id=\"120\"><script>\nfunction makePopups(){\n    for (i=1;i<6;i++) {\n        window.open('popup.html','spam'+i,'width=50,height=50');\n    }\n}\n</script>\n<body>\n<a href=\"#\" onclick=\"makePopups()\">Spam</a>//[\"'`-->]]>]</div>",
-      "expected": [
-        "<div id=\"120\">\n\n<a href=\"#\">Spam</a>//[\"'`--&gt;]]&gt;]</div>",
-        "<div id=\"120\">\n\n//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"120\">\n\n<a href=\"#\">Spam</a>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"121\"><html xmlns=\"http://www.w3.org/1999/xhtml\"\nxmlns:svg=\"http://www.w3.org/2000/svg\">\n<body style=\"background:gray\">\n<iframe src=\"http://example.com/\" style=\"width:800px; height:350px; border:none; mask: url(#maskForClickjacking);\"/>\n<svg:svg>\n<svg:mask id=\"maskForClickjacking\" maskUnits=\"objectBoundingBox\" maskContentUnits=\"objectBoundingBox\">\n    <svg:rect x=\"0.0\" y=\"0.0\" width=\"0.373\" height=\"0.3\" fill=\"white\"/>\n    <svg:circle cx=\"0.45\" cy=\"0.7\" r=\"0.075\" fill=\"white\"/>\n</svg:mask>\n</svg:svg>\n</body>\n</html>//[\"'`-->]]>]</div>",
       "expected": [
@@ -891,8 +854,7 @@ module.exports = [
       "payload": "<div id=\"123\"><span class=foo>Some text</span>\n<a class=bar href=\"http://www.example.org\">www.example.org</a>\n<script src=\"http://code.jquery.com/jquery-1.4.4.js\"></script>\n<script>\n$(\"span.foo\").click(function() {\nalert('foo');\n$(\"a.bar\").click();\n});\n$(\"a.bar\").click(function() {\nalert('bar');\nlocation=\"http://html5sec.org\";\n});\n</script>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"123\"><span class=\"foo\">Some text</span>\n<a href=\"http://www.example.org\" class=\"bar\">www.example.org</a>\n\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"123\"><span class=\"foo\">Some text</span>\n<a class=\"bar\" href=\"http://www.example.org\">www.example.org</a>\n\n//[\"'`--&gt;]]&gt;]</div>", 
-          "<div id=\"123\"><span class=\"foo\">Some text</span>\n\n\n//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"123\"><span class=\"foo\">Some text</span>\n<a class=\"bar\" href=\"http://www.example.org\">www.example.org</a>\n\n//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"124\"><script src=\"/example.com\foo.js\"></script> // Safari 5.0, Chrome 9, 10\n<script src=\"\\example.com\foo.js\"></script> // Safari 5.0//[\"'`-->]]>]</div>",
@@ -906,8 +868,7 @@ module.exports = [
           "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">        <circle fill=\"red\" r=\"40\" /></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">        <circle fill=\"red\" r=\"40\" FILL=\"red\" /></svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">                                        <circle fill=\"red\" r=\"40\" /></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"125\">]&gt;//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"125\">]&gt;<svg xmlns=\"http://www.w3.org/2000/svg\">                                        </svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"125\">]&gt;//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"126\"><object id=\"x\" classid=\"clsid:CB927D12-4FF7-4a9e-A169-56E4B8A75598\"></object>\n<object classid=\"clsid:02BF25D5-8C17-4B23-BC80-D3488ABDDC6B\" onqt_error=\"alert(126)\" style=\"behavior:url(#x);\"><param name=postdomevents /></object>//[\"'`-->]]>]</div>",
@@ -928,8 +889,7 @@ module.exports = [
           "<div id=\"128\"><svg><style><img src=\"x\">//[\"'`--&gt;]]&gt;]</img></style></svg></div>",
           "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"128\"><svg><style><img src=\"x\"></style></svg></div>",
-          "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\" /><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"128\"><svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "title": "Inline SVG (data-uri)",
@@ -952,8 +912,7 @@ module.exports = [
       "expected": [
           "<div id=\"130\"><math>CLICKME</math>\n<math>\n\n\n\n\n\n</math>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"130\"><math>CLICKME</math>\n<math>\n\nCLICKME\n\n\nCLICKME<mtext>http://http://google.com</mtext>\n</math>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"130\"><math>CLICKME</math>\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"130\"><math>CLICKME</math>\n<math>\n\nCLICKME\n\n\nCLICKME\n</math>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"130\"><math>CLICKME</math>\n//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"132\"><!doctype html>\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<!-- injection --><svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<set attributeName=\"xlink:href\" begin=\"accessKey(a)\" to=\"//example.com/?a\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(b)\" to=\"//example.com/?b\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(c)\" to=\"//example.com/?c\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(d)\" to=\"//example.com/?d\" />\n</image>\n</svg>//[\"'`-->]]>]</div>",
@@ -969,8 +928,7 @@ module.exports = [
           "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n\n//[\"'`--&gt;]]&gt;]</form></div>",
           "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"50px\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n//[\"'`--&gt;]]&gt;]</div>"
         ]
   }, {
       "payload": "<div id=\"133\"><!-- `<img/src=xxx onerror=alert(133)//--!>//[\"'`-->]]>]</div>",
@@ -1015,8 +973,7 @@ module.exports = [
           "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
           "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
           "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n//[\"'`--&gt;]]&gt;]</svg></svg></div>"
+          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>"
       ]
   }, {
       "title": "DOM clobbering: submit",
@@ -1054,7 +1011,6 @@ module.exports = [
           "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">",
           "<svg></svg>",
           "<svg></svg><p></p><img src=\"x\">",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike 2/2",
@@ -1063,7 +1019,6 @@ module.exports = [
           "",
           "<svg></svg><p></p><title>&lt;a id=\"</title><img src=\"x\">\"&gt;",
           "<svg><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
@@ -1082,7 +1037,6 @@ module.exports = [
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
           "<svg></svg><p></p><img src=\"x\">",
           "<svg><title><template></template></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
@@ -1106,8 +1060,7 @@ module.exports = [
           "",
           "<svg></svg>",
           "<svg></svg><p></p><math></math><img src=\"x\">",
-          "<svg></svg><p></p><img src=\"x\">",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+          "<svg></svg><p></p><img src=\"x\">"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 1/3",
@@ -1118,7 +1071,6 @@ module.exports = [
           "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;",
           "<svg></svg><p></p><img src=\"x\">\"&gt;",
           "<svg></svg><p><img src=\"x\">\"&gt;</p>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" /><p><img src=\"x\">\"&gt;</p>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",
@@ -1154,24 +1106,21 @@ module.exports = [
       "payload": "<form><math><mtext></form><form><mglyph><style><img src=x onerror=alert(1)>",
       "expected": [
           "<form></form>",
-          "<form><math><mtext><form></form></mtext></math></form>",
-          "<form><math></math></form>"
+          "<form><math><mtext><form></form></mtext></math></form>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 2/5",
       "payload": "<math><mtext><table><mglyph><style><math href=javascript:alert(1)>CLICKME</math>",
       "expected": [
           "",
-          "<math><mtext><table></table></mtext></math>",
-          "<math></math>"
+          "<math><mtext><table></table></mtext></math>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 3/5",
       "payload": "<math><mtext><table><mglyph><style><!--</style><img title=\"--&gt;&lt;img src=1 onerror=alert(1)&gt;\">",
       "expected": [
           "",
-          "<math><mtext><table></table></mtext></math>",
-          "<math></math>"
+          "<math><mtext><table></table></mtext></math>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 4/5",
@@ -1180,15 +1129,13 @@ module.exports = [
           "",
           "<form></form>",
           "<form><math><mtext><form></form></mtext></math></form>",
-          "<form><math></math></form>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 5/5",
       "payload": "<math><mtext><table><mglyph><svg><mtext><style><path id=\"</style><img onerror=alert(1) src>\">",
       "expected": [
           "",
-          "<math><mtext><table></table></mtext></math>",
-          "<math></math>"
+          "<math><mtext><table></table></mtext></math>"
       ]
   }, {
       "title": "Tests against additonal problems regarding HTML inside MathML 1/2",
@@ -1196,7 +1143,6 @@ module.exports = [
       "expected": [
           "",
           "<math><mtext><h1><a></a><h6><a></a></h6></h1></mtext></math>",
-          "<math></math>"
       ]
   }, {
       "title": "Tests against additonal problems regarding HTML inside MathML 2/2",
