@@ -469,7 +469,7 @@ function createDOMPurify(window = getGlobal()) {
     CONFIG = cfg;
   };
 
-  const MATHML_TEXT_INTEGRATION_POINTS = new Set([
+  const MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, [
     'mi',
     'mo',
     'mn',
@@ -477,7 +477,7 @@ function createDOMPurify(window = getGlobal()) {
     'mtext',
   ]);
 
-  const HTML_INTEGRATION_POINTS = new Set([
+  const HTML_INTEGRATION_POINTS = addToSet({}, [
     'foreignobject',
     'desc',
     'title',
@@ -586,7 +586,7 @@ function createDOMPurify(window = getGlobal()) {
       // namespace. We need to specify them explicitly
       // so that they don't get erronously deleted from
       // HTML namespace.
-      const commonSvgAndHTMLElements = new Set([
+      const commonSvgAndHTMLElements = addToSet({}, [
         'title',
         'style',
         'font',

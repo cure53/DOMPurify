@@ -525,9 +525,9 @@ function createDOMPurify() {
     CONFIG = cfg;
   };
 
-  var MATHML_TEXT_INTEGRATION_POINTS = new Set(['mi', 'mo', 'mn', 'ms', 'mtext']);
+  var MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
 
-  var HTML_INTEGRATION_POINTS = new Set(['foreignobject', 'desc', 'title', 'annotation-xml']);
+  var HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'desc', 'title', 'annotation-xml']);
 
   /* Keep track of all possible SVG and MathML tags
    * so that we can perform the namespace checks
@@ -621,7 +621,7 @@ function createDOMPurify() {
       // namespace. We need to specify them explicitly
       // so that they don't get erronously deleted from
       // HTML namespace.
-      var commonSvgAndHTMLElements = new Set(['title', 'style', 'font', 'a', 'script']);
+      var commonSvgAndHTMLElements = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
 
       // We disallow tags that are specific for MathML
       // or SVG and should never appear in HTML namespace
