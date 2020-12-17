@@ -15,9 +15,9 @@ import {
   stringTrim,
   regExpTest,
   typeErrorCreate,
+  unapply,
+  __lookupGetter__,
 } from './utils';
-
-import * as anticlobber from './anti-clobber';
 
 const getGlobal = () => (typeof window === 'undefined' ? null : window);
 
@@ -106,6 +106,19 @@ function createDOMPurify(window = getGlobal()) {
     DOMParser,
     trustedTypes,
   } = window;
+
+  const ElementPrototype = Element.prototype;
+
+  const cloneNode = unapply(ElementPrototype.cloneNode);
+  const getNextSibling = unapply(
+    __lookupGetter__(ElementPrototype, 'nextSibling')
+  );
+  const getChildNodes = unapply(
+    __lookupGetter__(ElementPrototype, 'childNodes')
+  );
+  const getParentNode = unapply(
+    __lookupGetter__(ElementPrototype, 'parentNode')
+  );
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -812,13 +825,13 @@ function createDOMPurify(window = getGlobal()) {
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for bad-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
-        const parentNode = anticlobber.getParentNode(currentNode);
-        const childNodes = anticlobber.getChildNodes(currentNode);
+        const parentNode = getParentNode(currentNode);
+        const childNodes = getChildNodes(currentNode);
         const childCount = childNodes.length;
         for (let i = childCount - 1; i >= 0; --i) {
           parentNode.insertBefore(
-            anticlobber.cloneNode(childNodes[i], true),
-            anticlobber.getNextSibling(currentNode)
+            cloneNode(childNodes[i], true),
+            getNextSibling(currentNode)
           );
         }
       }

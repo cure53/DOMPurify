@@ -160,17 +160,6 @@ var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
 var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
 );
 
-var _window = window,
-    Element = _window.Element;
-
-
-var ElementPrototype = Element.prototype;
-
-var cloneNode = unapply(ElementPrototype.cloneNode);
-var getNextSibling = unapply(__lookupGetter__(ElementPrototype, 'nextSibling'));
-var getChildNodes = unapply(__lookupGetter__(ElementPrototype, 'childNodes'));
-var getParentNode = unapply(__lookupGetter__(ElementPrototype, 'parentNode'));
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 function _toConsumableArray$1(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -260,13 +249,20 @@ function createDOMPurify() {
       DOMParser = window.DOMParser,
       trustedTypes = window.trustedTypes;
 
+
+  var ElementPrototype = Element.prototype;
+
+  var cloneNode = unapply(ElementPrototype.cloneNode);
+  var getNextSibling = unapply(__lookupGetter__(ElementPrototype, 'nextSibling'));
+  var getChildNodes = unapply(__lookupGetter__(ElementPrototype, 'childNodes'));
+  var getParentNode = unapply(__lookupGetter__(ElementPrototype, 'parentNode'));
+
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
   // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
   // a new empty registry is used when creating a template contents owner
   // document, so we use that as our parent document to ensure nothing
   // is inherited.
-
   if (typeof HTMLTemplateElement === 'function') {
     var template = document.createElement('template');
     if (template.content && template.content.ownerDocument) {
