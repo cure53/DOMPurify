@@ -536,7 +536,7 @@ function createDOMPurify(window = getGlobal()) {
         return (
           tagName === 'svg' &&
           (parentTagName === 'annotation-xml' ||
-            MATHML_TEXT_INTEGRATION_POINTS.has(parentTagName))
+            MATHML_TEXT_INTEGRATION_POINTS[parentTagName])
         );
       }
 
@@ -556,7 +556,7 @@ function createDOMPurify(window = getGlobal()) {
       // The only way to switch from SVG to MathML is via
       // <math> and HTML integration points
       if (parent.namespaceURI === SVG_NAMESPACE) {
-        return tagName === 'math' && HTML_INTEGRATION_POINTS.has(parentTagName);
+        return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
       }
 
       // We only allow elements that are defined in MathML
@@ -570,14 +570,14 @@ function createDOMPurify(window = getGlobal()) {
       // is via MathML text integration points
       if (
         parent.namespaceURI === SVG_NAMESPACE &&
-        !HTML_INTEGRATION_POINTS.has(parentTagName)
+        !HTML_INTEGRATION_POINTS[parentTagName]
       ) {
         return false;
       }
 
       if (
         parent.namespaceURI === MATHML_NAMESPACE &&
-        !MATHML_TEXT_INTEGRATION_POINTS.has(parentTagName)
+        !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]
       ) {
         return false;
       }
@@ -598,7 +598,7 @@ function createDOMPurify(window = getGlobal()) {
       // or SVG and should never appear in HTML namespace
       return (
         !ALL_MATHML_TAGS[tagName] &&
-        (commonSvgAndHTMLElements.has(tagName) || !ALL_SVG_TAGS[tagName])
+        (commonSvgAndHTMLElements[tagName] || !ALL_SVG_TAGS[tagName])
       );
     }
 

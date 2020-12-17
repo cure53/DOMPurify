@@ -576,7 +576,7 @@ function createDOMPurify() {
       // svg if parent is either <annotation-xml> or MathML
       // text integration points.
       if (parent.namespaceURI === MATHML_NAMESPACE) {
-        return tagName === 'svg' && (parentTagName === 'annotation-xml' || MATHML_TEXT_INTEGRATION_POINTS.has(parentTagName));
+        return tagName === 'svg' && (parentTagName === 'annotation-xml' || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
       }
 
       // We only allow elements that are defined in SVG
@@ -595,7 +595,7 @@ function createDOMPurify() {
       // The only way to switch from SVG to MathML is via
       // <math> and HTML integration points
       if (parent.namespaceURI === SVG_NAMESPACE) {
-        return tagName === 'math' && HTML_INTEGRATION_POINTS.has(parentTagName);
+        return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
       }
 
       // We only allow elements that are defined in MathML
@@ -607,11 +607,11 @@ function createDOMPurify() {
       // The only way to switch from SVG to HTML is via
       // HTML integration points, and from MathML to HTML
       // is via MathML text integration points
-      if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS.has(parentTagName)) {
+      if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS[parentTagName]) {
         return false;
       }
 
-      if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS.has(parentTagName)) {
+      if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) {
         return false;
       }
 
@@ -623,7 +623,7 @@ function createDOMPurify() {
 
       // We disallow tags that are specific for MathML
       // or SVG and should never appear in HTML namespace
-      return !ALL_MATHML_TAGS[tagName] && (commonSvgAndHTMLElements.has(tagName) || !ALL_SVG_TAGS[tagName]);
+      return !ALL_MATHML_TAGS[tagName] && (commonSvgAndHTMLElements[tagName] || !ALL_SVG_TAGS[tagName]);
     }
 
     // The code should never reach this place (this means
