@@ -166,7 +166,7 @@ var ElementPrototype = Element.prototype;
 
 var cloneNode = unapply(ElementPrototype.cloneNode);
 var getNextSibling = unapply(__lookupGetter__(ElementPrototype, 'nextSibling'));
-var getChildNodes = unapply(__lookupGetter__(ElementPrototype, 'getChildNodes'));
+var getChildNodes = unapply(__lookupGetter__(ElementPrototype, 'childNodes'));
 var getParentNode = unapply(__lookupGetter__(ElementPrototype, 'parentNode'));
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
