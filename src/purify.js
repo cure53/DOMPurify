@@ -15,8 +15,7 @@ import {
   stringTrim,
   regExpTest,
   typeErrorCreate,
-  unapply,
-  __lookupGetter__,
+  lookupGetter,
 } from './utils';
 
 const getGlobal = () => (typeof window === 'undefined' ? null : window);
@@ -109,16 +108,10 @@ function createDOMPurify(window = getGlobal()) {
 
   const ElementPrototype = Element.prototype;
 
-  const cloneNode = unapply(ElementPrototype.cloneNode);
-  const getNextSibling = unapply(
-    __lookupGetter__(ElementPrototype, 'nextSibling')
-  );
-  const getChildNodes = unapply(
-    __lookupGetter__(ElementPrototype, 'childNodes')
-  );
-  const getParentNode = unapply(
-    __lookupGetter__(ElementPrototype, 'parentNode')
-  );
+  const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
+  const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
+  const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
+  const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
