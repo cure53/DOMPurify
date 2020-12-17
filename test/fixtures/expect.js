@@ -251,7 +251,8 @@ module.exports = [
       "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
       "expected": [
           "<a>@shafigullin</a><a></a>",
-          "<a>@shafigullin<a></a>"
+          "<a>@shafigullin<a></a>",
+          ""
       ]
   }, {
       "title": "DOM clobbering attack using activeElement",
@@ -1082,7 +1083,8 @@ module.exports = [
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
           "<svg></svg><p></p><img src=\"x\">",
           "<svg><title><template></template></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" />",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
