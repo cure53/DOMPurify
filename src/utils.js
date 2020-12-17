@@ -1,4 +1,10 @@
-const { hasOwnProperty, setPrototypeOf, isFrozen, getPrototypeOf } = Object;
+const {
+  hasOwnProperty,
+  setPrototypeOf,
+  isFrozen,
+  getPrototypeOf,
+  getOwnPropertyDescriptor,
+} = Object;
 
 let { freeze, seal, create } = Object; // eslint-disable-line import/no-mutable-exports
 let { apply, construct } = typeof Reflect !== 'undefined' && Reflect;
@@ -42,9 +48,6 @@ const stringTrim = unapply(String.prototype.trim);
 const regExpTest = unapply(RegExp.prototype.test);
 
 const typeErrorCreate = unconstruct(TypeError);
-
-/* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
-const __lookupGetter__ = unapply(Object.prototype.__lookupGetter__);
 
 export function unapply(func) {
   return (thisArg, ...args) => apply(func, thisArg, args);
@@ -98,6 +101,29 @@ export function clone(object) {
   return newObject;
 }
 
+/* IE10 doesn't support __lookupGetter__ so lets'
+ * simulate it. It also automatically checks
+ * if the prop is function or getter and behaves
+ * accordingly. */
+function lookupGetter(object, prop) {
+  while (object !== null) {
+    const desc = getOwnPropertyDescriptor(object, prop);
+    if (desc) {
+      if (desc.get) {
+        return unapply(desc.get);
+      }
+
+      if (typeof desc.value === 'function') {
+        return unapply(desc.value);
+      }
+    }
+
+    object = getPrototypeOf(object);
+  }
+
+  return null;
+}
+
 export {
   // Array
   arrayForEach,
@@ -108,11 +134,11 @@ export {
   // Object
   freeze,
   getPrototypeOf,
+  getOwnPropertyDescriptor,
   hasOwnProperty,
   isFrozen,
   setPrototypeOf,
   seal,
-  __lookupGetter__,
   // RegExp
   regExpTest,
   // String
@@ -123,4 +149,6 @@ export {
   stringTrim,
   // Errors
   typeErrorCreate,
+  // Other
+  lookupGetter,
 };
