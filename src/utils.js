@@ -1,4 +1,4 @@
-const { hasOwnProperty, setPrototypeOf, isFrozen } = Object;
+const { hasOwnProperty, setPrototypeOf, isFrozen, getPrototypeOf } = Object;
 
 let { freeze, seal, create } = Object; // eslint-disable-line import/no-mutable-exports
 let { apply, construct } = typeof Reflect !== 'undefined' && Reflect;
@@ -42,6 +42,9 @@ const stringTrim = unapply(String.prototype.trim);
 const regExpTest = unapply(RegExp.prototype.test);
 
 const typeErrorCreate = unconstruct(TypeError);
+
+/* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
+const __lookupGetter__ = unapply(Object.prototype.__lookupGetter__);
 
 export function unapply(func) {
   return (thisArg, ...args) => apply(func, thisArg, args);
@@ -104,10 +107,12 @@ export {
   arraySlice,
   // Object
   freeze,
+  getPrototypeOf,
   hasOwnProperty,
   isFrozen,
   setPrototypeOf,
   seal,
+  __lookupGetter__,
   // RegExp
   regExpTest,
   // String

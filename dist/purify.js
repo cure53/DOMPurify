@@ -57,6 +57,9 @@
 
   var typeErrorCreate = unconstruct(TypeError);
 
+  /* eslint-disable-next-line no-use-extend-native/no-use-extend-native */
+  var __lookupGetter__ = unapply(Object.prototype.__lookupGetter__);
+
   function unapply(func) {
     return function (thisArg) {
       for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -128,7 +131,17 @@
 
   var svgFilters = freeze(['feBlend', 'feColorMatrix', 'feComponentTransfer', 'feComposite', 'feConvolveMatrix', 'feDiffuseLighting', 'feDisplacementMap', 'feDistantLight', 'feFlood', 'feFuncA', 'feFuncB', 'feFuncG', 'feFuncR', 'feGaussianBlur', 'feMerge', 'feMergeNode', 'feMorphology', 'feOffset', 'fePointLight', 'feSpecularLighting', 'feSpotLight', 'feTile', 'feTurbulence']);
 
+  // List of SVG elements that are disallowed by default.
+  // We still need to know them so that we can do namespace
+  // checks properly in case one wants to add them to
+  // allow-list.
+  var svgDisallowed = freeze(['animate', 'color-profile', 'cursor', 'discard', 'fedropshadow', 'feimage', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'foreignobject', 'hatch', 'hatchpath', 'mesh', 'meshgradient', 'meshpatch', 'meshrow', 'missing-glyph', 'script', 'set', 'solidcolor', 'unknown', 'use']);
+
   var mathMl = freeze(['math', 'menclose', 'merror', 'mfenced', 'mfrac', 'mglyph', 'mi', 'mlabeledtr', 'mmultiscripts', 'mn', 'mo', 'mover', 'mpadded', 'mphantom', 'mroot', 'mrow', 'ms', 'mspace', 'msqrt', 'mstyle', 'msub', 'msup', 'msubsup', 'mtable', 'mtd', 'mtext', 'mtr', 'munder', 'munderover']);
+
+  // Similarly to SVG, we want to know all MathML elements,
+  // even those that we disallow by default.
+  var mathMlDisallowed = freeze(['maction', 'maligngroup', 'malignmark', 'mlongdiv', 'mscarries', 'mscarry', 'msgroup', 'mstack', 'msline', 'msrow', 'semantics', 'annotation', 'annotation-xml', 'mprescripts', 'none']);
 
   var text = freeze(['#text']);
 
@@ -231,6 +244,7 @@
     var DocumentFragment = window.DocumentFragment,
         HTMLTemplateElement = window.HTMLTemplateElement,
         Node = window.Node,
+        Element = window.Element,
         NodeFilter = window.NodeFilter,
         _window$NamedNodeMap = window.NamedNodeMap,
         NamedNodeMap = _window$NamedNodeMap === undefined ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
@@ -239,13 +253,20 @@
         DOMParser = window.DOMParser,
         trustedTypes = window.trustedTypes;
 
+
+    var ElementPrototype = Element.prototype;
+
+    var cloneNode = unapply(ElementPrototype.cloneNode);
+    var getNextSibling = unapply(__lookupGetter__(ElementPrototype, 'nextSibling'));
+    var getChildNodes = unapply(__lookupGetter__(ElementPrototype, 'childNodes'));
+    var getParentNode = unapply(__lookupGetter__(ElementPrototype, 'parentNode'));
+
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
     // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
     // a new empty registry is used when creating a template contents owner
     // document, so we use that as our parent document to ensure nothing
     // is inherited.
-
     if (typeof HTMLTemplateElement === 'function') {
       var template = document.createElement('template');
       if (template.content && template.content.ownerDocument) {
@@ -367,7 +388,7 @@
     var USE_PROFILES = {};
 
     /* Tags to ignore content of when KEEP_CONTENT is true */
-    var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'iframe', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'noembed', 'noframes', 'plaintext', 'script', 'style', 'svg', 'template', 'thead', 'title', 'video', 'xmp']);
+    var FORBID_CONTENTS = addToSet({}, ['annotation-xml', 'audio', 'colgroup', 'desc', 'foreignobject', 'head', 'iframe', 'math', 'mi', 'mn', 'mo', 'ms', 'mtext', 'noembed', 'noframes', 'noscript', 'plaintext', 'script', 'style', 'svg', 'template', 'thead', 'title', 'video', 'xmp']);
 
     /* Tags that are safe for data: URIs */
     var DATA_URI_TAGS = null;
@@ -508,6 +529,115 @@
       CONFIG = cfg;
     };
 
+    var MATHML_TEXT_INTEGRATION_POINTS = new Set(['mi', 'mo', 'mn', 'ms', 'mtext']);
+
+    var HTML_INTEGRATION_POINTS = new Set(['foreignobject', 'desc', 'title', 'annotation-xml']);
+
+    /* Keep track of all possible SVG and MathML tags
+     * so that we can perform the namespace checks
+     * correctly. */
+    var ALL_SVG_TAGS = addToSet({}, svg);
+    addToSet(ALL_SVG_TAGS, svgFilters);
+    addToSet(ALL_SVG_TAGS, svgDisallowed);
+
+    var ALL_MATHML_TAGS = addToSet({}, mathMl);
+    addToSet(ALL_MATHML_TAGS, mathMlDisallowed);
+
+    var MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
+    var SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+    var HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+
+    /**
+     *
+     *
+     * @param  {Element} element a DOM element whose namespace is being checked
+     * @returns {boolean} Return false if the element has a
+     *  namespace that a spec-compliant parser would never
+     *  return. Return true otherwise.
+     */
+    var _checkValidNamespace = function _checkValidNamespace(element) {
+      var parent = element.parentElement;
+
+      // In JSDOM, if we're inside shadow DOM, then parentElement
+      // can be null. We just simulate parent in this case.
+      if (!element.parentElement) {
+        parent = {
+          namespaceURI: HTML_NAMESPACE,
+          tagName: 'template'
+        };
+      }
+
+      var tagName = stringToLowerCase(element.tagName);
+      var parentTagName = stringToLowerCase(parent.tagName);
+
+      if (element.namespaceURI === SVG_NAMESPACE) {
+        // The only way to switch from HTML namespace to SVG
+        // is via <svg>. If it happens via any other tag, then
+        // it should be killed.
+        if (parent.namespaceURI === HTML_NAMESPACE) {
+          return tagName === 'svg';
+        }
+
+        // The only way to switch from MathML to SVG is via
+        // svg if parent is either <annotation-xml> or MathML
+        // text integration points.
+        if (parent.namespaceURI === MATHML_NAMESPACE) {
+          return tagName === 'svg' && (parentTagName === 'annotation-xml' || MATHML_TEXT_INTEGRATION_POINTS.has(parentTagName));
+        }
+
+        // We only allow elements that are defined in SVG
+        // spec. All others are disallowed in SVG namespace.
+        return Boolean(ALL_SVG_TAGS[tagName]);
+      }
+
+      if (element.namespaceURI === MATHML_NAMESPACE) {
+        // The only way to switch from HTML namespace to MathML
+        // is via <math>. If it happens via any other tag, then
+        // it should be killed.
+        if (parent.namespaceURI === HTML_NAMESPACE) {
+          return tagName === 'math';
+        }
+
+        // The only way to switch from SVG to MathML is via
+        // <math> and HTML integration points
+        if (parent.namespaceURI === SVG_NAMESPACE) {
+          return tagName === 'math' && HTML_INTEGRATION_POINTS.has(parentTagName);
+        }
+
+        // We only allow elements that are defined in MathML
+        // spec. All others are disallowed in MathML namespace.
+        return Boolean(ALL_MATHML_TAGS[tagName]);
+      }
+
+      if (element.namespaceURI === HTML_NAMESPACE) {
+        // The only way to switch from SVG to HTML is via
+        // HTML integration points, and from MathML to HTML
+        // is via MathML text integration points
+        if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS.has(parentTagName)) {
+          return false;
+        }
+
+        if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS.has(parentTagName)) {
+          return false;
+        }
+
+        // Certain elements are allowed in both SVG and HTML
+        // namespace. We need to specify them explicitly
+        // so that they don't get erronously deleted from
+        // HTML namespace.
+        var commonSvgAndHTMLElements = new Set(['title', 'style', 'font', 'a', 'script']);
+
+        // We disallow tags that are specific for MathML
+        // or SVG and should never appear in HTML namespace
+        return !ALL_MATHML_TAGS[tagName] && (commonSvgAndHTMLElements.has(tagName) || !ALL_SVG_TAGS[tagName]);
+      }
+
+      // The code should never reach this place (this means
+      // that the element somehow got namespace that is not
+      // HTML, SVG or MathML). Return false just in case.
+      return false;
+    };
+
     /**
      * _forceRemove
      *
@@ -614,7 +744,7 @@
         return false;
       }
 
-      if (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string') {
+      if (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function') {
         return true;
       }
 
@@ -695,29 +825,26 @@
       /* Remove element if anything forbids its presence */
       if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
         /* Keep content except for bad-listed elements */
-        if (KEEP_CONTENT && !FORBID_CONTENTS[tagName] && typeof currentNode.insertAdjacentHTML === 'function') {
-          try {
-            var htmlToInsert = currentNode.innerHTML;
-            currentNode.insertAdjacentHTML('AfterEnd', trustedTypesPolicy ? trustedTypesPolicy.createHTML(htmlToInsert) : htmlToInsert);
-          } catch (_) {}
+        if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+          var parentNode = getParentNode(currentNode);
+          var childNodes = getChildNodes(currentNode);
+          var childCount = childNodes.length;
+          for (var i = childCount - 1; i >= 0; --i) {
+            parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
+          }
         }
 
         _forceRemove(currentNode);
         return true;
       }
 
+      /* Check whether element has a valid namespace */
+      if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
+        _forceRemove(currentNode);
+        return true;
+      }
+
       if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
-        _forceRemove(currentNode);
-        return true;
-      }
-
-      if (tagName === 'math' && _isNode(currentNode.firstElementChild) && currentNode.querySelectorAll(':not(' + mathMl.join('):not(') + ')').length > 0) {
-        _forceRemove(currentNode);
-        return true;
-      }
-
-      /* Take care of an mXSS using HTML inside SVG affecting old Chrome */
-      if (tagName === 'svg' && currentNode.querySelectorAll('p, br, table, form, noscript').length > 0) {
         _forceRemove(currentNode);
         return true;
       }

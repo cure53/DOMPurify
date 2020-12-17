@@ -1115,12 +1115,15 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       ]
     );
     assert.contains(
-      DOMPurify.sanitize('<feBlend in="SourceGraphic" mode="multiply" />', {
+      DOMPurify.sanitize('<svg><feBlend in="SourceGraphic" mode="multiply" /></svg>', {
         USE_PROFILES: { svgFilters: true },
+        ADD_TAGS: ['svg'],
       }),
       [
-        '<feblend in="SourceGraphic" mode="multiply"></feblend>',
-        '<feblend mode="multiply" in="SourceGraphic"></feblend>',
+        '<svg><feblend in="SourceGraphic" mode="multiply"></feblend></svg>',
+        '<svg><feblend mode="multiply" in="SourceGraphic"></feblend></svg>',
+        '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
+        '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
       ]
     );
     assert.contains(
@@ -1225,27 +1228,21 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     var clean = DOMPurify.sanitize('<svg></p><style><g title="</style>');
     assert.contains(clean, [
       '',
-      '<svg><p></p><style></style></svg>',
       '<svg></svg><p></p><style><g title="</style>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><style /></svg></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><style /></svg>',
       '<p></p><style><g title="</style>',
-      "<svg></svg><p></p>"
+      "<svg></svg><p></p>",
+      "<svg><style></style></svg>"
     ]);
   });
   QUnit.test('Avoid mXSS in Chrome 77 and above using HTML', function (assert) {
     var clean = DOMPurify.sanitize('<svg></p><title><a href="</title>qqq');
     assert.contains(clean, [
       '',
-      '<svg><p></p><title></title></svg>',
       '<svg></svg><p></p><title>&lt;a href="</title>qqq<img src="">"&gt;',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><title /></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><style /></svg>',
       '<svg></svg><p></p><title>&lt;a href="</title>qqq',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p><title /></svg></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><p></p></svg>',
       '<p></p><title>&lt;a href="</title>qqq',
-      "<svg></svg><p></p>qqq"
+      "<svg></svg><p></p>qqq",
+      "<svg><title></title></svg>",
     ]);
   });
   QUnit.test(
@@ -1430,13 +1427,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     function (assert) {
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
       assert.contains(clean, [
-          '<svg></svg>', 
+          '<svg></svg>',
           '<svg xmlns="http://www.w3.org/2000/svg" />'
       ]);
-      
+
       var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
       assert.contains(clean, [
-            '<svg></svg><blockquote>foo</blockquote>', 
+            '<svg></svg><blockquote>foo</blockquote>',
             '<svg><blockquote>foo</blockquote></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" /><blockquote>foo</blockquote>'
       ]);
@@ -1454,6 +1451,45 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       } catch(e) {}
       var clean = DOMPurify.sanitize('<img src=x onerror=alert(1)>');
       assert.equal(clean, '<img src="x">');
+    }
+  );
+  QUnit.test(
+    'Test if namespaces are properly enforced',
+    function (assert) {
+      var tests = [
+        {
+          test: '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
+          expected: '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
+        },
+        {
+          test: '<svg><canvas></canvas><textarea></textarea></svg>',
+          expected: '<svg></svg>',
+        },
+        {
+          test: '<math><canvas></canvas><textarea></textarea></math>',
+          expected: '<math></math>'
+        },
+        {
+          test: '<math><mi><canvas></canvas><textarea></textarea></mi></math>',
+          expected: '<math><mi><canvas></canvas><textarea></textarea></mi></math>'
+        },
+        {
+          test: '<svg><math></math><title><math></math></title></svg>',
+          expected: '<svg><title><math></math></title></svg>'
+        },
+        {
+          test: '<math><svg></svg><mi><svg></svg></mi></math>',
+          expected: '<math><mi><svg></svg></mi></math>'
+        },
+        {
+          test: '<form><math><mi><mglyph></form><form>',
+          expected: '<form><math><mi><mglyph></mglyph></mi></math></form>'
+        },
+      ];
+      tests.forEach(function (test) {
+        var clean = DOMPurify.sanitize(test.test);
+        assert.equal(clean, test.expected)
+      });
     }
   );
 };

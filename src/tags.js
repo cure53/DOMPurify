@@ -193,6 +193,37 @@ export const svgFilters = freeze([
   'feTurbulence',
 ]);
 
+// List of SVG elements that are disallowed by default.
+// We still need to know them so that we can do namespace
+// checks properly in case one wants to add them to
+// allow-list.
+export const svgDisallowed = freeze([
+  'animate',
+  'color-profile',
+  'cursor',
+  'discard',
+  'fedropshadow',
+  'feimage',
+  'font-face',
+  'font-face-format',
+  'font-face-name',
+  'font-face-src',
+  'font-face-uri',
+  'foreignobject',
+  'hatch',
+  'hatchpath',
+  'mesh',
+  'meshgradient',
+  'meshpatch',
+  'meshrow',
+  'missing-glyph',
+  'script',
+  'set',
+  'solidcolor',
+  'unknown',
+  'use',
+]);
+
 export const mathMl = freeze([
   'math',
   'menclose',
@@ -223,6 +254,26 @@ export const mathMl = freeze([
   'mtr',
   'munder',
   'munderover',
+]);
+
+// Similarly to SVG, we want to know all MathML elements,
+// even those that we disallow by default.
+export const mathMlDisallowed = freeze([
+  'maction',
+  'maligngroup',
+  'malignmark',
+  'mlongdiv',
+  'mscarries',
+  'mscarry',
+  'msgroup',
+  'mstack',
+  'msline',
+  'msrow',
+  'semantics',
+  'annotation',
+  'annotation-xml',
+  'mprescripts',
+  'none',
 ]);
 
 export const text = freeze(['#text']);
