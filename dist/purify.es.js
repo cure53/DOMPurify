@@ -550,7 +550,7 @@ function createDOMPurify() {
    *  return. Return true otherwise.
    */
   var _checkValidNamespace = function _checkValidNamespace(element) {
-    var parent = element.parentNode;
+    var parent = getParentNode(element);
 
     // In JSDOM, if we're inside shadow DOM, then parentNode
     // can be null. We just simulate parent in this case.

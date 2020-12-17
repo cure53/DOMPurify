@@ -1238,7 +1238,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       "<svg></svg><p></p>",
       "<svg><style></style></svg>",
       "<svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg>",
-      "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+      "<svg xmlns=\"http://www.w3.org/2000/svg\"><style /></svg></svg>"
     ]);
   });
   QUnit.test('Avoid mXSS in Chrome 77 and above using HTML', function (assert) {
@@ -1251,7 +1251,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       "<svg></svg><p></p>qqq",
       "<svg><title></title></svg>",
       "<svg xmlns=\"http://www.w3.org/2000/svg\"><title /></svg>",
-      "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+      "<svg xmlns=\"http://www.w3.org/2000/svg\"><title /></svg></svg>"
     ]);
   });
   QUnit.test(
