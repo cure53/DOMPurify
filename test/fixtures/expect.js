@@ -1021,7 +1021,8 @@ module.exports = [
           "",
           "<svg></svg><p></p><title>&lt;a id=\"</title><img src=\"x\">\"&gt;",
           "<svg><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
@@ -1040,7 +1041,8 @@ module.exports = [
           "<svg></svg><p></p><title>&lt;template&gt;&lt;style&gt;</title><img src=\"x\">",
           "<svg></svg><p></p><img src=\"x\">",
           "<svg><title><template></template></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></svg>",
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
@@ -1112,21 +1114,24 @@ module.exports = [
       "payload": "<form><math><mtext></form><form><mglyph><style><img src=x onerror=alert(1)>",
       "expected": [
           "<form></form>",
-          "<form><math><mtext><form></form></mtext></math></form>"
+          "<form><math><mtext><form></form></mtext></math></form>",
+           "<form><math></math></form>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 2/5",
       "payload": "<math><mtext><table><mglyph><style><math href=javascript:alert(1)>CLICKME</math>",
       "expected": [
           "",
-          "<math><mtext><table></table></mtext></math>"
+          "<math><mtext><table></table></mtext></math>",
+          "<math></math>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 3/5",
       "payload": "<math><mtext><table><mglyph><style><!--</style><img title=\"--&gt;&lt;img src=1 onerror=alert(1)&gt;\">",
       "expected": [
           "",
-          "<math><mtext><table></table></mtext></math>"
+          "<math><mtext><table></table></mtext></math>",
+          "<math></math>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 4/5",
@@ -1135,13 +1140,15 @@ module.exports = [
           "",
           "<form></form>",
           "<form><math><mtext><form></form></mtext></math></form>",
+          "<form><math></math></form>"
       ]
   }, {
       "title": "Tests against nesting-based mXSS behavior 5/5",
       "payload": "<math><mtext><table><mglyph><svg><mtext><style><path id=\"</style><img onerror=alert(1) src>\">",
       "expected": [
           "",
-          "<math><mtext><table></table></mtext></math>"
+          "<math><mtext><table></table></mtext></math>",
+          "<math></math>"
       ]
   }, {
       "title": "Tests against additonal problems regarding HTML inside MathML 1/2",
@@ -1149,6 +1156,7 @@ module.exports = [
       "expected": [
           "",
           "<math><mtext><h1><a></a><h6><a></a></h6></h1></mtext></math>",
+          "<math></math>"
       ]
   }, {
       "title": "Tests against additonal problems regarding HTML inside MathML 2/2",

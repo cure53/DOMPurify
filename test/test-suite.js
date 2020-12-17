@@ -1487,11 +1487,18 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         },
         {
           test: '<math><mi><canvas></canvas><textarea></textarea></mi></math>',
-          expected: ['<math><mi><canvas></canvas><textarea></textarea></mi></math>', "<math></math>"]
+          expected: [
+            '<math><mi><canvas></canvas><textarea></textarea></mi></math>', 
+            "<math></math>"
+          ]
         },
         {
           test: '<svg><math></math><title><math></math></title></svg>',
-          expected: ['<svg><title><math></math></title></svg>', "<svg xmlns=\"http://www.w3.org/2000/svg\" />"]
+          expected: [
+            '<svg><title><math></math></title></svg>', 
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" />",
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><math></math></title></svg>"
+          ]
         },
         {
           test: '<math><svg></svg><mi><svg></svg></mi></math>',
