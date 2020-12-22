@@ -1169,7 +1169,8 @@ module.exports = [
       "payload": "a<svg><xss><desc><noscript>&lt;/noscript>&lt;/desc>&lt;s>&lt/s>&lt;style>&lt;a title=\"&lt;/style>&lt;img src onerror=alert(1)>\">",
       "expected": [
             "a<svg><desc></desc></svg>", 
-            ""
+            "a<svg xmlns=\"http://www.w3.org/2000/svg\"><desc /></svg></svg>",
+            "a<svg xmlns=\"http://www.w3.org/2000/svg\"><desc /></svg>"
        ]
   },   {
       "title": "Test against fake-element-based namepsace-confusion abusing mXSS attacks 2/2",
