@@ -1165,13 +1165,27 @@ module.exports = [
           ""
       ]
   },   {
+      "title": "Test against fake-element-based namepsace-confusion abusing mXSS attacks 1/2",
+      "payload": "a<svg><xss><desc><noscript>&lt;/noscript>&lt;/desc>&lt;s>&lt/s>&lt;style>&lt;a title=\"&lt;/style>&lt;img src onerror=alert(1)>\">",
+      "expected": [
+            "a<svg><desc></desc></svg>", 
+            ""
+       ]
+  },   {
+      "title": "Test against fake-element-based namepsace-confusion abusing mXSS attacks 2/2",
+      "payload": "<math><mtext><option><FAKEFAKE><option></option><mglyph><svg><mtext><style><a title=\"</style><img src='#' onerror='alert(1)'>\">",
+      "expected": [
+            "<math><mtext><option><option></option></option></mtext></math>", 
+            ""
+       ]
+  },   {
       "title": "Tests against proper handling of leading whitespaces",
       "payload": " ",
       "expected": [
           " "
       ]
   }, {
-      "title": "Tests against proper handling of empoty MathML containers",
+      "title": "Tests against proper handling of empty MathML containers",
       "payload": "<div><math></math></div>",
       "expected": [
           "<div><math></math></div>"
