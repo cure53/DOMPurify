@@ -132,6 +132,7 @@ export {
   arrayPush,
   arraySlice,
   // Object
+  create,
   freeze,
   getPrototypeOf,
   getOwnPropertyDescriptor,

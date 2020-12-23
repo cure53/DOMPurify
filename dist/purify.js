@@ -698,6 +698,13 @@
       }
 
       node.removeAttribute(name);
+
+      // We void attribute values for unremovable "is"" attributes
+      if (name === 'is') {
+        try {
+          node.setAttribute(name, '');
+        } catch (_) {}
+      }
     };
 
     /**

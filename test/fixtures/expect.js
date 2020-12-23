@@ -1191,5 +1191,12 @@ module.exports = [
       "expected": [
           "<div><math></math></div>"
       ]
+  }, {
+      "title": "Tests against proper handling of is attributes (which cannot be removed)",
+      "payload": "<b is=\"foo\">bar</b>",
+      "expected": [
+          "<b is=\"\">bar</b>",
+          "<b>bar</b>"
+      ]
   }
 ];
