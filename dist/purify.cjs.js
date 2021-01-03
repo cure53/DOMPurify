@@ -696,10 +696,16 @@ function createDOMPurify() {
     node.removeAttribute(name);
 
     // We void attribute values for unremovable "is"" attributes
-    if (name === 'is') {
-      try {
-        node.setAttribute(name, '');
-      } catch (_) {}
+    if (name === 'is' && !ALLOWED_ATTR[name]) {
+      if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
+        try {
+          _forceRemove(node);
+        } catch (_) {}
+      } else {
+        try {
+          node.setAttribute(name, '');
+        } catch (_) {}
+      }
     }
   };
 
