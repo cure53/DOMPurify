@@ -1031,7 +1031,7 @@ module.exports = [
           "",
           "<math></math><p></p><textarea>&lt;mi&gt;&lt;style&gt;</textarea><img src=\"x\">",
           "<math></math><p></p><img src=\"x\">",
-          "<math></math>",
+          "<math></math>"
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG Templates in Chrome 77 and alike",
@@ -1051,7 +1051,7 @@ module.exports = [
           "",
           "<math></math>",
           "<math></math><br><textarea>&lt;mtext&gt;&lt;template&gt;&lt;style&gt;</textarea><img src=\"x\">",
-          "<math></math><br><img src=\"x\">",
+          "<math></math><br><img src=\"x\">"
       ]
   }, {
       "title": "Fixed an exception coming from missing clobbering protection",
