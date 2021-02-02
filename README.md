@@ -160,6 +160,8 @@ var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
 // allow all safe HTML elements but neither SVG nor MathML
+// note that the USE_PROFILES setting will override the ALLOWED_TAGS setting
+// so don't use them together
 var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {html: true}});
 
 // allow all safe SVG elements and SVG Filters, no HTML or MathML
