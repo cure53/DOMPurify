@@ -50,6 +50,26 @@ var config = {
 var clean = DOMPurify.sanitize(dirty, config);
 ```
 
+#### A Gotcha in the Config
+
+One thing to avoid in the above example is to use the `USE_PROFILES` setting together with the `ALLOWED_TAGS` setting. `USE_PROFILES` will override the list of tags specified in the `ALLOWED_TAGS` config. For e.g.:
+
+```javascript
+// Specify a configuration directive
+var config = {
+  USE_PROFILES: {html: true}}, // WARNING: This overrides the ALLOWED_TAGS setting below
+  ALLOWED_TAGS: ['p', '#text'], // NO LONGER TRUE! : only <P> and text nodes allowed
+  KEEP_CONTENT: false, // remove content from non-allow-listed nodes too
+  ADD_ATTR: ['kitty-litter'], // permit kitty-litter attributes
+  ADD_TAGS: ['ying', 'yang'], // permit additional custom tags
+  RETURN_DOM: true, // return a document object instead of a string
+};
+
+var dirty = '<img src='foo'/>';
+// Clean HTML string and write into our DIV
+var clean = DOMPurify.sanitize(dirty, config); // Expected: '', Actual: '<img src='foo'/>'
+```
+
 ### Hooks Demo [Link](hooks-demo.html)
 
 DOMPurify allows you to use hooks. Hooks are basically scripts that can hook into certain parts of the DOMPurify code flow and do stuff. Stuff that you like to be done. By using hooks, you can literally make DOMPurify do whatever. To show you, how powerful and easy to use hooks are, we created some demos for you. Like this one, that essentially renders all tag content to be in capitals.
