@@ -121,7 +121,11 @@ function lookupGetter(object, prop) {
     object = getPrototypeOf(object);
   }
 
-  return null;
+  function fallbackValue(element) {
+    return null;
+  }
+
+  return fallbackValue;
 }
 
 export {
