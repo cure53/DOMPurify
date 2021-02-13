@@ -834,16 +834,14 @@ function createDOMPurify(window = getGlobal()) {
         const parentNode = getParentNode(currentNode);
         const childNodes = getChildNodes(currentNode);
 
-        if (childNodes) {
+        if (childNodes && parentNode) {
           const childCount = childNodes.length;
 
           for (let i = childCount - 1; i >= 0; --i) {
-            if (parentNode) {
-              parentNode.insertBefore(
-                cloneNode(childNodes[i], true),
-                getNextSibling(currentNode)
-              );
-            }
+            parentNode.insertBefore(
+              cloneNode(childNodes[i], true),
+              getNextSibling(currentNode)
+            );
           }
         }
       }
