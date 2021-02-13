@@ -833,12 +833,16 @@ function createDOMPurify(window = getGlobal()) {
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
         const parentNode = getParentNode(currentNode);
         const childNodes = getChildNodes(currentNode);
-        const childCount = childNodes.length;
-        for (let i = childCount - 1; i >= 0; --i) {
-          parentNode.insertBefore(
-            cloneNode(childNodes[i], true),
-            getNextSibling(currentNode)
-          );
+
+        if (childNodes && parentNode) {
+          const childCount = childNodes.length;
+
+          for (let i = childCount - 1; i >= 0; --i) {
+            parentNode.insertBefore(
+              cloneNode(childNodes[i], true),
+              getNextSibling(currentNode)
+            );
+          }
         }
       }
 
