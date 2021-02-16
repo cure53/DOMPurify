@@ -154,6 +154,7 @@ function createDOMPurify(window = getGlobal()) {
    * Expose whether this browser supports running the full DOMPurify.
    */
   DOMPurify.isSupported =
+    typeof getParentNode === 'function' &&
     implementation &&
     typeof implementation.createHTMLDocument !== 'undefined' &&
     documentMode !== 9;

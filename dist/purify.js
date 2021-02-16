@@ -143,7 +143,12 @@
       object = getPrototypeOf(object);
     }
 
-    return null;
+    function fallbackValue(element) {
+      console.warn('fallback value for', element);
+      return null;
+    }
+
+    return fallbackValue;
   }
 
   var html = freeze(['a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'content', 'data', 'datalist', 'dd', 'decorator', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meter', 'nav', 'nobr', 'ol', 'optgroup', 'option', 'output', 'p', 'picture', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'section', 'select', 'shadow', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr']);
@@ -317,7 +322,7 @@
     /**
      * Expose whether this browser supports running the full DOMPurify.
      */
-    DOMPurify.isSupported = implementation && typeof implementation.createHTMLDocument !== 'undefined' && documentMode !== 9;
+    DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined' && documentMode !== 9;
 
     var MUSTACHE_EXPR$$1 = MUSTACHE_EXPR,
         ERB_EXPR$$1 = ERB_EXPR,
@@ -863,9 +868,13 @@
         if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
           var parentNode = getParentNode(currentNode);
           var childNodes = getChildNodes(currentNode);
-          var childCount = childNodes.length;
-          for (var i = childCount - 1; i >= 0; --i) {
-            parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
+
+          if (childNodes && parentNode) {
+            var childCount = childNodes.length;
+
+            for (var i = childCount - 1; i >= 0; --i) {
+              parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
+            }
           }
         }
 
