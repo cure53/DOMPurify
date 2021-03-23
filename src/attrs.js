@@ -108,7 +108,7 @@ export const html = freeze([
   'value',
   'width',
   'xmlns',
-  'slot'
+  'slot',
 ]);
 
 export const svg = freeze([
