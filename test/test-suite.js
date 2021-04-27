@@ -1528,6 +1528,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         expected: [
           '<polyline points="0 0"></polyline>',
           '<polyline xmlns="http://www.w3.org/2000/svg" points="0 0"/>',
+          '<polyline xmlns="http://www.w3.org/2000/svg" points="0,0" />'
         ],
       },
       {
@@ -1542,6 +1543,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
           '<mi></mi>',
           '<mi xmlns="http://www.w3.org/1998/Math/MathML"></mi>',
           '<mi xmlns="http://www.w3.org/1998/Math/MathML"/>',
+          '<mi xmlns="http://www.w3.org/1998/Math/MathML" />'
         ],
       },
       {
