@@ -138,7 +138,6 @@ function createDOMPurify(window = getGlobal()) {
   const {
     implementation,
     createNodeIterator,
-    getElementsByTagName,
     createDocumentFragment,
   } = document;
   const { importNode } = originalDocument;
@@ -320,6 +319,12 @@ function createDOMPurify(window = getGlobal()) {
     'xmlns',
   ]);
 
+  const MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
+  const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+  const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+  /* Document namespace */
+  let NAMESPACE = HTML_NAMESPACE;
+
   /* Keep a reference to config to pass to hooks */
   let CONFIG = null;
 
@@ -381,6 +386,7 @@ function createDOMPurify(window = getGlobal()) {
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
+    NAMESPACE = cfg.NAMESPACE || NAMESPACE;
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
     }
@@ -487,10 +493,6 @@ function createDOMPurify(window = getGlobal()) {
 
   const ALL_MATHML_TAGS = addToSet({}, TAGS.mathMl);
   addToSet(ALL_MATHML_TAGS, TAGS.mathMlDisallowed);
-
-  const MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
-  const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
-  const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
 
   /**
    *
@@ -677,28 +679,33 @@ function createDOMPurify(window = getGlobal()) {
     const dirtyPayload = trustedTypesPolicy
       ? trustedTypesPolicy.createHTML(dirty)
       : dirty;
-    /* Use the DOMParser API by default, fallback later if needs be */
-    try {
-      doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
-    } catch (_) {}
+    /*
+     * Use the DOMParser API by default, fallback later if needs be
+     * DOMParser not work for svg when has multiple root element.
+     */
+    if (NAMESPACE === HTML_NAMESPACE) {
+      try {
+        doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
+      } catch (_) {}
+    }
 
     /* Use createHTMLDocument in case DOMParser is not available */
     if (!doc || !doc.documentElement) {
-      doc = implementation.createHTMLDocument('');
-      const { body } = doc;
-      body.parentNode.removeChild(body.parentNode.firstElementChild);
-      body.outerHTML = dirtyPayload;
+      doc = implementation.createDocument(NAMESPACE, 'template');
+      doc.documentElement.innerHTML = dirtyPayload;
     }
 
+    const body = doc.body || doc.documentElement;
+
     if (dirty && leadingWhitespace) {
-      doc.body.insertBefore(
+      body.insertBefore(
         document.createTextNode(leadingWhitespace),
-        doc.body.childNodes[0] || null
+        body.childNodes[0] || null
       );
     }
 
     /* Work on whole document or just its body */
-    return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
+    return WHOLE_DOCUMENT ? doc.documentElement : body;
   };
 
   /**

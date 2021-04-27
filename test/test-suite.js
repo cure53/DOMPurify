@@ -1519,4 +1519,47 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       });
     }
   );
+
+  QUnit.test('Config-Flag tests: NAMESPACE', function (assert) {
+    var tests = [
+      {
+        test: '<polyline points="0 0"></polyline>',
+        config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
+        expected: [
+          '<polyline points="0 0"></polyline>',
+          '<polyline xmlns="http://www.w3.org/2000/svg" points="0 0"/>',
+        ],
+      },
+      {
+        test: '<polyline points="0 0"></polyline>',
+        config: { NAMESPACE: 'http://www.w3.org/1999/xhtml' },
+        expected: [''],
+      },
+      {
+        test: '<mi></mi>',
+        config: { NAMESPACE: 'http://www.w3.org/1998/Math/MathML' },
+        expected: [
+          '<mi></mi>',
+          '<mi xmlns="http://www.w3.org/1998/Math/MathML"></mi>',
+          '<mi xmlns="http://www.w3.org/1998/Math/MathML"/>',
+        ],
+      },
+      {
+        test: '<polyline points="0 0"></polyline>',
+        config: { NAMESPACE: 'http://www.w3.org/1998/Math/MathML' },
+        expected: [''],
+      },
+      {
+        test: '<mi></mi>',
+        config: { NAMESPACE: 'http://www.w3.org/1999/xhtml' },
+        expected: [
+          '',
+        ],
+      },
+    ];
+    tests.forEach(function (test) {
+      var clean = DOMPurify.sanitize(test.test, test.config);
+      assert.contains(clean, test.expected);
+    });
+  });
 };
