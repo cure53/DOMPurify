@@ -239,7 +239,8 @@ module.exports = [
           "<img><img>@mmrupp<img name=\"firstElementChild\"><svg></svg>",
           "<img><img>@mmrupp<img name=\"firstElementChild\"><svg xmlns=\"http://www.w3.org/2000/svg\" />",
           "<img><img>@mmrupp<img><svg xmlns=\"http://www.w3.org/2000/svg\" />",
-          "<img><img>@mmrupp<img>"
+          "<img><img>@mmrupp<img>",
+          ""
       ]
   }, {
       "title": "Special esacpes in protocol handler for XSS in Blink",
@@ -263,7 +264,8 @@ module.exports = [
           "<img><img src=\"x\"><svg>, </svg>",
           "<img><img src=\"x\"><svg xmlns=\"http://www.w3.org/2000/svg\">, </svg></svg>",
           "<img><img src=\"x\"><svg xmlns=\"http://www.w3.org/2000/svg\">, </svg>",
-          "<img><img src=\"x\">"
+          "<img><img src=\"x\">",
+          ""
       ]
   }, {
       "title": "Bypass using multiple unknown attributes",
