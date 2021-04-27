@@ -752,7 +752,7 @@
 
       /* Use createHTMLDocument in case DOMParser is not available */
       if (!doc || !doc.documentElement) {
-        doc = implementation.createDocument(NAMESPACE, 'template');
+        doc = implementation.createDocument(NAMESPACE, 'template', null);
         doc.documentElement.innerHTML = dirtyPayload;
       }
 
