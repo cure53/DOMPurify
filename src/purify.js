@@ -839,8 +839,8 @@ function createDOMPurify(window = getGlobal()) {
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for bad-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
-        const parentNode = getParentNode(currentNode);
-        const childNodes = getChildNodes(currentNode);
+        const parentNode = getParentNode(currentNode) || currentNode.parentNode;
+        const childNodes = getChildNodes(currentNode) || currentNode.childNodes;
 
         if (childNodes && parentNode) {
           const childCount = childNodes.length;
