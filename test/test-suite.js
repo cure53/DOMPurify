@@ -1535,7 +1535,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       {
         test: '<polyline points="0 0"></polyline>',
         config: { NAMESPACE: 'http://www.w3.org/1999/xhtml' },
-        expected: [''],
+        expected: ['', '<polyline points="0 0"></polyline>"'], // IE10
       },
       {
         test: '<mi></mi>',
@@ -1551,7 +1551,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       {
         test: '<polyline points="0 0"></polyline>',
         config: { NAMESPACE: 'http://www.w3.org/1998/Math/MathML' },
-        expected: [''],
+        expected: ['', '<polyline points="0 0"></polyline>"'], // IE10
       },
       {
         test: '<mi></mi>',
