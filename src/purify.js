@@ -719,9 +719,7 @@ function createDOMPurify(window = getGlobal()) {
       root.ownerDocument || root,
       root,
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
-      () => {
-        return NodeFilter.FILTER_ACCEPT;
-      },
+      null,
       false
     );
   };
