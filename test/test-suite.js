@@ -1566,4 +1566,53 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, test.expected);
     });
   });
+
+  QUnit.test('Test invalid xml', function (assert) {
+    var tests = [
+      {
+        test: '',
+        config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
+        expected: [''],
+      },
+      {
+        test: '<!-->',
+        config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
+        expected: [''],
+      },
+      {
+        test: '',
+        config: { NAMESPACE: 'http://www.w3.org/1998/Math/MathML' },
+        expected: [''],
+      },
+      {
+        test: '<!-->',
+        config: { NAMESPACE: 'http://www.w3.org/1998/Math/MathML' },
+        expected: [''],
+      },
+      {
+        test: '',
+        config: { NAMESPACE: 'http://www.w3.org/1999/xhtml' },
+        expected: [''],
+      },
+      {
+        test: '',
+        config: {},
+        expected: [''],
+      },
+      {
+        test: '<!-->',
+        config: { NAMESPACE: 'http://www.w3.org/1999/xhtml' },
+        expected: ['', '<!-->'],
+      },
+      {
+        test: '<!-->',
+        config: {},
+        expected: ['', '<!-->'],
+      },
+    ];
+    tests.forEach(function (test) {
+      var clean = DOMPurify.sanitize(test.test, test.config);
+      assert.contains(clean, test.expected);
+    });
+  });
 };

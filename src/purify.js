@@ -692,7 +692,11 @@ function createDOMPurify(window = getGlobal()) {
     /* Use createHTMLDocument in case DOMParser is not available */
     if (!doc || !doc.documentElement) {
       doc = implementation.createDocument(NAMESPACE, 'template', null);
-      doc.documentElement.innerHTML = dirtyPayload;
+      try {
+        doc.documentElement.innerHTML = dirtyPayload;
+      } catch (_) {
+        // Syntax error if dirtyPayload is invalid xml
+      }
     }
 
     const body = doc.body || doc.documentElement;
