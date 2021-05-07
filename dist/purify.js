@@ -753,9 +753,12 @@
       /* Use createHTMLDocument in case DOMParser is not available */
       if (!doc || !doc.documentElement) {
         doc = implementation.createDocument(NAMESPACE, 'template', null);
-        doc.documentElement.innerHTML = dirtyPayload;
+        try {
+          doc.documentElement.innerHTML = dirtyPayload;
+        } catch (_) {
+          // syntax error if dirtyPayload is invalid xml
+        }
       }
-
       var body = doc.body || doc.documentElement;
 
       if (dirty && leadingWhitespace) {
