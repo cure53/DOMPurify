@@ -425,6 +425,7 @@ function createDOMPurify() {
   var HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
   /* Document namespace */
   var NAMESPACE = HTML_NAMESPACE;
+  var IS_EMPTY_INPUT = false;
 
   /* Keep a reference to config to pass to hooks */
   var CONFIG = null;
@@ -750,7 +751,7 @@ function createDOMPurify() {
     if (!doc || !doc.documentElement) {
       doc = implementation.createDocument(NAMESPACE, 'template', null);
       try {
-        doc.documentElement.innerHTML = dirtyPayload;
+        doc.documentElement.innerHTML = IS_EMPTY_INPUT ? '' : dirtyPayload;
       } catch (_) {
         // Syntax error if dirtyPayload is invalid xml
       }
@@ -1096,6 +1097,7 @@ function createDOMPurify() {
       the user has requested a DOM object rather than a string */
     if (!dirty) {
       dirty = '<!-->';
+      IS_EMPTY_INPUT = true;
     }
 
     /* Stringify, in case dirty is an object */
