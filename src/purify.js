@@ -695,9 +695,10 @@ function createDOMPurify(window = getGlobal()) {
       try {
         doc.documentElement.innerHTML = dirtyPayload;
       } catch (_) {
-        // syntax error if dirtyPayload is invalid xml
+        // Syntax error if dirtyPayload is invalid xml
       }
     }
+
     const body = doc.body || doc.documentElement;
 
     if (dirty && leadingWhitespace) {
