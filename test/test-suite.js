@@ -1589,6 +1589,26 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         config: { NAMESPACE: 'http://www.w3.org/1998/Math/MathML' },
         expected: [''],
       },
+      {
+        test: '',
+        config: { NAMESPACE: 'http://www.w3.org/1999/xhtml' },
+        expected: [''],
+      },
+      {
+        test: '',
+        config: {},
+        expected: [''],
+      },
+      {
+        test: '<!-->',
+        config: { NAMESPACE: 'http://www.w3.org/1999/xhtml' },
+        expected: ['', '<!-->'],
+      },
+      {
+        test: '<!-->',
+        config: {},
+        expected: ['', '<!-->'],
+      },
     ];
     tests.forEach(function (test) {
       var clean = DOMPurify.sanitize(test.test, test.config);
