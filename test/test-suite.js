@@ -1577,7 +1577,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       {
         test: '<!-->',
         config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
-        expected: [''],
+        expected: ['', '<!-->'],
       },
       {
         test: '',
@@ -1587,7 +1587,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       {
         test: '<!-->',
         config: { NAMESPACE: 'http://www.w3.org/1998/Math/MathML' },
-        expected: [''],
+        expected: ['', '<!-->'],
       },
       {
         test: '',
