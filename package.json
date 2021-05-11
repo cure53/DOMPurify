@@ -132,6 +132,5 @@
   "bugs": {
     "url": "https://github.com/cure53/DOMPurify/issues"
   },
-  "homepage": "https://github.com/cure53/DOMPurify",
-  "dependencies": {}
+  "homepage": "https://github.com/cure53/DOMPurify"
 }
