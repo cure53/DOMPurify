@@ -1,4 +1,4 @@
-import { freeze } from './utils';
+import { freeze } from './utils.js';
 
 export const html = freeze([
   'accept',

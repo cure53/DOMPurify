@@ -1,4 +1,4 @@
-import { seal } from './utils';
+import { seal } from './utils.js';
 
 // eslint-disable-next-line unicorn/better-regex
 export const MUSTACHE_EXPR = seal(/\{\{[\s\S]*|[\s\S]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode

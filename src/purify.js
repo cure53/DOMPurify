@@ -1,6 +1,6 @@
-import * as TAGS from './tags';
-import * as ATTRS from './attrs';
-import * as EXPRESSIONS from './regexp';
+import * as TAGS from './tags.js';
+import * as ATTRS from './attrs.js';
+import * as EXPRESSIONS from './regexp.js';
 import {
   addToSet,
   clone,
@@ -16,7 +16,7 @@ import {
   regExpTest,
   typeErrorCreate,
   lookupGetter,
-} from './utils';
+} from './utils.js';
 
 const getGlobal = () => (typeof window === 'undefined' ? null : window);
 
@@ -135,11 +135,8 @@ function createDOMPurify(window = getGlobal()) {
       ? trustedTypesPolicy.createHTML('')
       : '';
 
-  const {
-    implementation,
-    createNodeIterator,
-    createDocumentFragment,
-  } = document;
+  const { implementation, createNodeIterator, createDocumentFragment } =
+    document;
   const { importNode } = originalDocument;
 
   let documentMode = {};
@@ -613,6 +610,7 @@ function createDOMPurify(window = getGlobal()) {
   const _forceRemove = function (node) {
     arrayPush(DOMPurify.removed, { element: node });
     try {
+      // eslint-disable-next-line unicorn/prefer-dom-node-remove
       node.parentNode.removeChild(node);
     } catch (_) {
       try {
@@ -1170,8 +1168,7 @@ function createDOMPurify(window = getGlobal()) {
       } else if (importedNode.nodeName === 'HTML') {
         body = importedNode;
       } else {
-        // eslint-disable-next-line unicorn/prefer-node-append
-        body.appendChild(importedNode);
+        body.append(importedNode);
       }
     } else {
       /* Exit directly if we have nothing to do */
@@ -1240,8 +1237,7 @@ function createDOMPurify(window = getGlobal()) {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
         while (body.firstChild) {
-          // eslint-disable-next-line unicorn/prefer-node-append
-          returnNode.appendChild(body.firstChild);
+          returnNode.append(body.firstChild);
         }
       } else {
         returnNode = body;

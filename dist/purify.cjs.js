@@ -672,6 +672,7 @@ function createDOMPurify() {
   var _forceRemove = function _forceRemove(node) {
     arrayPush(DOMPurify.removed, { element: node });
     try {
+      // eslint-disable-next-line unicorn/prefer-dom-node-remove
       node.parentNode.removeChild(node);
     } catch (_) {
       try {
@@ -1152,8 +1153,7 @@ function createDOMPurify() {
       } else if (importedNode.nodeName === 'HTML') {
         body = importedNode;
       } else {
-        // eslint-disable-next-line unicorn/prefer-node-append
-        body.appendChild(importedNode);
+        body.append(importedNode);
       }
     } else {
       /* Exit directly if we have nothing to do */
@@ -1216,8 +1216,7 @@ function createDOMPurify() {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
         while (body.firstChild) {
-          // eslint-disable-next-line unicorn/prefer-node-append
-          returnNode.appendChild(body.firstChild);
+          returnNode.append(body.firstChild);
         }
       } else {
         returnNode = body;
