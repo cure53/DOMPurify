@@ -1151,7 +1151,8 @@ function createDOMPurify() {
       } else if (importedNode.nodeName === 'HTML') {
         body = importedNode;
       } else {
-        body.append(importedNode);
+        // eslint-disable-next-line unicorn/prefer-dom-node-append
+        body.appendChild(importedNode);
       }
     } else {
       /* Exit directly if we have nothing to do */
@@ -1214,7 +1215,8 @@ function createDOMPurify() {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
         while (body.firstChild) {
-          returnNode.append(body.firstChild);
+          // eslint-disable-next-line unicorn/prefer-dom-node-append
+          returnNode.appendChild(body.firstChild);
         }
       } else {
         returnNode = body;
