@@ -1615,4 +1615,23 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, test.expected);
     });
   });
+
+  QUnit.test('Test namespace default to html after other namespace been used', function (assert) {
+    var tests = [
+      {
+        test: '<br>',
+        config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
+        expected: [''],
+      },
+      {
+        test: '<br>',
+        config: { },
+        expected: ['<br>'],
+      },
+    ];
+    tests.forEach(function (test) {
+      var clean = DOMPurify.sanitize(test.test, test.config);
+      assert.contains(clean, test.expected);
+    });
+  });
 };

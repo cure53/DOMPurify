@@ -384,7 +384,7 @@ function createDOMPurify(window = getGlobal()) {
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
-    NAMESPACE = cfg.NAMESPACE || NAMESPACE;
+    NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
     }
