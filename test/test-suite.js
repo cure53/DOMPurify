@@ -1621,7 +1621,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       {
         test: '<br>',
         config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
-        expected: [''],
+        expected: ['', '<br>'],
       },
       {
         test: '<br>',
