@@ -1096,9 +1096,9 @@ function createDOMPurify() {
     /* Make sure we have a string to sanitize.
       DO NOT return early, as this will return the wrong type if
       the user has requested a DOM object rather than a string */
-    if (!dirty) {
+    IS_EMPTY_INPUT = !dirty;
+    if (IS_EMPTY_INPUT) {
       dirty = '<!-->';
-      IS_EMPTY_INPUT = true;
     }
 
     /* Stringify, in case dirty is an object */
