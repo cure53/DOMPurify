@@ -1615,4 +1615,47 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, test.expected);
     });
   });
+
+  QUnit.test('Test namespace default to html after other namespace been used', function (assert) {
+    var tests = [
+      {
+        test: '<br>',
+        config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
+        expected: [''],
+      },
+      {
+        test: '<br>',
+        config: { },
+        expected: ['<br>'],
+      },
+    ];
+    tests.forEach(function (test) {
+      var clean = DOMPurify.sanitize(test.test, test.config);
+      assert.contains(clean, test.expected);
+    });
+  });
+
+  QUnit.test('Test non-html input after empty input', function (assert) {
+    var tests = [
+      {
+        test: '',
+        config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
+        expected: [''],
+      },
+      {
+        test: '<polyline points="0 0"></polyline>',
+        config: { NAMESPACE: 'http://www.w3.org/2000/svg' },
+        expected: [
+          '<polyline points="0 0"></polyline>',
+          '<polyline xmlns="http://www.w3.org/2000/svg" points="0 0"/>',
+          '<polyline xmlns="http://www.w3.org/2000/svg" points="0,0" />',
+          '',
+        ],
+      },
+    ];
+    tests.forEach(function (test) {
+      var clean = DOMPurify.sanitize(test.test, test.config);
+      assert.contains(clean, test.expected);
+    });
+  });
 };
