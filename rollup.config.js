@@ -7,7 +7,7 @@ const fs = require('fs');
 const env = process.env.NODE_ENV;
 const isProd = env === 'production';
 const version = process.env.npm_package_version;
-const license = fs.readFileSync('./src/license_header', 'utf8');
+const license = fs.readFileSync('./src/license_header', 'utf8').replace(/VERSION/ig, version);
 
 const config = {
   input: 'src/purify.js',
