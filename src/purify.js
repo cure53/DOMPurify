@@ -914,7 +914,11 @@ function createDOMPurify(window = getGlobal()) {
         (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
         XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
         We don't need to check the value; it's always URI safe. */
-    if (ALLOW_DATA_ATTR && regExpTest(DATA_ATTR, lcName)) {
+    if (
+      ALLOW_DATA_ATTR &&
+      !FORBID_ATTR[lcName] &&
+      regExpTest(DATA_ATTR, lcName)
+    ) {
       // This attribute is safe
     } else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) {
       // This attribute is safe
