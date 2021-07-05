@@ -123,6 +123,18 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       }),
       '<a href="#">abc</a>'
     );
+    assert.equal(
+      DOMPurify.sanitize('<a href="#" data-evil="foo">abc</a>', {
+         FORBID_ATTR: ['data-evil'], 
+      }),
+      '<a href="#">abc</a>'
+    );
+    assert.equal(
+      DOMPurify.sanitize('<a href="#" data-evil="foo">abc</a>', {
+         ALLOW_DATA_ATTR: true, FORBID_ATTR: ['data-evil'], 
+      }),
+      '<a href="#">abc</a>'
+    );
   });
   QUnit.test('Config-Flag tests: ADD_TAGS', function (assert) {
     // ADD_TAGS
