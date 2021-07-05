@@ -97,6 +97,14 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: '10',
   },
+  bs_win10_firefox_90: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '90.0',
+    browser: 'firefox',
+    os_version: '10',
+  },
   bs_win10_chrome_60: {
     base: 'BrowserStack',
     device: null,
@@ -118,6 +126,14 @@ const customLaunchers = {
     device: null,
     os: 'Windows',
     browser_version: '85.0',
+    browser: 'chrome',
+    os_version: '10',
+  },
+  bs_win10_chrome_91: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '91.0',
     browser: 'chrome',
     os_version: '10',
   }
