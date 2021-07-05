@@ -135,8 +135,12 @@ function createDOMPurify(window = getGlobal()) {
       ? trustedTypesPolicy.createHTML('')
       : '';
 
-  const { implementation, createNodeIterator, createDocumentFragment } =
-    document;
+  const {
+    implementation,
+    createNodeIterator,
+    createDocumentFragment,
+    getElementsByTagName,
+  } = document;
   const { importNode } = originalDocument;
 
   let documentMode = {};
@@ -708,7 +712,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Work on whole document or just its body */
-    return WHOLE_DOCUMENT ? doc.documentElement : body;
+    return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
   };
 
   /**

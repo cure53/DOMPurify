@@ -307,7 +307,8 @@
     var _document = document,
         implementation = _document.implementation,
         createNodeIterator = _document.createNodeIterator,
-        createDocumentFragment = _document.createDocumentFragment;
+        createDocumentFragment = _document.createDocumentFragment,
+        getElementsByTagName = _document.getElementsByTagName;
     var importNode = originalDocument.importNode;
 
 
@@ -769,7 +770,7 @@
       }
 
       /* Work on whole document or just its body */
-      return WHOLE_DOCUMENT ? doc.documentElement : body;
+      return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
     };
 
     /**
