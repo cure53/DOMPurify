@@ -764,7 +764,11 @@ function createDOMPurify() {
     }
 
     /* Work on whole document or just its body */
-    return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body')[0];
+    if (NAMESPACE !== HTML_NAMESPACE) {
+      return WHOLE_DOCUMENT ? doc.documentElement : body;
+    }
+
+    return getElementsByTagName.call(doc, WHOLE_DOCUMENT ? 'html' : 'body');
   };
 
   /**
