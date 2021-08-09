@@ -313,6 +313,7 @@ function createDOMPurify(window = getGlobal()) {
     'name',
     'pattern',
     'placeholder',
+    'role',
     'summary',
     'title',
     'value',

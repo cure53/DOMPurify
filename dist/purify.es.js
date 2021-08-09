@@ -417,7 +417,7 @@ function createDOMPurify() {
 
   /* Attributes safe for values like "javascript:" */
   var URI_SAFE_ATTRIBUTES = null;
-  var DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, ['alt', 'class', 'for', 'id', 'label', 'name', 'pattern', 'placeholder', 'summary', 'title', 'value', 'style', 'xmlns']);
+  var DEFAULT_URI_SAFE_ATTRIBUTES = addToSet({}, ['alt', 'class', 'for', 'id', 'label', 'name', 'pattern', 'placeholder', 'role', 'summary', 'title', 'value', 'style', 'xmlns']);
 
   var MATHML_NAMESPACE = 'http://www.w3.org/1998/Math/MathML';
   var SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
