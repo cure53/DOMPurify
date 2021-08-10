@@ -176,6 +176,9 @@ var clean = DOMPurify.sanitize(dirty, {NAMESPACE: 'http://www.w3.org/2000/svg'})
 // leave all safe HTML as it is and add <style> elements to block-list
 var clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
 
+// leave all safe HTML as it is and remove all <a> elements under <p> elements that are sanitized
+var clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
+
 // leave all safe HTML as it is and add style attributes to block-list
 var clean = DOMPurify.sanitize(dirty, {FORBID_ATTR: ['style']});
 
