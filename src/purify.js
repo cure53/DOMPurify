@@ -263,7 +263,8 @@ function createDOMPurify(window = getGlobal()) {
   let USE_PROFILES = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
-  const FORBID_CONTENTS = addToSet({}, [
+  let FORBID_CONTENTS = null;
+  const DEFAULT_FORBID_CONTENTS = addToSet({}, [
     'annotation-xml',
     'audio',
     'colgroup',
@@ -372,6 +373,10 @@ function createDOMPurify(window = getGlobal()) {
       'ADD_DATA_URI_TAGS' in cfg
         ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS)
         : DEFAULT_DATA_URI_TAGS;
+    FORBID_CONTENTS =
+      'FORBID_CONTENTS' in cfg
+        ? addToSet({}, cfg.FORBID_CONTENTS)
+        : DEFAULT_FORBID_CONTENTS;
     FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
     FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
     USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
@@ -445,6 +450,14 @@ function createDOMPurify(window = getGlobal()) {
 
     if (cfg.ADD_URI_SAFE_ATTR) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
+    }
+    
+    if (cfg.FORBID_CONTENTS) {
+      if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
+        FORBID_CONTENTS = clone(FORBID_CONTENTS);
+      }
+
+      addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS);
     }
 
     /* Add #text in case KEEP_CONTENT is set to true */
