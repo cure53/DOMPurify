@@ -861,6 +861,15 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
+    /* Mitigate a problem with templates inside select */
+    if (
+      tagName === 'select' &&
+      regExpTest(/<template/i, currentNode.innerHTML)
+    ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Keep content except for bad-listed elements */

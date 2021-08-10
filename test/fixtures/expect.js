@@ -1200,5 +1200,11 @@ module.exports = [
           "<b is=\"\">bar</b>",
           "<b>bar</b>"
       ]
+  }, {
+      "title": "Tests against removal of templates inside select elements",
+      "payload": "<select><template></template></select>",
+      "expected": [
+          ""
+      ]
   }
 ];
