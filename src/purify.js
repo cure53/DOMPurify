@@ -451,7 +451,7 @@ function createDOMPurify(window = getGlobal()) {
     if (cfg.ADD_URI_SAFE_ATTR) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
     }
-    
+
     if (cfg.FORBID_CONTENTS) {
       if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
         FORBID_CONTENTS = clone(FORBID_CONTENTS);
