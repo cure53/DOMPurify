@@ -161,6 +161,19 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<my-component my-attr="foo">abc</my-component>'
     );
   });
+  QUnit.test(
+    'Config-Flag tests: FORBID_CONTENTS + FORBID_TAGS',
+    function (assert) {
+      // FORBID_CONTENTS + FORBID_TAGS
+      assert.equal(
+        DOMPurify.sanitize(
+          '<div><b>preserve me</b></div><p><b>no not preserve me</b></p>',
+          { FORBID_CONTENTS: ['p'], FORBID_TAGS: ['div', 'p'] }
+        ),
+        '<b>preserve me</b>'
+      );
+    }
+  );
   QUnit.test('Config-Flag tests: SAFE_FOR_JQUERY (now inactive, secure by default)', function (assert) {
     assert.equal(
       DOMPurify.sanitize('<a>123</a><option><style><img src=x onerror=alert(1)>'),
