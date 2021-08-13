@@ -1204,7 +1204,8 @@ module.exports = [
       "title": "Tests against removal of templates inside select elements",
       "payload": "<select><template></template></select>",
       "expected": [
-          ""
+          "",
+          "<select></select>"
       ]
   }
 ];
