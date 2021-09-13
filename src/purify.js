@@ -329,6 +329,15 @@ function createDOMPurify(window = getGlobal()) {
   let NAMESPACE = HTML_NAMESPACE;
   let IS_EMPTY_INPUT = false;
 
+  /* Parsing of strict XHTML documents */
+  let PARSER_MEDIA_TYPE;
+  const SUPPORTED_PARSER_MEDIA_TYPES = new Set([
+    'application/xhtml+xml',
+    'text/html',
+  ]);
+  const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
+  let transformCaseFunc;
+
   /* Keep a reference to config to pass to hooks */
   let CONFIG = null;
 
@@ -395,6 +404,15 @@ function createDOMPurify(window = getGlobal()) {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+    PARSER_MEDIA_TYPE = SUPPORTED_PARSER_MEDIA_TYPES.has(cfg.PARSER_MEDIA_TYPE)
+      ? cfg.PARSER_MEDIA_TYPE
+      : DEFAULT_PARSER_MEDIA_TYPE;
+    // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
+    transformCaseFunc =
+      PARSER_MEDIA_TYPE === 'application/xhtml+xml'
+        ? (x) => x
+        : stringToLowerCase;
+
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
     }
@@ -693,6 +711,14 @@ function createDOMPurify(window = getGlobal()) {
       leadingWhitespace = matches && matches[0];
     }
 
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+      // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
+      dirty =
+        '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' +
+        dirty +
+        '</body></html>';
+    }
+
     const dirtyPayload = trustedTypesPolicy
       ? trustedTypesPolicy.createHTML(dirty)
       : dirty;
@@ -702,7 +728,7 @@ function createDOMPurify(window = getGlobal()) {
      */
     if (NAMESPACE === HTML_NAMESPACE) {
       try {
-        doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
+        doc = new DOMParser().parseFromString(dirtyPayload, PARSER_MEDIA_TYPE);
       } catch (_) {}
     }
 
@@ -841,7 +867,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Now let's check the element's type and name */
-    const tagName = stringToLowerCase(currentNode.nodeName);
+    const tagName = transformCaseFunc(currentNode.nodeName);
 
     /* Execute a hook if present */
     _executeHook('uponSanitizeElement', currentNode, {
@@ -1036,7 +1062,7 @@ function createDOMPurify(window = getGlobal()) {
       attr = attributes[l];
       const { name, namespaceURI } = attr;
       value = stringTrim(attr.value);
-      lcName = stringToLowerCase(name);
+      lcName = transformCaseFunc(name);
 
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
@@ -1071,7 +1097,7 @@ function createDOMPurify(window = getGlobal()) {
       }
 
       /* Is `value` valid for this attribute? */
-      const lcTag = currentNode.nodeName.toLowerCase();
+      const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
         continue;
       }
@@ -1347,8 +1373,8 @@ function createDOMPurify(window = getGlobal()) {
       _parseConfig({});
     }
 
-    const lcTag = stringToLowerCase(tag);
-    const lcName = stringToLowerCase(attr);
+    const lcTag = transformCaseFunc(tag);
+    const lcName = transformCaseFunc(attr);
     return _isValidAttribute(lcTag, lcName, value);
   };
 
