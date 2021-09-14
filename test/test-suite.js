@@ -1597,12 +1597,18 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       {
         test: '<A href="#">invalid</A><a TITLE="title" href="#">valid</a>',
         expected: {
-          '': '<a href="#">invalid</a><a href="#" title="title">valid</a>',
-          'Application/xhtml+xml': '<a href="#">invalid</a><a href="#" title="title">valid</a>',
-          'application/xml': '<a href="#">invalid</a><a href="#" title="title">valid</a>',
-          'application/xhtml+xml': 'invalid<a xmlns="http://www.w3.org/1999/xhtml" href="#">valid</a>',
-          'text/html': '<a href="#">invalid</a><a href="#" title="title">valid</a>',
-          'text/xml': '<a href="#">invalid</a><a href="#" title="title">valid</a>'
+          '': [
+                '<a href="#">invalid</a><a href="#" title="title">valid</a>',
+                '<a href="#">invalid</a><a title="title" href="#">valid</a>'
+           ],
+          'Application/xhtml+xml': ['<a href="#">invalid</a><a href="#" title="title">valid</a>'],
+          'application/xml': ['<a href="#">invalid</a><a href="#" title="title">valid</a>'],
+          'application/xhtml+xml': ['invalid<a xmlns="http://www.w3.org/1999/xhtml" href="#">valid</a>'],
+          'text/html': [
+                '<a href="#">invalid</a><a href="#" title="title">valid</a>',
+                '<a href="#">invalid</a><a title="title" href="#">valid</a>'
+           ],
+          'text/xml': ['<a href="#">invalid</a><a href="#" title="title">valid</a>']
         }
       },
       {
@@ -1621,7 +1627,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         var config = test.config || {};
         config.PARSER_MEDIA_TYPE = type;
         var clean = DOMPurify.sanitize(test.test, config);
-        assert.strictEqual(clean, test.expected[type]);
+        assert.contains(clean, test.expected[type]);
       });
     });
   });
