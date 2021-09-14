@@ -433,6 +433,12 @@
     var NAMESPACE = HTML_NAMESPACE;
     var IS_EMPTY_INPUT = false;
 
+    /* Parsing of strict XHTML documents */
+    var PARSER_MEDIA_TYPE = void 0;
+    var SUPPORTED_PARSER_MEDIA_TYPES = new Set(['application/xhtml+xml', 'text/html']);
+    var DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
+    var transformCaseFunc = void 0;
+
     /* Keep a reference to config to pass to hooks */
     var CONFIG = null;
 
@@ -484,6 +490,12 @@
       IN_PLACE = cfg.IN_PLACE || false; // Default false
       IS_ALLOWED_URI$$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$$1;
       NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+      PARSER_MEDIA_TYPE = SUPPORTED_PARSER_MEDIA_TYPES.has(cfg.PARSER_MEDIA_TYPE) ? cfg.PARSER_MEDIA_TYPE : DEFAULT_PARSER_MEDIA_TYPE;
+      // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
+      transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? function (x) {
+        return x;
+      } : stringToLowerCase;
+
       if (SAFE_FOR_TEMPLATES) {
         ALLOW_DATA_ATTR = false;
       }
@@ -752,6 +764,11 @@
         leadingWhitespace = matches && matches[0];
       }
 
+      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+        // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
+        dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
+      }
+
       var dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
       /*
        * Use the DOMParser API by default, fallback later if needs be
@@ -759,7 +776,7 @@
        */
       if (NAMESPACE === HTML_NAMESPACE) {
         try {
-          doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
+          doc = new DOMParser().parseFromString(dirtyPayload, PARSER_MEDIA_TYPE);
         } catch (_) {}
       }
 
@@ -872,7 +889,7 @@
       }
 
       /* Now let's check the element's type and name */
-      var tagName = stringToLowerCase(currentNode.nodeName);
+      var tagName = transformCaseFunc(currentNode.nodeName);
 
       /* Execute a hook if present */
       _executeHook('uponSanitizeElement', currentNode, {
@@ -1013,7 +1030,7 @@
             namespaceURI = _attr.namespaceURI;
 
         value = stringTrim(attr.value);
-        lcName = stringToLowerCase(name);
+        lcName = transformCaseFunc(name);
 
         /* Execute a hook if present */
         hookEvent.attrName = lcName;
@@ -1048,7 +1065,7 @@
         }
 
         /* Is `value` valid for this attribute? */
-        var lcTag = currentNode.nodeName.toLowerCase();
+        var lcTag = transformCaseFunc(currentNode.nodeName);
         if (!_isValidAttribute(lcTag, lcName, value)) {
           continue;
         }
@@ -1311,8 +1328,8 @@
         _parseConfig({});
       }
 
-      var lcTag = stringToLowerCase(tag);
-      var lcName = stringToLowerCase(attr);
+      var lcTag = transformCaseFunc(tag);
+      var lcName = transformCaseFunc(attr);
       return _isValidAttribute(lcTag, lcName, value);
     };
 

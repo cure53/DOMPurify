@@ -1592,6 +1592,40 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     });
   });
 
+  QUnit.test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
+    const tests = [
+      {
+        test: '<A href="#">invalid</A><a TITLE="title" href="#">valid</a>',
+        expected: {
+          '': '<a href="#">invalid</a><a href="#" title="title">valid</a>',
+          'Application/xhtml+xml': '<a href="#">invalid</a><a href="#" title="title">valid</a>',
+          'application/xml': '<a href="#">invalid</a><a href="#" title="title">valid</a>',
+          'application/xhtml+xml': 'invalid<a xmlns="http://www.w3.org/1999/xhtml" href="#">valid</a>',
+          'text/html': '<a href="#">invalid</a><a href="#" title="title">valid</a>',
+          'text/xml': '<a href="#">invalid</a><a href="#" title="title">valid</a>'
+        }
+      },
+      {
+        config: {
+          WHOLE_DOCUMENT: true
+        },
+        test: '<A href="#">invalid</A><a TITLE="title" href="#">valid</a>',
+        expected: {
+          'text/html': '<html><head></head><body><a href="#">invalid</a><a href="#" title="title">valid</a></body></html>',
+          'application/xhtml+xml': '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>invalid<a href="#">valid</a></body></html>'
+        }
+      }
+    ];
+    tests.forEach(function (test) {
+      Object.keys(test.expected).forEach(function (type) {
+        var config = test.config || {};
+        config.PARSER_MEDIA_TYPE = type;
+        var clean = DOMPurify.sanitize(test.test, config);
+        assert.strictEqual(clean, test.expected[type]);
+      });
+    });
+  });
+
   QUnit.test('Test invalid xml', function (assert) {
     var tests = [
       {
