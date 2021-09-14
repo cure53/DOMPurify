@@ -431,7 +431,7 @@ function createDOMPurify() {
 
   /* Parsing of strict XHTML documents */
   var PARSER_MEDIA_TYPE = void 0;
-  var SUPPORTED_PARSER_MEDIA_TYPES = new Set(['application/xhtml+xml', 'text/html']);
+  var SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
   var DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
   var transformCaseFunc = void 0;
 
@@ -486,7 +486,7 @@ function createDOMPurify() {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI$$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$$1;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
-    PARSER_MEDIA_TYPE = SUPPORTED_PARSER_MEDIA_TYPES.has(cfg.PARSER_MEDIA_TYPE) ? cfg.PARSER_MEDIA_TYPE : DEFAULT_PARSER_MEDIA_TYPE;
+    PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE in SUPPORTED_PARSER_MEDIA_TYPES ? cfg.PARSER_MEDIA_TYPE : DEFAULT_PARSER_MEDIA_TYPE;
     // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
     transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? function (x) {
       return x;
