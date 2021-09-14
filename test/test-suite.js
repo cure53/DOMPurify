@@ -1632,7 +1632,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         expected: {
           'text/html': [
                 '<html><head></head><body><a href="#">invalid</a><a href="#" title="title">valid</a></body></html>',
-                '<html><head></head><body><a href="#">invalid</a><a title="title" href="#">valid</a></body></html>"'
+                '<html><head></head><body><a href="#">invalid</a><a title="title" href="#">valid</a></body></html>'
           ],
           'application/xhtml+xml': [
                 '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>invalid<a href="#">valid</a></body></html>',
