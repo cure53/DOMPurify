@@ -246,6 +246,9 @@ var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 // glue elements like style, script or others to document.body and prevent unintuitive browser behavior in several edge-cases (default is false)
 var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 
+// change the parser type so sanitized data is treated as XML and not as HTML, which is the default
+var clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xml'});
+
 /**
  * Influence where we sanitize
  */
