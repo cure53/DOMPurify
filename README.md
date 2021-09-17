@@ -247,7 +247,7 @@ var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 
 // change the parser type so sanitized data is treated as XML and not as HTML, which is the default
-var clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xml'});
+var clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
 
 /**
  * Influence where we sanitize
