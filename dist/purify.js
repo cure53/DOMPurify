@@ -490,7 +490,11 @@
       IN_PLACE = cfg.IN_PLACE || false; // Default false
       IS_ALLOWED_URI$$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$$1;
       NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
-      PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE in SUPPORTED_PARSER_MEDIA_TYPES ? cfg.PARSER_MEDIA_TYPE : DEFAULT_PARSER_MEDIA_TYPE;
+
+      PARSER_MEDIA_TYPE =
+      // eslint-disable-next-line unicorn/prefer-includes
+      SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE;
+
       // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
       transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? function (x) {
         return x;
