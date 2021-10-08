@@ -700,16 +700,16 @@ module.exports = [
   }, {
       "payload": "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<feImage>\n<set attributeName=\"xlink:href\" to=\"data:image/svg+xml;charset=utf-8;base64,\nPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxzY3JpcHQ%2BYWxlcnQoMSk8L3NjcmlwdD48L3N2Zz4NCg%3D%3D\"/>\n</feImage>\n</svg>//[\"'`-->]]>]</div>",
       "expected": [
-          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n<feImage>\n\n</feImage>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n\n<feImage>\n\n</feImage>\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<feImage>\n\n</feImage>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n<feImage>\n\n</feImage>\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<feImage>\n\n</feImage>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<feImage>\n\n</feImage>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns=\"http://www.w3.org/2000/svg\">\n<feImage>\n\n</feImage>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<feImage>\n\n</feImage>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<feImage>\n\n</feImage>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"95\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n<feImage>\n\n</feImage>\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"96\"><iframe src=mhtml:http://html5sec.org/test.html!xss.html></iframe>\n<iframe src=mhtml:http://html5sec.org/test.gif!xss.html></iframe>//[\"'`-->]]>]</div>",
@@ -1170,7 +1170,7 @@ module.exports = [
       "title": "Test against fake-element-based namepsace-confusion abusing mXSS attacks 1/2",
       "payload": "a<svg><xss><desc><noscript>&lt;/noscript>&lt;/desc>&lt;s>&lt/s>&lt;style>&lt;a title=\"&lt;/style>&lt;img src onerror=alert(1)>\">",
       "expected": [
-            "a<svg><desc></desc></svg>", 
+            "a<svg><desc></desc></svg>",
             "a<svg xmlns=\"http://www.w3.org/2000/svg\"><desc /></svg></svg>",
             "a<svg xmlns=\"http://www.w3.org/2000/svg\"><desc /></svg>"
        ]
@@ -1178,7 +1178,7 @@ module.exports = [
       "title": "Test against fake-element-based namepsace-confusion abusing mXSS attacks 2/2",
       "payload": "<math><mtext><option><FAKEFAKE><option></option><mglyph><svg><mtext><style><a title=\"</style><img src='#' onerror='alert(1)'>\">",
       "expected": [
-            "<math><mtext><option><option></option></option></mtext></math>", 
+            "<math><mtext><option><option></option></option></mtext></math>",
             ""
        ]
   },   {
