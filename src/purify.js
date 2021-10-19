@@ -99,6 +99,7 @@ function createDOMPurify(window = getGlobal()) {
     Node,
     Element,
     NodeFilter,
+    HTMLFormElement,
     NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
     Text,
     Comment,
@@ -786,24 +787,18 @@ function createDOMPurify(window = getGlobal()) {
    * @return {Boolean} true if clobbered, false if safe
    */
   const _isClobbered = function (elm) {
-    if (elm instanceof Text || elm instanceof Comment) {
-      return false;
-    }
-
-    if (
-      typeof elm.nodeName !== 'string' ||
-      typeof elm.textContent !== 'string' ||
-      typeof elm.removeChild !== 'function' ||
-      !(elm.attributes instanceof NamedNodeMap) ||
-      typeof elm.removeAttribute !== 'function' ||
-      typeof elm.setAttribute !== 'function' ||
-      typeof elm.namespaceURI !== 'string' ||
-      typeof elm.insertBefore !== 'function'
-    ) {
-      return true;
-    }
-
-    return false;
+    return (
+      currentNode instanceof HTMLFormElement && (
+        typeof elm.nodeName !== 'string' ||
+        typeof elm.textContent !== 'string' ||
+        typeof elm.removeChild !== 'function' ||
+        !(elm.attributes instanceof NamedNodeMap) ||
+        typeof elm.removeAttribute !== 'function' ||
+        typeof elm.setAttribute !== 'function' ||
+        typeof elm.namespaceURI !== 'string' ||
+        typeof elm.insertBefore !== 'function'
+      )
+    );
   };
 
   /**
