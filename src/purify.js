@@ -1310,7 +1310,7 @@ function createDOMPurify(window = getGlobal()) {
         returnNode = body;
       }
 
-      if (RETURN_DOM_IMPORT) {
+      if (RETURN_DOM_IMPORT && ALLOWED_ATTR.shadowroot) {
         /*
           AdoptNode() is not used because internal state is not reset
           (e.g. the past names map of a HTMLFormElement), this is safe
