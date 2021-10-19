@@ -99,10 +99,8 @@ function createDOMPurify(window = getGlobal()) {
     Node,
     Element,
     NodeFilter,
-    HTMLFormElement,
     NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
-    Text,
-    Comment,
+    HTMLFormElement,
     DOMParser,
     trustedTypes,
   } = window;
@@ -788,16 +786,15 @@ function createDOMPurify(window = getGlobal()) {
    */
   const _isClobbered = function (elm) {
     return (
-      currentNode instanceof HTMLFormElement && (
-        typeof elm.nodeName !== 'string' ||
+      elm instanceof HTMLFormElement &&
+      (typeof elm.nodeName !== 'string' ||
         typeof elm.textContent !== 'string' ||
         typeof elm.removeChild !== 'function' ||
         !(elm.attributes instanceof NamedNodeMap) ||
         typeof elm.removeAttribute !== 'function' ||
         typeof elm.setAttribute !== 'function' ||
         typeof elm.namespaceURI !== 'string' ||
-        typeof elm.insertBefore !== 'function'
-      )
+        typeof elm.insertBefore !== 'function')
     );
   };
 

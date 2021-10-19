@@ -269,8 +269,7 @@ function createDOMPurify() {
       NodeFilter = window.NodeFilter,
       _window$NamedNodeMap = window.NamedNodeMap,
       NamedNodeMap = _window$NamedNodeMap === undefined ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
-      Text = window.Text,
-      Comment = window.Comment,
+      HTMLFormElement = window.HTMLFormElement,
       DOMParser = window.DOMParser,
       trustedTypes = window.trustedTypes;
 
@@ -819,15 +818,7 @@ function createDOMPurify() {
    * @return {Boolean} true if clobbered, false if safe
    */
   var _isClobbered = function _isClobbered(elm) {
-    if (elm instanceof Text || elm instanceof Comment) {
-      return false;
-    }
-
-    if (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function') {
-      return true;
-    }
-
-    return false;
+    return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function');
   };
 
   /**
