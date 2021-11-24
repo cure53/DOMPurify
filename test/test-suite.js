@@ -125,13 +125,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     );
     assert.equal(
       DOMPurify.sanitize('<a href="#" data-evil="foo">abc</a>', {
-         FORBID_ATTR: ['data-evil'], 
+         FORBID_ATTR: ['data-evil'],
       }),
       '<a href="#">abc</a>'
     );
     assert.equal(
       DOMPurify.sanitize('<a href="#" data-evil="foo">abc</a>', {
-         ALLOW_DATA_ATTR: true, FORBID_ATTR: ['data-evil'], 
+         ALLOW_DATA_ATTR: true, FORBID_ATTR: ['data-evil'],
       }),
       '<a href="#">abc</a>'
     );
@@ -438,37 +438,30 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<body>123</body>'
     );
   });
-  QUnit.test('Config-Flag tests: RETURN_DOM_IMPORT', function (assert) {
-    //RETURN_DOM_IMPORT
-    assert.equal(
-      DOMPurify.sanitize('123', { RETURN_DOM: true }).ownerDocument,
-      document
-    );
+  QUnit.test('Config-Flag tests: shadowroot', function (assert) {
     assert.notEqual(
-      DOMPurify.sanitize('123', { RETURN_DOM: true, RETURN_DOM_IMPORT: false })
-        .ownerDocument,
+      DOMPurify.sanitize('123', {
+        RETURN_DOM: true
+      }).ownerDocument,
       document
     );
     assert.equal(
-      DOMPurify.sanitize('123', { RETURN_DOM: true, RETURN_DOM_IMPORT: true })
-        .ownerDocument,
-      document
-    );
-    assert.equal(
-      DOMPurify.sanitize('123', { RETURN_DOM_FRAGMENT: true }).ownerDocument,
+      DOMPurify.sanitize('123', {
+        RETURN_DOM: true,
+        ADD_ATTR: ['shadowroot']
+      }).ownerDocument,
       document
     );
     assert.notEqual(
       DOMPurify.sanitize('123', {
-        RETURN_DOM_FRAGMENT: true,
-        RETURN_DOM_IMPORT: false,
+        RETURN_DOM_FRAGMENT: true
       }).ownerDocument,
       document
     );
     assert.equal(
       DOMPurify.sanitize('123', {
         RETURN_DOM_FRAGMENT: true,
-        RETURN_DOM_IMPORT: true,
+        ADD_ATTR: ['shadowroot']
       }).ownerDocument,
       document
     );
@@ -477,24 +470,28 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     //RETURN_DOM_FRAGMENT
     // attempt clobbering
     var fragment = DOMPurify.sanitize('foo<img id="createDocumentFragment">', {
-      RETURN_DOM_FRAGMENT: true,
+      RETURN_DOM_FRAGMENT: true
     });
     assert.equal(fragment.nodeType, 11);
-    assert.equal(fragment.ownerDocument, document);
+    assert.notEqual(fragment.ownerDocument, document);
     assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
     // again, but without SANITIZE_DOM
     fragment = DOMPurify.sanitize('foo<img id="createDocumentFragment">', {
       RETURN_DOM_FRAGMENT: true,
-      SANITIZE_DOM: false,
+      SANITIZE_DOM: false
     });
     assert.equal(fragment.nodeType, 11);
-    assert.equal(fragment.ownerDocument, document);
+    assert.notEqual(fragment.ownerDocument, document);
     assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
   });
-  QUnit.test('Config-Flag tests: RETURN_DOM_FRAGMENT', function (assert) {
-      var xss = `<body><div><template shadowroot=open><img src=x onerror=alert(3)></template></div></body>`;
-      var dom_body = DOMPurify.sanitize(xss, {RETURN_DOM: true});
-      assert.equal(dom_body.outerHTML, "<body><div><template><img src=\"x\"></template></div></body>");
+  QUnit.test('Config-Flag tests: RETURN_DOM', function (assert) {
+    assert.equal(
+      DOMPurify.sanitize(`<body><div><template shadowroot=open><img src=x onerror=alert(3)></template></div></body>`, {
+        RETURN_DOM: true,
+        ADD_ATTR: ['shadowroot']
+      }).outerHTML,
+      "<body><div><template shadowroot=\"open\"><img src=\"x\"></template></div></body>"
+    );
   });
   QUnit.test('Config-Flag tests: IN_PLACE', function (assert) {
     //IN_PLACE
@@ -683,7 +680,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         // tests importNode
         var resultImport = DOMPurify.sanitize('123', {
           RETURN_DOM: true,
-          RETURN_DOM_IMPORT: true,
+          ADD_ATTR: ['shadowroot']
         });
         // tests createElement
         var resultBody = DOMPurify.sanitize('123<img id="body">');
@@ -1513,14 +1510,14 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         {
           test: '<math><mi><canvas></canvas><textarea></textarea></mi></math>',
           expected: [
-            '<math><mi><canvas></canvas><textarea></textarea></mi></math>', 
+            '<math><mi><canvas></canvas><textarea></textarea></mi></math>',
             "<math></math>"
           ]
         },
         {
           test: '<svg><math></math><title><math></math></title></svg>',
           expected: [
-            '<svg><title><math></math></title></svg>', 
+            '<svg><title><math></math></title></svg>',
             "<svg xmlns=\"http://www.w3.org/2000/svg\" />",
             "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><math></math></title></svg>"
           ]
