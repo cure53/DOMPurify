@@ -449,37 +449,30 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<body>123</body>'
     );
   });
-  QUnit.test('Config-Flag tests: RETURN_DOM_IMPORT', function (assert) {
-    //RETURN_DOM_IMPORT
-    assert.equal(
-      DOMPurify.sanitize('123', { RETURN_DOM: true }).ownerDocument,
-      document
-    );
+  QUnit.test('Config-Flag tests: shadowroot', function (assert) {
     assert.notEqual(
-      DOMPurify.sanitize('123', { RETURN_DOM: true, RETURN_DOM_IMPORT: false })
-        .ownerDocument,
+      DOMPurify.sanitize('123', {
+        RETURN_DOM: true
+      }).ownerDocument,
       document
     );
     assert.equal(
-      DOMPurify.sanitize('123', { RETURN_DOM: true, RETURN_DOM_IMPORT: true })
-        .ownerDocument,
-      document
-    );
-    assert.equal(
-      DOMPurify.sanitize('123', { RETURN_DOM_FRAGMENT: true }).ownerDocument,
+      DOMPurify.sanitize('123', {
+        RETURN_DOM: true,
+        ADD_ATTR: ['shadowroot']
+      }).ownerDocument,
       document
     );
     assert.notEqual(
       DOMPurify.sanitize('123', {
-        RETURN_DOM_FRAGMENT: true,
-        RETURN_DOM_IMPORT: false,
+        RETURN_DOM_FRAGMENT: true
       }).ownerDocument,
       document
     );
     assert.equal(
       DOMPurify.sanitize('123', {
         RETURN_DOM_FRAGMENT: true,
-        RETURN_DOM_IMPORT: true,
+        ADD_ATTR: ['shadowroot']
       }).ownerDocument,
       document
     );
@@ -488,18 +481,18 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     //RETURN_DOM_FRAGMENT
     // attempt clobbering
     var fragment = DOMPurify.sanitize('foo<img id="createDocumentFragment">', {
-      RETURN_DOM_FRAGMENT: true,
+      RETURN_DOM_FRAGMENT: true
     });
     assert.equal(fragment.nodeType, 11);
-    assert.equal(fragment.ownerDocument, document);
+    assert.notEqual(fragment.ownerDocument, document);
     assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
     // again, but without SANITIZE_DOM
     fragment = DOMPurify.sanitize('foo<img id="createDocumentFragment">', {
       RETURN_DOM_FRAGMENT: true,
-      SANITIZE_DOM: false,
+      SANITIZE_DOM: false
     });
     assert.equal(fragment.nodeType, 11);
-    assert.equal(fragment.ownerDocument, document);
+    assert.notEqual(fragment.ownerDocument, document);
     assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
   });
   QUnit.test('Config-Flag tests: RETURN_DOM_FRAGMENT', function (assert) {
@@ -733,7 +726,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         // tests importNode
         var resultImport = DOMPurify.sanitize('123', {
           RETURN_DOM: true,
-          RETURN_DOM_IMPORT: true,
+          ADD_ATTR: ['shadowroot']
         });
         // tests createElement
         var resultBody = DOMPurify.sanitize('123<img id="body">');
@@ -1620,7 +1613,6 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       assert.contains(clean, test.expected);
     });
   });
-
   QUnit.test('Config-Flag tests: NAMESPACE', function (assert) {
     var tests = [
       {
