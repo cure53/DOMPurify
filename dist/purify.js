@@ -346,6 +346,13 @@
     var ALLOWED_ATTR = null;
     var DEFAULT_ALLOWED_ATTR = addToSet({}, [].concat(_toConsumableArray$1(html$1), _toConsumableArray$1(svg$1), _toConsumableArray$1(mathMl$1), _toConsumableArray$1(xml)));
 
+    /* Explicitly allow custom elements. Possible values:
+     * one of [null, regexPattern, predicate]
+     * Default: `null` (disallow any custom elements)
+     */
+    var ALLOWED_CUSTOM_ELEMENTS = null;
+    var DEFAULT_ALLOWED_CUSTOM_ELEMENTS = null;
+
     /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
     var FORBID_TAGS = null;
 
@@ -490,6 +497,7 @@
       IN_PLACE = cfg.IN_PLACE || false; // Default false
       IS_ALLOWED_URI$$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI$$1;
       NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+      ALLOWED_CUSTOM_ELEMENTS = cfg.ALLOWED_CUSTOM_ELEMENTS || DEFAULT_ALLOWED_CUSTOM_ELEMENTS;
 
       PARSER_MEDIA_TYPE =
       // eslint-disable-next-line unicorn/prefer-includes
@@ -929,6 +937,13 @@
           }
         }
 
+        if (!FORBID_TAGS[tagName]) {
+          if (ALLOWED_CUSTOM_ELEMENTS instanceof RegExp && regExpTest(ALLOWED_CUSTOM_ELEMENTS, tagName)) return false;
+          if (typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
+          // eslint-disable-next-line new-cap
+          ALLOWED_CUSTOM_ELEMENTS(tagName)) return false;
+        }
+
         _forceRemove(currentNode);
         return true;
       }
@@ -982,8 +997,11 @@
           XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
           We don't need to check the value; it's always URI safe. */
       if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR$$1, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR$$1, lcName)) ; else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
-        return false;
-
+        if (lcName === 'is' && (ALLOWED_CUSTOM_ELEMENTS instanceof RegExp && regExpTest(ALLOWED_CUSTOM_ELEMENTS, value) || typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
+        // eslint-disable-next-line new-cap
+        ALLOWED_CUSTOM_ELEMENTS(value))) ; else {
+          return false;
+        }
         /* Check value is safe. First, is attr inert? If so, is safe */
       } else if (URI_SAFE_ATTRIBUTES[lcName]) ; else if (regExpTest(IS_ALLOWED_URI$$1, stringReplace(value, ATTR_WHITESPACE$$1, ''))) ; else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]) ; else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA$$1, stringReplace(value, ATTR_WHITESPACE$$1, ''))) ; else if (!value) ; else {
         return false;
