@@ -191,11 +191,17 @@ var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 /**
  * Control behavior relating to HTML Custom Elements
  */
-// allow HTML custom elements via regular expression
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_CUSTOM_ELEMENTS: false});
+// allow HTML custom elements via regular expression, see example below
+var clean = DOMPurify.sanitize(dirty, { ALLOWED_CUSTOM_ELEMENTS: regex });
 
-// allow HTML custom elements via predicate function
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_CUSTOM_ELEMENTS: predicate});
+// example: allow HTML custom elements via regex, will allow tags with tag names starting with `foo-`
+var clean = DOMPurify.sanitize(dirty, { ALLOWED_CUSTOM_ELEMENTS: /^foo-/ });
+
+// allow HTML custom elements via predicate function, see example below
+var clean = DOMPurify.sanitize(dirty, { ALLOWED_CUSTOM_ELEMENTS: predicate });
+
+// example: allow HTML custom elements via predicate, will allow tags with tag names starting with `foo-`
+var clean = DOMPurify.sanitize(dirty, { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.startsWith('foo-') });
 
 /**
  * Control behavior relating to URI values
