@@ -575,6 +575,44 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<a>123<b>456</b></a>789'
     );
   });
+  QUnit.test('Config-Param tests: ALLOWED_CUSTOM_ELEMENTS', function (assert) {
+    //ALLOWED_CUSTOM_ELEMENTS
+    assert.equal(
+      DOMPurify.sanitize(
+        '<foo-bar></foo-bar><div is="foo-baz"></div>',
+        { ALLOWED_CUSTOM_ELEMENTS: null }
+      ),
+      '<div is=""></div>'
+    );
+    assert.equal(
+      DOMPurify.sanitize(
+        '<foo-bar></foo-bar><div is="foo-baz"></div>',
+        { ALLOWED_CUSTOM_ELEMENTS: /^foo-/ }
+      ),
+      '<foo-bar></foo-bar><div is="foo-baz"></div>'
+    );
+    assert.equal(
+      DOMPurify.sanitize(
+        '<foo-bar></foo-bar><div is="foo-baz"></div>',
+        { ALLOWED_CUSTOM_ELEMENTS: /-bar$/ }
+      ),
+      '<foo-bar></foo-bar><div is=""></div>'
+    );
+    assert.equal(
+      DOMPurify.sanitize(
+        '<foo-bar></foo-bar><div is="foo-baz"></div>',
+        { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.startsWith('foo-') }
+      ),
+      '<foo-bar></foo-bar><div is="foo-baz"></div>'
+    );
+    assert.equal(
+      DOMPurify.sanitize(
+        '<foo-bar></foo-bar><div is="foo-baz"></div>',
+        { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.endsWith('-bar') }
+      ),
+      '<foo-bar></foo-bar><div is=""></div>'
+    );
+  });
   QUnit.test('Test dirty being an array', function (assert) {
     assert.equal(
       DOMPurify.sanitize(['<a>123<b>456</b></a>']),
