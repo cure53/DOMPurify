@@ -238,9 +238,10 @@ function createDOMPurify(window = getGlobal()) {
    * `Node` will belong (its ownerDocument) to a fresh `HTMLDocument`, created by
    * DOMPurify.
    *
-   * This defaults to `true` starting DOMPurify 2.2.0. Note that setting it to `false`
-   * might cause XSS from attacks hidden in closed shadowroots in case the browser
-   * supports Declarative Shadow: DOM https://web.dev/declarative-shadow-dom/
+   * This defaults to `true` if `shadowroot` is an allowed attribute. Note that
+   * setting it to `false` might cause XSS from attacks hidden in closed shadowroots
+   * in case the browser supports Declarative Shadow DOM:
+   * https://web.dev/declarative-shadow-dom/
    */
   let RETURN_DOM_IMPORT = true;
 
@@ -392,7 +393,9 @@ function createDOMPurify(window = getGlobal()) {
     WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
-    RETURN_DOM_IMPORT = cfg.RETURN_DOM_IMPORT !== false; // Default true
+    RETURN_DOM_IMPORT = ALLOWED_ATTR.shadowroot
+      ? cfg.RETURN_DOM_IMPORT !== false // Default true
+      : cfg.RETURN_DOM_IMPORT || false; // Default false
     RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
@@ -1302,7 +1305,7 @@ function createDOMPurify(window = getGlobal()) {
         returnNode = body;
       }
 
-      if (RETURN_DOM_IMPORT && ALLOWED_ATTR.shadowroot) {
+      if (RETURN_DOM_IMPORT) {
         /*
           AdoptNode() is not used because internal state is not reset
           (e.g. the past names map of a HTMLFormElement), this is safe
