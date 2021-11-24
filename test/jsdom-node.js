@@ -7,7 +7,10 @@ const createDOMPurify = require('../dist/purify.cjs');
 const jsdom = require('jsdom');
 const { JSDOM, VirtualConsole } = jsdom;
 const virtualConsole = new VirtualConsole();
-const { window } = new JSDOM(`<html><head></head><body><div id="qunit-fixture"></div></body></html>`, { runScripts: "dangerously", virtualConsole });
+const { window } = new JSDOM(
+  `<html><head></head><body><div id="qunit-fixture"></div></body></html>`,
+  { runScripts: 'dangerously', virtualConsole }
+);
 require('jquery')(window);
 
 const sanitizeTestSuite = require('./test-suite');
@@ -34,11 +37,7 @@ if (!window.jQuery) {
 
 const DOMPurify = createDOMPurify(window);
 if (!DOMPurify.isSupported) {
-  console.error(
-    'Unexpected error returned by jsdom.env():',
-    err,
-    err.stack
-  );
+  console.error('Unexpected error returned by jsdom.env():', err, err.stack);
   process.exit(1);
 }
 

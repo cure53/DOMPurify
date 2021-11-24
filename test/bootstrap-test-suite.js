@@ -13,15 +13,18 @@ module.exports = function (JSDOM) {
 
   function loadDOMPurify(assert, addScriptAttribute, setup, onload) {
     const testDone = assert.async();
-    const { window } = new JSDOM('<head></head>', { runScripts: "dangerously" });
+    const { window } = new JSDOM('<head></head>', {
+      runScripts: 'dangerously',
+    });
     require('jquery')(window);
     if (setup) {
       setup(window);
     }
 
-    const myLibrary = fs.readFileSync('dist/purify.js', { encoding: "utf-8" });
-    const scriptEl = window.document.createElement("script");
-    if (addScriptAttribute) scriptEl.setAttribute('data-tt-policy-suffix', 'suffix');
+    const myLibrary = fs.readFileSync('dist/purify.js', { encoding: 'utf-8' });
+    const scriptEl = window.document.createElement('script');
+    if (addScriptAttribute)
+      scriptEl.setAttribute('data-tt-policy-suffix', 'suffix');
 
     scriptEl.textContent = myLibrary;
     window.document.body.appendChild(scriptEl);
