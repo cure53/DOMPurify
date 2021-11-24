@@ -19,7 +19,7 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'High Sierra',
   },
-  bs_sierra_safari_12: {
+  bs_mojave_safari_12: {
     base: 'BrowserStack',
     device: null,
     os: 'OS X',
@@ -27,7 +27,7 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Mojave',
   },
-  bs_sierra_safari_13: {
+  bs_catalina_safari_13: {
     base: 'BrowserStack',
     device: null,
     os: 'OS X',
@@ -35,12 +35,13 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Catalina',
   },
-  bs_win8_ie_10: {
+  bs_bigsur_safari_14: {
     base: 'BrowserStack',
-    browser: 'ie',
-    browser_version: '10.0',
-    os: 'Windows',
-    os_version: '8',
+    device: null,
+    os: 'OS X',
+    browser_version: '14.1',
+    browser: 'safari',
+    os_version: 'Big Sur',
   },
   bs_win81_ie_11: {
     base: 'BrowserStack',
@@ -105,6 +106,14 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: '10',
   },
+  bs_win10_firefox_94: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '94.0',
+    browser: 'firefox',
+    os_version: '10',
+  },
   bs_win10_chrome_60: {
     base: 'BrowserStack',
     device: null,
@@ -137,6 +146,14 @@ const customLaunchers = {
     browser: 'chrome',
     os_version: '10',
   },
+  bs_win10_chrome_96: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '96.0',
+    browser: 'chrome',
+    os_version: '10',
+  }
 };
 
 const getAllBrowsers = () => Object.keys(customLaunchers);
