@@ -925,7 +925,7 @@ function createDOMPurify(window = getGlobal()) {
         }
       }
 
-      if (!FORBID_TAGS[tagName]) {
+      if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
         if (
           ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
           regExpTest(ALLOWED_CUSTOM_ELEMENTS, tagName)
@@ -1009,14 +1009,25 @@ function createDOMPurify(window = getGlobal()) {
       /* Otherwise, check the name is permitted */
     } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
       if (
-        lcName === 'is' &&
-        ((ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
-          regExpTest(ALLOWED_CUSTOM_ELEMENTS, value)) ||
-          (typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
-            // eslint-disable-next-line new-cap
-            ALLOWED_CUSTOM_ELEMENTS(value)))
+        // First condition does a very basic check if a) it's basically a valid custom element tagname AND
+        // b) if the tagName passes whatever the user has configured for ALLOWED_CUSTOM_ELEMENTS
+        (_basicCustomElementTest(lcTag) &&
+          ((ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
+            regExpTest(ALLOWED_CUSTOM_ELEMENTS, lcTag)) ||
+            (typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
+              // eslint-disable-next-line new-cap
+              ALLOWED_CUSTOM_ELEMENTS(lcTag)))) ||
+        // Alternative, second condition checks if it's an `is`-attribute, AND
+        // the value passes whatever the user has configured for ALLOWED_CUSTOM_ELEMENTS
+        (lcName === 'is' &&
+          ((ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
+            regExpTest(ALLOWED_CUSTOM_ELEMENTS, value)) ||
+            (typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
+              // eslint-disable-next-line new-cap
+              ALLOWED_CUSTOM_ELEMENTS(value))))
       ) {
-        // If user has supplied a regexp or function to allow custom elements, we need to also allow derived custom elements using the same tagName test
+        // If user has supplied a regexp or function in CONFIG.ALLOWED_CUSTOM_ELEMENTS, we need to also allow derived custom elements using the same tagName test
+        // and we need to allow arbitrary attributes as custom elements can define these at their own discretion.
       } else {
         return false;
       }
@@ -1056,6 +1067,16 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     return true;
+  };
+
+  /**
+   * _basicCustomElementCheck
+   * checks if at least one dash is included in tagName, and it's not the first char
+   * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+   * @param {string} tagName name of the tag of the node to sanitize
+   */
+  const _basicCustomElementTest = function (tagName) {
+    return tagName.indexOf('-') > 0;
   };
 
   /**

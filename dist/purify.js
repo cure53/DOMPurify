@@ -937,7 +937,7 @@
           }
         }
 
-        if (!FORBID_TAGS[tagName]) {
+        if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
           if (ALLOWED_CUSTOM_ELEMENTS instanceof RegExp && regExpTest(ALLOWED_CUSTOM_ELEMENTS, tagName)) return false;
           if (typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
           // eslint-disable-next-line new-cap
@@ -997,7 +997,15 @@
           XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
           We don't need to check the value; it's always URI safe. */
       if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR$$1, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR$$1, lcName)) ; else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
-        if (lcName === 'is' && (ALLOWED_CUSTOM_ELEMENTS instanceof RegExp && regExpTest(ALLOWED_CUSTOM_ELEMENTS, value) || typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
+        if (
+        // First condition does a very basic check if a) it's basically a valid custom element tagname AND
+        // b) if the tagName passes whatever the user has configured for ALLOWED_CUSTOM_ELEMENTS
+        _basicCustomElementTest(lcTag) && (ALLOWED_CUSTOM_ELEMENTS instanceof RegExp && regExpTest(ALLOWED_CUSTOM_ELEMENTS, lcTag) || typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
+        // eslint-disable-next-line new-cap
+        ALLOWED_CUSTOM_ELEMENTS(lcTag)) ||
+        // Alternative, second condition checks if it's an `is`-attribute, AND
+        // the value passes whatever the user has configured for ALLOWED_CUSTOM_ELEMENTS
+        lcName === 'is' && (ALLOWED_CUSTOM_ELEMENTS instanceof RegExp && regExpTest(ALLOWED_CUSTOM_ELEMENTS, value) || typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
         // eslint-disable-next-line new-cap
         ALLOWED_CUSTOM_ELEMENTS(value))) ; else {
           return false;
@@ -1008,6 +1016,16 @@
       }
 
       return true;
+    };
+
+    /**
+     * _basicCustomElementCheck
+     * checks if at least one dash is included in tagName, and it's not the first char
+     * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+     * @param {string} tagName name of the tag of the node to sanitize
+     */
+    var _basicCustomElementTest = function _basicCustomElementTest(tagName) {
+      return tagName.indexOf('-') > 0;
     };
 
     /**
