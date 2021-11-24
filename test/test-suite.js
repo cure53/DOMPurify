@@ -601,14 +601,14 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     assert.equal(
       DOMPurify.sanitize(
         '<foo-bar></foo-bar><div is="foo-baz"></div>',
-        { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.startsWith('foo-') }
+        { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.match(/^foo-/) }
       ),
       '<foo-bar></foo-bar><div is="foo-baz"></div>'
     );
     assert.equal(
       DOMPurify.sanitize(
         '<foo-bar></foo-bar><div is="foo-baz"></div>',
-        { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.endsWith('-bar') }
+        { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.match(/-bar$/) }
       ),
       '<foo-bar></foo-bar><div is=""></div>'
     );
