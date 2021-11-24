@@ -193,6 +193,13 @@ function createDOMPurify(window = getGlobal()) {
     ...ATTRS.xml,
   ]);
 
+  /* Explicitly allow custom elements. Possible values:
+   * one of [null, regexPattern, predicate]
+   * Default: `null` (disallow any custom elements)
+   */
+  let ALLOWED_CUSTOM_ELEMENTS = null;
+  const DEFAULT_ALLOWED_CUSTOM_ELEMENTS = null;
+
   /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
   let FORBID_TAGS = null;
 
@@ -388,6 +395,8 @@ function createDOMPurify(window = getGlobal()) {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+    ALLOWED_CUSTOM_ELEMENTS =
+      cfg.ALLOWED_CUSTOM_ELEMENTS || DEFAULT_ALLOWED_CUSTOM_ELEMENTS;
 
     PARSER_MEDIA_TYPE =
       // eslint-disable-next-line unicorn/prefer-includes
@@ -896,6 +905,20 @@ function createDOMPurify(window = getGlobal()) {
         }
       }
 
+      if (!FORBID_TAGS[tagName]) {
+        if (
+          ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
+          regExpTest(ALLOWED_CUSTOM_ELEMENTS, tagName)
+        )
+          return false;
+        if (
+          typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
+          // eslint-disable-next-line new-cap
+          ALLOWED_CUSTOM_ELEMENTS(tagName)
+        )
+          return false;
+      }
+
       _forceRemove(currentNode);
       return true;
     }
@@ -965,8 +988,18 @@ function createDOMPurify(window = getGlobal()) {
       // This attribute is safe
       /* Otherwise, check the name is permitted */
     } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
-      return false;
-
+      if (
+        lcName === 'is' &&
+        ((ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
+          regExpTest(ALLOWED_CUSTOM_ELEMENTS, value)) ||
+          (typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
+            // eslint-disable-next-line new-cap
+            ALLOWED_CUSTOM_ELEMENTS(value)))
+      ) {
+        // If user has supplied a regexp or function to allow custom elements, we need to also allow derived custom elements using the same tagName test
+      } else {
+        return false;
+      }
       /* Check value is safe. First, is attr inert? If so, is safe */
     } else if (URI_SAFE_ATTRIBUTES[lcName]) {
       // This attribute is safe

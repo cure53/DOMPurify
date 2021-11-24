@@ -136,7 +136,7 @@ const customLaunchers = {
     browser_version: '91.0',
     browser: 'chrome',
     os_version: '10',
-  }
+  },
 };
 
 const getAllBrowsers = () => Object.keys(customLaunchers);
