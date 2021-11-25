@@ -452,27 +452,27 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
   QUnit.test('Config-Flag tests: shadowroot', function (assert) {
     assert.notEqual(
       DOMPurify.sanitize('123', {
-        RETURN_DOM: true
+        RETURN_DOM: true,
       }).ownerDocument,
       document
     );
     assert.equal(
       DOMPurify.sanitize('123', {
         RETURN_DOM: true,
-        ADD_ATTR: ['shadowroot']
+        ADD_ATTR: ['shadowroot'],
       }).ownerDocument,
       document
     );
     assert.notEqual(
       DOMPurify.sanitize('123', {
-        RETURN_DOM_FRAGMENT: true
+        RETURN_DOM_FRAGMENT: true,
       }).ownerDocument,
       document
     );
     assert.equal(
       DOMPurify.sanitize('123', {
         RETURN_DOM_FRAGMENT: true,
-        ADD_ATTR: ['shadowroot']
+        ADD_ATTR: ['shadowroot'],
       }).ownerDocument,
       document
     );
@@ -481,7 +481,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     //RETURN_DOM_FRAGMENT
     // attempt clobbering
     var fragment = DOMPurify.sanitize('foo<img id="createDocumentFragment">', {
-      RETURN_DOM_FRAGMENT: true
+      RETURN_DOM_FRAGMENT: true,
     });
     assert.equal(fragment.nodeType, 11);
     assert.notEqual(fragment.ownerDocument, document);
@@ -489,7 +489,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     // again, but without SANITIZE_DOM
     fragment = DOMPurify.sanitize('foo<img id="createDocumentFragment">', {
       RETURN_DOM_FRAGMENT: true,
-      SANITIZE_DOM: false
+      SANITIZE_DOM: false,
     });
     assert.equal(fragment.nodeType, 11);
     assert.notEqual(fragment.ownerDocument, document);
@@ -568,40 +568,70 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<a>123<b>456</b></a>789'
     );
   });
-  QUnit.test('Config-Param tests: ALLOWED_CUSTOM_ELEMENTS', function (assert) {
-    //ALLOWED_CUSTOM_ELEMENTS
+  QUnit.test('Config-Param tests: CUSTOM_ELEMENT_HANDLING', function (assert) {
+    //CUSTOM_ELEMENT_HANDLING
     assert.equal(
       DOMPurify.sanitize(
-        '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>',
-        { ALLOWED_CUSTOM_ELEMENTS: null }
-      ),
-      '<div is=""></div>'
-    );
-    assert.equal(
-      DOMPurify.sanitize(
-        '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>',
-        { ALLOWED_CUSTOM_ELEMENTS: /^foo-/ }
+        '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+        {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: /^foo-/,
+            attributeNameCheck: /baz/,
+            allowCustomizedBuiltInElements: true,
+          },
+        }
       ),
       '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>'
     );
     assert.equal(
       DOMPurify.sanitize(
-        '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>',
-        { ALLOWED_CUSTOM_ELEMENTS: /-bar$/ }
+        '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+        {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: /^foo-/,
+            attributeNameCheck: /baz/,
+            allowCustomizedBuiltInElements: false,
+          },
+        }
       ),
       '<foo-bar baz="foobar"></foo-bar><div is=""></div>'
     );
     assert.equal(
       DOMPurify.sanitize(
-        '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>',
-        { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.match(/^foo-/) }
+        '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+        {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: /-bar$/,
+            attributeNameCheck: /.+/,
+            allowCustomizedBuiltInElements: true,
+          },
+        }
+      ), // DOMPurify swaps the order of attributes here!
+      '<foo-bar forbidden="true" baz="foobar"></foo-bar><div is=""></div>'
+    );
+    assert.equal(
+      DOMPurify.sanitize(
+        '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+        {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: (tagName) => tagName.match(/^foo-/),
+            attributeNameCheck: (attr) => attr.match(/baz/),
+            allowCustomizedBuiltInElements: true,
+          },
+        }
       ),
       '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>'
     );
     assert.equal(
       DOMPurify.sanitize(
-        '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>',
-        { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.match(/-bar$/) }
+        '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+        {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: (tagName) => tagName.match(/-bar$/),
+            attributeNameCheck: (attr) => attr.match(/baz/),
+            allowCustomizedBuiltInElements: true,
+          },
+        }
       ),
       '<foo-bar baz="foobar"></foo-bar><div is=""></div>'
     );
@@ -726,7 +756,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         // tests importNode
         var resultImport = DOMPurify.sanitize('123', {
           RETURN_DOM: true,
-          ADD_ATTR: ['shadowroot']
+          ADD_ATTR: ['shadowroot'],
         });
         // tests createElement
         var resultBody = DOMPurify.sanitize('123<img id="body">');

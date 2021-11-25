@@ -193,12 +193,34 @@ function createDOMPurify(window = getGlobal()) {
     ...ATTRS.xml,
   ]);
 
-  /* Explicitly allow custom elements. Possible values:
-   * one of [null, regexPattern, predicate]
-   * Default: `null` (disallow any custom elements)
+  /*
+   * Configure how DOMPUrify should handle custom elements and their attributes as well as customized built-in elements.
+   * @property {RegExp|Function|null} tagNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any custom elements)
+   * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
+   * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
    */
-  let ALLOWED_CUSTOM_ELEMENTS = null;
-  const DEFAULT_ALLOWED_CUSTOM_ELEMENTS = null;
+  const CUSTOM_ELEMENT_HANDLING = Object.seal(
+    Object.create(null, {
+      tagNameCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null,
+      },
+      attributeNameCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null,
+      },
+      allowCustomizedBuiltInElements: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: false,
+      },
+    })
+  );
 
   /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
   let FORBID_TAGS = null;
@@ -338,6 +360,10 @@ function createDOMPurify(window = getGlobal()) {
 
   const formElement = document.createElement('form');
 
+  const isRegexOrFunction = function (testValue) {
+    return testValue instanceof RegExp || testValue instanceof Function;
+  };
+
   /**
    * _parseConfig
    *
@@ -395,8 +421,30 @@ function createDOMPurify(window = getGlobal()) {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
-    ALLOWED_CUSTOM_ELEMENTS =
-      cfg.ALLOWED_CUSTOM_ELEMENTS || DEFAULT_ALLOWED_CUSTOM_ELEMENTS;
+    if (
+      cfg.CUSTOM_ELEMENT_HANDLING &&
+      isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)
+    ) {
+      CUSTOM_ELEMENT_HANDLING.tagNameCheck =
+        cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
+    }
+
+    if (
+      cfg.CUSTOM_ELEMENT_HANDLING &&
+      isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck)
+    ) {
+      CUSTOM_ELEMENT_HANDLING.attributeNameCheck =
+        cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck;
+    }
+
+    if (
+      cfg.CUSTOM_ELEMENT_HANDLING &&
+      typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements ===
+        'boolean'
+    ) {
+      CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements =
+        cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
+    }
 
     PARSER_MEDIA_TYPE =
       // eslint-disable-next-line unicorn/prefer-includes
@@ -907,14 +955,13 @@ function createDOMPurify(window = getGlobal()) {
 
       if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
         if (
-          ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
-          regExpTest(ALLOWED_CUSTOM_ELEMENTS, tagName)
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
+          regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)
         )
           return false;
         if (
-          typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
-          // eslint-disable-next-line new-cap
-          ALLOWED_CUSTOM_ELEMENTS(tagName)
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)
         )
           return false;
       }
@@ -990,24 +1037,28 @@ function createDOMPurify(window = getGlobal()) {
     } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
       if (
         // First condition does a very basic check if a) it's basically a valid custom element tagname AND
-        // b) if the tagName passes whatever the user has configured for ALLOWED_CUSTOM_ELEMENTS
+        // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
+        // and c) if the attribute name passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.attributeNameCheck
         (_basicCustomElementTest(lcTag) &&
-          ((ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
-            regExpTest(ALLOWED_CUSTOM_ELEMENTS, lcTag)) ||
-            (typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
-              // eslint-disable-next-line new-cap
-              ALLOWED_CUSTOM_ELEMENTS(lcTag)))) ||
+          ((CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
+            regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag)) ||
+            (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
+              CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag))) &&
+          ((CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp &&
+            regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName)) ||
+            (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function &&
+              CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)))) ||
         // Alternative, second condition checks if it's an `is`-attribute, AND
-        // the value passes whatever the user has configured for ALLOWED_CUSTOM_ELEMENTS
+        // the value passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
         (lcName === 'is' &&
-          ((ALLOWED_CUSTOM_ELEMENTS instanceof RegExp &&
-            regExpTest(ALLOWED_CUSTOM_ELEMENTS, value)) ||
-            (typeof ALLOWED_CUSTOM_ELEMENTS === 'function' &&
-              // eslint-disable-next-line new-cap
-              ALLOWED_CUSTOM_ELEMENTS(value))))
+          CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements &&
+          ((CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
+            regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value)) ||
+            (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
+              CUSTOM_ELEMENT_HANDLING.tagNameCheck(value))))
       ) {
-        // If user has supplied a regexp or function in CONFIG.ALLOWED_CUSTOM_ELEMENTS, we need to also allow derived custom elements using the same tagName test
-        // and we need to allow arbitrary attributes as custom elements can define these at their own discretion.
+        // If user has supplied a regexp or function in CUSTOM_ELEMENT_HANDLING.tagNameCheck, we need to also allow derived custom elements using the same tagName test.
+        // Additionally, we need to allow attributes passing the CUSTOM_ELEMENT_HANDLING.attributeNameCheck user has configured, as custom elements can define these at their own discretion.
       } else {
         return false;
       }
