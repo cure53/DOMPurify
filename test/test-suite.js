@@ -593,14 +593,14 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     );
     assert.equal(
       DOMPurify.sanitize(
-        '<foo-bar bas="foobar"></foo-bar><div is="foo-baz"></div>',
+        '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>',
         { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.match(/^foo-/) }
       ),
       '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>'
     );
     assert.equal(
       DOMPurify.sanitize(
-        '<foo-bar bas="foobar"></foo-bar><div is="foo-baz"></div>',
+        '<foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>',
         { ALLOWED_CUSTOM_ELEMENTS: (tagName) => tagName.match(/-bar$/) }
       ),
       '<foo-bar baz="foobar"></foo-bar><div is=""></div>'
