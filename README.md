@@ -189,13 +189,13 @@ var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 
 /**
- * Control behavior relating to HTML Custom Elements
+ * Control behavior relating to Custom Elements
  */
  
-// DOMPurify allows to define rules for Custom HTML Elements. When using the CUSTOM_ELEMENT_HANDLING 
-// literal, it is possible to define exactly what element you wish to allow and which ones will get removed.
+// DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING 
+// literal, it is possible to define exactly what elements you wish to allow (by default, none are allowed).
 //
-// The same goes for their atributes.
+// The same goes for their attributes. By default, the built-in or configured allow.list is used.
 //
 // You can use a RegExp literal to specify what is allowed or a predicate, examples for both can be seen below.
 // The default values are very restrictive to prevent accidental XSS bypasses. Handle with great care!
@@ -210,7 +210,7 @@ var clean = DOMPurify.sanitize(
             allowCustomizedBuiltInElements: false, // no customized built-ins allowed
         },
     }
-);
+); // <div is=""></div>
  
 var clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
@@ -221,7 +221,7 @@ var clean = DOMPurify.sanitize(
             allowCustomizedBuiltInElements: false, // customized built-ins are allowed
         },
     }
-);
+); // <foo-bar baz="foobar"></foo-bar><div is=""></div>
   
 var clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
@@ -232,7 +232,7 @@ var clean = DOMPurify.sanitize(
             allowCustomizedBuiltInElements: true, // allow customized built-ins
         },
     }
-);
+); // <foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>
 
 /**
  * Control behavior relating to URI values
