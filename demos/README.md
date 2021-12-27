@@ -32,7 +32,7 @@ var clean = DOMPurify.sanitize(dirty, config);
 
 ### Advanced Config Demo [Link](advanced-config-demo.html)
 
-This demo shows, how we can use the configuration object to instruct DOMPurify to be more specific with what is to be permitted and what s not. We want to permit `<p>` elements and the fictional `<ying>` and `<yang>` tag. We also want to allow the `kitty-litter` attribute because why not - and make sure that a `document`-object is returned after sanitation - and not a plain string.
+This demo shows, how we can use the configuration object to instruct DOMPurify to be more specific with what is to be permitted and what is not. We want to permit `<p>` elements and the fictional `<ying>` and `<yang>` tag. We also want to allow the `kitty-litter` attribute because why not - and make sure that a `document`-object is returned after sanitation - and not a plain string.
 
 This is the relevant code:
 
