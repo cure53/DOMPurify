@@ -342,7 +342,7 @@ All relevant commits will be signed with the key `0x24BB6BF4` for additional sec
 
 #### Installation (`yarn i`)
 
-We support both `yarn` and `npm@5.2` officially while providing lock-files for either dependency manager to provide reproducible installs and builds on either or. TravisCI itself is configured to install dependencies using `yarn`. When using an older version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
+We support both `yarn` and `npm@5.2` officially while providing lock-files for either dependency manager to provide reproducible installs and builds on either or. GitHub Actions workflow is configured to install dependencies using `yarn`. When using an older version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
 
 #### Scripts
 
