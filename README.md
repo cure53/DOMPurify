@@ -191,8 +191,8 @@ var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 /**
  * Control behavior relating to Custom Elements
  */
- 
-// DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING 
+
+// DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING
 // literal, it is possible to define exactly what elements you wish to allow (by default, none are allowed).
 //
 // The same goes for their attributes. By default, the built-in or configured allow.list is used.
@@ -211,7 +211,7 @@ var clean = DOMPurify.sanitize(
         },
     }
 ); // <div is=""></div>
- 
+
 var clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
@@ -222,7 +222,7 @@ var clean = DOMPurify.sanitize(
         },
     }
 ); // <foo-bar baz="foobar"></foo-bar><div is=""></div>
-  
+
 var clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
