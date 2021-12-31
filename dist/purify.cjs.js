@@ -1073,7 +1073,7 @@ function createDOMPurify() {
           name = _attr.name,
           namespaceURI = _attr.namespaceURI;
 
-      value = stringTrim(attr.value);
+      value = name === 'value' ? attr.value : stringTrim(attr.value);
       lcName = transformCaseFunc(name);
 
       /* Execute a hook if present */
