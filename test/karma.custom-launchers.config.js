@@ -164,7 +164,7 @@ const getRandomBrowser = () => sample(getAllBrowsers());
  * is affected accordginly.
  *
  * - Whenever on a PR we only want to probe test with Firefox
- * - Whenever we are on the most recent node version on Travis we test via BrowserStack
+ * - Whenever we are on the most recent node version on GitHub Actions we test via BrowserStack
  * - If none of the prior mentioned holds we assume to be running local and respect the passed
  *   in borwsers argv
  */
