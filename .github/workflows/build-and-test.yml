@@ -1,7 +1,7 @@
 name: Build and Test
 
 # The event triggers are configured as following:
-# - on `master` -> trigger the workflow on every push
+# - on `main` -> trigger the workflow on every push
 # - on any pull request -> trigger the workflow
 # This is to avoid running the workflow twice on pull requests.
 on:
