@@ -339,9 +339,9 @@ All relevant commits will be signed with the key `0x24BB6BF4` for additional sec
 
 ### Development and contributing
 
-#### Installation (`yarn i`)
+#### Installation (`npm i`)
 
-We support both `yarn` and `npm@5.2` officially while providing lock-files for either dependency manager to provide reproducible installs and builds on either or. GitHub Actions workflow is configured to install dependencies using `yarn`. When using an older version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
+We support `npm` officially. GitHub Actions workflow is configured to install dependencies using `npm`. When using deprected version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
 
 #### Scripts
 
@@ -359,7 +359,7 @@ These are our npm scripts:
   - `npm run build:umd` to only build an unminified UMD module
   - `npm run build:umd:min` to only build a minified UMD module
 
-Note: all run scripts triggered via `npm run <script>` can also be started using `yarn <script>`.
+Note: all run scripts triggered via `npm run <script>`.
 
 There are more npm scripts but they are mainly to integrate with CI or are meant to be "private" for instance to amend build distribution files with every commit.
 
