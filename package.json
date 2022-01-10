@@ -1,6 +1,5 @@
 {
   "scripts": {
-    "build-demo": "node scripts/build-demo.js",
     "lint": "xo src/*.js",
     "format": "npm run format:js && npm run format:md",
     "format:md": "prettier --write --parser markdown '**/*.md'",
