@@ -461,6 +461,7 @@
     /* ______________________________________________ */
 
     var formElement = document.createElement('form');
+    var commentElement = document.createComment('');
 
     var isRegexOrFunction = function isRegexOrFunction(testValue) {
       return testValue instanceof RegExp || testValue instanceof Function;
@@ -1232,7 +1233,16 @@
         IN_PLACE = false;
       }
 
-      if (IN_PLACE) ; else if (dirty instanceof Node) {
+      if (IN_PLACE) {
+        /* Do some early pre-sanitization to avoid unsafe root nodes */
+        if (dirty.nodeName) {
+          var tagName = transformCaseFunc(dirty.nodeName);
+          if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+            /* Replace unsafe root nodes with an empty comment */
+            dirty = commentElement;
+          }
+        }
+      } else if (dirty instanceof Node) {
         /* If dirty is a DOM element, append to an empty document to avoid
            elements being stripped by the parser */
         body = _initDocument('<!---->');

@@ -359,6 +359,7 @@ function createDOMPurify(window = getGlobal()) {
   /* ______________________________________________ */
 
   const formElement = document.createElement('form');
+  const commentElement = document.createComment('');
 
   const isRegexOrFunction = function (testValue) {
     return testValue instanceof RegExp || testValue instanceof Function;
@@ -1306,7 +1307,14 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     if (IN_PLACE) {
-      /* No special handling necessary for in-place sanitization */
+      /* Do some early pre-sanitization to avoid unsafe root nodes */
+      if (dirty.nodeName) {
+        const tagName = transformCaseFunc(dirty.nodeName);
+        if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+          /* Replace unsafe root nodes with an empty comment */
+          dirty = commentElement;
+        }
+      }
     } else if (dirty instanceof Node) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
