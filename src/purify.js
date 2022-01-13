@@ -359,7 +359,6 @@ function createDOMPurify(window = getGlobal()) {
   /* ______________________________________________ */
 
   const formElement = document.createElement('form');
-  const commentElement = document.createComment('');
 
   const isRegexOrFunction = function (testValue) {
     return testValue instanceof RegExp || testValue instanceof Function;
@@ -1311,8 +1310,9 @@ function createDOMPurify(window = getGlobal()) {
       if (dirty.nodeName) {
         const tagName = transformCaseFunc(dirty.nodeName);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
-          /* Replace unsafe root nodes with an empty comment */
-          dirty = commentElement;
+          throw typeErrorCreate(
+            'root node is forbidden and cannot be sanitized in-place'
+          );
         }
       }
     } else if (dirty instanceof Node) {
