@@ -515,7 +515,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     //IN_PLACE with insecure root node (script)
     var dirty = document.createElement('script');
     dirty.setAttribute('src', 'data:,alert(1)');
-    assert.throws(DOMPurify.sanitize(dirty, { IN_PLACE: true }));
+    assert.throws(function(){DOMPurify.sanitize(dirty, { IN_PLACE: true })});
+  });
+  QUnit.test('Config-Flag tests: IN_PLACE insecure root-nodes', function (assert) {
+    //IN_PLACE with insecure root node (iframe)
+    var dirty = document.createElement('iframe');
+    dirty.setAttribute('src', 'javascript:alert(1)');
+    assert.throws(function(){DOMPurify.sanitize(dirty, { IN_PLACE: true })});
   });
   QUnit.test('Config-Flag tests: FORBID_TAGS', function (assert) {
     //FORBID_TAGS
