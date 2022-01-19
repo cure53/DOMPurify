@@ -297,7 +297,7 @@ function createDOMPurify() {
   }
 
   var trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, originalDocument);
-  var emptyHTML = trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML('') : '';
+  var emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   var _document = document,
       implementation = _document.implementation,
@@ -1263,7 +1263,7 @@ function createDOMPurify() {
 
       /* Check we have a DOM node from the data */
       if (!body) {
-        return RETURN_DOM ? null : emptyHTML;
+        return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : '';
       }
     }
 

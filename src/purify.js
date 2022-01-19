@@ -129,10 +129,7 @@ function createDOMPurify(window = getGlobal()) {
     trustedTypes,
     originalDocument
   );
-  const emptyHTML =
-    trustedTypesPolicy && RETURN_TRUSTED_TYPE
-      ? trustedTypesPolicy.createHTML('')
-      : '';
+  const emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   const {
     implementation,
@@ -1348,7 +1345,7 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Check we have a DOM node from the data */
       if (!body) {
-        return RETURN_DOM ? null : emptyHTML;
+        return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : '';
       }
     }
 
