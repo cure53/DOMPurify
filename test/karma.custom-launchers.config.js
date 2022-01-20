@@ -1,6 +1,5 @@
 const sample = require('lodash.sample');
 const argv = require('minimist')(process.argv.slice(2));
-const isArray = require('lodash.isarray');
 
 const customLaunchers = {
   bs_sierra_safari_10: {
@@ -171,7 +170,7 @@ const getRandomBrowser = () => sample(getAllBrowsers());
 const shouldProbeOnly = argv.shouldProbeOnly === 'true';
 const shouldTestOnBrowserStack = argv.shouldTestOnBrowserStack === 'true';
 const defaultBrowsers = ['Firefox'];
-const argvBrowsers = isArray(argv.browsers)
+const argvBrowsers = Array.isArray(argv.browsers)
   ? argv.browsers.split(' ')
   : defaultBrowsers;
 const browsers = shouldTestOnBrowserStack
