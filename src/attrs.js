@@ -264,6 +264,7 @@ export const svg = freeze([
   'targetx',
   'targety',
   'transform',
+  'transform-origin',
   'text-anchor',
   'text-decoration',
   'text-rendering',
