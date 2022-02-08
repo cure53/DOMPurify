@@ -185,6 +185,9 @@ var clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 // extend the existing array of allowed attributes and add my-attr to allow-list
 var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 
+// prohibit ARIA attributes, leave other safe HTML as is (default is true)
+var clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
+
 // prohibit HTML5 data attributes, leave other safe HTML as is (default is true)
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 
