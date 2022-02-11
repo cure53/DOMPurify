@@ -103,6 +103,7 @@ function createDOMPurify(window = getGlobal()) {
     HTMLFormElement,
     DOMParser,
     trustedTypes,
+    XMLSerializer,
   } = window;
 
   const ElementPrototype = Element.prototype;
@@ -248,9 +249,6 @@ function createDOMPurify(window = getGlobal()) {
   /* Decide if all elements (e.g. style, script) must be children of
    * document.body. By default, browsers might move them to document.head */
   let FORCE_BODY = false;
-
-  /* Check if a HTML5 doctype is supposed to be added by force */
-  let FORCE_HTML_DOCTYPE = false;
 
   /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
    * string (or a TrustedHTML object if Trusted Types are supported).
@@ -416,7 +414,6 @@ function createDOMPurify(window = getGlobal()) {
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
     RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
-    FORCE_HTML_DOCTYPE = cfg.FORCE_HTML_DOCTYPE || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
@@ -1418,18 +1415,15 @@ function createDOMPurify(window = getGlobal()) {
       return returnNode;
     }
 
-    let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    let serializedHTML = WHOLE_DOCUMENT
+      ? new XMLSerializer().serializeToString(body.ownerDocument)
+      : body.innerHTML;
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
       serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR, ' ');
       serializedHTML = stringReplace(serializedHTML, ERB_EXPR, ' ');
     }
-
-    /* Prepend HTML5 doctype if needed */
-    serializedHTML = FORCE_HTML_DOCTYPE
-      ? '<!doctype html>' + serializedHTML
-      : serializedHTML;
 
     return trustedTypesPolicy && RETURN_TRUSTED_TYPE
       ? trustedTypesPolicy.createHTML(serializedHTML)

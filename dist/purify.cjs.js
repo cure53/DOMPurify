@@ -273,7 +273,8 @@ function createDOMPurify() {
       NamedNodeMap = _window$NamedNodeMap === undefined ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
       HTMLFormElement = window.HTMLFormElement,
       DOMParser = window.DOMParser,
-      trustedTypes = window.trustedTypes;
+      trustedTypes = window.trustedTypes,
+      XMLSerializer = window.XMLSerializer;
 
 
   var ElementPrototype = Element.prototype;
@@ -398,9 +399,6 @@ function createDOMPurify() {
    * document.body. By default, browsers might move them to document.head */
   var FORCE_BODY = false;
 
-  /* Check if a HTML5 doctype is supposed to be added by force */
-  var FORCE_HTML_DOCTYPE = false;
-
   /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
    * string (or a TrustedHTML object if Trusted Types are supported).
    * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
@@ -502,7 +500,6 @@ function createDOMPurify() {
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
     RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
-    FORCE_HTML_DOCTYPE = cfg.FORCE_HTML_DOCTYPE || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
@@ -1336,16 +1333,13 @@ function createDOMPurify() {
       return returnNode;
     }
 
-    var serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    var serializedHTML = WHOLE_DOCUMENT ? new XMLSerializer().serializeToString(body.ownerDocument) : body.innerHTML;
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
       serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR$$1, ' ');
       serializedHTML = stringReplace(serializedHTML, ERB_EXPR$$1, ' ');
     }
-
-    /* Prepend HTML5 doctype if needed */
-    serializedHTML = FORCE_HTML_DOCTYPE ? '<!doctype html>' + serializedHTML : serializedHTML;
 
     return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
   };

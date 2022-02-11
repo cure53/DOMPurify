@@ -390,7 +390,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     assert.equal(DOMPurify.sanitize('123', { WHOLE_DOCUMENT: false }), '123');
     assert.equal(
       DOMPurify.sanitize('123', { WHOLE_DOCUMENT: true }),
-      '<html><head></head><body>123</body></html>'
+      '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>123</body></html>'
     );
     assert.equal(
       DOMPurify.sanitize('<style>*{color:red}</style>', {
@@ -402,7 +402,7 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       DOMPurify.sanitize('<style>*{color:red}</style>', {
         WHOLE_DOCUMENT: true,
       }),
-      '<html><head><style>*{color:red}</style></head><body></body></html>'
+      '<html xmlns="http://www.w3.org/1999/xhtml"><head><style>*{color:red}</style></head><body></body></html>'
     );
     assert.equal(
       DOMPurify.sanitize('123<style>*{color:red}</style>', {
@@ -414,7 +414,13 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       DOMPurify.sanitize('123<style>*{color:red}</style>', {
         WHOLE_DOCUMENT: true,
       }),
-      '<html><head></head><body>123<style>*{color:red}</style></body></html>'
+      '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>123<style>*{color:red}</style></body></html>'
+    );
+    assert.equal(
+      DOMPurify.sanitize('<!DOCTYPE html>\n<html><body>123</body></html>', {
+        WHOLE_DOCUMENT: true,
+      }),
+      '<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>123</body></html>'
     );
   });
   QUnit.test('Config-Flag tests: RETURN_DOM', function (assert) {
@@ -1749,8 +1755,8 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
         test: '<A href="#">invalid</A><a TITLE="title" href="#">valid</a>',
         expected: {
           'text/html': [
-            '<html><head></head><body><a href="#">invalid</a><a href="#" title="title">valid</a></body></html>',
-            '<html><head></head><body><a href="#">invalid</a><a title="title" href="#">valid</a></body></html>',
+            '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body><a href="#">invalid</a><a href="#" title="title">valid</a></body></html>',
+            '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body><a href="#">invalid</a><a title="title" href="#">valid</a></body></html>',
           ],
           'application/xhtml+xml': [
             '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>invalid<a href="#">valid</a></body></html>',
