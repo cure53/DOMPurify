@@ -418,7 +418,14 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
     );
     assert.equal(
       DOMPurify.sanitize('<!DOCTYPE html><html><body>123</body></html>', {
+        WHOLE_DOCUMENT: true
+      }),
+      '<html><head></head><body>123</body></html>'
+    );
+    assert.equal(
+      DOMPurify.sanitize('<!DOCTYPE html><html><body>123</body></html>', {
         WHOLE_DOCUMENT: true,
+        ADD_TAGS: ['!doctype']
       }),
       '<!DOCTYPE html>\n<html><head></head><body>123</body></html>'
     );

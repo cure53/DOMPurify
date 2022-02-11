@@ -67,25 +67,6 @@ const _createTrustedTypesPolicy = function (trustedTypes, document) {
   }
 };
 
-/**
- * TBD
- * @param {Document} document
- * @returns {string}
- */
-function _serializeDoctype(document) {
-  const doctype = document && document.doctype;
-  const html =
-    doctype && document.doctype.name
-      ? '<!DOCTYPE ' +
-        doctype.name +
-        (doctype.publicId ? ' PUBLIC "' + doctype.publicId + '"' : '') +
-        (!doctype.publicId && doctype.systemId ? ' SYSTEM' : '') +
-        (doctype.systemId ? ' "' + doctype.systemId + '"' : '') +
-        '>\n'
-      : '';
-  return html;
-}
-
 function createDOMPurify(window = getGlobal()) {
   const DOMPurify = (root) => createDOMPurify(root);
 
@@ -1433,9 +1414,20 @@ function createDOMPurify(window = getGlobal()) {
       return returnNode;
     }
 
-    let serializedHTML = WHOLE_DOCUMENT
-      ? _serializeDoctype(body.ownerDocument) + body.outerHTML
-      : body.innerHTML;
+    let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+
+    /* Serialize doctype if allowed */
+    if (
+      WHOLE_DOCUMENT &&
+      ALLOWED_TAGS['!doctype'] &&
+      body.ownerDocument &&
+      body.ownerDocument.doctype &&
+      body.ownerDocument.doctype.name &&
+      regExpTest(EXPRESSIONS.DOCTYPE_NAME, body.ownerDocument.doctype.name)
+    ) {
+      serializedHTML =
+        '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
+    }
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {

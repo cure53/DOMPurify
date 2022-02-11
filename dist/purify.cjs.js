@@ -186,6 +186,7 @@ var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-
 var IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
 var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
 );
+var DOCTYPE_NAME = seal(/^[a-z_.:]+$/i);
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -233,17 +234,6 @@ var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes,
     return null;
   }
 };
-
-/**
- * TBD
- * @param {Document} document
- * @returns {string}
- */
-function _serializeDoctype(document) {
-  var doctype = document && document.doctype;
-  var html$$1 = doctype && document.doctype.name ? '<!DOCTYPE ' + doctype.name + (doctype.publicId ? ' PUBLIC "' + doctype.publicId + '"' : '') + (!doctype.publicId && doctype.systemId ? ' SYSTEM' : '') + (doctype.systemId ? ' "' + doctype.systemId + '"' : '') + '>\n' : '';
-  return html$$1;
-}
 
 function createDOMPurify() {
   var window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
@@ -1343,7 +1333,12 @@ function createDOMPurify() {
       return returnNode;
     }
 
-    var serializedHTML = WHOLE_DOCUMENT ? _serializeDoctype(body.ownerDocument) + body.outerHTML : body.innerHTML;
+    var serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+
+    /* Serialize doctype if allowed */
+    if (WHOLE_DOCUMENT && ALLOWED_TAGS['!doctype'] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) {
+      serializedHTML = '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
+    }
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
