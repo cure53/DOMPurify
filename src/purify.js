@@ -67,6 +67,25 @@ const _createTrustedTypesPolicy = function (trustedTypes, document) {
   }
 };
 
+/**
+ * TBD
+ * @param {Document} document
+ * @returns {string}
+ */
+function _serializeDoctype(document) {
+  const doctype = document && document.doctype;
+  const html =
+    doctype && document.doctype.name
+      ? '<!DOCTYPE ' +
+        doctype.name +
+        (doctype.publicId ? ' PUBLIC "' + doctype.publicId + '"' : '') +
+        (!doctype.publicId && doctype.systemId ? ' SYSTEM' : '') +
+        (doctype.systemId ? ' "' + doctype.systemId + '"' : '') +
+        '>\n'
+      : '';
+  return html;
+}
+
 function createDOMPurify(window = getGlobal()) {
   const DOMPurify = (root) => createDOMPurify(root);
 
@@ -103,7 +122,6 @@ function createDOMPurify(window = getGlobal()) {
     HTMLFormElement,
     DOMParser,
     trustedTypes,
-    XMLSerializer,
   } = window;
 
   const ElementPrototype = Element.prototype;
@@ -1416,7 +1434,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     let serializedHTML = WHOLE_DOCUMENT
-      ? new XMLSerializer().serializeToString(body.ownerDocument)
+      ? _serializeDoctype(body.ownerDocument) + body.outerHTML
       : body.innerHTML;
 
     /* Sanitize final string template-safe */

@@ -234,6 +234,17 @@ var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes,
   }
 };
 
+/**
+ * TBD
+ * @param {Document} document
+ * @returns {string}
+ */
+function _serializeDoctype(document) {
+  var doctype = document && document.doctype;
+  var html$$1 = doctype && document.doctype.name ? '<!DOCTYPE ' + doctype.name + (doctype.publicId ? ' PUBLIC "' + doctype.publicId + '"' : '') + (!doctype.publicId && doctype.systemId ? ' SYSTEM' : '') + (doctype.systemId ? ' "' + doctype.systemId + '"' : '') + '>\n' : '';
+  return html$$1;
+}
+
 function createDOMPurify() {
   var window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
 
@@ -273,8 +284,7 @@ function createDOMPurify() {
       NamedNodeMap = _window$NamedNodeMap === undefined ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
       HTMLFormElement = window.HTMLFormElement,
       DOMParser = window.DOMParser,
-      trustedTypes = window.trustedTypes,
-      XMLSerializer = window.XMLSerializer;
+      trustedTypes = window.trustedTypes;
 
 
   var ElementPrototype = Element.prototype;
@@ -1333,7 +1343,7 @@ function createDOMPurify() {
       return returnNode;
     }
 
-    var serializedHTML = WHOLE_DOCUMENT ? new XMLSerializer().serializeToString(body.ownerDocument) : body.innerHTML;
+    var serializedHTML = WHOLE_DOCUMENT ? _serializeDoctype(body.ownerDocument) + body.outerHTML : body.innerHTML;
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
