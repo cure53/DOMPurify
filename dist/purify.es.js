@@ -934,6 +934,12 @@ function createDOMPurify() {
 
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+      /* Check if we have a custom element to handle */
+      if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
+        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) return false;
+        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) return false;
+      }
+
       /* Keep content except for bad-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
         var parentNode = getParentNode(currentNode) || currentNode.parentNode;
@@ -946,11 +952,6 @@ function createDOMPurify() {
             parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
           }
         }
-      }
-
-      if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
-        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) return false;
-        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) return false;
       }
 
       _forceRemove(currentNode);

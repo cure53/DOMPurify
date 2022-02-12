@@ -657,6 +657,15 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       ),
       '<foo-bar baz="foobar"></foo-bar><div is=""></div>'
     );
+    assert.equal(
+      DOMPurify.sanitize(
+        '<my-paragraph><span slot="my-text">test</span></my-paragraph>',
+        {
+          CUSTOM_ELEMENT_HANDLING: {tagNameCheck: /-/u}
+        }
+      ),
+      '<my-paragraph><span slot="my-text">test</span></my-paragraph>'
+    );
   });
   QUnit.test('Test dirty being an array', function (assert) {
     assert.equal(
@@ -812,12 +821,12 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
   QUnit.test(
     'ensure that a persistent configuration can be set and cleared',
     function (assert) {
-      var dirty = '<my-component>abc</my-component>';
+      var dirty = '<foobar>abc</foobar>';
       assert.equal(DOMPurify.sanitize(dirty), 'abc');
-      DOMPurify.setConfig({ ADD_TAGS: ['my-component'] });
+      DOMPurify.setConfig({ ADD_TAGS: ['foobar'] });
       assert.equal(
         DOMPurify.sanitize(dirty),
-        '<my-component>abc</my-component>'
+        '<foobar>abc</foobar>'
       );
       DOMPurify.clearConfig();
       assert.equal(DOMPurify.sanitize(dirty), 'abc');
