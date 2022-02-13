@@ -18,11 +18,15 @@ const bootstrapTestSuite = require('./bootstrap-test-suite');
 const tests = require('./fixtures/expect');
 const xssTests = tests.filter((element) => /alert/.test(element.payload));
 
-require('qunit-parameterize/qunit-parameterize');
-
-QUnit.assert.contains = function (needle, haystack, message) {
-  const result = haystack.indexOf(needle) > -1;
-  this.push(result, needle, haystack, message);
+QUnit.assert.contains = function (actual, expected, message) {
+  const result = expected.indexOf(actual) > -1;
+  // Ref: https://api.qunitjs.com/assert/pushResult/
+  this.pushResult({
+    result,
+    actual,
+    expected,
+    message,
+  });
 };
 
 QUnit.config.autostart = false;
