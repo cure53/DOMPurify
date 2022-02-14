@@ -814,7 +814,6 @@ function createDOMPurify(window = getGlobal()) {
     return createNodeIterator.call(
       root.ownerDocument || root,
       root,
-      // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
       null,
       false
