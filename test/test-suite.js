@@ -1,12 +1,76 @@
-module.exports = function (DOMPurify, window, tests, xssTests) {
+module.exports = function (
+  DOMPurify,
+  window,
+  sanitizationTestCases,
+  xssTestCases
+) {
   var document = window.document;
   var jQuery = window.jQuery;
 
-  QUnit.cases(tests).test('Sanitization test', function (params, assert) {
-    assert.contains(
-      DOMPurify.sanitize(params.payload),
-      params.expected,
-      'Payload: ' + params.payload
+  sanitizationTestCases.forEach((testCase) => {
+    QUnit.test(`Sanitization test[${testCase.title}]`, (assert) => {
+      assert.contains(
+        DOMPurify.sanitize(testCase.payload),
+        testCase.expected,
+        `Payload: ${testCase.payload}`
+      );
+    });
+  });
+
+  // XSS tests: Native DOM methods (alert() should not be called)
+  xssTestCases.forEach((testCase) => {
+    QUnit.test(`XSS test: native[${testCase.title}]`, (assert) => {
+      document.getElementById('qunit-fixture').innerHTML = DOMPurify.sanitize(
+        testCase.payload
+      );
+      const done = assert.async();
+      setTimeout(() => {
+        assert.notEqual(window.xssed, true, 'alert() was called');
+        // Teardown
+        document.getElementById('qunit-fixture').innerHTML = '';
+        window.xssed = false;
+        done();
+      }, 100);
+    });
+  });
+  // XSS tests: jQuery (alert() should not be called)
+  xssTestCases.forEach((testCase) => {
+    QUnit.test(`XSS test: jQuery[${testCase.title}]`, (assert) => {
+      jQuery('#qunit-fixture').html(DOMPurify.sanitize(testCase.payload));
+      const done = assert.async();
+      setTimeout(() => {
+        assert.notEqual(window.xssed, true, 'alert() was called');
+        // Teardown
+        jQuery('#qunit-fixture').empty();
+        window.xssed = false;
+        done();
+      }, 100);
+    });
+  });
+  // document.write tests to handle FF's strange behavior
+  xssTestCases.forEach((testCase) => {
+    QUnit.test(
+      `XSS test: document.write() into iframe[${testCase.title}]`,
+      (assert) => {
+        const done = assert.async();
+        const iframe = document.createElement('iframe');
+        iframe.src = 'about:blank';
+        iframe.onload = function () {
+          iframe.contentDocument.write(
+            '<script>window.alert=function(){top.xssed=true;}</script>' +
+              DOMPurify.sanitize(testCase.payload)
+          );
+          assert.notEqual(
+            window.xssed,
+            true,
+            'alert() was called from document.write()'
+          );
+          window.xssed = false;
+          iframe.parentNode.removeChild(iframe);
+          done();
+        };
+        document.body.appendChild(iframe);
+      }
     );
   });
 
@@ -670,6 +734,15 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       ),
       '<foo-bar baz="foobar"></foo-bar><div is=""></div>'
     );
+    assert.equal(
+      DOMPurify.sanitize(
+        '<my-paragraph><span slot="my-text">test</span></my-paragraph>',
+        {
+          CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /-/u },
+        }
+      ),
+      '<my-paragraph><span slot="my-text">test</span></my-paragraph>'
+    );
   });
   QUnit.test('Test dirty being an array', function (assert) {
     assert.equal(
@@ -681,72 +754,20 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
       '<img src=",x">'
     );
   });
-  // XSS tests: Native DOM methods (alert() should not be called)
-  QUnit.cases(xssTests).asyncTest(
-    'XSS test: native',
-    function (params, assert) {
-      document.getElementById('qunit-fixture').innerHTML = DOMPurify.sanitize(
-        params.payload
-      );
-      setTimeout(function () {
-        QUnit.start();
-        assert.notEqual(window.xssed, true, 'alert() was called');
-        // Teardown
-        document.getElementById('qunit-fixture').innerHTML = '';
-        window.xssed = false;
-      }, 100);
-    }
-  );
-  // XSS tests: jQuery (alert() should not be called)
-  QUnit.cases(xssTests).asyncTest(
-    'XSS test: jQuery',
-    function (params, assert) {
-      jQuery('#qunit-fixture').html(DOMPurify.sanitize(params.payload));
-      setTimeout(function () {
-        QUnit.start();
-        assert.notEqual(window.xssed, true, 'alert() was called');
-        // Teardown
-        jQuery('#qunit-fixture').empty();
-        window.xssed = false;
-      }, 100);
-    }
-  );
-  // document.write tests to handle FF's strange behavior
-  QUnit.cases(xssTests).asyncTest(
-    'XSS test: document.write() into iframe',
-    function (params, assert) {
-      var iframe = document.createElement('iframe');
-      iframe.src = 'about:blank';
-      iframe.onload = function () {
-        QUnit.start();
-        iframe.contentDocument.write(
-          '<script>window.alert=function(){top.xssed=true;}</script>' +
-            DOMPurify.sanitize(params.payload)
-        );
-        assert.notEqual(
-          window.xssed,
-          true,
-          'alert() was called from document.write()'
-        );
-        window.xssed = false;
-        iframe.parentNode.removeChild(iframe);
-      };
-      document.body.appendChild(iframe);
-    }
-  );
   // cross-check that document.write into iframe works properly
-  QUnit.asyncTest('XSS test: document.write() into iframe', function (assert) {
+  QUnit.test('XSS test: document.write() into iframe', function (assert) {
+    const done = assert.async();
     window.xssed = false;
     var iframe = document.createElement('iframe');
     iframe.src = 'about:blank';
     iframe.onload = function () {
-      QUnit.start();
       iframe.contentDocument.write(
         '<script>window.alert=function(){parent.xssed=true;}</script><script>alert(1);</script>'
       );
       assert.equal(window.xssed, true, 'alert() was called but not detected');
       window.xssed = false;
       iframe.parentNode.removeChild(iframe);
+      done();
     };
     document.body.appendChild(iframe);
   });
@@ -825,13 +846,10 @@ module.exports = function (DOMPurify, window, tests, xssTests) {
   QUnit.test(
     'ensure that a persistent configuration can be set and cleared',
     function (assert) {
-      var dirty = '<my-component>abc</my-component>';
+      var dirty = '<foobar>abc</foobar>';
       assert.equal(DOMPurify.sanitize(dirty), 'abc');
-      DOMPurify.setConfig({ ADD_TAGS: ['my-component'] });
-      assert.equal(
-        DOMPurify.sanitize(dirty),
-        '<my-component>abc</my-component>'
-      );
+      DOMPurify.setConfig({ ADD_TAGS: ['foobar'] });
+      assert.equal(DOMPurify.sanitize(dirty), '<foobar>abc</foobar>');
       DOMPurify.clearConfig();
       assert.equal(DOMPurify.sanitize(dirty), 'abc');
     }
