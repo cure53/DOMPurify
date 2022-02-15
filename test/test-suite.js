@@ -1355,7 +1355,8 @@ module.exports = function (
         test: '<a href="mailto:demo@example.com">demo</a>',
         expected: '<a>demo</a>',
       },
-    ].forEach(function (test) {
+    ];
+    tests.forEach(function (test) {
       var str = DOMPurify.sanitize(test.test, {
         ALLOWED_URI_REGEXP:
           /^(?:(?:(?:f|ht)tps?):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
