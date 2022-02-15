@@ -480,6 +480,19 @@ module.exports = function (
       }),
       '<html><head></head><body>123<style>*{color:red}</style></body></html>'
     );
+    assert.equal(
+      DOMPurify.sanitize('<!DOCTYPE html><html><body>123</body></html>', {
+        WHOLE_DOCUMENT: true
+      }),
+      '<html><head></head><body>123</body></html>'
+    );
+    assert.equal(
+      DOMPurify.sanitize('<!DOCTYPE html><html><body>123</body></html>', {
+        WHOLE_DOCUMENT: true,
+        ADD_TAGS: ['!doctype']
+      }),
+      '<!DOCTYPE html>\n<html><head></head><body>123</body></html>'
+    );
   });
   QUnit.test('Config-Flag tests: RETURN_DOM', function (assert) {
     //RETURN_DOM

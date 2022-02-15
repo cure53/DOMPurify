@@ -249,9 +249,6 @@ function createDOMPurify(window = getGlobal()) {
    * document.body. By default, browsers might move them to document.head */
   let FORCE_BODY = false;
 
-  /* Check if a HTML5 doctype is supposed to be added by force */
-  let FORCE_HTML_DOCTYPE = false;
-
   /* Decide if a DOM `HTMLBodyElement` should be returned, instead of a html
    * string (or a TrustedHTML object if Trusted Types are supported).
    * If `WHOLE_DOCUMENT` is enabled a `HTMLHtmlElement` will be returned instead
@@ -416,7 +413,6 @@ function createDOMPurify(window = getGlobal()) {
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
     RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
-    FORCE_HTML_DOCTYPE = cfg.FORCE_HTML_DOCTYPE || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
@@ -818,7 +814,6 @@ function createDOMPurify(window = getGlobal()) {
     return createNodeIterator.call(
       root.ownerDocument || root,
       root,
-      // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
       null,
       false
@@ -1422,16 +1417,24 @@ function createDOMPurify(window = getGlobal()) {
 
     let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 
+    /* Serialize doctype if allowed */
+    if (
+      WHOLE_DOCUMENT &&
+      ALLOWED_TAGS['!doctype'] &&
+      body.ownerDocument &&
+      body.ownerDocument.doctype &&
+      body.ownerDocument.doctype.name &&
+      regExpTest(EXPRESSIONS.DOCTYPE_NAME, body.ownerDocument.doctype.name)
+    ) {
+      serializedHTML =
+        '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
+    }
+
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
       serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR, ' ');
       serializedHTML = stringReplace(serializedHTML, ERB_EXPR, ' ');
     }
-
-    /* Prepend HTML5 doctype if needed */
-    serializedHTML = FORCE_HTML_DOCTYPE
-      ? '<!doctype html>' + serializedHTML
-      : serializedHTML;
 
     return trustedTypesPolicy && RETURN_TRUSTED_TYPE
       ? trustedTypesPolicy.createHTML(serializedHTML)
