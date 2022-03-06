@@ -1896,4 +1896,23 @@ module.exports = function (
       assert.contains(clean, test.expected);
     });
   });
+
+  QUnit.test('removeHook returns hook function', function (assert) {
+    const entryPoint = 'afterSanitizeAttributes';
+    const dirty = '<div class="hello"></div>';
+    const expected = '<div class="world"></div>';
+
+    DOMPurify.addHook(entryPoint, function (node) {
+      return node.setAttribute('class', 'world');
+    });
+    assert.equal(DOMPurify.sanitize(dirty), expected);
+
+    // remove hook and keep it
+    const hookFunction = DOMPurify.removeHook(entryPoint);
+    assert.equal(DOMPurify.sanitize(dirty), dirty);
+
+    // set the same hook
+    DOMPurify.addHook(entryPoint, hookFunction);
+    assert.equal(DOMPurify.sanitize(dirty), expected);
+  });
 };
