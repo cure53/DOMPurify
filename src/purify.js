@@ -1506,10 +1506,11 @@ function createDOMPurify(window = getGlobal()) {
    * (pops it from the stack of hooks if more are present)
    *
    * @param {String} entryPoint entry point for the hook to remove
+   * @return {Function} removed(popped) hook
    */
   DOMPurify.removeHook = function (entryPoint) {
     if (hooks[entryPoint]) {
-      arrayPop(hooks[entryPoint]);
+      return arrayPop(hooks[entryPoint]);
     }
   };
 
