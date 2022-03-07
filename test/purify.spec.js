@@ -1,4 +1,4 @@
-import DOMPurify from 'purify.min';
+import DOMPurify from 'purify';
 import testSuite from './test-suite';
 import tests from './fixtures/expect';
 

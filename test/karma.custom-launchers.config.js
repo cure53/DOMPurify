@@ -1,6 +1,5 @@
 const sample = require('lodash.sample');
 const argv = require('minimist')(process.argv.slice(2));
-const isArray = require('lodash.isarray');
 
 const customLaunchers = {
   bs_sierra_safari_10: {
@@ -153,7 +152,7 @@ const customLaunchers = {
     browser_version: '96.0',
     browser: 'chrome',
     os_version: '10',
-  }
+  },
 };
 
 const getAllBrowsers = () => Object.keys(customLaunchers);
@@ -164,14 +163,14 @@ const getRandomBrowser = () => sample(getAllBrowsers());
  * is affected accordginly.
  *
  * - Whenever on a PR we only want to probe test with Firefox
- * - Whenever we are on the most recent node version on Travis we test via BrowserStack
+ * - Whenever we are on the most recent node version on GitHub Actions we test via BrowserStack
  * - If none of the prior mentioned holds we assume to be running local and respect the passed
  *   in borwsers argv
  */
 const shouldProbeOnly = argv.shouldProbeOnly === 'true';
 const shouldTestOnBrowserStack = argv.shouldTestOnBrowserStack === 'true';
 const defaultBrowsers = ['Firefox'];
-const argvBrowsers = isArray(argv.browsers)
+const argvBrowsers = Array.isArray(argv.browsers)
   ? argv.browsers.split(' ')
   : defaultBrowsers;
 const browsers = shouldTestOnBrowserStack

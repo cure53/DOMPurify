@@ -1,12 +1,12 @@
 # DOMPurify
 
-[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify)  ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main)  [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify)  [![minified size](https://badgen.net/bundlephobia/min/dompurify?color=green&label=minified)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js)  [![gzip size](https://badgen.net/bundlephobia/minzip/dompurify?color=green&label=gzipped)](https://packagephobia.now.sh/result?p=dompurify)  [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
+[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![minified size](https://badgen.net/bundlephobia/min/dompurify?color=green&label=minified)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js) [![gzip size](https://badgen.net/bundlephobia/minzip/dompurify?color=green&label=gzipped)](https://packagephobia.now.sh/result?p=dompurify) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 2.3.4.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 2.3.6.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
@@ -37,14 +37,14 @@ It's easy. Just include DOMPurify on your website.
 Afterwards you can sanitize strings by executing the following code:
 
 ```js
-let clean = DOMPurify.sanitize( dirty );
+let clean = DOMPurify.sanitize(dirty);
 ```
 
 The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you.
 Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML, which might be a very common use-case, you can easily set that up as well:
 
 ```js
-let clean = DOMPurify.sanitize( dirty , {USE_PROFILES: {html: true}} );
+let clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 ```
 
 ### Is there any foot-gun potential?
@@ -185,14 +185,17 @@ var clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 // extend the existing array of allowed attributes and add my-attr to allow-list
 var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 
+// prohibit ARIA attributes, leave other safe HTML as is (default is true)
+var clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
+
 // prohibit HTML5 data attributes, leave other safe HTML as is (default is true)
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 
 /**
  * Control behavior relating to Custom Elements
  */
- 
-// DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING 
+
+// DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING
 // literal, it is possible to define exactly what elements you wish to allow (by default, none are allowed).
 //
 // The same goes for their attributes. By default, the built-in or configured allow.list is used.
@@ -211,7 +214,7 @@ var clean = DOMPurify.sanitize(
         },
     }
 ); // <div is=""></div>
- 
+
 var clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
@@ -222,7 +225,7 @@ var clean = DOMPurify.sanitize(
         },
     }
 ); // <foo-bar baz="foobar"></foo-bar><div is=""></div>
-  
+
 var clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
@@ -319,15 +322,14 @@ It passes the currently processed DOM node, when needed a literal with verified 
 _Example_:
 
 ```js
-DOMPurify.addHook('beforeSanitizeElements', function (
-  currentNode,
-  hookEvent,
-  config
-) {
-  // Do something with the current node and return it
-  // You can also mutate hookEvent (i.e. set hookEvent.forceKeepAttr = true)
-  return currentNode;
-});
+DOMPurify.addHook(
+  'beforeSanitizeElements',
+  function (currentNode, hookEvent, config) {
+    // Do something with the current node and return it
+    // You can also mutate hookEvent (i.e. set hookEvent.forceKeepAttr = true)
+    return currentNode;
+  }
+);
 ```
 
 ## Continuous Integration
@@ -340,9 +342,9 @@ All relevant commits will be signed with the key `0x24BB6BF4` for additional sec
 
 ### Development and contributing
 
-#### Installation (`yarn i`)
+#### Installation (`npm i`)
 
-We support both `yarn` and `npm@5.2` officially while providing lock-files for either dependency manager to provide reproducible installs and builds on either or. TravisCI itself is configured to install dependencies using `yarn`. When using an older version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
+We support `npm` officially. GitHub Actions workflow is configured to install dependencies using `npm`. When using deprected version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
 
 #### Scripts
 
@@ -360,7 +362,7 @@ These are our npm scripts:
   - `npm run build:umd` to only build an unminified UMD module
   - `npm run build:umd:min` to only build a minified UMD module
 
-Note: all run scripts triggered via `npm run <script>` can also be started using `yarn <script>`.
+Note: all run scripts triggered via `npm run <script>`.
 
 There are more npm scripts but they are mainly to integrate with CI or are meant to be "private" for instance to amend build distribution files with every commit.
 
@@ -376,9 +378,10 @@ Feature releases will not be announced to this list.
 
 Many people helped and help DOMPurify become what it is and need to be acknowledged here!
 
-[GrantGryczan 💸](https://github.com/GrantGryczan), [lowdefy 💸](https://twitter.com/lowdefy), [granlem 💸](https://twitter.com/MaximeVeit), [oreoshake 💸](https://github.com/oreoshake), [dcramer 💸](https://github.com/dcramer),[tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
+[jarrodldavis 💸](https://github.com/jarrodldavis), [GrantGryczan 💸](https://github.com/GrantGryczan), [lowdefy 💸](https://twitter.com/lowdefy), [granlem 💸](https://twitter.com/MaximeVeit), [oreoshake 💸](https://github.com/oreoshake), [dcramer 💸](https://github.com/dcramer),[tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
 
 ## Testing powered by
+
 <a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png"></a><br>
 
 And last but not least, thanks to [BrowserStack Open-Source Program](https://www.browserstack.com/open-source) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.

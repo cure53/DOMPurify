@@ -129,10 +129,7 @@ function createDOMPurify(window = getGlobal()) {
     trustedTypes,
     originalDocument
   );
-  const emptyHTML =
-    trustedTypesPolicy && RETURN_TRUSTED_TYPE
-      ? trustedTypesPolicy.createHTML('')
-      : '';
+  const emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   const {
     implementation,
@@ -817,6 +814,7 @@ function createDOMPurify(window = getGlobal()) {
     return createNodeIterator.call(
       root.ownerDocument || root,
       root,
+      // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
       null,
       false
@@ -936,6 +934,20 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+      /* Check if we have a custom element to handle */
+      if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
+        if (
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
+          regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)
+        )
+          return false;
+        if (
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)
+        )
+          return false;
+      }
+
       /* Keep content except for bad-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
         const parentNode = getParentNode(currentNode) || currentNode.parentNode;
@@ -951,19 +963,6 @@ function createDOMPurify(window = getGlobal()) {
             );
           }
         }
-      }
-
-      if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
-        if (
-          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
-          regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)
-        )
-          return false;
-        if (
-          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
-          CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)
-        )
-          return false;
       }
 
       _forceRemove(currentNode);
@@ -1306,7 +1305,15 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     if (IN_PLACE) {
-      /* No special handling necessary for in-place sanitization */
+      /* Do some early pre-sanitization to avoid unsafe root nodes */
+      if (dirty.nodeName) {
+        const tagName = transformCaseFunc(dirty.nodeName);
+        if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+          throw typeErrorCreate(
+            'root node is forbidden and cannot be sanitized in-place'
+          );
+        }
+      }
     } else if (dirty instanceof Node) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
@@ -1340,7 +1347,7 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Check we have a DOM node from the data */
       if (!body) {
-        return RETURN_DOM ? null : emptyHTML;
+        return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : '';
       }
     }
 
@@ -1410,6 +1417,19 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+
+    /* Serialize doctype if allowed */
+    if (
+      WHOLE_DOCUMENT &&
+      ALLOWED_TAGS['!doctype'] &&
+      body.ownerDocument &&
+      body.ownerDocument.doctype &&
+      body.ownerDocument.doctype.name &&
+      regExpTest(EXPRESSIONS.DOCTYPE_NAME, body.ownerDocument.doctype.name)
+    ) {
+      serializedHTML =
+        '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
+    }
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
@@ -1486,10 +1506,11 @@ function createDOMPurify(window = getGlobal()) {
    * (pops it from the stack of hooks if more are present)
    *
    * @param {String} entryPoint entry point for the hook to remove
+   * @return {Function} removed(popped) hook
    */
   DOMPurify.removeHook = function (entryPoint) {
     if (hooks[entryPoint]) {
-      arrayPop(hooks[entryPoint]);
+      return arrayPop(hooks[entryPoint]);
     }
   };
 

@@ -2,7 +2,7 @@
 /* global QUnit */
 'use strict';
 
-global.QUnit = require('qunitjs');
+global.QUnit = require('qunit');
 
 const qunitTap = require('qunit-tap');
 const argument = process.argv[2];
