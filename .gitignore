@@ -4,3 +4,6 @@ bower_components
 npm-debug.log
 .vscode
 yarn-error.log
+nbproject/private/private.properties
+nbproject/project.properties
+nbproject/private/private.xml

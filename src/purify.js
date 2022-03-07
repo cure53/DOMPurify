@@ -1146,7 +1146,7 @@ function createDOMPurify(window = getGlobal()) {
     while (l--) {
       attr = attributes[l];
       const { name, namespaceURI } = attr;
-      value = stringTrim(attr.value);
+      value = name === 'value' ? attr.value : stringTrim(attr.value);
       lcName = transformCaseFunc(name);
 
       /* Execute a hook if present */
