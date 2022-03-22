@@ -130,7 +130,7 @@ DOMPurify also exposes a property called `isSupported`, which tells you whether 
 
 ## What about DOMPurify and Trusted Types?
 
-In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify.
+In version 1.0.9, support for [Trusted Types API](https://github.com/w3c/webappsec-trusted-types) was added to DOMPurify.
 In version 2.0.0, a config flag was added to control DOMPurify's behavior regarding this.
 
 When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM` and `RETURN_DOM_FRAGMENT` config options does not change).
