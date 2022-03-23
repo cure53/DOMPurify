@@ -55,7 +55,7 @@ Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_,
 
 After sanitizing your markup, you can also have a look at the property `DOMPurify.removed` and find out, what elements and attributes were thrown out. Please **do not use** this property for making any security critical decisions. This is just a little helper for curious minds.
 
-If you're using an [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) module loader like [Require.js](http://requirejs.org/), you can load this script asynchronously as well:
+If you're using an [AMD](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) module loader like [Require.js](http://requirejs.org/), you can load this script asynchronously as well:
 
 ```js
 import DOMPurify from 'dompurify';
