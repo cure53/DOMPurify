@@ -1,8 +1,8 @@
-const nodeResolve = require('rollup-plugin-node-resolve');
-const babel = require('rollup-plugin-babel');
-const replace = require('rollup-plugin-replace');
-const { terser } = require('rollup-plugin-terser');
 const fs = require('fs');
+const babel = require('@rollup/plugin-babel').babel;
+const nodeResolve = require('@rollup/plugin-node-resolve').nodeResolve;
+const replace = require('@rollup/plugin-replace');
+const { terser } = require('rollup-plugin-terser');
 
 const env = process.env.NODE_ENV;
 const isProd = env === 'production';
@@ -20,13 +20,19 @@ const config = {
     banner: license,
   },
   plugins: [
-    nodeResolve(),
     babel({
+      // It is recommended to configure this option explicitly (even if with its default value) so an informed decision is taken on how those babel helpers are inserted into the code.
+      // Ref: https://github.com/rollup/plugins/tree/master/packages/babel#babelhelpers
+      babelHelpers: 'bundled',
       exclude: ['**/node_modules/**'],
     }),
+    nodeResolve(),
     replace({
-      'process.env.NODE_ENV': JSON.stringify(env),
-      VERSION: `'${version}'`,
+      preventAssignment: true,
+      values: {
+        'process.env.NODE_ENV': JSON.stringify(env),
+        VERSION: `'${version}'`,
+      }
     }),
   ],
 };
