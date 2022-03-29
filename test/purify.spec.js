@@ -1,5 +1,5 @@
-import DOMPurify from 'purify';
-import testSuite from './test-suite';
+import 'purify';
+import './test-suite';
 import tests from './fixtures/expect';
 
 const xssTests = tests.filter(function (element) {
