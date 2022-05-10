@@ -656,7 +656,7 @@ function createDOMPurify(window = getGlobal()) {
 
       // Certain elements are allowed in both SVG and HTML
       // namespace. We need to specify them explicitly
-      // so that they don't get erronously deleted from
+      // so that they don't get erroneously deleted from
       // HTML namespace.
       const commonSvgAndHTMLElements = addToSet({}, [
         'title',
