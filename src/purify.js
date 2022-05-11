@@ -897,7 +897,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Check if tagname contains Unicode */
-    if (stringMatch(currentNode.nodeName, /[\u0080-\uFFFF]/)) {
+    if (regExpTest(/[\u0080-\uFFFF]/, currentNode.nodeName)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -913,6 +913,7 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Detect mXSS attempts abusing namespace confusion */
     if (
+      currentNode.hasChildNodes() &&
       !_isNode(currentNode.firstElementChild) &&
       (!_isNode(currentNode.content) ||
         !_isNode(currentNode.content.firstElementChild)) &&
