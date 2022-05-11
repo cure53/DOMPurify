@@ -709,7 +709,7 @@
     // so that they don't get erroneously deleted from
     // HTML namespace.
 
-    var commonSvgAndHTMLElements = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
+    var COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
     /* Keep track of all possible SVG and MathML tags
      * so that we can perform the namespace checks
      * correctly. */
@@ -795,7 +795,7 @@
         // or SVG and should never appear in HTML namespace
 
 
-        return !ALL_MATHML_TAGS[tagName] && (commonSvgAndHTMLElements[tagName] || !ALL_SVG_TAGS[tagName]);
+        return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
       } // The code should never reach this place (this means
       // that the element somehow got namespace that is not
       // HTML, SVG or MathML). Return false just in case.

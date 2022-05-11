@@ -564,7 +564,7 @@ function createDOMPurify(window = getGlobal()) {
   // namespace. We need to specify them explicitly
   // so that they don't get erroneously deleted from
   // HTML namespace.
-  const commonSvgAndHTMLElements = addToSet({}, [
+  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
     'title',
     'style',
     'font',
@@ -670,7 +670,7 @@ function createDOMPurify(window = getGlobal()) {
       // or SVG and should never appear in HTML namespace
       return (
         !ALL_MATHML_TAGS[tagName] &&
-        (commonSvgAndHTMLElements[tagName] || !ALL_SVG_TAGS[tagName])
+        (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName])
       );
     }
 
