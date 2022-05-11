@@ -560,6 +560,18 @@ function createDOMPurify(window = getGlobal()) {
     'annotation-xml',
   ]);
 
+  // Certain elements are allowed in both SVG and HTML
+  // namespace. We need to specify them explicitly
+  // so that they don't get erroneously deleted from
+  // HTML namespace.
+  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
+    'title',
+    'style',
+    'font',
+    'a',
+    'script',
+  ]);
+
   /* Keep track of all possible SVG and MathML tags
    * so that we can perform the namespace checks
    * correctly. */
@@ -654,23 +666,11 @@ function createDOMPurify(window = getGlobal()) {
         return false;
       }
 
-      // Certain elements are allowed in both SVG and HTML
-      // namespace. We need to specify them explicitly
-      // so that they don't get erroneously deleted from
-      // HTML namespace.
-      const commonSvgAndHTMLElements = addToSet({}, [
-        'title',
-        'style',
-        'font',
-        'a',
-        'script',
-      ]);
-
       // We disallow tags that are specific for MathML
       // or SVG and should never appear in HTML namespace
       return (
         !ALL_MATHML_TAGS[tagName] &&
-        (commonSvgAndHTMLElements[tagName] || !ALL_SVG_TAGS[tagName])
+        (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName])
       );
     }
 
@@ -897,7 +897,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Check if tagname contains Unicode */
-    if (stringMatch(currentNode.nodeName, /[\u0080-\uFFFF]/)) {
+    if (regExpTest(/[\u0080-\uFFFF]/, currentNode.nodeName)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -913,6 +913,7 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Detect mXSS attempts abusing namespace confusion */
     if (
+      currentNode.hasChildNodes() &&
       !_isNode(currentNode.firstElementChild) &&
       (!_isNode(currentNode.content) ||
         !_isNode(currentNode.content.firstElementChild)) &&
