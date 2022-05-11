@@ -700,7 +700,12 @@ function createDOMPurify() {
   };
 
   var MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
-  var HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'desc', 'title', 'annotation-xml']);
+  var HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'desc', 'title', 'annotation-xml']); // Certain elements are allowed in both SVG and HTML
+  // namespace. We need to specify them explicitly
+  // so that they don't get erroneously deleted from
+  // HTML namespace.
+
+  var commonSvgAndHTMLElements = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
   /* Keep track of all possible SVG and MathML tags
    * so that we can perform the namespace checks
    * correctly. */
@@ -782,14 +787,9 @@ function createDOMPurify() {
 
       if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) {
         return false;
-      } // Certain elements are allowed in both SVG and HTML
-      // namespace. We need to specify them explicitly
-      // so that they don't get erroneously deleted from
-      // HTML namespace.
-
-
-      var commonSvgAndHTMLElements = addToSet({}, ['title', 'style', 'font', 'a', 'script']); // We disallow tags that are specific for MathML
+      } // We disallow tags that are specific for MathML
       // or SVG and should never appear in HTML namespace
+
 
       return !ALL_MATHML_TAGS[tagName] && (commonSvgAndHTMLElements[tagName] || !ALL_SVG_TAGS[tagName]);
     } // The code should never reach this place (this means
@@ -1001,7 +1001,7 @@ function createDOMPurify() {
     /* Check if tagname contains Unicode */
 
 
-    if (stringMatch(currentNode.nodeName, /[\u0080-\uFFFF]/)) {
+    if (regExpTest(/[\u0080-\uFFFF]/, currentNode.nodeName)) {
       _forceRemove(currentNode);
 
       return true;
@@ -1019,7 +1019,7 @@ function createDOMPurify() {
     /* Detect mXSS attempts abusing namespace confusion */
 
 
-    if (!_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+    if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
       _forceRemove(currentNode);
 
       return true;

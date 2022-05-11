@@ -560,6 +560,18 @@ function createDOMPurify(window = getGlobal()) {
     'annotation-xml',
   ]);
 
+  // Certain elements are allowed in both SVG and HTML
+  // namespace. We need to specify them explicitly
+  // so that they don't get erroneously deleted from
+  // HTML namespace.
+  const commonSvgAndHTMLElements = addToSet({}, [
+    'title',
+    'style',
+    'font',
+    'a',
+    'script',
+  ]);
+
   /* Keep track of all possible SVG and MathML tags
    * so that we can perform the namespace checks
    * correctly. */
@@ -653,18 +665,6 @@ function createDOMPurify(window = getGlobal()) {
       ) {
         return false;
       }
-
-      // Certain elements are allowed in both SVG and HTML
-      // namespace. We need to specify them explicitly
-      // so that they don't get erroneously deleted from
-      // HTML namespace.
-      const commonSvgAndHTMLElements = addToSet({}, [
-        'title',
-        'style',
-        'font',
-        'a',
-        'script',
-      ]);
 
       // We disallow tags that are specific for MathML
       // or SVG and should never appear in HTML namespace
