@@ -1148,6 +1148,7 @@ function createDOMPurify(window = getGlobal()) {
       const { name, namespaceURI } = attr;
       value = name === 'value' ? attr.value : stringTrim(attr.value);
       lcName = transformCaseFunc(name);
+      const initValue = value;
 
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
@@ -1161,11 +1162,10 @@ function createDOMPurify(window = getGlobal()) {
         continue;
       }
 
-      /* Remove attribute */
-      _removeAttribute(name, currentNode);
-
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
+        /* Remove attribute */
+        _removeAttribute(name, currentNode);
         continue;
       }
 
@@ -1184,20 +1184,23 @@ function createDOMPurify(window = getGlobal()) {
       /* Is `value` valid for this attribute? */
       const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
+        _removeAttribute(name, currentNode);
         continue;
       }
 
       /* Handle invalid data-* attribute set by try-catching it */
-      try {
-        if (namespaceURI) {
-          currentNode.setAttributeNS(namespaceURI, name, value);
-        } else {
-          /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
-          currentNode.setAttribute(name, value);
+      if (value !== initValue) {
+        try {
+          if (namespaceURI) {
+            currentNode.setAttributeNS(namespaceURI, name, value);
+          } else {
+            /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+            currentNode.setAttribute(name, value);
+          }
+        } catch (_) {
+          _removeAttribute(name, currentNode);
         }
-
-        arrayPop(DOMPurify.removed);
-      } catch (_) {}
+      }
     }
 
     /* Execute a hook if present */

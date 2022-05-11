@@ -1192,6 +1192,7 @@ function createDOMPurify() {
           namespaceURI = _attr.namespaceURI;
       value = name === 'value' ? attr.value : stringTrim(attr.value);
       lcName = transformCaseFunc(name);
+      var initValue = value;
       /* Execute a hook if present */
 
       hookEvent.attrName = lcName;
@@ -1207,14 +1208,13 @@ function createDOMPurify() {
       if (hookEvent.forceKeepAttr) {
         continue;
       }
-      /* Remove attribute */
-
-
-      _removeAttribute(name, currentNode);
       /* Did the hooks approve of the attribute? */
 
 
       if (!hookEvent.keepAttr) {
+        /* Remove attribute */
+        _removeAttribute(name, currentNode);
+
         continue;
       }
       /* Work around a security issue in jQuery 3.0 */
@@ -1238,21 +1238,25 @@ function createDOMPurify() {
       var lcTag = transformCaseFunc(currentNode.nodeName);
 
       if (!_isValidAttribute(lcTag, lcName, value)) {
+        _removeAttribute(name, currentNode);
+
         continue;
       }
       /* Handle invalid data-* attribute set by try-catching it */
 
 
-      try {
-        if (namespaceURI) {
-          currentNode.setAttributeNS(namespaceURI, name, value);
-        } else {
-          /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
-          currentNode.setAttribute(name, value);
+      if (value !== initValue) {
+        try {
+          if (namespaceURI) {
+            currentNode.setAttributeNS(namespaceURI, name, value);
+          } else {
+            /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+            currentNode.setAttribute(name, value);
+          }
+        } catch (_) {
+          _removeAttribute(name, currentNode);
         }
-
-        arrayPop(DOMPurify.removed);
-      } catch (_) {}
+      }
     }
     /* Execute a hook if present */
 
