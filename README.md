@@ -344,7 +344,7 @@ All relevant commits will be signed with the key `0x24BB6BF4` for additional sec
 
 #### Installation (`npm i`)
 
-We support `npm` officially. GitHub Actions workflow is configured to install dependencies using `npm`. When using deprected version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
+We support `npm` officially. GitHub Actions workflow is configured to install dependencies using `npm`. When using deprecated version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
 
 #### Scripts
 
