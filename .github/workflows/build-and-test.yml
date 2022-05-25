@@ -33,7 +33,7 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Test
-        uses: GabrielBB/xvfb-action@v1.0
+        uses: GabrielBB/xvfb-action@v1.6
         with:
           run: npm run test:ci
         env:
