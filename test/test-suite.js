@@ -1842,6 +1842,26 @@
       });
     });
 
+    QUnit.test(
+      'Config-Flag tests: PARSER_MEDIA_TYPE + ALLOWED_TAGS/ALLOWED_ATTR',
+      function (assert) {
+        assert.contains(
+          DOMPurify.sanitize(
+            '<a href="#">abc</a><CustomTag customattr="bar" CustomAttr="foo"/>',
+            {
+              PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+              ALLOWED_TAGS: ['a', 'CustomTag'],
+              ALLOWED_ATTR: ['href', 'CustomAttr'],
+            }
+          ),
+          [
+            '<a xmlns="http://www.w3.org/1999/xhtml" href="#">abc</a>' +
+              '<CustomTag xmlns="http://www.w3.org/1999/xhtml" CustomAttr="foo"></CustomTag>',
+          ]
+        );
+      }
+    );
+
     QUnit.test('Test invalid xml', function (assert) {
       var tests = [
         {

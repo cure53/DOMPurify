@@ -380,29 +380,55 @@ function createDOMPurify(window = getGlobal()) {
     /* Shield configuration object from prototype pollution */
     cfg = clone(cfg);
 
+    PARSER_MEDIA_TYPE =
+      // eslint-disable-next-line unicorn/prefer-includes
+      SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1
+        ? (PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE)
+        : (PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE);
+
+    // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
+    transformCaseFunc =
+      PARSER_MEDIA_TYPE === 'application/xhtml+xml'
+        ? (x) => x
+        : stringToLowerCase;
+
     /* Set configuration parameters */
     ALLOWED_TAGS =
       'ALLOWED_TAGS' in cfg
-        ? addToSet({}, cfg.ALLOWED_TAGS)
+        ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
         : DEFAULT_ALLOWED_TAGS;
     ALLOWED_ATTR =
       'ALLOWED_ATTR' in cfg
-        ? addToSet({}, cfg.ALLOWED_ATTR)
+        ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
         : DEFAULT_ALLOWED_ATTR;
     URI_SAFE_ATTRIBUTES =
       'ADD_URI_SAFE_ATTR' in cfg
-        ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR)
+        ? addToSet(
+            clone(DEFAULT_URI_SAFE_ATTRIBUTES),
+            cfg.ADD_URI_SAFE_ATTR,
+            transformCaseFunc
+          )
         : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS =
       'ADD_DATA_URI_TAGS' in cfg
-        ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS)
+        ? addToSet(
+            clone(DEFAULT_DATA_URI_TAGS),
+            cfg.ADD_DATA_URI_TAGS,
+            transformCaseFunc
+          )
         : DEFAULT_DATA_URI_TAGS;
     FORBID_CONTENTS =
       'FORBID_CONTENTS' in cfg
-        ? addToSet({}, cfg.FORBID_CONTENTS)
+        ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
         : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
-    FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
+    FORBID_TAGS =
+      'FORBID_TAGS' in cfg
+        ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
+        : {};
+    FORBID_ATTR =
+      'FORBID_ATTR' in cfg
+        ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
+        : {};
     USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
@@ -442,18 +468,6 @@ function createDOMPurify(window = getGlobal()) {
       CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements =
         cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
     }
-
-    PARSER_MEDIA_TYPE =
-      // eslint-disable-next-line unicorn/prefer-includes
-      SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1
-        ? (PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE)
-        : (PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE);
-
-    // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
-    transformCaseFunc =
-      PARSER_MEDIA_TYPE === 'application/xhtml+xml'
-        ? (x) => x
-        : stringToLowerCase;
 
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
@@ -497,7 +511,7 @@ function createDOMPurify(window = getGlobal()) {
         ALLOWED_TAGS = clone(ALLOWED_TAGS);
       }
 
-      addToSet(ALLOWED_TAGS, cfg.ADD_TAGS);
+      addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
     }
 
     if (cfg.ADD_ATTR) {
@@ -505,11 +519,11 @@ function createDOMPurify(window = getGlobal()) {
         ALLOWED_ATTR = clone(ALLOWED_ATTR);
       }
 
-      addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
+      addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
     }
 
     if (cfg.ADD_URI_SAFE_ATTR) {
-      addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
+      addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
     }
 
     if (cfg.FORBID_CONTENTS) {
@@ -517,7 +531,7 @@ function createDOMPurify(window = getGlobal()) {
         FORBID_CONTENTS = clone(FORBID_CONTENTS);
       }
 
-      addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS);
+      addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
     }
 
     /* Add #text in case KEEP_CONTENT is set to true */
