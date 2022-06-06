@@ -404,18 +404,18 @@ function createDOMPurify(window = getGlobal()) {
     URI_SAFE_ATTRIBUTES =
       'ADD_URI_SAFE_ATTR' in cfg
         ? addToSet(
-            clone(DEFAULT_URI_SAFE_ATTRIBUTES),
-            cfg.ADD_URI_SAFE_ATTR,
-            transformCaseFunc
-          )
+            clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
+            cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
+            transformCaseFunc // eslint-disable-line indent
+          ) // eslint-disable-line indent
         : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS =
       'ADD_DATA_URI_TAGS' in cfg
         ? addToSet(
-            clone(DEFAULT_DATA_URI_TAGS),
-            cfg.ADD_DATA_URI_TAGS,
-            transformCaseFunc
-          )
+            clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
+            cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
+            transformCaseFunc // eslint-disable-line indent
+          ) // eslint-disable-line indent
         : DEFAULT_DATA_URI_TAGS;
     FORBID_CONTENTS =
       'FORBID_CONTENTS' in cfg
