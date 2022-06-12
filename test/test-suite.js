@@ -1857,7 +1857,7 @@
           [
             '<a xmlns="http://www.w3.org/1999/xhtml" href="#">abc</a>' +
               '<CustomTag xmlns="http://www.w3.org/1999/xhtml" CustomAttr="foo"></CustomTag>',
-              "<a xmlns=\"http://www.w3.org/1999/xhtml\" href=\"#\">abc</a><CustomTag xmlns=\"http://www.w3.org/1999/xhtml\" CustomAttr=\"foo\" customattr=\"foo\"></CustomTag>"
+            '<a xmlns="http://www.w3.org/1999/xhtml" href="#">abc</a><CustomTag xmlns="http://www.w3.org/1999/xhtml" CustomAttr="foo" customattr="foo"></CustomTag>',
           ]
         );
       }
