@@ -1,4 +1,4 @@
-/*! @license DOMPurify 2.3.8 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.3.8/LICENSE */
+/*! @license DOMPurify 2.3.9 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.3.9/LICENSE */
 
 function _typeof(obj) {
   "@babel/helpers - typeof";
@@ -317,7 +317,7 @@ function createDOMPurify() {
    */
 
 
-  DOMPurify.version = '2.3.8';
+  DOMPurify.version = '2.3.9';
   /**
    * Array of elements that DOMPurify removed during sanitation.
    * Empty if nothing was removed.
