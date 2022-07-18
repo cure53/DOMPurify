@@ -1,4 +1,4 @@
-/*! @license DOMPurify 2.3.9 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.3.9/LICENSE */
+/*! @license DOMPurify 2.3.10 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.3.10/LICENSE */
 
 'use strict';
 
@@ -296,6 +296,9 @@ var _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes,
     return trustedTypes.createPolicy(policyName, {
       createHTML: function createHTML(html) {
         return html;
+      },
+      createScriptURL: function createScriptURL(scriptUrl) {
+        return scriptUrl;
       }
     });
   } catch (_) {
@@ -319,7 +322,7 @@ function createDOMPurify() {
    */
 
 
-  DOMPurify.version = '2.3.9';
+  DOMPurify.version = '2.3.10';
   /**
    * Array of elements that DOMPurify removed during sanitation.
    * Empty if nothing was removed.
@@ -1248,6 +1251,22 @@ function createDOMPurify() {
 
       if (!_isValidAttribute(lcTag, lcName, value)) {
         continue;
+      }
+      /* Handle attributes that require Trusted Types */
+
+
+      if (trustedTypesPolicy && _typeof(trustedTypes) === 'object' && typeof trustedTypes.getAttributeType === 'function') {
+        if (namespaceURI) ; else {
+          switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+            case 'TrustedHTML':
+              value = trustedTypesPolicy.createHTML(value);
+              break;
+
+            case 'TrustedScriptURL':
+              value = trustedTypesPolicy.createScriptURL(value);
+              break;
+          }
+        }
       }
       /* Handle invalid data-* attribute set by try-catching it */
 
