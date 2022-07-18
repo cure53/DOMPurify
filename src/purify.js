@@ -55,6 +55,9 @@ const _createTrustedTypesPolicy = function (trustedTypes, document) {
       createHTML(html) {
         return html;
       },
+      createScriptURL(scriptUrl) {
+        return scriptUrl;
+      },
     });
   } catch (_) {
     // Policy creation failed (most likely another DOMPurify script has
@@ -1200,6 +1203,28 @@ function createDOMPurify(window = getGlobal()) {
       const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
         continue;
+      }
+
+      /* Handle attributes that require Trusted Types */
+      if (
+        trustedTypesPolicy &&
+        typeof trustedTypes === 'object' &&
+        typeof trustedTypes.getAttributeType === 'function'
+      ) {
+        if (namespaceURI) {
+          /* Namespaces are not yet supported, see https://bugs.chromium.org/p/chromium/issues/detail?id=1305293 */
+        } else {
+          switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+            case 'TrustedHTML':
+              value = trustedTypesPolicy.createHTML(value);
+              break;
+            case 'TrustedScriptURL':
+              value = trustedTypesPolicy.createScriptURL(value);
+              break;
+            default:
+              break;
+          }
+        }
       }
 
       /* Handle invalid data-* attribute set by try-catching it */
