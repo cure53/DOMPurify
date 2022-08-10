@@ -58,7 +58,8 @@ export function unconstruct(func) {
 }
 
 /* Add properties to a lookup table */
-export function addToSet(set, array) {
+export function addToSet(set, array, transformCaseFunc) {
+  transformCaseFunc = transformCaseFunc ? transformCaseFunc : stringToLowerCase;
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
     // independent of any properties defined on Object.prototype.
@@ -70,7 +71,7 @@ export function addToSet(set, array) {
   while (l--) {
     let element = array[l];
     if (typeof element === 'string') {
-      const lcElement = stringToLowerCase(element);
+      const lcElement = transformCaseFunc(element);
       if (lcElement !== element) {
         // Config presets (e.g. tags.js, attrs.js) are immutable.
         if (!isFrozen(array)) {

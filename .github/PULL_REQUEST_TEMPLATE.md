@@ -1,16 +1,22 @@
-> This pull request [implements, fixes, changes]...
+## Summary
 
-### Background & Context
+<!-- Explain this change, e.g. "this pull request [implements, fixes, changes]...". -->
 
-Briefly outline why this PR was needed, a minimal context, culminating in your implementation.
+## Background & Context
 
-### Tasks
+<!-- Briefly outline why this PR was needed, a minimal context, culminating in your implementation. -->
 
-- Add tasks to give a quick overview for QA and reviewers
+## Tasks
 
-### Dependencies
+<!-- Add tasks to give a quick overview for QA and reviewers -->
 
-If there are any dependencies on PRs or API work then list them here.
+- xxxx
+- xxxx
+- xxxx
+
+## Dependencies
+
+<!-- If there are any dependencies on PRs or API work then list them here. -->
 
 - [x] Resolved dependency
 - [ ] Open dependency

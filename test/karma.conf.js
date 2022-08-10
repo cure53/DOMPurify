@@ -1,8 +1,8 @@
-const commonjs = require('rollup-plugin-commonjs');
+const commonjs = require('@rollup/plugin-commonjs');
 const includePaths = require('rollup-plugin-includepaths');
 const rollupConfig = require('../rollup.config.js');
-const customLaunchers = require('./karma.custom-launchers.config.js')
-  .customLaunchers;
+const customLaunchers =
+  require('./karma.custom-launchers.config.js').customLaunchers;
 const browsers = require('./karma.custom-launchers.config.js').browsers;
 
 rollupConfig.plugins.push(
@@ -24,7 +24,6 @@ module.exports = function (config) {
     frameworks: ['qunit'],
     files: [
       'node_modules/jquery/dist/jquery.js',
-      'node_modules/qunit-parameterize/qunit-parameterize.js',
       'test/config/setup.js',
       'test/**/*.spec.js',
     ],

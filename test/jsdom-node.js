@@ -7,7 +7,10 @@ const createDOMPurify = require('../dist/purify.cjs');
 const jsdom = require('jsdom');
 const { JSDOM, VirtualConsole } = jsdom;
 const virtualConsole = new VirtualConsole();
-const { window } = new JSDOM(`<html><head></head><body><div id="qunit-fixture"></div></body></html>`, { runScripts: "dangerously", virtualConsole });
+const { window } = new JSDOM(
+  `<html><head></head><body><div id="qunit-fixture"></div></body></html>`,
+  { runScripts: 'dangerously', virtualConsole }
+);
 require('jquery')(window);
 
 const sanitizeTestSuite = require('./test-suite');
@@ -15,11 +18,15 @@ const bootstrapTestSuite = require('./bootstrap-test-suite');
 const tests = require('./fixtures/expect');
 const xssTests = tests.filter((element) => /alert/.test(element.payload));
 
-require('qunit-parameterize/qunit-parameterize');
-
-QUnit.assert.contains = function (needle, haystack, message) {
-  const result = haystack.indexOf(needle) > -1;
-  this.push(result, needle, haystack, message);
+QUnit.assert.contains = function (actual, expected, message) {
+  const result = expected.indexOf(actual) > -1;
+  // Ref: https://api.qunitjs.com/assert/pushResult/
+  this.pushResult({
+    result: result,
+    actual: actual,
+    expected: expected,
+    message: message,
+  });
 };
 
 QUnit.config.autostart = false;
@@ -34,11 +41,7 @@ if (!window.jQuery) {
 
 const DOMPurify = createDOMPurify(window);
 if (!DOMPurify.isSupported) {
-  console.error(
-    'Unexpected error returned by jsdom.env():',
-    err,
-    err.stack
-  );
+  console.error('Unexpected error returned by jsdom.env():', err, err.stack);
   process.exit(1);
 }
 

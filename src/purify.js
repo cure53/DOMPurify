@@ -55,6 +55,9 @@ const _createTrustedTypesPolicy = function (trustedTypes, document) {
       createHTML(html) {
         return html;
       },
+      createScriptURL(scriptUrl) {
+        return scriptUrl;
+      },
     });
   } catch (_) {
     // Policy creation failed (most likely another DOMPurify script has
@@ -100,8 +103,7 @@ function createDOMPurify(window = getGlobal()) {
     Element,
     NodeFilter,
     NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
-    Text,
-    Comment,
+    HTMLFormElement,
     DOMParser,
     trustedTypes,
   } = window;
@@ -130,10 +132,7 @@ function createDOMPurify(window = getGlobal()) {
     trustedTypes,
     originalDocument
   );
-  const emptyHTML =
-    trustedTypesPolicy && RETURN_TRUSTED_TYPE
-      ? trustedTypesPolicy.createHTML('')
-      : '';
+  const emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   const {
     implementation,
@@ -194,6 +193,35 @@ function createDOMPurify(window = getGlobal()) {
     ...ATTRS.xml,
   ]);
 
+  /*
+   * Configure how DOMPUrify should handle custom elements and their attributes as well as customized built-in elements.
+   * @property {RegExp|Function|null} tagNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any custom elements)
+   * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
+   * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
+   */
+  const CUSTOM_ELEMENT_HANDLING = Object.seal(
+    Object.create(null, {
+      tagNameCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null,
+      },
+      attributeNameCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null,
+      },
+      allowCustomizedBuiltInElements: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: false,
+      },
+    })
+  );
+
   /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
   let FORBID_TAGS = null;
 
@@ -233,17 +261,6 @@ function createDOMPurify(window = getGlobal()) {
   /* Decide if a DOM `DocumentFragment` should be returned, instead of a html
    * string  (or a TrustedHTML object if Trusted Types are supported) */
   let RETURN_DOM_FRAGMENT = false;
-
-  /* If `RETURN_DOM` or `RETURN_DOM_FRAGMENT` is enabled, decide if the returned DOM
-   * `Node` is imported into the current `Document`. If this flag is not enabled the
-   * `Node` will belong (its ownerDocument) to a fresh `HTMLDocument`, created by
-   * DOMPurify.
-   *
-   * This defaults to `true` starting DOMPurify 2.2.0. Note that setting it to `false`
-   * might cause XSS from attacks hidden in closed shadowroots in case the browser
-   * supports Declarative Shadow: DOM https://web.dev/declarative-shadow-dom/
-   */
-  let RETURN_DOM_IMPORT = true;
 
   /* Try to return a Trusted Type object instead of a string, return a string in
    * case Trusted Types are not supported  */
@@ -329,6 +346,12 @@ function createDOMPurify(window = getGlobal()) {
   let NAMESPACE = HTML_NAMESPACE;
   let IS_EMPTY_INPUT = false;
 
+  /* Parsing of strict XHTML documents */
+  let PARSER_MEDIA_TYPE;
+  const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
+  const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
+  let transformCaseFunc;
+
   /* Keep a reference to config to pass to hooks */
   let CONFIG = null;
 
@@ -336,6 +359,10 @@ function createDOMPurify(window = getGlobal()) {
   /* ______________________________________________ */
 
   const formElement = document.createElement('form');
+
+  const isRegexOrFunction = function (testValue) {
+    return testValue instanceof RegExp || testValue instanceof Function;
+  };
 
   /**
    * _parseConfig
@@ -356,29 +383,55 @@ function createDOMPurify(window = getGlobal()) {
     /* Shield configuration object from prototype pollution */
     cfg = clone(cfg);
 
+    PARSER_MEDIA_TYPE =
+      // eslint-disable-next-line unicorn/prefer-includes
+      SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1
+        ? (PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE)
+        : (PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE);
+
+    // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
+    transformCaseFunc =
+      PARSER_MEDIA_TYPE === 'application/xhtml+xml'
+        ? (x) => x
+        : stringToLowerCase;
+
     /* Set configuration parameters */
     ALLOWED_TAGS =
       'ALLOWED_TAGS' in cfg
-        ? addToSet({}, cfg.ALLOWED_TAGS)
+        ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
         : DEFAULT_ALLOWED_TAGS;
     ALLOWED_ATTR =
       'ALLOWED_ATTR' in cfg
-        ? addToSet({}, cfg.ALLOWED_ATTR)
+        ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
         : DEFAULT_ALLOWED_ATTR;
     URI_SAFE_ATTRIBUTES =
       'ADD_URI_SAFE_ATTR' in cfg
-        ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR)
+        ? addToSet(
+            clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
+            cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
+            transformCaseFunc // eslint-disable-line indent
+          ) // eslint-disable-line indent
         : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS =
       'ADD_DATA_URI_TAGS' in cfg
-        ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS)
+        ? addToSet(
+            clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
+            cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
+            transformCaseFunc // eslint-disable-line indent
+          ) // eslint-disable-line indent
         : DEFAULT_DATA_URI_TAGS;
     FORBID_CONTENTS =
       'FORBID_CONTENTS' in cfg
-        ? addToSet({}, cfg.FORBID_CONTENTS)
+        ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
         : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS = 'FORBID_TAGS' in cfg ? addToSet({}, cfg.FORBID_TAGS) : {};
-    FORBID_ATTR = 'FORBID_ATTR' in cfg ? addToSet({}, cfg.FORBID_ATTR) : {};
+    FORBID_TAGS =
+      'FORBID_TAGS' in cfg
+        ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
+        : {};
+    FORBID_ATTR =
+      'FORBID_ATTR' in cfg
+        ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
+        : {};
     USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
@@ -387,7 +440,6 @@ function createDOMPurify(window = getGlobal()) {
     WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
-    RETURN_DOM_IMPORT = cfg.RETURN_DOM_IMPORT !== false; // Default true
     RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
@@ -395,6 +447,31 @@ function createDOMPurify(window = getGlobal()) {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+    if (
+      cfg.CUSTOM_ELEMENT_HANDLING &&
+      isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)
+    ) {
+      CUSTOM_ELEMENT_HANDLING.tagNameCheck =
+        cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
+    }
+
+    if (
+      cfg.CUSTOM_ELEMENT_HANDLING &&
+      isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck)
+    ) {
+      CUSTOM_ELEMENT_HANDLING.attributeNameCheck =
+        cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck;
+    }
+
+    if (
+      cfg.CUSTOM_ELEMENT_HANDLING &&
+      typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements ===
+        'boolean'
+    ) {
+      CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements =
+        cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
+    }
+
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
     }
@@ -437,7 +514,7 @@ function createDOMPurify(window = getGlobal()) {
         ALLOWED_TAGS = clone(ALLOWED_TAGS);
       }
 
-      addToSet(ALLOWED_TAGS, cfg.ADD_TAGS);
+      addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
     }
 
     if (cfg.ADD_ATTR) {
@@ -445,11 +522,11 @@ function createDOMPurify(window = getGlobal()) {
         ALLOWED_ATTR = clone(ALLOWED_ATTR);
       }
 
-      addToSet(ALLOWED_ATTR, cfg.ADD_ATTR);
+      addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
     }
 
     if (cfg.ADD_URI_SAFE_ATTR) {
-      addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR);
+      addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
     }
 
     if (cfg.FORBID_CONTENTS) {
@@ -457,7 +534,7 @@ function createDOMPurify(window = getGlobal()) {
         FORBID_CONTENTS = clone(FORBID_CONTENTS);
       }
 
-      addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS);
+      addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
     }
 
     /* Add #text in case KEEP_CONTENT is set to true */
@@ -498,6 +575,18 @@ function createDOMPurify(window = getGlobal()) {
     'desc',
     'title',
     'annotation-xml',
+  ]);
+
+  // Certain elements are allowed in both SVG and HTML
+  // namespace. We need to specify them explicitly
+  // so that they don't get erroneously deleted from
+  // HTML namespace.
+  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
+    'title',
+    'style',
+    'font',
+    'a',
+    'script',
   ]);
 
   /* Keep track of all possible SVG and MathML tags
@@ -594,23 +683,11 @@ function createDOMPurify(window = getGlobal()) {
         return false;
       }
 
-      // Certain elements are allowed in both SVG and HTML
-      // namespace. We need to specify them explicitly
-      // so that they don't get erronously deleted from
-      // HTML namespace.
-      const commonSvgAndHTMLElements = addToSet({}, [
-        'title',
-        'style',
-        'font',
-        'a',
-        'script',
-      ]);
-
       // We disallow tags that are specific for MathML
       // or SVG and should never appear in HTML namespace
       return (
         !ALL_MATHML_TAGS[tagName] &&
-        (commonSvgAndHTMLElements[tagName] || !ALL_SVG_TAGS[tagName])
+        (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName])
       );
     }
 
@@ -693,6 +770,14 @@ function createDOMPurify(window = getGlobal()) {
       leadingWhitespace = matches && matches[0];
     }
 
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+      // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
+      dirty =
+        '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' +
+        dirty +
+        '</body></html>';
+    }
+
     const dirtyPayload = trustedTypesPolicy
       ? trustedTypesPolicy.createHTML(dirty)
       : dirty;
@@ -702,7 +787,7 @@ function createDOMPurify(window = getGlobal()) {
      */
     if (NAMESPACE === HTML_NAMESPACE) {
       try {
-        doc = new DOMParser().parseFromString(dirtyPayload, 'text/html');
+        doc = new DOMParser().parseFromString(dirtyPayload, PARSER_MEDIA_TYPE);
       } catch (_) {}
     }
 
@@ -746,6 +831,7 @@ function createDOMPurify(window = getGlobal()) {
     return createNodeIterator.call(
       root.ownerDocument || root,
       root,
+      // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
       null,
       false
@@ -759,24 +845,17 @@ function createDOMPurify(window = getGlobal()) {
    * @return {Boolean} true if clobbered, false if safe
    */
   const _isClobbered = function (elm) {
-    if (elm instanceof Text || elm instanceof Comment) {
-      return false;
-    }
-
-    if (
-      typeof elm.nodeName !== 'string' ||
-      typeof elm.textContent !== 'string' ||
-      typeof elm.removeChild !== 'function' ||
-      !(elm.attributes instanceof NamedNodeMap) ||
-      typeof elm.removeAttribute !== 'function' ||
-      typeof elm.setAttribute !== 'function' ||
-      typeof elm.namespaceURI !== 'string' ||
-      typeof elm.insertBefore !== 'function'
-    ) {
-      return true;
-    }
-
-    return false;
+    return (
+      elm instanceof HTMLFormElement &&
+      (typeof elm.nodeName !== 'string' ||
+        typeof elm.textContent !== 'string' ||
+        typeof elm.removeChild !== 'function' ||
+        !(elm.attributes instanceof NamedNodeMap) ||
+        typeof elm.removeAttribute !== 'function' ||
+        typeof elm.setAttribute !== 'function' ||
+        typeof elm.namespaceURI !== 'string' ||
+        typeof elm.insertBefore !== 'function')
+    );
   };
 
   /**
@@ -835,13 +914,13 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Check if tagname contains Unicode */
-    if (stringMatch(currentNode.nodeName, /[\u0080-\uFFFF]/)) {
+    if (regExpTest(/[\u0080-\uFFFF]/, currentNode.nodeName)) {
       _forceRemove(currentNode);
       return true;
     }
 
     /* Now let's check the element's type and name */
-    const tagName = stringToLowerCase(currentNode.nodeName);
+    const tagName = transformCaseFunc(currentNode.nodeName);
 
     /* Execute a hook if present */
     _executeHook('uponSanitizeElement', currentNode, {
@@ -851,6 +930,7 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Detect mXSS attempts abusing namespace confusion */
     if (
+      currentNode.hasChildNodes() &&
       !_isNode(currentNode.firstElementChild) &&
       (!_isNode(currentNode.content) ||
         !_isNode(currentNode.content.firstElementChild)) &&
@@ -861,8 +941,31 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
+    /* Mitigate a problem with templates inside select */
+    if (
+      tagName === 'select' &&
+      regExpTest(/<template/i, currentNode.innerHTML)
+    ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+      /* Check if we have a custom element to handle */
+      if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
+        if (
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
+          regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)
+        )
+          return false;
+        if (
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
+          CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)
+        )
+          return false;
+      }
+
       /* Keep content except for bad-listed elements */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
         const parentNode = getParentNode(currentNode) || currentNode.parentNode;
@@ -949,8 +1052,33 @@ function createDOMPurify(window = getGlobal()) {
       // This attribute is safe
       /* Otherwise, check the name is permitted */
     } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
-      return false;
-
+      if (
+        // First condition does a very basic check if a) it's basically a valid custom element tagname AND
+        // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
+        // and c) if the attribute name passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.attributeNameCheck
+        (_basicCustomElementTest(lcTag) &&
+          ((CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
+            regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag)) ||
+            (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
+              CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag))) &&
+          ((CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp &&
+            regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName)) ||
+            (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function &&
+              CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)))) ||
+        // Alternative, second condition checks if it's an `is`-attribute, AND
+        // the value passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
+        (lcName === 'is' &&
+          CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements &&
+          ((CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
+            regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value)) ||
+            (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
+              CUSTOM_ELEMENT_HANDLING.tagNameCheck(value))))
+      ) {
+        // If user has supplied a regexp or function in CUSTOM_ELEMENT_HANDLING.tagNameCheck, we need to also allow derived custom elements using the same tagName test.
+        // Additionally, we need to allow attributes passing the CUSTOM_ELEMENT_HANDLING.attributeNameCheck user has configured, as custom elements can define these at their own discretion.
+      } else {
+        return false;
+      }
       /* Check value is safe. First, is attr inert? If so, is safe */
     } else if (URI_SAFE_ATTRIBUTES[lcName]) {
       // This attribute is safe
@@ -990,6 +1118,16 @@ function createDOMPurify(window = getGlobal()) {
   };
 
   /**
+   * _basicCustomElementCheck
+   * checks if at least one dash is included in tagName, and it's not the first char
+   * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+   * @param {string} tagName name of the tag of the node to sanitize
+   */
+  const _basicCustomElementTest = function (tagName) {
+    return tagName.indexOf('-') > 0;
+  };
+
+  /**
    * _sanitizeAttributes
    *
    * @protect attributes
@@ -1026,8 +1164,8 @@ function createDOMPurify(window = getGlobal()) {
     while (l--) {
       attr = attributes[l];
       const { name, namespaceURI } = attr;
-      value = stringTrim(attr.value);
-      lcName = stringToLowerCase(name);
+      value = name === 'value' ? attr.value : stringTrim(attr.value);
+      lcName = transformCaseFunc(name);
 
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
@@ -1062,9 +1200,31 @@ function createDOMPurify(window = getGlobal()) {
       }
 
       /* Is `value` valid for this attribute? */
-      const lcTag = currentNode.nodeName.toLowerCase();
+      const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
         continue;
+      }
+
+      /* Handle attributes that require Trusted Types */
+      if (
+        trustedTypesPolicy &&
+        typeof trustedTypes === 'object' &&
+        typeof trustedTypes.getAttributeType === 'function'
+      ) {
+        if (namespaceURI) {
+          /* Namespaces are not yet supported, see https://bugs.chromium.org/p/chromium/issues/detail?id=1305293 */
+        } else {
+          switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+            case 'TrustedHTML':
+              value = trustedTypesPolicy.createHTML(value);
+              break;
+            case 'TrustedScriptURL':
+              value = trustedTypesPolicy.createScriptURL(value);
+              break;
+            default:
+              break;
+          }
+        }
       }
 
       /* Handle invalid data-* attribute set by try-catching it */
@@ -1185,7 +1345,15 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     if (IN_PLACE) {
-      /* No special handling necessary for in-place sanitization */
+      /* Do some early pre-sanitization to avoid unsafe root nodes */
+      if (dirty.nodeName) {
+        const tagName = transformCaseFunc(dirty.nodeName);
+        if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+          throw typeErrorCreate(
+            'root node is forbidden and cannot be sanitized in-place'
+          );
+        }
+      }
     } else if (dirty instanceof Node) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
@@ -1219,7 +1387,7 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Check we have a DOM node from the data */
       if (!body) {
-        return RETURN_DOM ? null : emptyHTML;
+        return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : '';
       }
     }
 
@@ -1274,7 +1442,7 @@ function createDOMPurify(window = getGlobal()) {
         returnNode = body;
       }
 
-      if (RETURN_DOM_IMPORT) {
+      if (ALLOWED_ATTR.shadowroot) {
         /*
           AdoptNode() is not used because internal state is not reset
           (e.g. the past names map of a HTMLFormElement), this is safe
@@ -1289,6 +1457,19 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+
+    /* Serialize doctype if allowed */
+    if (
+      WHOLE_DOCUMENT &&
+      ALLOWED_TAGS['!doctype'] &&
+      body.ownerDocument &&
+      body.ownerDocument.doctype &&
+      body.ownerDocument.doctype.name &&
+      regExpTest(EXPRESSIONS.DOCTYPE_NAME, body.ownerDocument.doctype.name)
+    ) {
+      serializedHTML =
+        '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
+    }
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
@@ -1338,8 +1519,8 @@ function createDOMPurify(window = getGlobal()) {
       _parseConfig({});
     }
 
-    const lcTag = stringToLowerCase(tag);
-    const lcName = stringToLowerCase(attr);
+    const lcTag = transformCaseFunc(tag);
+    const lcName = transformCaseFunc(attr);
     return _isValidAttribute(lcTag, lcName, value);
   };
 
@@ -1365,10 +1546,11 @@ function createDOMPurify(window = getGlobal()) {
    * (pops it from the stack of hooks if more are present)
    *
    * @param {String} entryPoint entry point for the hook to remove
+   * @return {Function} removed(popped) hook
    */
   DOMPurify.removeHook = function (entryPoint) {
     if (hooks[entryPoint]) {
-      arrayPop(hooks[entryPoint]);
+      return arrayPop(hooks[entryPoint]);
     }
   };
 

@@ -32,7 +32,7 @@
             document.getElementById('sanitized').innerHTML += clean;
 
             // now let's remove the hook again
-            console.log(DOMPurify.removeHook('beforeSanitizeAttributes'));
+            var upperCaseHook = DOMPurify.removeHook('beforeSanitizeAttributes');
 
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
@@ -42,12 +42,7 @@
              * Add three hooks, then remove two using removeHooks()
              */
             // Add a hook to convert all text to capitals
-            DOMPurify.addHook('beforeSanitizeAttributes', function(node){
-                // Set text node content to uppercase
-                if (node.nodeName && node.nodeName === '#text') {
-                    node.textContent = node.textContent.toUpperCase();
-                }
-            });
+            DOMPurify.addHook('beforeSanitizeAttributes', upperCaseHook);
             // Add a hook to convert all text to <BIG>
             DOMPurify.addHook('beforeSanitizeAttributes', function(node){
                 // Set text node content to uppercase
@@ -68,7 +63,7 @@
             document.getElementById('sanitized').innerHTML += clean;
 
             // now let's remove the hook again
-            console.log(DOMPurify.removeHooks('beforeSanitizeAttributes'));
+            DOMPurify.removeHooks('beforeSanitizeAttributes');
 
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);
@@ -80,12 +75,7 @@
              * Keep in mind, we still have one from above, the .bold() hook
              */
             // Add a hook to convert all text to capitals
-            DOMPurify.addHook('beforeSanitizeAttributes', function(node) {
-                // Set text node content to uppercase
-                if (node.nodeName && node.nodeName === '#text') {
-                    node.textContent = node.textContent.toUpperCase();
-                }
-            });
+            DOMPurify.addHook('beforeSanitizeAttributes', upperCaseHook);
             // Add a hook to convert all text to <BIG>
             DOMPurify.addHook('beforeSanitizeAttributes', function(node) {
                 // Set text node content to uppercase
@@ -99,7 +89,7 @@
             document.getElementById('sanitized').innerHTML += clean;
 
             // now let's remove the hook again
-            console.log(DOMPurify.removeAllHooks());
+            DOMPurify.removeAllHooks();
 
             // Clean HTML string and write into our DIV
             var clean = DOMPurify.sanitize(dirty);

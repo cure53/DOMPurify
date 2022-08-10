@@ -1,16 +1,16 @@
 # DOMPurify
 
-[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify)  ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main)  [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify)  [![minified size](https://badgen.net/bundlephobia/min/dompurify?color=green&label=minified)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js)  [![gzip size](https://badgen.net/bundlephobia/minzip/dompurify?color=green&label=gzipped)](https://packagephobia.now.sh/result?p=dompurify)  [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
+[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![minified size](https://badgen.net/bundlephobia/min/dompurify?color=green&label=minified)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js) [![gzip size](https://badgen.net/bundlephobia/minzip/dompurify?color=green&label=gzipped)](https://packagephobia.now.sh/result?p=dompurify) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 2.3.0.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version 2.3.10.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
-Our automated tests cover [17 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v14.15.1, v15.4.0, running DOMPurify on [jsdom](https://github.com/tmpvar/jsdom). Older Node.js versions are known to work as well.
+Our automated tests cover [19 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v14.x, v16.x, v17.x and v18.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
@@ -37,14 +37,14 @@ It's easy. Just include DOMPurify on your website.
 Afterwards you can sanitize strings by executing the following code:
 
 ```js
-let clean = DOMPurify.sanitize( dirty );
+let clean = DOMPurify.sanitize(dirty);
 ```
 
-The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you. 
+The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you.
 Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML, which might be a very common use-case, you can easily set that up as well:
 
 ```js
-let clean = DOMPurify.sanitize( dirty , {USE_PROFILES: {html: true}} );
+let clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 ```
 
 ### Is there any foot-gun potential?
@@ -55,21 +55,22 @@ Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_,
 
 After sanitizing your markup, you can also have a look at the property `DOMPurify.removed` and find out, what elements and attributes were thrown out. Please **do not use** this property for making any security critical decisions. This is just a little helper for curious minds.
 
-If you're using an [AMD](https://github.com/amdjs/amdjs-api/wiki/AMD) module loader like [Require.js](http://requirejs.org/), you can load this script asynchronously as well:
+### Running DOMPurify on the server
 
-```js
-import DOMPurify from 'dompurify';
+DOMPurify technically also works server-side with Node.js. Our support strives to follow the [Node.js release cycle](https://nodejs.org/en/about/releases/).
 
-var clean = DOMPurify.sanitize(dirty);
-```
+Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of _jsdom_.
 
-DOMPurify also works server-side with Node.js as well as client-side via [Browserify](http://browserify.org/) or similar translators. At least Node.js 4.x or newer is required. Our support strives to follow the [Node.js release cycle](https://nodejs.org/en/about/releases/). DOMPurify intends to support any version being flagged as active. At the same time we phase out support for any version flagged as maintenance. DOMPurify might not break with all versions in maintenance immediately but stops to run tests against these older versions.
+Why? Because older versions of _jsdom_ are known to be buggy in ways that result in XSS _even if_ DOMPurify does everything 100% correctly. There are **known attack vectors** in, e.g. _jsdom v19.0.0_ that are fixed in _jsdom v20.0.0_ - and we really recommend to keep _jsdom_ up to date because of that.
+
+Other than that, you are fine to use DOMPurify on the server. Probably. This really depends on _jsdom_ or whatever DOM you utilize server-side. If you can live with that, this is how you get it to work:
 
 ```bash
 npm install dompurify
+npm install jsdom
 ```
 
-For JSDOM v10 or newer
+For _jsdom_ (please use an up-to-date version), this should do the trick:
 
 ```js
 const createDOMPurify = require('dompurify');
@@ -77,20 +78,30 @@ const { JSDOM } = require('jsdom');
 
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
-
-const clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
 
-For JSDOM versions older than v10
+Or even this, if you prefer working with imports:
 
 ```js
-const createDOMPurify = require('dompurify');
-const jsdom = require('jsdom').jsdom;
+import { JSDOM } from 'jsdom';
+import DOMPurify from 'dompurify';
 
-const window = jsdom('').defaultView;
-const DOMPurify = createDOMPurify(window);
+const window = new JSDOM('').window;
+const purify = DOMPurify(window);
+const clean = purify.sanitize('<b>hello there</b>');
+```
 
-const clean = DOMPurify.sanitize(dirty);
+If you have problems making it work in your specific setup, consider looking at the amazing [isomorphic-dompurify](https://github.com/kkomelin/isomorphic-dompurify) project which solves lots of problems people might run into.
+
+```bash
+npm install isomorphic-dompurify
+```
+
+```js
+import DOMPurify from 'isomorphic-dompurify';
+
+const clean = DOMPurify.sanitize('<s>hello</s>');
 ```
 
 ## Is there a demo?
@@ -101,7 +112,7 @@ Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
 
 First of all, please immediately contact us via [email](mailto:mario@cure53.de) so we can work on a fix. [PGP key](https://keyserver.ubuntu.com/pks/lookup?op=vindex&search=0xC26C858090F70ADA)
 
-Also, you probably qualify for a bug bounty! The fine folks over at [Fastmail](https://www.fastmail.com/) use DOMPurify for their services and added our library to their bug bounty scope. So, if you find a way to bypass or weaken DOMPurify, please also have a look at their website and the [bug bounty info](https://www.fastmail.com/about/bugbounty.html).
+Also, you probably qualify for a bug bounty! The fine folks over at [Fastmail](https://www.fastmail.com/) use DOMPurify for their services and added our library to their bug bounty scope. So, if you find a way to bypass or weaken DOMPurify, please also have a look at their website and the [bug bounty info](https://www.fastmail.com/about/bugbounty/).
 
 ## Some purification samples please?
 
@@ -130,10 +141,10 @@ DOMPurify also exposes a property called `isSupported`, which tells you whether 
 
 ## What about DOMPurify and Trusted Types?
 
-In version 1.0.9, support for [Trusted Types API](https://github.com/WICG/trusted-types) was added to DOMPurify.
+In version 1.0.9, support for [Trusted Types API](https://github.com/w3c/webappsec-trusted-types) was added to DOMPurify.
 In version 2.0.0, a config flag was added to control DOMPurify's behavior regarding this.
 
-When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM`, `RETURN_DOM_FRAGMENT`, and `RETURN_DOM_IMPORT` config options does not change).
+When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM` and `RETURN_DOM_FRAGMENT` config options does not change).
 
 ## Can I configure DOMPurify?
 
@@ -185,8 +196,57 @@ var clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 // extend the existing array of allowed attributes and add my-attr to allow-list
 var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 
+// prohibit ARIA attributes, leave other safe HTML as is (default is true)
+var clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
+
 // prohibit HTML5 data attributes, leave other safe HTML as is (default is true)
 var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
+
+/**
+ * Control behavior relating to Custom Elements
+ */
+
+// DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING
+// literal, it is possible to define exactly what elements you wish to allow (by default, none are allowed).
+//
+// The same goes for their attributes. By default, the built-in or configured allow.list is used.
+//
+// You can use a RegExp literal to specify what is allowed or a predicate, examples for both can be seen below.
+// The default values are very restrictive to prevent accidental XSS bypasses. Handle with great care!
+
+
+var clean = DOMPurify.sanitize(
+    '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+    {
+        CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: null, // no custom elements are allowed
+            attributeNameCheck: null, // default / standard attribute allow-list is used
+            allowCustomizedBuiltInElements: false, // no customized built-ins allowed
+        },
+    }
+); // <div is=""></div>
+
+var clean = DOMPurify.sanitize(
+    '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+    {
+        CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: /^foo-/, // allow all tags starting with "foo-"
+            attributeNameCheck: /baz/, // allow all attributes containing "baz"
+            allowCustomizedBuiltInElements: false, // customized built-ins are allowed
+        },
+    }
+); // <foo-bar baz="foobar"></foo-bar><div is=""></div>
+
+var clean = DOMPurify.sanitize(
+    '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+    {
+        CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: (tagName) => tagName.match(/^foo-/), // allow all tags starting with "foo-"
+            attributeNameCheck: (attr) => attr.match(/baz/), // allow all containing "baz"
+            allowCustomizedBuiltInElements: true, // allow customized built-ins
+        },
+    }
+); // <foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>
 
 /**
  * Control behavior relating to URI values
@@ -211,22 +271,12 @@ var clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|
 
 /**
  * Influence the return-type
- *
- * Careful, this setting has foot-gun potential! If you set RETURN_DOM or RETURN_DOM_FRAGMENT to true, don't set RETURN_DOM_IMPORT to false!
- * By default, our settings are secure - we believe - but returning a DOM *and* manually setting RETURN_DOM_IMPORT to false will give you XSS in some situations.
  */
 // return a DOM HTMLBodyElement instead of an HTML string (default is false)
 var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
 
 // return a DOM DocumentFragment instead of an HTML string (default is false)
 var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
-
-// return a DOM DocumentFragment instead of an HTML string (default is false)
-// also import it into the current document (default is false).
-// RETURN_DOM_IMPORT must be set if you would like to append
-// the returned node to the current document (default is true)
-var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true, RETURN_DOM_IMPORT: true});
-document.body.appendChild(clean);
 
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
 var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
@@ -248,6 +298,9 @@ var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 
 // remove all <a> elements under <p> elements that are removed
 var clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
+
+// change the parser type so sanitized data is treated as XML and not as HTML, which is the default
+var clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
 
 /**
  * Influence where we sanitize
@@ -283,15 +336,14 @@ It passes the currently processed DOM node, when needed a literal with verified 
 _Example_:
 
 ```js
-DOMPurify.addHook('beforeSanitizeElements', function (
-  currentNode,
-  hookEvent,
-  config
-) {
-  // Do something with the current node and return it
-  // You can also mutate hookEvent (i.e. set hookEvent.forceKeepAttr = true)
-  return currentNode;
-});
+DOMPurify.addHook(
+  'beforeSanitizeElements',
+  function (currentNode, hookEvent, config) {
+    // Do something with the current node and return it
+    // You can also mutate hookEvent (i.e. set hookEvent.forceKeepAttr = true)
+    return currentNode;
+  }
+);
 ```
 
 ## Continuous Integration
@@ -304,9 +356,9 @@ All relevant commits will be signed with the key `0x24BB6BF4` for additional sec
 
 ### Development and contributing
 
-#### Installation (`yarn i`)
+#### Installation (`npm i`)
 
-We support both `yarn` and `npm@5.2` officially while providing lock-files for either dependency manager to provide reproducible installs and builds on either or. TravisCI itself is configured to install dependencies using `yarn`. When using an older version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
+We support `npm` officially. GitHub Actions workflow is configured to install dependencies using `npm`. When using deprecated version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
 
 #### Scripts
 
@@ -324,7 +376,7 @@ These are our npm scripts:
   - `npm run build:umd` to only build an unminified UMD module
   - `npm run build:umd:min` to only build a minified UMD module
 
-Note: all run scripts triggered via `npm run <script>` can also be started using `yarn <script>`.
+Note: all run scripts triggered via `npm run <script>`.
 
 There are more npm scripts but they are mainly to integrate with CI or are meant to be "private" for instance to amend build distribution files with every commit.
 
@@ -340,9 +392,10 @@ Feature releases will not be announced to this list.
 
 Many people helped and help DOMPurify become what it is and need to be acknowledged here!
 
-[granlem 💸](https://twitter.com/MaximeVeit), [oreoshake 💸](https://github.com/oreoshake), [dcramer 💸](https://github.com/dcramer),[tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
+[JGraph 💸](https://github.com/jgraph), [GitHub 💸](https://github.com/github), [CynegeticIO 💸](https://github.com/CynegeticIO), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy 💸](https://twitter.com/lowdefy), [granlem ](https://twitter.com/MaximeVeit), [oreoshake ](https://github.com/oreoshake), [dcramer 💸](https://github.com/dcramer),[tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
 
-## Testing powered by 
+## Testing powered by
+
 <a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png"></a><br>
 
 And last but not least, thanks to [BrowserStack Open-Source Program](https://www.browserstack.com/open-source) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
