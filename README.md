@@ -10,7 +10,7 @@ It's also very simple to use and get started with. DOMPurify was [started in Feb
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
-Our automated tests cover [19 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v14.15.1, v15.4.0, v16.13.0, v17.0.0, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node.js versions are known to work as well.
+Our automated tests cover [19 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v14.x, v16.x, v17.x and v18.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
@@ -70,7 +70,7 @@ npm install dompurify
 npm install jsdom
 ```
 
-For JSDOM v10 or newer, this should do the trick.
+For _jsdom_ (please use an up-to-date version), this should do the trick:
 
 ```js
 const createDOMPurify = require('dompurify');
@@ -81,7 +81,7 @@ const DOMPurify = createDOMPurify(window);
 const clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
 
-Or even this, if you prefer working with imports.
+Or even this, if you prefer working with imports:
 
 ```js
 import { JSDOM } from 'jsdom';
