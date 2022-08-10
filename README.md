@@ -55,21 +55,22 @@ Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_,
 
 After sanitizing your markup, you can also have a look at the property `DOMPurify.removed` and find out, what elements and attributes were thrown out. Please **do not use** this property for making any security critical decisions. This is just a little helper for curious minds.
 
-If you're using an [AMD](https://github.com/amdjs/amdjs-api/blob/master/AMD.md) module loader like [Require.js](http://requirejs.org/), you can load this script asynchronously as well:
+### Running DOMPurify on the server
 
-```js
-import DOMPurify from 'dompurify';
+DOMPurify technically also works server-side with Node.js. Our support strives to follow the [Node.js release cycle](https://nodejs.org/en/about/releases/). DOMPurify intends to support any version that is flagged as active. At the same time, we phase out support for any version flagged as maintenance. DOMPurify might not break with all versions in maintenance immediately but stops to run tests against these older versions.
 
-var clean = DOMPurify.sanitize(dirty);
-```
+Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of jsdom. 
 
-DOMPurify also works server-side with Node.js as well as client-side via [Browserify](http://browserify.org/) or similar translators. At least Node.js 4.x or newer is required. Our support strives to follow the [Node.js release cycle](https://nodejs.org/en/about/releases/). DOMPurify intends to support any version being flagged as active. At the same time we phase out support for any version flagged as maintenance. DOMPurify might not break with all versions in maintenance immediately but stops to run tests against these older versions.
+Why? Because older versions of jsdom are known to be buggy in ways that result in XSS _even if_ DOMPurify does everything 100% correctly. There are known attack vectors in, e.g. jsdom v19.0.0 that are fixed in jsdom v20.0.0 - and we really recommend to keep jsdom up to date because of that. 
+
+Other than that, you are fine to use DOMPurify on the server. Probably. This really depends on jsdom or whatever DOM you utilize server-side. If you can live with that, this is how you get it to work: 
 
 ```bash
 npm install dompurify
+npm install jsdom
 ```
 
-For JSDOM v10 or newer
+For JSDOM v10 or newer, this should do the trick.
 
 ```js
 const createDOMPurify = require('dompurify');
@@ -78,19 +79,29 @@ const { JSDOM } = require('jsdom');
 const window = new JSDOM('').window;
 const DOMPurify = createDOMPurify(window);
 
-const clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
 
-For JSDOM versions older than v10
+Or even this, if you prefer working with imports.
 
 ```js
-const createDOMPurify = require('dompurify');
-const jsdom = require('jsdom').jsdom;
+import { JSDOM } from 'jsdom';
+import DOMPurify from 'dompurify';
 
-const window = jsdom('').defaultView;
-const DOMPurify = createDOMPurify(window);
+const window = new JSDOM('').window;
+const purify = DOMPurify(window);
+const clean = purify.sanitize('<b>hello there</b>');
+```
 
-const clean = DOMPurify.sanitize(dirty);
+If you have problems making it work in your specific setup, consider looking at the amazing [isomorphic-dompurify](https://github.com/kkomelin/isomorphic-dompurify) project which solves lots of problems people might run into.
+
+```bash
+npm install isomorphic-dompurify
+```
+
+```js
+import DOMPurify from 'isomorphic-dompurify';
+const clean = DOMPurify.sanitize('<s>hello</s>');
 ```
 
 ## Is there a demo?
