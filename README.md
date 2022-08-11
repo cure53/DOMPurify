@@ -59,11 +59,11 @@ After sanitizing your markup, you can also have a look at the property `DOMPurif
 
 DOMPurify technically also works server-side with Node.js. Our support strives to follow the [Node.js release cycle](https://nodejs.org/en/about/releases/).
 
-Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of _jsdom_. 
+Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of _jsdom_.
 
-Why? Because older versions of _jsdom_ are known to be buggy in ways that result in XSS _even if_ DOMPurify does everything 100% correctly. There are **known attack vectors** in, e.g. _jsdom v19.0.0_ that are fixed in _jsdom v20.0.0_ - and we really recommend to keep _jsdom_ up to date because of that. 
+Why? Because older versions of _jsdom_ are known to be buggy in ways that result in XSS _even if_ DOMPurify does everything 100% correctly. There are **known attack vectors** in, e.g. _jsdom v19.0.0_ that are fixed in _jsdom v20.0.0_ - and we really recommend to keep _jsdom_ up to date because of that.
 
-Other than that, you are fine to use DOMPurify on the server. Probably. This really depends on _jsdom_ or whatever DOM you utilize server-side. If you can live with that, this is how you get it to work: 
+Other than that, you are fine to use DOMPurify on the server. Probably. This really depends on _jsdom_ or whatever DOM you utilize server-side. If you can live with that, this is how you get it to work:
 
 ```bash
 npm install dompurify
@@ -295,6 +295,9 @@ var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 
 // glue elements like style, script or others to document.body and prevent unintuitive browser behavior in several edge-cases (default is false)
 var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
+
+// remove all <a> elements under <p> elements that are removed
+var clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
 
 // change the parser type so sanitized data is treated as XML and not as HTML, which is the default
 var clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
