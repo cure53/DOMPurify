@@ -43,7 +43,7 @@ let clean = DOMPurify.sanitize(dirty);
 Or maybe this, if you love working with Angular or alike:
 
 ```js
-import * as DOMPurify from 'dompurify'
+import * as DOMPurify from 'dompurify';
 
 let clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
@@ -297,6 +297,11 @@ var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
 
 // disable DOM Clobbering protection on output (default is true, handle with care, minor XSS risks here)
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
+
+// enforce strict DOM Clobbering protection via namespace isolation (default is false)
+// when enabled, isolates the namespace of named properties (i.e., `id` and `name` attributes) 
+// from JS variables by prefixing them with the string `user-content-` 
+var clean = DOMPurify.sanitize(dirty, {SANITIZE_NAMED_PROPS: true});
 
 // keep an element's content when the element is removed (default is true)
 var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});

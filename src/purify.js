@@ -266,8 +266,26 @@ function createDOMPurify(window = getGlobal()) {
    * case Trusted Types are not supported  */
   let RETURN_TRUSTED_TYPE = false;
 
-  /* Output should be free from DOM clobbering attacks? */
+  /* Output should be free from DOM clobbering attacks?
+   * This sanitizes markups named with colliding, clobberable built-in DOM APIs.
+   */
   let SANITIZE_DOM = true;
+
+  /* Achieve full DOM Clobbering protection by isolating the namespace of named
+   * properties and JS variables, mitigating attacks that abuse the HTML/DOM spec rules.
+   *
+   * HTML/DOM spec rules that enable DOM Clobbering:
+   *   - Named Access on Window (§7.3.3)
+   *   - DOM Tree Accessors (§3.1.5)
+   *   - Form Element Parent-Child Relations (§4.10.3)
+   *   - Iframe srcdoc / Nested WindowProxies (§4.8.5)
+   *   - HTMLCollection (§4.2.10.2)
+   *
+   * Namespace isolation is implemented by prefixing `id` and `name` attributes
+   * with a constant string, i.e., `user-content-`
+   */
+  let SANITIZE_NAMED_PROPS = false;
+  const SANITIZE_NAMED_PROPS_PREFIX = 'user-content-';
 
   /* Keep element content when removing element? */
   let KEEP_CONTENT = true;
@@ -443,6 +461,7 @@ function createDOMPurify(window = getGlobal()) {
     RETURN_TRUSTED_TYPE = cfg.RETURN_TRUSTED_TYPE || false; // Default false
     FORCE_BODY = cfg.FORCE_BODY || false; // Default false
     SANITIZE_DOM = cfg.SANITIZE_DOM !== false; // Default true
+    SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false; // Default false
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
@@ -1203,6 +1222,17 @@ function createDOMPurify(window = getGlobal()) {
       const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
         continue;
+      }
+
+      /* Full DOM Clobbering protection via namespace isolation,
+       * Prefix id and name attributes with `user-content-`
+       */
+      if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
+        // Remove the attribute with this value
+        _removeAttribute(name, currentNode);
+
+        // Prefix the value and later re-create the attribute with the sanitized value
+        value = SANITIZE_NAMED_PROPS_PREFIX + value;
       }
 
       /* Handle attributes that require Trusted Types */
