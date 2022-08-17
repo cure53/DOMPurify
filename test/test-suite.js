@@ -465,6 +465,27 @@
         ['', '<form><input name="attributes"></form>', '<form><input></form>']
       );
     });
+    QUnit.test('Config-Flag tests: SANITIZE_NAMED_PROPS', function (assert) {
+      // SANITIZE_NAMED_PROPS
+      assert.equal(
+        DOMPurify.sanitize('<a id="x"></a>', {
+          SANITIZE_NAMED_PROPS: true,
+        }),
+        '<a id="user-content-x"></a>'
+      );
+      assert.equal(
+        DOMPurify.sanitize('<form id="x"><input id="y"></form>', {
+          SANITIZE_NAMED_PROPS: true,
+        }),
+        '<form id="user-content-x"><input id="user-content-y"></form>'
+      );
+      assert.equal(
+        DOMPurify.sanitize('<a id="x"></a><a id="x"></a>', {
+          SANITIZE_NAMED_PROPS: true,
+        }),
+        '<a id="user-content-x"></a><a id="user-content-x"></a>'
+      );
+    });
     QUnit.test('Config-Flag tests: WHOLE_DOCUMENT', function (assert) {
       //WHOLE_DOCUMENT
       assert.equal(DOMPurify.sanitize('123', { WHOLE_DOCUMENT: false }), '123');
