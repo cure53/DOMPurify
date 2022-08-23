@@ -19,7 +19,7 @@ declare function purify(root: any): {
      * @param {String|Node} dirty string or DOM node
      * @param {Object} configuration object
      */
-    sanitize(dirty: string | Node, cfg: any): any;
+    sanitize(dirty: string | Node, ...args: any[]): any;
     /**
      * Public method to set the configuration once
      * setConfig
@@ -86,7 +86,7 @@ declare namespace purify {
      * @param {String|Node} dirty string or DOM node
      * @param {Object} configuration object
      */
-    function sanitize(dirty: string | Node, cfg: any): any;
+    function sanitize(dirty: string | Node, ...args: any[]): any;
     /**
      * Public method to set the configuration once
      * setConfig

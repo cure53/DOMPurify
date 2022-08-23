@@ -1316,7 +1316,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param {Object} configuration object
    */
   // eslint-disable-next-line complexity
-  DOMPurify.sanitize = function (dirty, cfg) {
+  DOMPurify.sanitize = function (dirty, cfg = {}) {
     let body;
     let importedNode;
     let currentNode;

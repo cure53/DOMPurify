@@ -1370,7 +1370,8 @@ function createDOMPurify() {
   // eslint-disable-next-line complexity
 
 
-  DOMPurify.sanitize = function (dirty, cfg) {
+  DOMPurify.sanitize = function (dirty) {
+    var cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     var body;
     var importedNode;
     var currentNode;
