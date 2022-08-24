@@ -15,8 +15,7 @@
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
     "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TEST_PROBE_ONLY}\"",
-    "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint &&  npm run test:jsdom && npm run test:karma -- --browsers Chrome",
-    "types": "npx -p typescript tsc dist/purify.cjs.js dist/purify.es.js --declaration --allowJs --emitDeclarationOnly --outDir dist"
+    "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint &&  npm run test:jsdom && npm run test:karma -- --browsers Chrome"
   },
   "main": "dist/purify.cjs.js",
   "module": "dist/purify.es.js",
@@ -27,7 +26,6 @@
   "pre-commit": [
     "lint",
     "build",
-    "types",
     "commit-amend-build"
   ],
   "xo": {
