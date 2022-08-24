@@ -55,7 +55,7 @@ Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML,
 let clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 ```
 
-## Where are the TypeScript type definitions?
+### Where are the TypeScript type definitions?
 
 They can be found here: [@types/dompurify](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dompurify)
 
