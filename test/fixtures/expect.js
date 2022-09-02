@@ -986,6 +986,10 @@ module.exports = [
       "payload": "<input name=acceptCharset>123",
       "expected": "<input>123"
   }, {
+      "title": "DOM clobbering: hasChildNodes",
+      "payload": "<form><input name=hasChildNodes>",
+      "expected": "<form><input></form>"
+  },{
       "title": "Testing support for sizes and srcset",
       "payload": "<img src=\"small.jpg\" srcset=\"medium.jpg 1000w, large.jpg 2000w\">",
       "expected": [

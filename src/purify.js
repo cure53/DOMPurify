@@ -873,7 +873,8 @@ function createDOMPurify(window = getGlobal()) {
         typeof elm.removeAttribute !== 'function' ||
         typeof elm.setAttribute !== 'function' ||
         typeof elm.namespaceURI !== 'string' ||
-        typeof elm.insertBefore !== 'function')
+        typeof elm.insertBefore !== 'function' ||
+        typeof elm.hasChildNodes !== 'function')
     );
   };
 
