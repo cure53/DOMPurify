@@ -161,6 +161,7 @@ function createDOMPurify(window = getGlobal()) {
   const {
     MUSTACHE_EXPR,
     ERB_EXPR,
+    TMPLIT_EXPR,
     DATA_ATTR,
     ARIA_ATTR,
     IS_SCRIPT_OR_DATA,
@@ -1027,6 +1028,7 @@ function createDOMPurify(window = getGlobal()) {
       content = currentNode.textContent;
       content = stringReplace(content, MUSTACHE_EXPR, ' ');
       content = stringReplace(content, ERB_EXPR, ' ');
+      content = stringReplace(content, TMPLIT_EXPR, ' ');
       if (currentNode.textContent !== content) {
         arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
         currentNode.textContent = content;
@@ -1217,6 +1219,7 @@ function createDOMPurify(window = getGlobal()) {
       if (SAFE_FOR_TEMPLATES) {
         value = stringReplace(value, MUSTACHE_EXPR, ' ');
         value = stringReplace(value, ERB_EXPR, ' ');
+        value = stringReplace(value, TMPLIT_EXPR, ' ');
       }
 
       /* Is `value` valid for this attribute? */
@@ -1506,6 +1509,7 @@ function createDOMPurify(window = getGlobal()) {
     if (SAFE_FOR_TEMPLATES) {
       serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR, ' ');
       serializedHTML = stringReplace(serializedHTML, ERB_EXPR, ' ');
+      serializedHTML = stringReplace(serializedHTML, TMPLIT_EXPR, ' ');
     }
 
     return trustedTypesPolicy && RETURN_TRUSTED_TYPE
