@@ -365,6 +365,9 @@ function createDOMPurify(window = getGlobal()) {
   let NAMESPACE = HTML_NAMESPACE;
   let IS_EMPTY_INPUT = false;
 
+  /* Additional namespaces to allow, for in XHTML/XML case */
+  let ADD_NAMESPACES = null;
+
   /* Parsing of strict XHTML documents */
   let PARSER_MEDIA_TYPE;
   const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
@@ -545,6 +548,10 @@ function createDOMPurify(window = getGlobal()) {
       addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
     }
 
+    if (cfg.ADD_NAMESPACES) {
+      ADD_NAMESPACES = addToSet({}, cfg.ADD_NAMESPACES, transformCaseFunc);
+    }
+
     if (cfg.ADD_URI_SAFE_ATTR) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
     }
@@ -641,6 +648,15 @@ function createDOMPurify(window = getGlobal()) {
 
     const tagName = stringToLowerCase(element.tagName);
     const parentTagName = stringToLowerCase(parent.tagName);
+
+    /* For XHTML and XML documents that support custom namespaces */
+    if (
+      PARSER_MEDIA_TYPE === 'application/xhtml+xml' &&
+      ADD_NAMESPACES &&
+      element.namespaceURI in ADD_NAMESPACES
+    ) {
+      return true;
+    }
 
     if (element.namespaceURI === SVG_NAMESPACE) {
       // The only way to switch from HTML namespace to SVG

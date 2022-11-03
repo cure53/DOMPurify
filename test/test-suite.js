@@ -1413,7 +1413,8 @@
           expected: '<img src="http://i.imgur.com/WScAnHr.jpg">',
         },
         {
-          test: '<img src="blob:https://localhost:3000/c4ea3ec6-9f22-4d08-af6f-d79e78a0a7a7">',
+          test:
+            '<img src="blob:https://localhost:3000/c4ea3ec6-9f22-4d08-af6f-d79e78a0a7a7">',
           expected: '<img>',
         },
         {
@@ -1423,8 +1424,7 @@
       ];
       tests.forEach(function (test) {
         var str = DOMPurify.sanitize(test.test, {
-          ALLOWED_URI_REGEXP:
-            /^(?:(?:(?:f|ht)tps?):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+          ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
         });
         assert.equal(str, test.expected);
       });
@@ -1704,7 +1704,8 @@
     QUnit.test('Test if namespaces are properly enforced', function (assert) {
       var tests = [
         {
-          test: '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
+          test:
+            '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
           expected: [
             '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg"><desc><canvas></canvas><textarea></textarea></desc></svg>',
@@ -1802,7 +1803,14 @@
         assert.contains(clean, test.expected);
       });
     });
-
+    QUnit.test('Config-Flag tests: ADD_NAMESPACES', function (assert) {
+      const tests = [
+        // XML without namespaces
+        // XML with namespaces
+        // HTML (ADD_NAMESPACES should not be considered)
+      ];
+      tests.forEach(function (test) {});
+    });
     QUnit.test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
       const tests = [
         {

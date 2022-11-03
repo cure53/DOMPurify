@@ -536,6 +536,9 @@
 
     var NAMESPACE = HTML_NAMESPACE;
     var IS_EMPTY_INPUT = false;
+    /* Additional namespaces to allow, for in XHTML/XML case */
+
+    var ADD_NAMESPACES = null;
     /* Parsing of strict XHTML documents */
 
     var PARSER_MEDIA_TYPE;
@@ -697,6 +700,10 @@
         addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
       }
 
+      if (cfg.ADD_NAMESPACES) {
+        ADD_NAMESPACES = addToSet({}, cfg.ADD_NAMESPACES, transformCaseFunc);
+      }
+
       if (cfg.ADD_URI_SAFE_ATTR) {
         addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
       }
@@ -775,6 +782,11 @@
 
       var tagName = stringToLowerCase(element.tagName);
       var parentTagName = stringToLowerCase(parent.tagName);
+      /* For XHTML and XML documents that support custom namespaces */
+
+      if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && ADD_NAMESPACES && element.namespaceURI in ADD_NAMESPACES) {
+        return true;
+      }
 
       if (element.namespaceURI === SVG_NAMESPACE) {
         // The only way to switch from HTML namespace to SVG
