@@ -666,7 +666,7 @@ function createDOMPurify(window = getGlobal()) {
         return tagName === 'svg';
       }
 
-      // The only way to switch from MathML to SVG is via
+      // The only way to switch from MathML to SVG is via`
       // svg if parent is either <annotation-xml> or MathML
       // text integration points.
       if (parent.namespaceURI === MATHML_NAMESPACE) {

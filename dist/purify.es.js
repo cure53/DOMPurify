@@ -788,7 +788,7 @@ function createDOMPurify() {
       // it should be killed.
       if (parent.namespaceURI === HTML_NAMESPACE) {
         return tagName === 'svg';
-      } // The only way to switch from MathML to SVG is via
+      } // The only way to switch from MathML to SVG is via`
       // svg if parent is either <annotation-xml> or MathML
       // text integration points.
 

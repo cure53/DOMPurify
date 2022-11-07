@@ -1805,11 +1805,94 @@
     });
     QUnit.test('Config-Flag tests: ADD_NAMESPACES', function (assert) {
       const tests = [
-        // XML without namespaces
-        // XML with namespaces
-        // HTML (ADD_NAMESPACES should not be considered)
+        // Test when ADD_NAMESPACES is not set, result is empty for XML with custom namespace
+        {
+          test:
+            '<library xmlns="http://www.ibm.com/library"><name>Library 1</name></library>',
+          config: {
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+            ADD_TAGS: ['library', 'name'],
+            KEEP_CONTENT: false,
+          },
+          expected: '',
+        },
+        // Test with one custom namespace at the root (ie. all sub-nodes will inherit that namespace)
+        {
+          test:
+            '<library xmlns="http://www.ibm.com/library"><name>Library 1</name><dirty onload="alert()" /></library>',
+          config: {
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+            ADD_TAGS: ['library', 'name'],
+            ADD_NAMESPACES: ['http://www.ibm.com/library'],
+            KEEP_CONTENT: false,
+          },
+          expected:
+            '<library xmlns="http://www.ibm.com/library"><name>Library 1</name></library>',
+        },
+        // Test with one custom namespace at sub-node (root will default to HTML_NAMESPACE and should be kept)
+        {
+          test:
+            '<city><library xmlns="http://www.ibm.com/library"><name>Library 1</name><dirty onload="alert()" /></library></city>',
+          config: {
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+            ADD_TAGS: ['city', 'library', 'name'],
+            ADD_NAMESPACES: ['http://www.ibm.com/library'],
+            KEEP_CONTENT: false,
+          },
+          expected:
+            '<city xmlns="http://www.w3.org/1999/xhtml"><library xmlns="http://www.ibm.com/library"><name>Library 1</name></library></city>',
+        },
+        // Test removal of namespaces not listed in ADD_NAMESPACES when input has multiple namespaces
+        {
+          test:
+            '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books"><bk:name>Library 1</bk:name><dirty onload="alert()" /></library>',
+          config: {
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+            ADD_TAGS: ['library', 'bk:name'],
+            ADD_NAMESPACES: ['http://www.ibm.com/library'],
+            KEEP_CONTENT: false,
+          },
+          expected: '<library xmlns="http://www.ibm.com/library"/>',
+        },
+        // Test with multiple custom namespaces and prefixes in input
+        {
+          test:
+            '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"><bk:name>Library 1<m:properties>Other Properties</m:properties></bk:name><dirty onload="alert()" /></library>',
+          config: {
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+            ADD_TAGS: ['library', 'bk:name', 'm:properties'],
+            ADD_NAMESPACES: [
+              'http://www.ibm.com/library',
+              'urn:loc.gov:books',
+              'http://schemas.microsoft.com/ado/2007/08/dataservices/metadata',
+            ],
+            KEEP_CONTENT: false,
+          },
+          expected:
+            '<library xmlns="http://www.ibm.com/library"><bk:name xmlns:bk="urn:loc.gov:books">Library 1<m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">Other Properties</m:properties></bk:name></library>',
+        },
+        // Test removal of elements mentioned in FORBID_TAGS even if their namespaces are allow-listed
+        {
+          test:
+            '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"><bk:name>Library 1<m:properties>Other Properties</m:properties></bk:name><dirty onload="alert()" /></library>',
+          config: {
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+            ADD_TAGS: ['library', 'bk:name'],
+            FORBID_TAGS: ['m:properties'],
+            ADD_NAMESPACES: [
+              'http://www.ibm.com/library',
+              'urn:loc.gov:books',
+              'http://schemas.microsoft.com/ado/2007/08/dataservices/metadata',
+            ],
+            KEEP_CONTENT: false,
+          },
+          expected:
+            '<library xmlns="http://www.ibm.com/library"><bk:name xmlns:bk="urn:loc.gov:books">Library 1</bk:name></library>',
+        },
       ];
-      tests.forEach(function (test) {});
+      tests.forEach(function (test) {
+        assert.equal(DOMPurify.sanitize(test.test, test.config), test.expected);
+      });
     });
     QUnit.test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
       const tests = [
