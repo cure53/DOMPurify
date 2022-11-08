@@ -11,6 +11,7 @@ import {
   stringMatch,
   stringReplace,
   stringToLowerCase,
+  stringToString,
   stringIndexOf,
   stringTrim,
   regExpTest,
@@ -365,8 +366,13 @@ function createDOMPurify(window = getGlobal()) {
   let NAMESPACE = HTML_NAMESPACE;
   let IS_EMPTY_INPUT = false;
 
-  /* Additional namespaces to allow, for in XHTML/XML case */
-  let ADD_NAMESPACES = null;
+  /* Allowed XHTML+XML namespaces */
+  let ALLOWED_NAMESPACES = null;
+  const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [
+    MATHML_NAMESPACE,
+    SVG_NAMESPACE,
+    HTML_NAMESPACE,
+  ], stringToString);
 
   /* Parsing of strict XHTML documents */
   let PARSER_MEDIA_TYPE;
@@ -414,7 +420,7 @@ function createDOMPurify(window = getGlobal()) {
     // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
     transformCaseFunc =
       PARSER_MEDIA_TYPE === 'application/xhtml+xml'
-        ? (x) => x
+        ? stringToString
         : stringToLowerCase;
 
     /* Set configuration parameters */
@@ -426,6 +432,10 @@ function createDOMPurify(window = getGlobal()) {
       'ALLOWED_ATTR' in cfg
         ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
         : DEFAULT_ALLOWED_ATTR;
+    ALLOWED_NAMESPACES =
+      'ALLOWED_NAMESPACES' in cfg
+        ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString)
+        : DEFAULT_ALLOWED_NAMESPACES;
     URI_SAFE_ATTRIBUTES =
       'ADD_URI_SAFE_ATTR' in cfg
         ? addToSet(
@@ -548,10 +558,6 @@ function createDOMPurify(window = getGlobal()) {
       addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
     }
 
-    if (cfg.ADD_NAMESPACES) {
-      ADD_NAMESPACES = addToSet({}, cfg.ADD_NAMESPACES, transformCaseFunc);
-    }
-
     if (cfg.ADD_URI_SAFE_ATTR) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
     }
@@ -641,7 +647,7 @@ function createDOMPurify(window = getGlobal()) {
     // can be null. We just simulate parent in this case.
     if (!parent || !parent.tagName) {
       parent = {
-        namespaceURI: HTML_NAMESPACE,
+        namespaceURI: NAMESPACE,
         tagName: 'template',
       };
     }
@@ -649,13 +655,8 @@ function createDOMPurify(window = getGlobal()) {
     const tagName = stringToLowerCase(element.tagName);
     const parentTagName = stringToLowerCase(parent.tagName);
 
-    /* For XHTML and XML documents that support custom namespaces */
-    if (
-      PARSER_MEDIA_TYPE === 'application/xhtml+xml' &&
-      ADD_NAMESPACES &&
-      element.namespaceURI in ADD_NAMESPACES
-    ) {
-      return true;
+    if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
+      return false;
     }
 
     if (element.namespaceURI === SVG_NAMESPACE) {
@@ -727,9 +728,18 @@ function createDOMPurify(window = getGlobal()) {
       );
     }
 
+    // For XHTML and XML documents that support custom namespaces
+    if (
+      PARSER_MEDIA_TYPE === 'application/xhtml+xml' &&
+      ALLOWED_NAMESPACES[element.namespaceURI]
+    ) {
+      return true;
+    }
+
     // The code should never reach this place (this means
     // that the element somehow got namespace that is not
-    // HTML, SVG or MathML). Return false just in case.
+    // HTML, SVG, MathML or allowed via ALLOWED_NAMESPACES).
+    // Return false just in case.
     return false;
   };
 
@@ -806,7 +816,7 @@ function createDOMPurify(window = getGlobal()) {
       leadingWhitespace = matches && matches[0];
     }
 
-    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
       // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
       dirty =
         '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' +

@@ -1803,16 +1803,16 @@
         assert.contains(clean, test.expected);
       });
     });
-    QUnit.test('Config-Flag tests: ADD_NAMESPACES', function (assert) {
+    QUnit.test('Config-Flag tests: ALLOWED_NAMESPACES', function (assert) {
       const tests = [
-        // Test when ADD_NAMESPACES is not set, result is empty for XML with custom namespace
+        // Test when ALLOWED_NAMESPACES is not set, result is empty for XML with custom namespace
         {
           test:
             '<library xmlns="http://www.ibm.com/library"><name>Library 1</name></library>',
           config: {
-            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
-            ADD_TAGS: ['library', 'name'],
+            ALLOWED_TAGS: ['#text', 'library', 'name'],
             KEEP_CONTENT: false,
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
           },
           expected: '',
         },
@@ -1821,10 +1821,10 @@
           test:
             '<library xmlns="http://www.ibm.com/library"><name>Library 1</name><dirty onload="alert()" /></library>',
           config: {
-            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
-            ADD_TAGS: ['library', 'name'],
-            ADD_NAMESPACES: ['http://www.ibm.com/library'],
+            ALLOWED_NAMESPACES: ['http://www.ibm.com/library'],
+            ALLOWED_TAGS: ['#text', 'library', 'name'],
             KEEP_CONTENT: false,
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
           },
           expected:
             '<library xmlns="http://www.ibm.com/library"><name>Library 1</name></library>',
@@ -1834,23 +1834,23 @@
           test:
             '<city><library xmlns="http://www.ibm.com/library"><name>Library 1</name><dirty onload="alert()" /></library></city>',
           config: {
-            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
-            ADD_TAGS: ['city', 'library', 'name'],
-            ADD_NAMESPACES: ['http://www.ibm.com/library'],
+            ALLOWED_NAMESPACES: ['http://www.w3.org/1999/xhtml', 'http://www.ibm.com/library'],
+            ALLOWED_TAGS: ['#text', 'city', 'library', 'name'],
             KEEP_CONTENT: false,
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
           },
           expected:
             '<city xmlns="http://www.w3.org/1999/xhtml"><library xmlns="http://www.ibm.com/library"><name>Library 1</name></library></city>',
         },
-        // Test removal of namespaces not listed in ADD_NAMESPACES when input has multiple namespaces
+        // Test removal of namespaces not listed in ALLOWED_NAMESPACES when input has multiple namespaces
         {
           test:
             '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books"><bk:name>Library 1</bk:name><dirty onload="alert()" /></library>',
           config: {
-            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
-            ADD_TAGS: ['library', 'bk:name'],
-            ADD_NAMESPACES: ['http://www.ibm.com/library'],
+            ALLOWED_NAMESPACES: ['http://www.ibm.com/library'],
+            ALLOWED_TAGS: ['library', 'bk:name'],
             KEEP_CONTENT: false,
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
           },
           expected: '<library xmlns="http://www.ibm.com/library"/>',
         },
@@ -1859,14 +1859,14 @@
           test:
             '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"><bk:name>Library 1<m:properties>Other Properties</m:properties></bk:name><dirty onload="alert()" /></library>',
           config: {
-            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
-            ADD_TAGS: ['library', 'bk:name', 'm:properties'],
-            ADD_NAMESPACES: [
+            ALLOWED_NAMESPACES: [
               'http://www.ibm.com/library',
               'urn:loc.gov:books',
               'http://schemas.microsoft.com/ado/2007/08/dataservices/metadata',
             ],
+            ALLOWED_TAGS: ['#text', 'library', 'bk:name', 'm:properties'],
             KEEP_CONTENT: false,
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
           },
           expected:
             '<library xmlns="http://www.ibm.com/library"><bk:name xmlns:bk="urn:loc.gov:books">Library 1<m:properties xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">Other Properties</m:properties></bk:name></library>',
@@ -1876,15 +1876,15 @@
           test:
             '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"><bk:name>Library 1<m:properties>Other Properties</m:properties></bk:name><dirty onload="alert()" /></library>',
           config: {
-            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
             ADD_TAGS: ['library', 'bk:name'],
-            FORBID_TAGS: ['m:properties'],
-            ADD_NAMESPACES: [
+            ALLOWED_NAMESPACES: [
               'http://www.ibm.com/library',
               'urn:loc.gov:books',
               'http://schemas.microsoft.com/ado/2007/08/dataservices/metadata',
             ],
+            FORBID_TAGS: ['m:properties'],
             KEEP_CONTENT: false,
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
           },
           expected:
             '<library xmlns="http://www.ibm.com/library"><bk:name xmlns:bk="urn:loc.gov:books">Library 1</bk:name></library>',
