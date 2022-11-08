@@ -368,11 +368,11 @@ function createDOMPurify(window = getGlobal()) {
 
   /* Allowed XHTML+XML namespaces */
   let ALLOWED_NAMESPACES = null;
-  const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [
-    MATHML_NAMESPACE,
-    SVG_NAMESPACE,
-    HTML_NAMESPACE,
-  ], stringToString);
+  const DEFAULT_ALLOWED_NAMESPACES = addToSet(
+    {},
+    [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE],
+    stringToString
+  );
 
   /* Parsing of strict XHTML documents */
   let PARSER_MEDIA_TYPE;
@@ -816,7 +816,10 @@ function createDOMPurify(window = getGlobal()) {
       leadingWhitespace = matches && matches[0];
     }
 
-    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
+    if (
+      PARSER_MEDIA_TYPE === 'application/xhtml+xml' &&
+      NAMESPACE === HTML_NAMESPACE
+    ) {
       // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
       dirty =
         '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' +
