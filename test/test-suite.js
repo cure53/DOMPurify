@@ -1852,7 +1852,7 @@
             KEEP_CONTENT: false,
             PARSER_MEDIA_TYPE: 'application/xhtml+xml',
           },
-          expected: '<library xmlns="http://www.ibm.com/library"/>',
+          expected: ['<library xmlns="http://www.ibm.com/library"/>', '<library xmlns="http://www.ibm.com/library" />']
         },
         // Test with multiple custom namespaces and prefixes in input
         {
