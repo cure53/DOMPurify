@@ -40,6 +40,7 @@ const arrayPush = unapply(Array.prototype.push);
 const arraySlice = unapply(Array.prototype.slice);
 
 const stringToLowerCase = unapply(String.prototype.toLowerCase);
+const stringToString = unapply(String.prototype.toString);
 const stringMatch = unapply(String.prototype.match);
 const stringReplace = unapply(String.prototype.replace);
 const stringIndexOf = unapply(String.prototype.indexOf);
@@ -152,6 +153,7 @@ export {
   stringMatch,
   stringReplace,
   stringToLowerCase,
+  stringToString,
   stringTrim,
   // Errors
   typeErrorCreate,

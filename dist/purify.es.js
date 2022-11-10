@@ -123,6 +123,7 @@ var arrayForEach = unapply(Array.prototype.forEach);
 var arrayPop = unapply(Array.prototype.pop);
 var arrayPush = unapply(Array.prototype.push);
 var stringToLowerCase = unapply(String.prototype.toLowerCase);
+var stringToString = unapply(String.prototype.toString);
 var stringMatch = unapply(String.prototype.match);
 var stringReplace = unapply(String.prototype.replace);
 var stringIndexOf = unapply(String.prototype.indexOf);
@@ -530,6 +531,10 @@ function createDOMPurify() {
 
   var NAMESPACE = HTML_NAMESPACE;
   var IS_EMPTY_INPUT = false;
+  /* Allowed XHTML+XML namespaces */
+
+  var ALLOWED_NAMESPACES = null;
+  var DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
   /* Parsing of strict XHTML documents */
 
   var PARSER_MEDIA_TYPE;
@@ -573,13 +578,12 @@ function createDOMPurify() {
     PARSER_MEDIA_TYPE = // eslint-disable-next-line unicorn/prefer-includes
     SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE; // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
 
-    transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? function (x) {
-      return x;
-    } : stringToLowerCase;
+    transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? stringToString : stringToLowerCase;
     /* Set configuration parameters */
 
     ALLOWED_TAGS = 'ALLOWED_TAGS' in cfg ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
     ALLOWED_ATTR = 'ALLOWED_ATTR' in cfg ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
+    ALLOWED_NAMESPACES = 'ALLOWED_NAMESPACES' in cfg ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
     URI_SAFE_ATTRIBUTES = 'ADD_URI_SAFE_ATTR' in cfg ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
     cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
     transformCaseFunc // eslint-disable-line indent
@@ -762,7 +766,7 @@ function createDOMPurify() {
 
     if (!parent || !parent.tagName) {
       parent = {
-        namespaceURI: HTML_NAMESPACE,
+        namespaceURI: NAMESPACE,
         tagName: 'template'
       };
     }
@@ -770,13 +774,17 @@ function createDOMPurify() {
     var tagName = stringToLowerCase(element.tagName);
     var parentTagName = stringToLowerCase(parent.tagName);
 
+    if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
+      return false;
+    }
+
     if (element.namespaceURI === SVG_NAMESPACE) {
       // The only way to switch from HTML namespace to SVG
       // is via <svg>. If it happens via any other tag, then
       // it should be killed.
       if (parent.namespaceURI === HTML_NAMESPACE) {
         return tagName === 'svg';
-      } // The only way to switch from MathML to SVG is via
+      } // The only way to switch from MathML to SVG is via`
       // svg if parent is either <annotation-xml> or MathML
       // text integration points.
 
@@ -824,9 +832,15 @@ function createDOMPurify() {
 
 
       return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
+    } // For XHTML and XML documents that support custom namespaces
+
+
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && ALLOWED_NAMESPACES[element.namespaceURI]) {
+      return true;
     } // The code should never reach this place (this means
     // that the element somehow got namespace that is not
-    // HTML, SVG or MathML). Return false just in case.
+    // HTML, SVG, MathML or allowed via ALLOWED_NAMESPACES).
+    // Return false just in case.
 
 
     return false;
@@ -910,7 +924,7 @@ function createDOMPurify() {
       leadingWhitespace = matches && matches[0];
     }
 
-    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml' && NAMESPACE === HTML_NAMESPACE) {
       // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
       dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
     }
