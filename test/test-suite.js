@@ -1891,7 +1891,7 @@
         },
       ];
       tests.forEach(function (test) {
-        assert.equal(DOMPurify.sanitize(test.test, test.config), test.expected);
+        assert.contains(DOMPurify.sanitize(test.test, test.config), test.expected);
       });
     });
     QUnit.test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
