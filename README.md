@@ -244,7 +244,7 @@ var clean = DOMPurify.sanitize(
         CUSTOM_ELEMENT_HANDLING: {
             tagNameCheck: /^foo-/, // allow all tags starting with "foo-"
             attributeNameCheck: /baz/, // allow all attributes containing "baz"
-            allowCustomizedBuiltInElements: false, // customized built-ins are allowed
+            allowCustomizedBuiltInElements: true, // customized built-ins are allowed
         },
     }
 ); // <foo-bar baz="foobar"></foo-bar><div is=""></div>
