@@ -844,7 +844,7 @@ function createDOMPurify(window = getGlobal()) {
     if (!doc || !doc.documentElement) {
       doc = implementation.createDocument(NAMESPACE, 'template', null);
       try {
-        doc.documentElement.innerHTML = IS_EMPTY_INPUT ? '' : dirtyPayload;
+        doc.documentElement.innerHTML = IS_EMPTY_INPUT ? emptyHTML : dirtyPayload;
       } catch (_) {
         // Syntax error if dirtyPayload is invalid xml
       }
