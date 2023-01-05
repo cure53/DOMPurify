@@ -95,7 +95,7 @@ export function clone(object) {
 
   let property;
   for (property in object) {
-    if (apply(hasOwnProperty, object, [property])) {
+    if (apply(hasOwnProperty, object, [property]) === true) {
       newObject[property] = object[property];
     }
   }
