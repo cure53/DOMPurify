@@ -143,11 +143,6 @@ function createDOMPurify(window = getGlobal()) {
   } = document;
   const { importNode } = originalDocument;
 
-  let documentMode = {};
-  try {
-    documentMode = clone(document).documentMode ? document.documentMode : {};
-  } catch (_) {}
-
   let hooks = {};
 
   /**
@@ -156,8 +151,7 @@ function createDOMPurify(window = getGlobal()) {
   DOMPurify.isSupported =
     typeof getParentNode === 'function' &&
     implementation &&
-    typeof implementation.createHTMLDocument !== 'undefined' &&
-    documentMode !== 9;
+    typeof implementation.createHTMLDocument !== 'undefined';
 
   const {
     MUSTACHE_EXPR,
@@ -754,11 +748,7 @@ function createDOMPurify(window = getGlobal()) {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
       node.parentNode.removeChild(node);
     } catch (_) {
-      try {
-        node.outerHTML = emptyHTML;
-      } catch (_) {
-        node.remove();
-      }
+      node.remove();
     }
   };
 
@@ -1355,7 +1345,6 @@ function createDOMPurify(window = getGlobal()) {
     let body;
     let importedNode;
     let currentNode;
-    let oldNode;
     let returnNode;
     /* Make sure we have a string to sanitize.
       DO NOT return early, as this will return the wrong type if
@@ -1378,21 +1367,8 @@ function createDOMPurify(window = getGlobal()) {
       }
     }
 
-    /* Check we can run. Otherwise fall back or ignore */
+    /* Return dirty HTML if DOMPurify cannot run */
     if (!DOMPurify.isSupported) {
-      if (
-        typeof window.toStaticHTML === 'object' ||
-        typeof window.toStaticHTML === 'function'
-      ) {
-        if (typeof dirty === 'string') {
-          return window.toStaticHTML(dirty);
-        }
-
-        if (_isNode(dirty)) {
-          return window.toStaticHTML(dirty.outerHTML);
-        }
-      }
-
       return dirty;
     }
 
@@ -1466,11 +1442,6 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Now start iterating over the created document */
     while ((currentNode = nodeIterator.nextNode())) {
-      /* Fix IE's strange behavior with manipulated textNodes #89 */
-      if (currentNode.nodeType === 3 && currentNode === oldNode) {
-        continue;
-      }
-
       /* Sanitize tags and elements */
       if (_sanitizeElements(currentNode)) {
         continue;
@@ -1483,11 +1454,7 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Check attributes, sanitize if necessary */
       _sanitizeAttributes(currentNode);
-
-      oldNode = currentNode;
     }
-
-    oldNode = null;
 
     /* If we sanitized `dirty` in-place, return it. */
     if (IN_PLACE) {

@@ -5,7 +5,6 @@
       {
         "targets": {
           "chrome": 22,
-          "ie": 8,
           "firefox": 15,
           "opera": 31,
           "safari": 8,
