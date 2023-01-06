@@ -870,23 +870,6 @@
         assert.equal(resultBody, '123<img>');
       }
     );
-    // Test to check against a hang in MSIE (#89)
-    QUnit.test(
-      'sanitize() should not hang on MSIE when hook changes textContent',
-      function (assert) {
-        DOMPurify.addHook('afterSanitizeElements', function (node) {
-          if (node.nodeType && node.nodeType === document.TEXT_NODE) {
-            node.textContent = 'foo';
-          }
-          return node;
-        });
-        var dirty =
-          '<div><p>This is a beatufiul text</p><p>This is too</p></div>';
-        var modified = '<div><p>foo</p><p>foo</p></div>';
-        assert.equal(DOMPurify.sanitize(dirty), modified);
-        DOMPurify.removeHooks('afterSanitizeElements');
-      }
-    );
     // Tests to ensure that a configuration can be set and cleared
     QUnit.test(
       'ensure that a persistent configuration can be set and cleared',
@@ -1173,17 +1156,6 @@
           '<div style="color: red">Test</div>',
           '<div style="color: red;">Test</div>',
         ]);
-      }
-    );
-    // Test to make sure that empty HTML doesn't return null on MSIE11 (#198)
-    QUnit.test(
-      "Empty HTML shouldn't return null on MSIE11 in RETURN_DOM_FRAGMENT mode",
-      function (assert) {
-        var clean = DOMPurify.sanitize('', {
-          RETURN_DOM: true,
-          RETURN_DOM_FRAGMENT: true,
-        });
-        assert.equal(typeof clean, 'object');
       }
     );
     // Tests to make sure that FORCE_BODY pushes elements to document.body (#199)
@@ -1784,7 +1756,7 @@
         {
           test: '<polyline points="0 0"></polyline>',
           config: { NAMESPACE: 'http://www.w3.org/1999/xhtml' },
-          expected: ['', '<polyline points="0 0"></polyline>'], // IE10
+          expected: [''],
         },
         {
           test: '<mi></mi>',
@@ -1800,7 +1772,7 @@
         {
           test: '<polyline points="0 0"></polyline>',
           config: { NAMESPACE: 'http://www.w3.org/1998/Math/MathML' },
-          expected: ['', '<polyline points="0 0"></polyline>'], // IE10
+          expected: [''],
         },
         {
           test: '<mi></mi>',

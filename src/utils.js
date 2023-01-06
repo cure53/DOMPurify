@@ -93,20 +93,15 @@ export function addToSet(set, array, transformCaseFunc) {
 export function clone(object) {
   const newObject = create(null);
 
-  let property;
-  for (property in object) {
-    if (apply(hasOwnProperty, object, [property]) === true) {
-      newObject[property] = object[property];
-    }
+  for (const [property, value] of Object.entries(object)) {
+    newObject[property] = value;
   }
 
   return newObject;
 }
 
-/* IE10 doesn't support __lookupGetter__ so lets'
- * simulate it. It also automatically checks
- * if the prop is function or getter and behaves
- * accordingly. */
+/* This method automatically checks if the prop is function
+ * or getter and behaves accordingly. */
 function lookupGetter(object, prop) {
   while (object !== null) {
     const desc = getOwnPropertyDescriptor(object, prop);

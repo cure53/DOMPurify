@@ -1,4 +1,4 @@
-/*! @license DOMPurify 2.4.3 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.3/LICENSE */
+/*! @license DOMPurify 3.0.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.0/LICENSE */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -55,6 +55,10 @@
     return _construct.apply(null, arguments);
   }
 
+  function _slicedToArray(arr, i) {
+    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+  }
+
   function _toConsumableArray(arr) {
     return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
   }
@@ -63,8 +67,42 @@
     if (Array.isArray(arr)) return _arrayLikeToArray(arr);
   }
 
+  function _arrayWithHoles(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+
   function _iterableToArray(iter) {
     if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+  }
+
+  function _iterableToArrayLimit(arr, i) {
+    var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+
+    if (_i == null) return;
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+
+    var _s, _e;
+
+    try {
+      for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"] != null) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
   }
 
   function _unsupportedIterableToArray(o, minLen) {
@@ -88,8 +126,11 @@
     throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
-  var hasOwnProperty = Object.hasOwnProperty,
-      setPrototypeOf = Object.setPrototypeOf,
+  function _nonIterableRest() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
+  var setPrototypeOf = Object.setPrototypeOf,
       isFrozen = Object.isFrozen,
       getPrototypeOf = Object.getPrototypeOf,
       getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -193,20 +234,19 @@
 
   function clone(object) {
     var newObject = create(null);
-    var property;
 
-    for (property in object) {
-      if (apply(hasOwnProperty, object, [property]) === true) {
-        newObject[property] = object[property];
-      }
+    for (var _i = 0, _Object$entries = Object.entries(object); _i < _Object$entries.length; _i++) {
+      var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
+          property = _Object$entries$_i[0],
+          value = _Object$entries$_i[1];
+
+      newObject[property] = value;
     }
 
     return newObject;
   }
-  /* IE10 doesn't support __lookupGetter__ so lets'
-   * simulate it. It also automatically checks
-   * if the prop is function or getter and behaves
-   * accordingly. */
+  /* This method automatically checks if the prop is function
+   * or getter and behaves accordingly. */
 
   function lookupGetter(object, prop) {
     while (object !== null) {
@@ -328,7 +368,7 @@
      */
 
 
-    DOMPurify.version = '2.4.3';
+    DOMPurify.version = '3.0.0';
     /**
      * Array of elements that DOMPurify removed during sanitation.
      * Empty if nothing was removed.
@@ -383,18 +423,12 @@
         createDocumentFragment = _document.createDocumentFragment,
         getElementsByTagName = _document.getElementsByTagName;
     var importNode = originalDocument.importNode;
-    var documentMode = {};
-
-    try {
-      documentMode = clone(document).documentMode ? document.documentMode : {};
-    } catch (_) {}
-
     var hooks = {};
     /**
      * Expose whether this browser supports running the full DOMPurify.
      */
 
-    DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined' && documentMode !== 9;
+    DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined';
     var MUSTACHE_EXPR$1 = MUSTACHE_EXPR,
         ERB_EXPR$1 = ERB_EXPR,
         TMPLIT_EXPR$1 = TMPLIT_EXPR,
@@ -867,11 +901,7 @@
         // eslint-disable-next-line unicorn/prefer-dom-node-remove
         node.parentNode.removeChild(node);
       } catch (_) {
-        try {
-          node.outerHTML = emptyHTML;
-        } catch (_) {
-          node.remove();
-        }
+        node.remove();
       }
     };
     /**
@@ -1397,7 +1427,6 @@
       var body;
       var importedNode;
       var currentNode;
-      var oldNode;
       var returnNode;
       /* Make sure we have a string to sanitize.
         DO NOT return early, as this will return the wrong type if
@@ -1423,20 +1452,10 @@
           }
         }
       }
-      /* Check we can run. Otherwise fall back or ignore */
+      /* Return dirty HTML if DOMPurify cannot run */
 
 
       if (!DOMPurify.isSupported) {
-        if (_typeof(window.toStaticHTML) === 'object' || typeof window.toStaticHTML === 'function') {
-          if (typeof dirty === 'string') {
-            return window.toStaticHTML(dirty);
-          }
-
-          if (_isNode(dirty)) {
-            return window.toStaticHTML(dirty.outerHTML);
-          }
-        }
-
         return dirty;
       }
       /* Assign config vars */
@@ -1509,13 +1528,7 @@
 
 
       while (currentNode = nodeIterator.nextNode()) {
-        /* Fix IE's strange behavior with manipulated textNodes #89 */
-        if (currentNode.nodeType === 3 && currentNode === oldNode) {
-          continue;
-        }
         /* Sanitize tags and elements */
-
-
         if (_sanitizeElements(currentNode)) {
           continue;
         }
@@ -1529,12 +1542,9 @@
 
 
         _sanitizeAttributes(currentNode);
-
-        oldNode = currentNode;
       }
-
-      oldNode = null;
       /* If we sanitized `dirty` in-place, return it. */
+
 
       if (IN_PLACE) {
         return dirty;
