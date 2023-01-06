@@ -1,12 +1,14 @@
 name: Build and Test
 
 # The event triggers are configured as following:
-# - on `3.x` -> trigger the workflow on every push
+# - on `main` -> trigger the workflow on every push
 # - on any pull request -> trigger the workflow
 # This is to avoid running the workflow twice on pull requests.
 on:
   push:
     branches:
+      - main
+      - 2.x
       - 3.x
   pull_request:
 
@@ -38,6 +40,6 @@ jobs:
           run: npm run test:ci
         env:
           TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '19') }}
-          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/3.x' }}
+          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' }}
           BS_USERNAME: ${{ secrets.BS_USERNAME }}
           BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
