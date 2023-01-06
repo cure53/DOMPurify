@@ -37,7 +37,7 @@ jobs:
         with:
           run: npm run test:ci
         env:
-          TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '18') }}
+          TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '19') }}
           TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/3.x' }}
           BS_USERNAME: ${{ secrets.BS_USERNAME }}
           BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
