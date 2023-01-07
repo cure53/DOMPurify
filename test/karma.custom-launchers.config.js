@@ -142,7 +142,7 @@ const customLaunchers = {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
-    browser_version: '109.0',
+    browser_version: '108.0',
     browser: 'chrome',
     os_version: '10',
   },
