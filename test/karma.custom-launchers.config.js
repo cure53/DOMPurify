@@ -42,14 +42,6 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Big Sur',
   },
-  bs_bigsur_safari_15: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: '15.1',
-    browser: 'safari',
-    os_version: 'Big Sur',
-  },
   bs_win10_edge_84: {
     base: 'BrowserStack',
     device: null,
@@ -146,7 +138,7 @@ const customLaunchers = {
     browser: 'chrome',
     os_version: '10',
   },
-  bs_win10_chrome_109: {
+  bs_win10_chrome_108: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
