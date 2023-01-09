@@ -2,59 +2,27 @@ module.exports = [
   {
       "title": "Don't remove data URIs from SVG images (see #205)",
       "payload": "<svg><image id=\"v-146\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" preserveratio=\"true\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\"></image></svg>",
-      "expected": [
-          "<svg><image style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" height=\"500\" width=\"500\" id=\"v-146\"></image></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:NS1=\"\" NS1:xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:NS2=\"\" NS2:xmlns:xlink=\"http://www.w3.org/1999/xlink\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>"
-      ]
+      "expected": "<svg><image style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" height=\"500\" width=\"500\" id=\"v-146\"></image></svg>"
   },
   {
     "title": "Don't remove data URIs from SVG images, with href attribute",
     "payload": "<svg><image id=\"v-146\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" preserveratio=\"true\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\"></image></svg>",
-    "expected": [
-         "<svg><image style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" height=\"500\" width=\"500\" id=\"v-146\"></image></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" /></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:NS1=\"\" NS1:xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:NS2=\"\" NS2:xmlns:xlink=\"http://www.w3.org/1999/xlink\" /></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" /></svg>",
-         "<svg xmlns=\"http://www.w3.org/2000/svg\"><image id=\"v-146\" style=\"border-color: rgb(51, 51, 51); color: rgb(51, 51, 51); line-height: 20px; font-family: sans-serif; font-size: 14px; cursor: move; outline-color: rgb(51, 51, 51); box-sizing: border-box; column-rule-color: rgb(51, 51, 51); text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" width=\"500\" height=\"500\" href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" /></svg>"
-    ]
+    "expected": "<svg><image style=\"border-color: rgb(51, 51, 51); box-sizing: border-box; color: rgb(51, 51, 51); cursor: move; font-family: sans-serif; font-size: 14px; line-height: 20px; outline-color: rgb(51, 51, 51); text-size-adjust: 100%; column-rule-color: rgb(51, 51, 51); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-text-emphasis-color: rgb(51, 51, 51); -webkit-text-fill-color: rgb(51, 51, 51); -webkit-text-stroke-color: rgb(51, 51, 51); user-select: none; vector-effect: non-scaling-stroke;\" href=\"data:image/svg+xml;utf8,%3Csvg%20viewBox%3D%220%200%20100%20100%22%20height%3D%22100%22%20width%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20data-name%3D%22Layer%201%22%20id%3D%22Layer_1%22%3E%0A%20%20%3Ctitle%3ECompute%3C%2Ftitle%3E%0A%20%20%3Cg%3E%0A%20%20%20%20%3Crect%20fill%3D%22%239d5025%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2224.74%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%20%20%3Crect%20fill%3D%22%23f58536%22%20ry%3D%229.12%22%20rx%3D%229.12%22%20height%3D%2253%22%20width%3D%2253%22%20y%3D%2222.26%22%20x%3D%2223.5%22%3E%3C%2Frect%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" height=\"500\" width=\"500\" id=\"v-146\"></image></svg>"
   },
   {
       "title": "Don't remove ARIA attributes if not prohibited (see #203)",
       "payload": "<div aria-labelledby=\"msg--title\" role=\"dialog\" class=\"msg\"><button class=\"modal-close\" aria-label=\"close\" type=\"button\"><i class=\"icon-close\"></i>some button</button></div>",
-      "expected": [
-          "<div class=\"msg\" role=\"dialog\" aria-labelledby=\"msg--title\"><button type=\"button\" aria-label=\"close\" class=\"modal-close\"><i class=\"icon-close\"></i>some button</button></div>",
-          "<div class=\"msg\" role=\"dialog\" aria-labelledby=\"msg--title\"><button class=\"modal-close\" aria-label=\"close\" type=\"button\"><i class=\"icon-close\"></i>some button</button></div>"
-      ]
+      "expected": "<div class=\"msg\" role=\"dialog\" aria-labelledby=\"msg--title\"><button type=\"button\" aria-label=\"close\" class=\"modal-close\"><i class=\"icon-close\"></i>some button</button></div>"
   },
   {
       "title": "Don't remove binary attributes if considered safe (see #168)",
       "payload": "<input type=checkbox checked><input type=checkbox onclick>",
-      "expected": [
-             "<input checked=\"\" type=\"checkbox\"><input type=\"checkbox\">",
-             "<input type=\"checkbox\" checked=\"\"><input type=\"checkbox\">",
-             "<input type=\"checkbox\" checked=\"\" value=\"\"><input type=\"checkbox\" value=\"\">"
-       ]
+      "expected": "<input checked=\"\" type=\"checkbox\"><input type=\"checkbox\">"
   },
   {
       "title": "Avoid over-zealous stripping of SVG filter elements (see #144)",
       "payload": "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
-      "expected": [
-          "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
-          "<svg><defs><filter id=\"f1\"><feGaussianBlur stdDeviation=\"15\" in=\"SourceGraphic\"></feGaussianBlur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(&quot;#f1&quot;)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" FILTER=\"url(#f1)\" /></svg>",
-          "<svg><defs><filter id=\"f1\"><fegaussianblur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\" /></svg>",
-          "<svg><defs><filter id=\"f1\"><fegaussianblur stdDeviation=\"15\" in=\"SourceGraphic\"></fegaussianblur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" STROKE-WIDTH=\"3\" STROKE=\"green\" FILL=\"yellow\" FILTER=\"url(#f1)\" /></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\" /></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke=\"green\" stroke-width=\"3\" width=\"90\" height=\"90\" /></svg>"
-        ]
+      "expected": "<svg><defs><filter id=\"f1\"><feGaussianBlur stdDeviation=\"15\" in=\"SourceGraphic\"></feGaussianBlur></filter></defs><rect filter=\"url(#f1)\" fill=\"yellow\" stroke-width=\"3\" stroke=\"green\" height=\"90\" width=\"90\"></rect></svg>"
      },
   {
       "title": "safe usage of URI-like attribute values (see #135)",
@@ -125,31 +93,31 @@ module.exports = [
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: nodeName",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeName>123</form>",
-      "expected": ["", "<form><input>123</form>", "<input>123"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: nodeType",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeType>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: children",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=children>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: attributes",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=attributes>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: removeChild",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeChild>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: removeAttributeNode",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeAttributeNode>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: setAttribute",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=setAttribute>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "&gt;style&lt;",
       "payload": "<style>*{color: red}</style>",
@@ -161,15 +129,11 @@ module.exports = [
   }, {
       "title": "mXSS Variation I",
       "payload": "<listing>&lt;img onerror=\"alert(1);//\" src=x&gt;<t t></listing>",
-      "expected": [
-        "&lt;img onerror=\"alert(1);//\" src=x&gt;",
-        "<img src=\"x\">",
-        ""
-      ]
+      "expected": "&lt;img onerror=\"alert(1);//\" src=x&gt;"
   }, {
       "title": "mXSS Variation II",
       "payload": "<img src=x id/=' onerror=alert(1)//'>",
-      "expected": ["<img src=\"x\">", "<img id=\"\" src=\"x\">"]
+      "expected": "<img id=\"\" src=\"x\">"
   }, {
       "title": "Textarea and comments enabling img element",
       "payload": "<textarea>@shafigullin</textarea><!--</textarea><img src=x onerror=alert(1)>-->",
@@ -177,7 +141,7 @@ module.exports = [
   }, {
       "title": "Img element inside noscript terminated inside comment",
       "payload": "<b><noscript><!-- </noscript><img src=x onerror=alert(1) --></noscript>",
-      "expected": ["<b></b>", "<b><img src=\"x\"></b>"]
+      "expected": "<b></b>"
   }, {
       "title": "Img element inside noscript terminated inside attribute",
       "payload": "<b><noscript><a alt=\"</noscript><img src=x onerror=alert(1)>\"></noscript>",
@@ -194,10 +158,7 @@ module.exports = [
   }, {
       "title": "Low-range-ASCII obfuscated JavaScript URI",
       "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
-      "expected": [
-          "<a>@shafigullin</a><a></a>",
-          "<a>@shafigullin<a></a>"
-      ]
+      "expected": "<a>@shafigullin</a><a></a>"
   }, {
       "title": "Img inside style inside broken option element",
       "payload": "\u0001<option><style></option></select><b><img src=x onerror=alert(1)></style></option>",
@@ -205,12 +166,7 @@ module.exports = [
   }, {
       "title": "Iframe inside option element",
       "payload": "<option><iframe></select><b><script>alert(1)</script>",
-      "expected": [
-          "<option><b></b></option>",
-          "<option>&lt;/select&gt;&lt;b&gt;&lt;script&gt;alert(1)&lt;/script&gt;</option>",
-          "<option></option>",
-          "<b></b>"
-      ]
+      "expected": "<option></option>"
   }, {
       "title": "Closing Iframe and option",
       "payload": "</iframe></option>",
@@ -227,46 +183,25 @@ module.exports = [
       "title": "MathML example",
       "payload": "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
       "expected": [
-          "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
-          "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
-          "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>"
+            "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose mathbackground=\"#80FF80\" mathcolor=\"#FF0000\" notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>",
+            "<math display=\"block\" xmlns=\"http://www.w3.org/1998/Math/MathML\">\n  <mrow>\n    <menclose notation=\"box\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathbackground=\"#80FF80\"><mi mathcolor=\"#FF0000\">a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\" mathcolor=\"#FF0000\" mathbackground=\"#80FF80\"><mi>a</mi></menclose><mo>,</mo>\n    <menclose notation=\"box\"><mi mathbackground=\"#80FF80\">a</mi></menclose>\n  </mrow>\n</math>"
       ]
   }, {
       "title": "DOM clobbering attack using name=body",
       "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
-      "expected": [
-          "<img><img>@mmrupp<img><svg></svg>",
-          "<img><img>@mmrupp<img name=\"firstElementChild\"><svg></svg>",
-          "<img><img>@mmrupp<img name=\"firstElementChild\"><svg xmlns=\"http://www.w3.org/2000/svg\" />",
-          "<img><img>@mmrupp<img><svg xmlns=\"http://www.w3.org/2000/svg\" />",
-          "<img><img>@mmrupp<img>",
-          ""
-      ]
+      "expected": "<img><img>@mmrupp<img><svg></svg>"
   }, {
       "title": "Special esacpes in protocol handler for XSS in Blink",
       "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
-      "expected": [
-          "<a>@shafigullin</a><a></a>",
-          "<a>@shafigullin<a></a>"
-      ]
+      "expected": "<a>@shafigullin</a><a></a>"
   }, {
       "title": "DOM clobbering attack using activeElement",
       "payload": "<image name=activeElement><svg onload=alert(1)>",
-      "expected": [
-          "<img><svg></svg>",
-          "<img><svg xmlns=\"http://www.w3.org/2000/svg\" />",
-          "<img>"
-      ]
+      "expected": "<img><svg></svg>"
   }, {
       "title": "DOM clobbering attack using name=body and injecting SVG + keygen",
       "payload": "<image name=body><img src=x><svg onload=alert(1); autofocus>, <keygen onfocus=alert(1); autofocus>",
-      "expected": [
-          "<img><img src=\"x\"><svg>, </svg>",
-          "<img><img src=\"x\"><svg xmlns=\"http://www.w3.org/2000/svg\">, </svg></svg>",
-          "<img><img src=\"x\"><svg xmlns=\"http://www.w3.org/2000/svg\">, </svg>",
-          "<img><img src=\"x\">",
-          ""
-      ]
+      "expected": "<img><img src=\"x\"><svg>, </svg>"
   }, {
       "title": "Bypass using multiple unknown attributes",
       "payload": "<div onmouseout=\"javascript:alert(/superevr/)\" x=yscript: n>@superevr</div>",
@@ -282,11 +217,7 @@ module.exports = [
   }, {
       "title": "Bypass using DOM bugs when dealing with JS URIs in arbitrary attributes (II)",
       "payload": "<isindex x=\"javascript:\" onmouseover=\"alert(1)\" label=\"variation of bypass by @giutro\">",
-      "expected": [
-          "<form><hr><label>This is a searchable index. Enter search keywords: <input label=\"variation of bypass by @giutro\" name=\"isindex\"></label><hr></form>",
-          "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"variation of bypass by @giutro\"></label><hr></form>",
-          ""
-      ]
+      "expected": "<form><hr><label>This is a searchable index. Enter search keywords: <input label=\"variation of bypass by @giutro\" name=\"isindex\"></label><hr></form>"
   }, {
       "title": "Bypass using unknown attributes III",
       "payload": "<div wow=removeme onmouseover=alert(1)>text",
@@ -294,19 +225,11 @@ module.exports = [
   }, {
       "title": "Bypass using unknown attributes IV",
       "payload": "<input x=javascript: autofocus onfocus=alert(1)><svg id=1 onload=alert(1)></svg>",
-      "expected": [
-          "<input><svg id=\"1\"></svg>",
-          "<input><svg xmlns=\"http://www.w3.org/2000/svg\" id=\"1\" />",
-          "<input>"
-      ]
+      "expected": "<input><svg id=\"1\"></svg>"
   }, {
       "title": "Bypass using unknown attributes V",
       "payload": "<isindex src=\"javascript:\" onmouseover=\"alert(1)\" label=\"bypass by @giutro\" />",
-      "expected": [
-          "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"bypass by @giutro\"></label><hr></form>",
-          "<form><hr><label>This is a searchable index. Enter search keywords: <input label=\"bypass by @giutro\" name=\"isindex\"></label><hr></form>",
-          ""
-      ]
+      "expected": "<form><hr><label>This is a searchable index. Enter search keywords: <input name=\"isindex\" label=\"bypass by @giutro\"></label><hr></form>"
   }, {
       "title": "Bypass using JS URI in href",
       "payload": "<a href=\"javascript:123\" onclick=\"alert(1)\">CLICK ME (bypass by @shafigullin)</a>",
@@ -316,10 +239,7 @@ module.exports = [
       "expected": "<form><button>XXX</button></form>"
   }, {
       "payload": "<div id=\"1\"><form id=\"foobar\"></form><button form=\"foobar\" formaction=\"javascript:alert(1)\">X</button>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"1\"><form id=\"foobar\"></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"1\"><form id=\"foobar\"><button>X</button>//[\"'`--&gt;]]&gt;]</form></div>"
-      ]
+      "expected": "<div id=\"1\"><form id=\"foobar\"></form><button>X</button>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"2\"><meta charset=\"x-imap4-modified-utf7\">&ADz&AGn&AG0&AEf&ACA&AHM&AHI&AGO&AD0&AGn&ACA&AG8Abg&AGUAcgByAG8AcgA9AGEAbABlAHIAdAAoADEAKQ&ACAAPABi//[\"'`-->]]>]</div>",
       "expected": "<div id=\"2\">&amp;ADz&amp;AGn&amp;AG0&amp;AEf&amp;ACA&amp;AHM&amp;AHI&amp;AGO&amp;AD0&amp;AGn&amp;ACA&amp;AG8Abg&amp;AGUAcgByAG8AcgA9AGEAbABlAHIAdAAoADEAKQ&amp;ACAAPABi//[\"'`--&gt;]]&gt;]</div>"
@@ -349,12 +269,7 @@ module.exports = [
       ]
   }, {
       "payload": "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\"><g onload=\"javascript:alert(11)\"></g></svg>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\"><g></g></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\"><g /></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\"><g /></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"11\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"11\"><svg xmlns=\"http://www.w3.org/2000/svg\"><g></g></svg>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"12\"><body onscroll=alert(12)><br><br><br><br><br><br>...<br><br><br><br><input autofocus>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"12\"><br><br><br><br><br><br>...<br><br><br><br><input>//[\"'`--&gt;]]&gt;]</div>"
@@ -363,10 +278,7 @@ module.exports = [
       "expected": "<div id=\"13\">01//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"14\"><input pattern=^((a+.)a)+$ value=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"14\"><input value=\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!\" pattern=\"^((a+.)a)+$\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"14\"><input pattern=\"^((a+.)a)+$\" value=\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"14\"><input value=\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!\" pattern=\"^((a+.)a)+$\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"15\"><script>({0:#0=alert/#0#/#0#(0)})</script>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"15\">//[\"'`--&gt;]]&gt;]</div>"
@@ -423,76 +335,40 @@ module.exports = [
       "expected": "<div id=\"32\"><table></table>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"33\"><a style=\"pointer-events:none;position:absolute;\"><a style=\"position:absolute;\" onclick=\"alert(33);\">XXX</a></a><a href=\"javascript:alert(2)\">XXX</a>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"33\"><a style=\"pointer-events:none;position:absolute;\"></a><a style=\"position:absolute;\">XXX</a><a>XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"33\"><a style=\"position: absolute; pointer-events: none;\"><a style=\"position: absolute;\">XXX</a><a>XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"33\"><a style=\"pointer-events:none;position:absolute;\"><a style=\"position:absolute;\">XXX</a><a>XXX</a>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"33\"><a style=\"pointer-events:none;position:absolute;\"></a><a style=\"position:absolute;\">XXX</a><a>XXX</a>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"34\">1<vmlframe xmlns=urn:schemas-microsoft-com:vml style=behavior:url(#default#vml);position:absolute;width:100%;height:100% src=test.vml#xss></vmlframe>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"34\">1//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"35\">1<a href=#><line xmlns=urn:schemas-microsoft-com:vml style=behavior:url(#default#vml);position:absolute href=javascript:alert(35) strokecolor=white strokeweight=1000px from=0 to=1000 /></a>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"35\">1<a href=\"#\"></a>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"35\">1<a href=\"#\"></a>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"36\"><a style=\"behavior:url(#default#AnchorClick);\" folder=\"javascript:alert(36)\">XXX</a>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"36\"><a style=\"behavior:url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"36\"><a style=\"behavior: url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"36\"><a style=\"-ms-behavior: url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"36\"><a style=\"behavior:url(#default#AnchorClick);\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"37\"><!--<img src=\"--><img src=x onerror=alert(37)//\">//[\"'`-->]]>]</div>",
       "expected": "<div id=\"37\"><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"38\"><comment><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`-->]]>]</div><div id=\"39\"><!-- up to Opera 11.52, FF 3.6.28 -->",
-      "expected": [
-          "<div id=\"38\"><img src=\"&lt;/comment&gt;&lt;img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
-          "<div id=\"38\"><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
-          "<div id=\"38\"><img src=\"%3C/comment%3E%3Cimg%20src=x%20onerror=alert%2838%29//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
-          "<div id=\"38\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>",
-          "<div id=\"38\"><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"38\"><img src=\"</comment><img src=x onerror=alert(38)//\">//[\"'`--&gt;]]&gt;]</div><div id=\"39\"></div>"
   }, {
       "payload": "<![><img src=\"]><img src=x onerror=alert(39)//\">",
-      "expected": [
-          "<img src=\"]&gt;&lt;img src=x onerror=alert(39)//\">",
-          "<img src=\"]><img src=x onerror=alert(39)//\">",
-          "<img src=\"]%3E%3Cimg%20src=x%20onerror=alert%2839%29//\">"
-      ]
+      "expected": "<img src=\"]><img src=x onerror=alert(39)//\">"
   }, {
       "payload": "<!-- IE9+, FF4+, Opera 11.60+, Safari 4.0.4+, GC7+  -->\n<svg><![CDATA[><image xlink:href=\"]]><img src=x onerror=alert(2)//\"></svg>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<svg>&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
-          "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></svg>//[\"'`--&gt;]]&gt;]",
-          "<svg>&gt;&lt;image xlink:href=\"<img src=\"x\"></img></svg>//[\"'`--&gt;]]&gt;]",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\">&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]",
-          "<img src=\"x\">//[\"'`--&gt;]]&gt;]"
-      ]
+      "expected": "<svg>&gt;&lt;image xlink:href=\"</svg><img src=\"x\">//[\"'`--&gt;]]&gt;]"
   }, {
       "payload": "<div id=\"40\"><style><img src=\"</style><img src=x onerror=alert(40)//\">//[\"'`-->]]>]</div>",
       "expected": "<div id=\"40\"><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"41\"><li style=list-style:url() onerror=alert(41)></li>",
-      "expected": [
-          "<div id=\"41\"><li style=\"list-style:url()\"></li></div>",
-          "<div id=\"41\"><li></li></div>"
-      ]
+      "expected": "<div id=\"41\"><li style=\"list-style:url()\"></li></div>"
   }, {
       "payload": "<div style=content:url(data:image/svg+xml,%3Csvg/%3E);visibility:hidden onload=alert(41)></div>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div style=\"content:url(data:image/svg+xml,%3Csvg/%3E);visibility:hidden\"></div>//[\"'`--&gt;]]&gt;]",
-          "<div style=\"visibility: hidden; content: url(data:image/svg+xml,%3Csvg/%3E);\"></div>//[\"'`--&gt;]]&gt;]"
-      ]
+      "expected": "<div style=\"content:url(data:image/svg+xml,%3Csvg/%3E);visibility:hidden\"></div>//[\"'`--&gt;]]&gt;]"
   }, {
       "payload": "<div id=\"42\"><head><base href=\"javascript://\"/></head><body><a href=\"/. /,alert(42)//#\">XXX</a></body>//[\"'`-->]]>]</div>",
-      "expected": [
-            "<div id=\"42\"><a href=\"/. /,alert(42)//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>",
-            "<div id=\"42\"><a href=\"/.%20/,alert%2842%29//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"42\"><a href=\"/. /,alert(42)//#\">XXX</a>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"43\"><?xml version=\"1.0\" standalone=\"no\"?>",
       "expected": "<div id=\"43\"></div>"
@@ -504,25 +380,13 @@ module.exports = [
       "expected": "<div id=\"44\"><style>*[{}@import'test.css?]{color: green;}</style>X//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"45\"><div style=\"font-family:'foo[a];color:red;';\">XXX</div>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"45\"><div style=\"font-family:'foo[a];color:red;';\">XXX</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"45\"><div style='font-family: \"foo[a];color:red;\";'>XXX</div>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"45\"><div style=\"font-family:'foo[a];color:red;';\">XXX</div>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"46\"><div style=\"font-family:foo}color=red;\">XXX</div>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"46\"><div style=\"font-family:foo}color=red;\">XXX</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"46\"><div style=\"font-family: foo;\">XXX</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"46\"><div>XXX</div>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"46\"><div style=\"font-family:foo}color=red;\">XXX</div>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"47\"><svg xmlns=\"http://www.w3.org/2000/svg\"><script>alert(47)</script></svg>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"47\"><svg xmlns=\"http://www.w3.org/2000/svg\"></svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"47\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"47\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"47\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"47\"><svg xmlns=\"http://www.w3.org/2000/svg\"></svg>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"48\"><SCRIPT FOR=document EVENT=onreadystatechange>alert(48)</SCRIPT>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"48\">//[\"'`--&gt;]]&gt;]</div>"
@@ -561,10 +425,7 @@ module.exports = [
       "expected": "<div id=\"59\"><div id=\"div1\"><input value=\"``onmouseover=alert(59)\"></div> <div id=\"div2\"></div>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"60\"><div style=\"[a]color[b]:[c]red\">XXX</div>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"60\"><div style=\"[a]color[b]:[c]red\">XXX</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"60\"><div>XXX</div>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"60\"><div style=\"[a]color[b]:[c]red\">XXX</div>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"62\"><!-- IE 6-8 -->\n<x '=\"foo\"><x foo='><img src=x onerror=alert(62)//'>\n<!-- IE 6-9 -->\n<! '=\"foo\"><x foo='><img src=x onerror=alert(2)//'>\n<? '=\"foo\"><x foo='><img src=x onerror=alert(3)//'>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"62\">\n\n\n\n//[\"'`--&gt;]]&gt;]</div>"
@@ -576,13 +437,7 @@ module.exports = [
       "expected": "<div id=\"64\">]&gt;&amp;x;//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"65\"><svg onload=\"javascript:alert(65)\" xmlns=\"http://www.w3.org/2000/svg\"></svg>//[\"'`-->]]>]</div><div id=\"66\"><?xml version=\"1.0\"?>",
-      "expected": [
-          "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\"></svg>//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>",
-          "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>",
-          "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\" />//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>",
-          "<div id=\"65\">//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>",
-          "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\"></svg>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"65\"><svg xmlns=\"http://www.w3.org/2000/svg\"></svg>//[\"'`--&gt;]]&gt;]</div><div id=\"66\"></div>"
   }, {
       "payload": "<?xml-stylesheet type=\"text/xsl\" href=\"data:,%3Cxsl:transform version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform' id='xss'%3E%3Cxsl:output method='html'/%3E%3Cxsl:template match='/'%3E%3Cscript%3Ealert(66)%3C/script%3E%3C/xsl:template%3E%3C/xsl:transform%3E\"?>\n<root/>//[\"'`-->]]>]</div>\n<div id=\"67\"><!DOCTYPE x [\n    <!ATTLIST img xmlns CDATA \"http://www.w3.org/1999/xhtml\" src CDATA \"xx\"\n onerror CDATA \"alert(67)\"\n onload CDATA \"alert(2)\">\n]><img />//[\"'`-->]]>]</div>",
       "expected": "//[\"'`--&gt;]]&gt;]\n<div id=\"67\">\n]&gt;<img>//[\"'`--&gt;]]&gt;]</div>"
@@ -591,16 +446,10 @@ module.exports = [
       "expected": "<div id=\"68\">\n    XXX\n//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"69\"><card xmlns=\"http://www.wapforum.org/2001/wml\"><onevent type=\"ontimer\"><go href=\"javascript:alert(69)\"/></onevent><timer value=\"1\"/></card>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"69\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"69\"></div>"
-      ]
+      "expected": "<div id=\"69\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"70\"><div style=width:1px;filter:glow onfilterchange=alert(70)>x</div>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"70\"><div style=\"width:1px;filter:glow\">x</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"70\"><div style=\"width: 1px;\">x</div>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"70\"><div style=\"width:1px;filter:glow\">x</div>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"71\"><// style=x:expression\u00028alert(71)\u00029>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"71\">//[\"'`--&gt;]]&gt;]</div>"
@@ -636,11 +485,7 @@ module.exports = [
       "expected": "<div id=\"81\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"82\"><?xml-stylesheet type=\"text/css\" href=\"data:,*%7bx:expression(write(2));%7d\"?>//[\"'`-->]]>]</div><div id=\"83\"><x:template xmlns:x=\"http://www.wapforum.org/2001/wml\"  x:ontimer=\"$(x:unesc)j$(y:escape)a$(z:noecs)v$(x)a$(y)s$(z)cript$x:alert(83)\"><x:timer value=\"1\"/></x:template>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"82\">//[\"'`--&gt;]]&gt;]</div><div id=\"83\">//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"82\">//[\"'`--&gt;]]&gt;]</div><div id=\"83\"></div>",
-          "<div id=\"83\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"82\">//[\"'`--&gt;]]&gt;]</div><div id=\"83\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"84\"><x xmlns:ev=\"http://www.w3.org/2001/xml-events\" ev:event=\"load\" ev:handler=\"javascript:alert(84)//#x\"/>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"84\">//[\"'`--&gt;]]&gt;]</div>"
@@ -649,29 +494,13 @@ module.exports = [
       "expected": "<div id=\"85\">//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"86\"><body oninput=alert(86)><input autofocus>//[\"'`-->]]>]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"javascript:alert(87)\"><rect width=\"1000\" height=\"1000\" fill=\"white\"/></a>\n</svg>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a><rect fill=\"white\" height=\"1000\" width=\"1000\"></rect></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" height=\"1000\" width=\"1000\"></rect></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n<a><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" width=\"1000\" height=\"1000\" FILL=\"white\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a><rect fill=\"white\" width=\"1000\" height=\"1000\" /></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"86\"><input>//[\"'`--&gt;]]&gt;]</div><div id=\"87\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\"><rect fill=\"white\" height=\"1000\" width=\"1000\"></rect></a>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"89\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<set attributeName=\"onmouseover\" to=\"alert(89)\"/>\n<animate attributeName=\"onunload\" to=\"alert(89)\"/>\n</svg>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"89\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"89\"><svg xmlns=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"89\">//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"89\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"90\"><!-- Up to Opera 10.63 -->\n<div style=content:url(test2.svg)></div>\n\n<!-- Up to Opera 11.64 - see link below -->\n\n<!-- Up to Opera 12.x -->\n<div style=\"background:url(test5.svg)\">PRESS ENTER</div>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"90\">\n<div style=\"content:url(test2.svg)\"></div>\n\n\n\n\n<div style=\"background:url(test5.svg)\">PRESS ENTER</div>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"90\">\n<div style=\"content: url(test2.svg);\"></div>\n\n\n\n\n<div style='background: url(\"test5.svg\");'>PRESS ENTER</div>//[\"'`--&gt;]]&gt;]</div>"
-      ]
+      "expected": "<div id=\"90\">\n<div style=\"content:url(test2.svg)\"></div>\n\n\n\n\n<div style=\"background:url(test5.svg)\">PRESS ENTER</div>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"91\">[A]\n<? foo=\"><script>alert(91)</script>\">\n<! foo=\"><script>alert(91)</script>\">\n</ foo=\"><script>alert(91)</script>\">\n[B]\n<? foo=\"><x foo='?><script>alert(91)</script>'>\">\n[C]\n<! foo=\"[[[x]]\"><x foo=\"]foo><script>alert(91)</script>\">\n[D]\n<% foo><x foo=\"%><script>alert(91)</script>\">//[\"'`-->]]>]</div>",
       "expected": "<div id=\"91\">[A]\n\"&gt;\n\"&gt;\n\"&gt;\n[B]\n\"&gt;\n[C]\n\n[D]\n&lt;% foo&gt;//[\"'`--&gt;]]&gt;]</div>"
@@ -918,20 +747,7 @@ module.exports = [
       ]
   }, {
       "payload": "<div id=\"132\"><!doctype html>\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<!-- injection --><svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<set attributeName=\"xlink:href\" begin=\"accessKey(a)\" to=\"//example.com/?a\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(b)\" to=\"//example.com/?b\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(c)\" to=\"//example.com/?c\" />\n<set attributeName=\"xlink:href\" begin=\"accessKey(d)\" to=\"//example.com/?d\" />\n</image>\n</svg>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</form></div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"50px\">\n<image>\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</form></div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"50px\">\n<image xmlns:NS1=\"\" NS1:xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n\n//[\"'`--&gt;]]&gt;]</form></div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input name=\"secret\" type=\"password\">\n</form>\n//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n//[\"'`--&gt;]]&gt;]</div>"
-        ]
+      "expected": "<div id=\"132\">\n<form>\n<label>type a,b,c,d - watch the network tab/traffic (JS is off, latest NoScript)</label>\n<br>\n<input type=\"password\" name=\"secret\">\n</form>\n<svg height=\"50px\">\n<image xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n\n\n\n\n</image>\n</svg>//[\"'`--&gt;]]&gt;]</div>"
   }, {
       "payload": "<div id=\"133\"><!-- `<img/src=xxx onerror=alert(133)//--!>//[\"'`-->]]>]</div>",
       "expected": "<div id=\"133\">//[\"'`--&gt;]]&gt;]</div>"
@@ -966,17 +782,7 @@ module.exports = [
   }, {
       "title": "SVG",
       "payload": "<div id=\"137\"><svg>\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\"></circle>\n<animate attributeName=\"xlink:href\" begin=\"0\" from=\"javascript:alert(137)\" to=\"&\" />\n</a>//[\"'`-->]]>]</div>",
-      "expected": [
-          "<div id=\"137\"><svg>\n<a xlink:href=\"?\">\n<circle r=\"400\"></circle>\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:NS1=\"\" NS1:xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
-          "<div id=\"137\"><svg>\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\"></circle>\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:NS1=\"\" NS1:xlink:href=\"?\" xmlns:NS2=\"\" NS2:xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></svg></div>",
-          "<div id=\"137\"><svg xmlns=\"http://www.w3.org/2000/svg\">\n<a xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"?\">\n<circle r=\"400\" />\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>"
-      ]
+      "expected": "<div id=\"137\"><svg>\n<a xlink:href=\"?\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n<circle r=\"400\"></circle>\n\n</a>//[\"'`--&gt;]]&gt;]</svg></div>"
   }, {
       "title": "DOM clobbering: submit",
       "payload": "<input name=submit>123",
