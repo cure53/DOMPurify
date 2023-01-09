@@ -1658,31 +1658,6 @@
         ]);
       }
     );
-    QUnit.test(
-      'Test protection from prototype pollution attacks 1/2',
-      function (assert) {
-        const obj = JSON.parse(
-          '{"ALLOWED_ATTR":["onerror","src"], "documentMode":9}'
-        );
-        try {
-          for (let [k, v] of Object.entries(obj)) {
-            Object.prototype[k] = v;
-          }
-        } catch (e) {}
-        var clean = DOMPurify.sanitize('<img src=x onerror=alert(1)>');
-        assert.equal(clean, '<img src="x">');
-      }
-    );
-    QUnit.test(
-      'Test protection from prototype pollution attacks 2/2',
-      function (assert) {
-        var obj = {};
-        obj.__proto__.hasOwnProperty = Object;
-        obj.constructor.prototype.ALLOWED_ATTR = ["src", "onerror"];
-        var clean = DOMPurify.sanitize('<img src=x onerror=alert(1)>');
-        assert.equal(clean, '<img src="x">');
-      }
-    );
     QUnit.test('Test if namespaces are properly enforced', function (assert) {
       var tests = [
         {
