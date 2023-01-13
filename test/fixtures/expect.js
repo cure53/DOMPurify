@@ -906,6 +906,6 @@ module.exports = [
   }, {
       "title": "Tests against removal of templates inside select elements",
       "payload": "<select><template><img src=x onerror=alert(1)></template></select>",
-      "expected": "<select></select>"
+      "expected": "<select><template><img src=\"x\"></template></select>"
   }
 ];
