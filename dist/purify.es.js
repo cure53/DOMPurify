@@ -1129,12 +1129,6 @@ function createDOMPurify() {
 
       return true;
     }
-
-    if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
-      _forceRemove(currentNode);
-
-      return true;
-    }
     /* Sanitize element content to be template-safe */
 
 
