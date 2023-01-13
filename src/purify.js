@@ -955,12 +955,6 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
-    /* Check if tagname contains Unicode */
-    if (regExpTest(/[\u0080-\uFFFF]/, currentNode.nodeName)) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
     /* Now let's check the element's type and name */
     const tagName = transformCaseFunc(currentNode.nodeName);
 
@@ -969,28 +963,6 @@ function createDOMPurify(window = getGlobal()) {
       tagName,
       allowedTags: ALLOWED_TAGS,
     });
-
-    /* Detect mXSS attempts abusing namespace confusion */
-    if (
-      currentNode.hasChildNodes() &&
-      !_isNode(currentNode.firstElementChild) &&
-      (!_isNode(currentNode.content) ||
-        !_isNode(currentNode.content.firstElementChild)) &&
-      regExpTest(/<[/\w]/g, currentNode.innerHTML) &&
-      regExpTest(/<[/\w]/g, currentNode.textContent)
-    ) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
-    /* Mitigate a problem with templates inside select */
-    if (
-      tagName === 'select' &&
-      regExpTest(/<template/i, currentNode.innerHTML)
-    ) {
-      _forceRemove(currentNode);
-      return true;
-    }
 
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
@@ -1031,14 +1003,6 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Check whether element has a valid namespace */
     if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
-    if (
-      (tagName === 'noscript' || tagName === 'noembed') &&
-      regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)
-    ) {
       _forceRemove(currentNode);
       return true;
     }
