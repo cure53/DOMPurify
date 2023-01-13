@@ -1080,14 +1080,6 @@
 
         return true;
       }
-      /* Check if tagname contains Unicode */
-
-
-      if (regExpTest(/[\u0080-\uFFFF]/, currentNode.nodeName)) {
-        _forceRemove(currentNode);
-
-        return true;
-      }
       /* Now let's check the element's type and name */
 
 
@@ -1102,14 +1094,6 @@
 
 
       if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
-        _forceRemove(currentNode);
-
-        return true;
-      }
-      /* Mitigate a problem with templates inside select */
-
-
-      if (tagName === 'select' && regExpTest(/<template/i, currentNode.innerHTML)) {
         _forceRemove(currentNode);
 
         return true;
@@ -1151,6 +1135,8 @@
 
         return true;
       }
+      /* Make sure that older browsers don't get noscript mXSS */
+
 
       if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
         _forceRemove(currentNode);
