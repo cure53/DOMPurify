@@ -145,13 +145,9 @@ DOMPurify.sanitize('<UL><li><A HREF=//google.com>click</UL>'); // becomes <ul><l
 
 DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` API without any known problems.
 
-## What about older browsers like MSIE8?
+## What about legacy browsers like Internet Explorer?
 
-DOMPurify offers a fall-back behavior for older MSIE browsers. It uses the MSIE-only `toStaticHTML` feature to sanitize. Note however that in this fall-back mode, pretty much none of the configuration flags shown below have any effect. You need to handle that yourself.
-
-If not even `toStaticHTML` is supported, DOMPurify does nothing at all. It simply returns exactly the string that you fed it.
-
-DOMPurify also exposes a property called `isSupported`, which tells you whether DOMPurify will be able to do its job.
+DOMPurify does nothing at all. It simply returns exactly the string that you fed it. DOMPurify exposes a property called `isSupported`, which tells you whether it will be able to do its job, so you can come up with your own backup plan.
 
 ## What about DOMPurify and Trusted Types?
 
