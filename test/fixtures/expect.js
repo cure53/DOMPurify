@@ -683,14 +683,14 @@ module.exports = [
       "payload": "<div id=\"127\"><svg xmlns=\"http://www.w3.org/2000/svg\" id=\"x\">\n<listener event=\"load\" handler=\"#y\" xmlns=\"http://www.w3.org/2001/xml-events\" observer=\"x\"/>\n<handler id=\"y\">alert(127)</handler>\n</svg>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"127\"><svg id=\"x\" xmlns=\"http://www.w3.org/2000/svg\">\n\nalert(127)\n</svg>//[\"'`--&gt;]]&gt;]</div>",
-          "<div id=\"127\"><svg id=\"x\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>",
+          "<div id=\"127\"><svg id=\"x\" xmlns=\"http://www.w3.org/2000/svg\">\n\n\n</svg>//[\"'`--&gt;]]&gt;]</div>"
       ]
   }, {
       "payload": "<div id=\"128\"><svg><style><img/src=x onerror=alert(128)// </b>//[\"'`-->]]>]</div>",
       "expected": [
           "<div id=\"128\"><svg><style></style></svg><img src=\"x\">//[\"'`--&gt;]]&gt;]</div>",
           "<div id=\"128\"><svg><style><img src=\"x\">//[\"'`--&gt;]]&gt;]</img></style></svg></div>",
-          "<div id=\"128\"><svg><style><img src=\"x\"></style></svg></div>",
+          "<div id=\"128\"><svg><style><img src=\"x\"></style></svg></div>"
       ]
   }, {
       "title": "Inline SVG (data-uri)",
@@ -833,7 +833,7 @@ module.exports = [
       "expected": [
           "<svg></svg><p></p><style><g title=\"</style><img src=\"x\">\"&gt;",
           "<svg></svg><p></p><img src=\"x\">\"&gt;",
-          "<svg></svg><p><img src=\"x\">\"&gt;</p>",
+          "<svg></svg><p><img src=\"x\">\"&gt;</p>"
       ]
   }, {
       "title": "Tests against attribute-based mXSS behavior 2/3",
