@@ -4,6 +4,7 @@ import * as EXPRESSIONS from './regexp.js';
 import {
   addToSet,
   clone,
+  entries,
   freeze,
   arrayForEach,
   arrayPop,
@@ -149,6 +150,7 @@ function createDOMPurify(window = getGlobal()) {
    * Expose whether this browser supports running the full DOMPurify.
    */
   DOMPurify.isSupported =
+    typeof entries === 'function' &&
     typeof getParentNode === 'function' &&
     implementation &&
     typeof implementation.createHTMLDocument !== 'undefined';
