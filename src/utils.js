@@ -1,5 +1,5 @@
 const {
-  hasOwnProperty,
+  entries,
   setPrototypeOf,
   isFrozen,
   getPrototypeOf,
@@ -93,7 +93,7 @@ export function addToSet(set, array, transformCaseFunc) {
 export function clone(object) {
   const newObject = create(null);
 
-  for (const [property, value] of Object.entries(object)) {
+  for (const [property, value] of entries(object)) {
     newObject[property] = value;
   }
 
@@ -134,10 +134,10 @@ export {
   arrayPush,
   arraySlice,
   // Object
+  entries,
   freeze,
   getPrototypeOf,
   getOwnPropertyDescriptor,
-  hasOwnProperty,
   isFrozen,
   setPrototypeOf,
   seal,

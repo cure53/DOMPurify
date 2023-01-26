@@ -126,7 +126,65 @@ function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-var setPrototypeOf = Object.setPrototypeOf,
+function _createForOfIteratorHelper(o, allowArrayLike) {
+  var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"];
+
+  if (!it) {
+    if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+      if (it) o = it;
+      var i = 0;
+
+      var F = function () {};
+
+      return {
+        s: F,
+        n: function () {
+          if (i >= o.length) return {
+            done: true
+          };
+          return {
+            done: false,
+            value: o[i++]
+          };
+        },
+        e: function (e) {
+          throw e;
+        },
+        f: F
+      };
+    }
+
+    throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
+  var normalCompletion = true,
+      didErr = false,
+      err;
+  return {
+    s: function () {
+      it = it.call(o);
+    },
+    n: function () {
+      var step = it.next();
+      normalCompletion = step.done;
+      return step;
+    },
+    e: function (e) {
+      didErr = true;
+      err = e;
+    },
+    f: function () {
+      try {
+        if (!normalCompletion && it.return != null) it.return();
+      } finally {
+        if (didErr) throw err;
+      }
+    }
+  };
+}
+
+var entries = Object.entries,
+    setPrototypeOf = Object.setPrototypeOf,
     isFrozen = Object.isFrozen,
     getPrototypeOf = Object.getPrototypeOf,
     getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -231,12 +289,21 @@ function addToSet(set, array, transformCaseFunc) {
 function clone(object) {
   var newObject = create(null);
 
-  for (var _i = 0, _Object$entries = Object.entries(object); _i < _Object$entries.length; _i++) {
-    var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
-        property = _Object$entries$_i[0],
-        value = _Object$entries$_i[1];
+  var _iterator = _createForOfIteratorHelper(entries(object)),
+      _step;
 
-    newObject[property] = value;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var _step$value = _slicedToArray(_step.value, 2),
+          property = _step$value[0],
+          value = _step$value[1];
+
+      newObject[property] = value;
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
   }
 
   return newObject;
@@ -424,7 +491,7 @@ function createDOMPurify() {
    * Expose whether this browser supports running the full DOMPurify.
    */
 
-  DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined';
+  DOMPurify.isSupported = typeof entries === 'function' && typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined';
   var MUSTACHE_EXPR$1 = MUSTACHE_EXPR,
       ERB_EXPR$1 = ERB_EXPR,
       TMPLIT_EXPR$1 = TMPLIT_EXPR,
