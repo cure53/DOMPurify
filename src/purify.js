@@ -239,6 +239,10 @@ function createDOMPurify(window = getGlobal()) {
   /* Decide if unknown protocols are okay */
   let ALLOW_UNKNOWN_PROTOCOLS = false;
 
+  /* Decide if self-closing tags in attributes are allowed.
+   * Usually removed due to a mXSS issue in jQuery 3.0 */
+  let ALLOW_SELF_CLOSE_IN_ATTR = true;
+
   /* Output should be safe for common template engines.
    * This means, DOMPurify removes data attributes, mustaches and ERB
    */
@@ -468,6 +472,7 @@ function createDOMPurify(window = getGlobal()) {
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
     ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
+    ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false; // Default true
     SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
     WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
@@ -1241,7 +1246,7 @@ function createDOMPurify(window = getGlobal()) {
       }
 
       /* Work around a security issue in jQuery 3.0 */
-      if (regExpTest(/\/>/i, value)) {
+      if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
         _removeAttribute(name, currentNode);
         continue;
       }
