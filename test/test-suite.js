@@ -133,6 +133,21 @@
         );
       }
     );
+    QUnit.test('Config-Flag tests: ALLOW_SELF_CLOSE_IN_ATTR', function (assert) {
+      // ALLOW_SELF_CLOSE_IN_ATTR
+      assert.equal(
+        DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
+          ALLOW_SELF_CLOSE_IN_ATTR: false,
+        }),
+        '<a href="#">abc</a>'
+      );
+      assert.equal(
+        DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
+          ALLOW_SELF_CLOSE_IN_ATTR: true,
+        }),
+        '<a class="foo <br/>" href="#">abc</a>'
+      );
+    });
     QUnit.test('Config-Flag tests: ALLOW_DATA_ATTR', function (assert) {
       // ALLOW_DATA_ATTR
       assert.equal(

@@ -7,8 +7,6 @@ name: Build and Test
 on:
   push:
     branches:
-      - main
-      - 2.x
       - 3.x
   pull_request:
 
