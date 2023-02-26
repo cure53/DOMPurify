@@ -197,7 +197,7 @@ function createDOMPurify(window = getGlobal()) {
    * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
    * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
    */
-  const CUSTOM_ELEMENT_HANDLING = Object.seal(
+  let CUSTOM_ELEMENT_HANDLING = Object.seal(
     Object.create(null, {
       tagNameCheck: {
         writable: true,
@@ -481,6 +481,7 @@ function createDOMPurify(window = getGlobal()) {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+    CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
     if (
       cfg.CUSTOM_ELEMENT_HANDLING &&
       isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)
