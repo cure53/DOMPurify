@@ -271,13 +271,13 @@ var clean = DOMPurify.sanitize(dirty, {ADD_URI_SAFE_ATTR: ['my-attr']});
  * Control permitted attribute values
  */
 // allow external protocol handlers in URL attributes (default is false, be careful, XSS risk)
-// by default only http, https, ftp, ftps, tel, mailto, callto, cid and xmpp are allowed.
+// by default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
 var clean = DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true});
 
 // allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
-// by default only http, https, ftp, ftps, tel, mailto, callto, cid and xmpp are allowed.
-// Default RegExp: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;});
+// by default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
+// Default RegExp: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
+var clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;});
 
 /**
  * Influence the return-type
