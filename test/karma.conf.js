@@ -1,4 +1,3 @@
-const commonjs = require('@rollup/plugin-commonjs');
 const includePaths = require('rollup-plugin-includepaths');
 const rollupConfig = require('../rollup.config.js');
 const customLaunchers =
@@ -6,7 +5,6 @@ const customLaunchers =
 const browsers = require('./karma.custom-launchers.config.js').browsers;
 
 rollupConfig.plugins.push(
-  commonjs(),
   includePaths({
     include: {
       purify: 'dist/purify.js',
