@@ -254,7 +254,7 @@ export const mathMl = freeze([
   'mtr',
   'munder',
   'munderover',
-  'mprescripts'
+  'mprescripts',
 ]);
 
 // Similarly to SVG, we want to know all MathML elements,
