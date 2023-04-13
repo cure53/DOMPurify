@@ -1416,6 +1416,21 @@
         assert.equal(str, test.expected);
       });
     });
+    QUnit.test('Ensure ALLOWED_URI_REGEXP is not cached', function(assert) {
+      const 
+        dirty = '<img src="https://different.com">',
+        expected = '<img src="https://different.com">';
+
+      assert.equal(DOMPurify.sanitize(dirty), expected);
+
+      // sanitize with a custom URI regexp
+      assert.equal(DOMPurify.sanitize('<img src="https://test.com">', {
+        ALLOWED_URI_REGEXP: /test\.com/i
+      }), '<img src="https://test.com">');
+
+      // ensure that the previous regexp does not affect future santize calls
+      assert.equal(DOMPurify.sanitize(dirty), expected);
+    });
     QUnit.test(
       'Avoid freeze when using tables and ALLOW_TAGS',
       function (assert) {
@@ -2059,6 +2074,9 @@
       // set the same hook
       DOMPurify.addHook(entryPoint, hookFunction);
       assert.equal(DOMPurify.sanitize(dirty), expected);
+
+      // cleanup hook
+      DOMPurify.removeHook(entryPoint);
     });
   };
 });
