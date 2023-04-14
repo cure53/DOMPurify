@@ -15,39 +15,44 @@ require('jquery')(window);
 
 const sanitizeTestSuite = require('./test-suite');
 const bootstrapTestSuite = require('./bootstrap-test-suite');
-const tests = require('./fixtures/expect');
-const xssTests = tests.filter((element) => /alert/.test(element.payload));
 
-QUnit.assert.contains = function (actual, expected, message) {
-  const result = expected.indexOf(actual) > -1;
-  // Ref: https://api.qunitjs.com/assert/pushResult/
-  this.pushResult({
-    result: result,
-    actual: actual,
-    expected: expected,
-    message: message,
-  });
-};
+async function startQUnit() {
+  const { default: tests } = await import('./fixtures/expect.mjs');
+  const xssTests = tests.filter((element) => /alert/.test(element.payload));
 
-QUnit.config.autostart = false;
+  QUnit.assert.contains = function (actual, expected, message) {
+    const result = expected.indexOf(actual) > -1;
+    // Ref: https://api.qunitjs.com/assert/pushResult/
+    this.pushResult({
+      result: result,
+      actual: actual,
+      expected: expected,
+      message: message,
+    });
+  };
 
-QUnit.module('DOMPurify - bootstrap', bootstrapTestSuite(JSDOM));
+  QUnit.config.autostart = false;
 
-QUnit.module('DOMPurify in jsdom');
+  QUnit.module('DOMPurify - bootstrap', bootstrapTestSuite(JSDOM));
 
-if (!window.jQuery) {
-  console.warn('Unable to load jQuery');
+  QUnit.module('DOMPurify in jsdom');
+
+  if (!window.jQuery) {
+    console.warn('Unable to load jQuery');
+  }
+
+  const DOMPurify = createDOMPurify(window);
+  if (!DOMPurify.isSupported) {
+    console.error('Unexpected error returned by jsdom.env():', err, err.stack);
+    process.exit(1);
+  }
+
+  window.alert = () => {
+    window.xssed = true;
+  };
+
+  sanitizeTestSuite(DOMPurify, window, tests, xssTests);
+  QUnit.start();
 }
 
-const DOMPurify = createDOMPurify(window);
-if (!DOMPurify.isSupported) {
-  console.error('Unexpected error returned by jsdom.env():', err, err.stack);
-  process.exit(1);
-}
-
-window.alert = () => {
-  window.xssed = true;
-};
-
-sanitizeTestSuite(DOMPurify, window, tests, xssTests);
-QUnit.start();
+module.exports = startQUnit;

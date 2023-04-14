@@ -4,11 +4,11 @@
       "@babel/preset-env",
       {
         "targets": {
-          "chrome": 22,
-          "firefox": 15,
-          "opera": 31,
-          "safari": 8,
-          "edge": 13
+          "chrome": 51,
+          "firefox": 53,
+          "opera": 38,
+          "safari": 11,
+          "edge": 51
         },
         "modules": false
       }
