@@ -153,7 +153,7 @@ function createDOMPurify(window = getGlobal()) {
     typeof entries === 'function' &&
     typeof getParentNode === 'function' &&
     implementation &&
-    typeof implementation.createHTMLDocument !== 'undefined';
+    implementation.createHTMLDocument !== undefined;
 
   const {
     MUSTACHE_EXPR,
@@ -1143,12 +1143,11 @@ function createDOMPurify(window = getGlobal()) {
     ) {
       // This attribute is safe
       /* Check for binary attributes */
-      // eslint-disable-next-line no-negated-condition
-    } else if (!value) {
+    } else if (value) {
+      return false;
+    } else {
       // Binary attributes are safe at this point
       /* Anything else, presume unsafe, do not add it back */
-    } else {
-      return false;
     }
 
     return true;
@@ -1264,14 +1263,19 @@ function createDOMPurify(window = getGlobal()) {
           /* Namespaces are not yet supported, see https://bugs.chromium.org/p/chromium/issues/detail?id=1305293 */
         } else {
           switch (trustedTypes.getAttributeType(lcTag, lcName)) {
-            case 'TrustedHTML':
+            case 'TrustedHTML': {
               value = trustedTypesPolicy.createHTML(value);
               break;
-            case 'TrustedScriptURL':
+            }
+
+            case 'TrustedScriptURL': {
               value = trustedTypesPolicy.createScriptURL(value);
               break;
-            default:
+            }
+
+            default: {
               break;
+            }
           }
         }
       }
@@ -1350,14 +1354,13 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Stringify, in case dirty is an object */
     if (typeof dirty !== 'string' && !_isNode(dirty)) {
-      // eslint-disable-next-line no-negated-condition
-      if (typeof dirty.toString !== 'function') {
-        throw typeErrorCreate('toString is not a function');
-      } else {
+      if (typeof dirty.toString === 'function') {
         dirty = dirty.toString();
         if (typeof dirty !== 'string') {
           throw typeErrorCreate('dirty is not a string, aborting');
         }
+      } else {
+        throw typeErrorCreate('toString is not a function');
       }
     }
 
