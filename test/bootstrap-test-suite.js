@@ -108,4 +108,118 @@ module.exports = function (JSDOM) {
       );
     }
   );
+
+  QUnit.test(
+    'supports TRUSTED_TYPES_POLICY via sanitize()',
+    function (assert) {
+      loadDOMPurify(
+        assert,
+        false,
+        function setup(window) {
+          window.trustedTypes = {
+            createPolicy(name, rules) {
+              policyCreated = name;
+              return {
+                createHTML(s) {
+                  return new StringWrapper(rules.createHTML(s));
+                },
+              };
+            },
+          };
+        },
+        function onload(window) {
+          assert.equal(policyCreated, 'dompurify');
+          var validationError;
+          try {
+            window.DOMPurify.sanitize('<img>', {
+              TRUSTED_TYPES_POLICY: {
+                createScript(s) {
+                  return s;
+                },
+              },
+            });
+          } catch (e) {
+            validationError = e;
+          }
+          assert.equal(
+            validationError.message,
+            'TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.'
+          );
+
+          try {
+            window.DOMPurify.sanitize('<img>', {
+              TRUSTED_TYPES_POLICY: {
+                createHTML(s) {
+                  return s;
+                },
+              },
+            });
+          } catch (e) {
+            validationError = e;
+          }
+          assert.equal(
+            validationError.message,
+            'TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.'
+          );
+
+          var suppliedPolicyCallCount = 0;
+          window.DOMPurify.sanitize('<img>', {
+            TRUSTED_TYPES_POLICY: {
+              createHTML(s) {
+                suppliedPolicyCallCount += 1;
+                return new StringWrapper(s);
+              },
+              createScriptURL(s) {
+                return new StringWrapper(s);
+              },
+            },
+          });
+          assert.equal(suppliedPolicyCallCount, 2);
+        }
+      );
+    }
+  );
+
+  QUnit.test(
+    'supports TRUSTED_TYPES_POLICY via setConfig() on a new instance',
+    function (assert) {
+      loadDOMPurify(
+        assert,
+        false,
+        function setup(window) {
+          window.trustedTypes = {
+            createPolicy(name, rules) {
+              policyCreated = name;
+              return {
+                createHTML(s) {
+                  return new StringWrapper(rules.createHTML(s));
+                },
+              };
+            },
+          };
+        },
+        function onload(window) {
+          assert.equal(policyCreated, 'dompurify');
+          var purify = window.DOMPurify();
+          assert.notEqual(purify, window.DOMPurify);
+          
+          var suppliedPolicyCallCount = 0;
+          purify.setConfig({
+            TRUSTED_TYPES_POLICY: {
+              createHTML(s) {
+                suppliedPolicyCallCount += 1;
+                return new StringWrapper(s);
+              },
+              createScriptURL(s) {
+                return new StringWrapper(s);
+              },
+            },
+          });
+
+          purify.sanitize('<img>');
+          assert.equal(suppliedPolicyCallCount, 2);
+        }
+      );
+    }
+  );
 };

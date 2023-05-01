@@ -291,6 +291,15 @@ var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
 var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
 
+// use a provided Trusted Types policy
+var clean = DOMPurify.sanitize(dirty, {
+    // supplied policy must define createHTML and createScriptURL
+    TRUSTED_TYPES_POLICY: trustedTypes.createPolicy({
+        createHTML(s) { return s},
+        createScriptURL(s) { return s},
+    }
+});
+
 /**
  * Influence how we sanitize
  */
@@ -301,8 +310,8 @@ var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 
 // enforce strict DOM Clobbering protection via namespace isolation (default is false)
-// when enabled, isolates the namespace of named properties (i.e., `id` and `name` attributes) 
-// from JS variables by prefixing them with the string `user-content-` 
+// when enabled, isolates the namespace of named properties (i.e., `id` and `name` attributes)
+// from JS variables by prefixing them with the string `user-content-`
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_NAMED_PROPS: true});
 
 // keep an element's content when the element is removed (default is true)
