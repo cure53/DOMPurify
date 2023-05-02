@@ -130,11 +130,11 @@ function createDOMPurify(window = getGlobal()) {
     }
   }
 
-  const trustedTypesPolicy = _createTrustedTypesPolicy(
+  let trustedTypesPolicy = _createTrustedTypesPolicy(
     trustedTypes,
     originalDocument
   );
-  const emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
+  let emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
 
   const {
     implementation,
@@ -586,6 +586,25 @@ function createDOMPurify(window = getGlobal()) {
     if (ALLOWED_TAGS.table) {
       addToSet(ALLOWED_TAGS, ['tbody']);
       delete FORBID_TAGS.tbody;
+    }
+
+    if (cfg.TRUSTED_TYPES_POLICY) {
+      if (typeof cfg.TRUSTED_TYPES_POLICY.createHTML !== 'function') {
+        throw typeErrorCreate(
+          'TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.'
+        );
+      }
+
+      if (typeof cfg.TRUSTED_TYPES_POLICY.createScriptURL !== 'function') {
+        throw typeErrorCreate(
+          'TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.'
+        );
+      }
+
+      // Overwrite existing TrustedTypes policy.
+      trustedTypesPolicy = cfg.TRUSTED_TYPES_POLICY;
+      // Sign local variables in case using the internal policy did not succeed.
+      emptyHTML = trustedTypesPolicy.createHTML('');
     }
 
     // Prevent further manipulation of configuration.
