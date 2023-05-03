@@ -11,7 +11,13 @@ module.exports = function (JSDOM) {
     }
   }
 
-  function loadDOMPurify(assert, addScriptAttribute, setup, onload) {
+  function loadDOMPurify(
+    assert,
+    addScriptAttribute,
+    setup,
+    beforeOnLoad,
+    onload
+  ) {
     const testDone = assert.async();
     const { window } = new JSDOM('<head></head>', {
       runScripts: 'dangerously',
@@ -30,68 +36,95 @@ module.exports = function (JSDOM) {
     window.document.body.appendChild(scriptEl);
 
     assert.ok(window.DOMPurify.sanitize);
-    // Sanity check
-    assert.equal(
-      window.DOMPurify.sanitize('<img src=x onerror=alert(1)>'),
-      '<img src="x">'
-    );
+
+    if (beforeOnLoad) {
+      beforeOnLoad(window);
+    }
+
     if (onload) {
       onload(window);
     }
     testDone();
   }
 
-  QUnit.test('works in a non-Trusted Type environment', function (assert) {
-    let policyCreated;
-
+  function loadDOMPurifyWithSanityCheck(
+    assert,
+    addScriptAttribute,
+    setup,
+    onload
+  ) {
+    const beforeOnLoadSanityCheck = function (window) {
+      assert.equal(
+        window.DOMPurify.sanitize('<img src=x onerror=alert(1)>'),
+        '<img src="x">'
+      );
+    };
     loadDOMPurify(
       assert,
-      false,
-      function setup(window) {
-        delete window.trustedTypes;
-      },
-      function onload(window) {
-        const output = window.DOMPurify.sanitize('<img>');
-        assert.ok(typeof output === 'string');
-      }
+      addScriptAttribute,
+      setup,
+      beforeOnLoadSanityCheck,
+      onload
     );
-  });
-
-  QUnit.test('works in a Trusted Type environment', function (assert) {
-    let policyCreated;
-
-    loadDOMPurify(
-      assert,
-      false,
-      function setup(window) {
-        window.trustedTypes = {
-          createPolicy(name, rules) {
-            policyCreated = name;
-            return {
-              createHTML(s) {
-                return new StringWrapper(rules.createHTML(s));
-              },
-            };
-          },
-        };
-      },
-      function onload(window) {
-        assert.equal(policyCreated, 'dompurify');
-        const output = window.DOMPurify.sanitize('<img>', {
-          RETURN_TRUSTED_TYPE: true,
-        });
-        assert.equal(output, '<img>');
-        assert.ok(output instanceof StringWrapper);
-      }
-    );
-  });
+  }
 
   QUnit.test(
-    'supports configuring the policy suffix via an attribute',
+    'sanity check: works in a non-Trusted Type environment',
     function (assert) {
       let policyCreated;
 
-      loadDOMPurify(
+      loadDOMPurifyWithSanityCheck(
+        assert,
+        false,
+        function setup(window) {
+          delete window.trustedTypes;
+        },
+        function onload(window) {
+          const output = window.DOMPurify.sanitize('<img>');
+          assert.ok(typeof output === 'string');
+        }
+      );
+    }
+  );
+
+  QUnit.test(
+    'sanity check: works in a Trusted Type environment',
+    function (assert) {
+      let policyCreated;
+
+      loadDOMPurifyWithSanityCheck(
+        assert,
+        false,
+        function setup(window) {
+          window.trustedTypes = {
+            createPolicy(name, rules) {
+              policyCreated = name;
+              return {
+                createHTML(s) {
+                  return new StringWrapper(rules.createHTML(s));
+                },
+              };
+            },
+          };
+        },
+        function onload(window) {
+          assert.equal(policyCreated, 'dompurify');
+          const output = window.DOMPurify.sanitize('<img>', {
+            RETURN_TRUSTED_TYPE: true,
+          });
+          assert.equal(output, '<img>');
+          assert.ok(output instanceof StringWrapper);
+        }
+      );
+    }
+  );
+
+  QUnit.test(
+    'sanity check: supports configuring the policy suffix via an attribute',
+    function (assert) {
+      let policyCreated;
+
+      loadDOMPurifyWithSanityCheck(
         assert,
         true,
         function setup(window) {
@@ -109,76 +142,56 @@ module.exports = function (JSDOM) {
     }
   );
 
-  QUnit.test(
-    'supports TRUSTED_TYPES_POLICY via sanitize()',
-    function (assert) {
-      loadDOMPurify(
-        assert,
-        false,
-        function setup(window) {
-          window.trustedTypes = {
-            createPolicy(name, rules) {
-              policyCreated = name;
-              return {
-                createHTML(s) {
-                  return new StringWrapper(rules.createHTML(s));
-                },
-              };
+  QUnit.test('supports TRUSTED_TYPES_POLICY via sanitize()', function (assert) {
+    loadDOMPurify(assert, false, undefined, undefined, function onload(window) {
+      let validationError;
+      try {
+        window.DOMPurify.sanitize('<img>', {
+          TRUSTED_TYPES_POLICY: {
+            createScript(s) {
+              return s;
             },
-          };
-        },
-        function onload(window) {
-          assert.equal(policyCreated, 'dompurify');
-          var validationError;
-          try {
-            window.DOMPurify.sanitize('<img>', {
-              TRUSTED_TYPES_POLICY: {
-                createScript(s) {
-                  return s;
-                },
-              },
-            });
-          } catch (e) {
-            validationError = e;
-          }
-          assert.equal(
-            validationError.message,
-            'TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.'
-          );
-
-          try {
-            window.DOMPurify.sanitize('<img>', {
-              TRUSTED_TYPES_POLICY: {
-                createHTML(s) {
-                  return s;
-                },
-              },
-            });
-          } catch (e) {
-            validationError = e;
-          }
-          assert.equal(
-            validationError.message,
-            'TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.'
-          );
-
-          var suppliedPolicyCallCount = 0;
-          window.DOMPurify.sanitize('<img>', {
-            TRUSTED_TYPES_POLICY: {
-              createHTML(s) {
-                suppliedPolicyCallCount += 1;
-                return new StringWrapper(s);
-              },
-              createScriptURL(s) {
-                return new StringWrapper(s);
-              },
-            },
-          });
-          assert.equal(suppliedPolicyCallCount, 2);
-        }
+          },
+        });
+      } catch (e) {
+        validationError = e;
+      }
+      assert.equal(
+        validationError.message,
+        'TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.'
       );
-    }
-  );
+
+      try {
+        window.DOMPurify.sanitize('<img>', {
+          TRUSTED_TYPES_POLICY: {
+            createHTML(s) {
+              return s;
+            },
+          },
+        });
+      } catch (e) {
+        validationError = e;
+      }
+      assert.equal(
+        validationError.message,
+        'TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.'
+      );
+
+      let suppliedPolicyCallCount = 0;
+      window.DOMPurify.sanitize('<img>', {
+        TRUSTED_TYPES_POLICY: {
+          createHTML(s) {
+            suppliedPolicyCallCount += 1;
+            return new StringWrapper(s);
+          },
+          createScriptURL(s) {
+            return new StringWrapper(s);
+          },
+        },
+      });
+      assert.equal(suppliedPolicyCallCount, 2);
+    });
+  });
 
   QUnit.test(
     'supports TRUSTED_TYPES_POLICY via setConfig() on a new instance',
@@ -186,24 +199,13 @@ module.exports = function (JSDOM) {
       loadDOMPurify(
         assert,
         false,
-        function setup(window) {
-          window.trustedTypes = {
-            createPolicy(name, rules) {
-              policyCreated = name;
-              return {
-                createHTML(s) {
-                  return new StringWrapper(rules.createHTML(s));
-                },
-              };
-            },
-          };
-        },
+        undefined,
+        undefined,
         function onload(window) {
-          assert.equal(policyCreated, 'dompurify');
-          var purify = window.DOMPurify();
+          let purify = window.DOMPurify();
           assert.notEqual(purify, window.DOMPurify);
-          
-          var suppliedPolicyCallCount = 0;
+
+          let suppliedPolicyCallCount = 0;
           purify.setConfig({
             TRUSTED_TYPES_POLICY: {
               createHTML(s) {
@@ -218,6 +220,54 @@ module.exports = function (JSDOM) {
 
           purify.sanitize('<img>');
           assert.equal(suppliedPolicyCallCount, 2);
+        }
+      );
+    }
+  );
+
+  QUnit.test(
+    'internal TrustedTypes policy is not created when TRUSTED_TYPES_POLICY option is provided',
+    function (assert) {
+      const createdPolicies = [];
+      loadDOMPurify(
+        assert,
+        false,
+        function setup(window) {
+          window.trustedTypes = {
+            createPolicy(name, rules) {
+              createdPolicies.push(name);
+              return {
+                createHTML(s) {
+                  return new StringWrapper(rules.createHTML(s));
+                },
+                createScriptURL(s) {
+                  return new StringWrapper(rules.createScriptURL(s));
+                },
+              };
+            },
+          };
+        },
+        undefined,
+        function onload(window) {
+          assert.equal(createdPolicies.length, 0);
+          const testPolicy = window.trustedTypes.createPolicy('test', {
+            createHTML(s) {
+              return s;
+            },
+            createScriptURL(s) {
+              return s;
+            },
+          });
+          window.DOMPurify.sanitize('<img />', {
+            TRUSTED_TYPES_POLICY: testPolicy,
+          });
+          assert.equal(createdPolicies.length, 1);
+          assert.equal(createdPolicies[0], 'test');
+          // Subsequent calls to `sanitize` even without supplying a configuration
+          // should recognize previously set Trusted Types policy.
+          window.DOMPurify.sanitize('<img />');
+          assert.equal(createdPolicies.length, 1);
+          assert.equal(createdPolicies[0], 'test');
         }
       );
     }

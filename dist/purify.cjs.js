@@ -202,13 +202,13 @@ const getGlobal = () => typeof window === 'undefined' ? null : window;
  * Creates a no-op policy for internal use only.
  * Don't export this function outside this module!
  * @param {?TrustedTypePolicyFactory} trustedTypes The policy factory.
- * @param {Document} document The document object (to determine policy name suffix)
+ * @param {HTMLScriptElement} purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
  * @return {?TrustedTypePolicy} The policy created (or null, if Trusted Types
- * are not supported).
+ * are not supported or creating the policy failed).
  */
 
 
-const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, document) {
+const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, purifyHostElement) {
   if (typeof trustedTypes !== 'object' || typeof trustedTypes.createPolicy !== 'function') {
     return null;
   } // Allow the callers to control the unique policy name
@@ -219,8 +219,8 @@ const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedType
   let suffix = null;
   const ATTR_NAME = 'data-tt-policy-suffix';
 
-  if (document.currentScript && document.currentScript.hasAttribute(ATTR_NAME)) {
-    suffix = document.currentScript.getAttribute(ATTR_NAME);
+  if (purifyHostElement && purifyHostElement.hasAttribute(ATTR_NAME)) {
+    suffix = purifyHostElement.getAttribute(ATTR_NAME);
   }
 
   const policyName = 'dompurify' + (suffix ? '#' + suffix : '');
@@ -271,6 +271,7 @@ function createDOMPurify() {
   }
 
   const originalDocument = window.document;
+  const currentScript = originalDocument.currentScript;
   let {
     document
   } = window;
@@ -304,9 +305,8 @@ function createDOMPurify() {
     }
   }
 
-  let trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, originalDocument);
-
-  let emptyHTML = trustedTypesPolicy ? trustedTypesPolicy.createHTML('') : '';
+  let trustedTypesPolicy;
+  let emptyHTML = '';
   const {
     implementation,
     createNodeIterator,
@@ -680,9 +680,19 @@ function createDOMPurify() {
       } // Overwrite existing TrustedTypes policy.
 
 
-      trustedTypesPolicy = cfg.TRUSTED_TYPES_POLICY; // Sign local variables in case using the internal policy did not succeed.
+      trustedTypesPolicy = cfg.TRUSTED_TYPES_POLICY; // Sign local variables required by `sanitize`.
 
       emptyHTML = trustedTypesPolicy.createHTML('');
+    } else {
+      // Uninitialized policy, attempt to initialize the internal dompurify policy.
+      if (trustedTypesPolicy === undefined) {
+        trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
+      } // If creating the internal policy succeeded sign internal variables.
+
+
+      if (trustedTypesPolicy !== null && typeof emptyHTML === 'string') {
+        emptyHTML = trustedTypesPolicy.createHTML('');
+      }
     } // Prevent further manipulation of configuration.
     // Not available in IE8, Safari 5, etc.
 
