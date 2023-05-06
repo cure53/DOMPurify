@@ -6,7 +6,7 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.0.2**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.0.3**.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
@@ -291,6 +291,15 @@ var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
 var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
 
+// use a provided Trusted Types policy
+var clean = DOMPurify.sanitize(dirty, {
+    // supplied policy must define createHTML and createScriptURL
+    TRUSTED_TYPES_POLICY: trustedTypes.createPolicy({
+        createHTML(s) { return s},
+        createScriptURL(s) { return s},
+    }
+});
+
 /**
  * Influence how we sanitize
  */
@@ -301,8 +310,8 @@ var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 
 // enforce strict DOM Clobbering protection via namespace isolation (default is false)
-// when enabled, isolates the namespace of named properties (i.e., `id` and `name` attributes) 
-// from JS variables by prefixing them with the string `user-content-` 
+// when enabled, isolates the namespace of named properties (i.e., `id` and `name` attributes)
+// from JS variables by prefixing them with the string `user-content-`
 var clean = DOMPurify.sanitize(dirty, {SANITIZE_NAMED_PROPS: true});
 
 // keep an element's content when the element is removed (default is true)
