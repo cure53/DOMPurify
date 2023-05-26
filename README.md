@@ -50,6 +50,14 @@ import * as DOMPurify from 'dompurify';
 let clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
 
+Or maybe this, if you love ECMA 6 version import:
+
+```js
+import { sanitize } from 'dompurify';
+
+let clean = DOMPurify.sanitize('<b>hello there</b>');
+```
+
 The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you.
 Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML, which might be a very common use-case, you can easily set that up as well:
 
