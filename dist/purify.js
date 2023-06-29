@@ -1068,10 +1068,10 @@
 
         return true;
       }
-      /* Make sure that older browsers don't get noscript mXSS */
+      /* Make sure that older browsers don't get fallback-tag mXSS */
 
 
-      if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
+      if ((tagName === 'noscript' || tagName === 'noembed' || tagName === 'noframes') && regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)) {
         _forceRemove(currentNode);
 
         return true;
@@ -1489,7 +1489,7 @@
           returnNode = body;
         }
 
-        if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmod) {
+        if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmode) {
           /*
             AdoptNode() is not used because internal state is not reset
             (e.g. the past names map of a HTMLFormElement), this is safe

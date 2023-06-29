@@ -1056,10 +1056,12 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
-    /* Make sure that older browsers don't get noscript mXSS */
+    /* Make sure that older browsers don't get fallback-tag mXSS */
     if (
-      (tagName === 'noscript' || tagName === 'noembed') &&
-      regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)
+      (tagName === 'noscript' ||
+        tagName === 'noembed' ||
+        tagName === 'noframes') &&
+      regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)
     ) {
       _forceRemove(currentNode);
       return true;
