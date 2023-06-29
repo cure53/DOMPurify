@@ -156,7 +156,7 @@ function createDOMPurify(window = getGlobal()) {
   DOMPurify.isSupported =
     typeof getParentNode === 'function' &&
     implementation &&
-    typeof implementation.createHTMLDocument !== 'undefined' &&
+    implementation.createHTMLDocument !== undefined &&
     documentMode !== 9;
 
   const {
@@ -1051,9 +1051,12 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
+    /* Make sure that older browsers don't get fallback-tag mXSS */
     if (
-      (tagName === 'noscript' || tagName === 'noembed') &&
-      regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)
+      (tagName === 'noscript' ||
+        tagName === 'noembed' ||
+        tagName === 'noframes') &&
+      regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)
     ) {
       _forceRemove(currentNode);
       return true;
@@ -1165,12 +1168,11 @@ function createDOMPurify(window = getGlobal()) {
     ) {
       // This attribute is safe
       /* Check for binary attributes */
-      // eslint-disable-next-line no-negated-condition
-    } else if (!value) {
+    } else if (value) {
+      return false;
+    } else {
       // Binary attributes are safe at this point
       /* Anything else, presume unsafe, do not add it back */
-    } else {
-      return false;
     }
 
     return true;
@@ -1286,14 +1288,19 @@ function createDOMPurify(window = getGlobal()) {
           /* Namespaces are not yet supported, see https://bugs.chromium.org/p/chromium/issues/detail?id=1305293 */
         } else {
           switch (trustedTypes.getAttributeType(lcTag, lcName)) {
-            case 'TrustedHTML':
+            case 'TrustedHTML': {
               value = trustedTypesPolicy.createHTML(value);
               break;
-            case 'TrustedScriptURL':
+            }
+
+            case 'TrustedScriptURL': {
               value = trustedTypesPolicy.createScriptURL(value);
               break;
-            default:
+            }
+
+            default: {
               break;
+            }
           }
         }
       }
@@ -1373,14 +1380,13 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Stringify, in case dirty is an object */
     if (typeof dirty !== 'string' && !_isNode(dirty)) {
-      // eslint-disable-next-line no-negated-condition
-      if (typeof dirty.toString !== 'function') {
-        throw typeErrorCreate('toString is not a function');
-      } else {
+      if (typeof dirty.toString === 'function') {
         dirty = dirty.toString();
         if (typeof dirty !== 'string') {
           throw typeErrorCreate('dirty is not a string, aborting');
         }
+      } else {
+        throw typeErrorCreate('toString is not a function');
       }
     }
 

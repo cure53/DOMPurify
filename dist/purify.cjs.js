@@ -153,7 +153,9 @@ function unconstruct(func) {
 /* Add properties to a lookup table */
 
 function addToSet(set, array, transformCaseFunc) {
-  transformCaseFunc = transformCaseFunc ? transformCaseFunc : stringToLowerCase;
+  var _transformCaseFunc;
+
+  transformCaseFunc = (_transformCaseFunc = transformCaseFunc) !== null && _transformCaseFunc !== void 0 ? _transformCaseFunc : stringToLowerCase;
 
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
@@ -390,7 +392,7 @@ function createDOMPurify() {
    * Expose whether this browser supports running the full DOMPurify.
    */
 
-  DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && typeof implementation.createHTMLDocument !== 'undefined' && documentMode !== 9;
+  DOMPurify.isSupported = typeof getParentNode === 'function' && implementation && implementation.createHTMLDocument !== undefined && documentMode !== 9;
   var MUSTACHE_EXPR$1 = MUSTACHE_EXPR,
       ERB_EXPR$1 = ERB_EXPR,
       TMPLIT_EXPR$1 = TMPLIT_EXPR,
@@ -1124,8 +1126,10 @@ function createDOMPurify() {
 
       return true;
     }
+    /* Make sure that older browsers don't get fallback-tag mXSS */
 
-    if ((tagName === 'noscript' || tagName === 'noembed') && regExpTest(/<\/no(script|embed)/i, currentNode.innerHTML)) {
+
+    if ((tagName === 'noscript' || tagName === 'noembed' || tagName === 'noframes') && regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)) {
       _forceRemove(currentNode);
 
       return true;
@@ -1187,9 +1191,9 @@ function createDOMPurify() {
       }
       /* Check value is safe. First, is attr inert? If so, is safe */
 
-    } else if (URI_SAFE_ATTRIBUTES[lcName]) ; else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE$1, ''))) ; else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]) ; else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA$1, stringReplace(value, ATTR_WHITESPACE$1, ''))) ; else if (!value) ; else {
+    } else if (URI_SAFE_ATTRIBUTES[lcName]) ; else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE$1, ''))) ; else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]) ; else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA$1, stringReplace(value, ATTR_WHITESPACE$1, ''))) ; else if (value) {
       return false;
-    }
+    } else ;
 
     return true;
   };
@@ -1316,12 +1320,16 @@ function createDOMPurify() {
         if (namespaceURI) ; else {
           switch (trustedTypes.getAttributeType(lcTag, lcName)) {
             case 'TrustedHTML':
-              value = trustedTypesPolicy.createHTML(value);
-              break;
+              {
+                value = trustedTypesPolicy.createHTML(value);
+                break;
+              }
 
             case 'TrustedScriptURL':
-              value = trustedTypesPolicy.createScriptURL(value);
-              break;
+              {
+                value = trustedTypesPolicy.createScriptURL(value);
+                break;
+              }
           }
         }
       }
@@ -1415,15 +1423,14 @@ function createDOMPurify() {
 
 
     if (typeof dirty !== 'string' && !_isNode(dirty)) {
-      // eslint-disable-next-line no-negated-condition
-      if (typeof dirty.toString !== 'function') {
-        throw typeErrorCreate('toString is not a function');
-      } else {
+      if (typeof dirty.toString === 'function') {
         dirty = dirty.toString();
 
         if (typeof dirty !== 'string') {
           throw typeErrorCreate('dirty is not a string, aborting');
         }
+      } else {
+        throw typeErrorCreate('toString is not a function');
       }
     }
     /* Check we can run. Otherwise fall back or ignore */

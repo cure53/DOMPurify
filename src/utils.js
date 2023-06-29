@@ -60,7 +60,7 @@ export function unconstruct(func) {
 
 /* Add properties to a lookup table */
 export function addToSet(set, array, transformCaseFunc) {
-  transformCaseFunc = transformCaseFunc ? transformCaseFunc : stringToLowerCase;
+  transformCaseFunc = transformCaseFunc ?? stringToLowerCase;
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
     // independent of any properties defined on Object.prototype.
