@@ -1,4 +1,4 @@
-/*! @license DOMPurify 2.4.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.6/LICENSE */
+/*! @license DOMPurify 2.4.7 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.4.7/LICENSE */
 
 'use strict';
 
@@ -326,7 +326,7 @@ function createDOMPurify() {
    */
 
 
-  DOMPurify.version = '2.4.6';
+  DOMPurify.version = '2.4.7';
   /**
    * Array of elements that DOMPurify removed during sanitation.
    * Empty if nothing was removed.
