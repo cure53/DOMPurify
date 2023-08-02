@@ -514,6 +514,12 @@
       if (CONFIG && CONFIG === cfg) {
         return;
       }
+      /* Shield configuration object from tampering */
+
+
+      if (!cfg || typeof cfg !== 'object') {
+        cfg = {};
+      }
       /* Shield configuration object from prototype pollution */
 
 
