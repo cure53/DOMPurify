@@ -130,7 +130,7 @@ function createDOMPurify(window = getGlobal()) {
     }
   }
 
-  let trustedTypesPolicy = null;
+  let trustedTypesPolicy;
   let emptyHTML = '';
 
   const {
@@ -372,10 +372,10 @@ function createDOMPurify(window = getGlobal()) {
   );
 
   /* Parsing of strict XHTML documents */
-  let PARSER_MEDIA_TYPE = null;
+  let PARSER_MEDIA_TYPE;
   const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
   const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
-  let transformCaseFunc = null;
+  let transformCaseFunc;
 
   /* Keep a reference to config to pass to hooks */
   let CONFIG = null;
@@ -1573,9 +1573,9 @@ function createDOMPurify(window = getGlobal()) {
    * Uses last set config, if any. Otherwise, uses config defaults.
    * isValidAttribute
    *
-   * @param  {string} tag Tag name of containing element.
-   * @param  {string} attr Attribute name.
-   * @param  {string} value Attribute value.
+   * @param  {String} tag Tag name of containing element.
+   * @param  {String} attr Attribute name.
+   * @param  {String} value Attribute value.
    * @return {Boolean} Returns true if `value` is valid. Otherwise, returns false.
    */
   DOMPurify.isValidAttribute = function (tag, attr, value) {
