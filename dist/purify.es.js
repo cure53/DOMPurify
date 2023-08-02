@@ -195,7 +195,9 @@ var EXPRESSIONS = /*#__PURE__*/Object.freeze({
   DOCTYPE_NAME: DOCTYPE_NAME
 });
 
-const getGlobal = () => typeof window === 'undefined' ? null : window;
+const getGlobal = function getGlobal() {
+  return typeof window === 'undefined' ? null : window;
+};
 /**
  * Creates a no-op policy for internal use only.
  * Don't export this function outside this module!
@@ -268,11 +270,11 @@ function createDOMPurify() {
     return DOMPurify;
   }
 
-  const originalDocument = window.document;
-  const currentScript = originalDocument.currentScript;
   let {
     document
   } = window;
+  const originalDocument = document;
+  const currentScript = originalDocument.currentScript;
   const {
     DocumentFragment,
     HTMLTemplateElement,
@@ -303,7 +305,7 @@ function createDOMPurify() {
     }
   }
 
-  let trustedTypesPolicy;
+  let trustedTypesPolicy = null;
   let emptyHTML = '';
   const {
     implementation,
@@ -476,10 +478,10 @@ function createDOMPurify() {
   const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
   /* Parsing of strict XHTML documents */
 
-  let PARSER_MEDIA_TYPE;
+  let PARSER_MEDIA_TYPE = null;
   const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
   const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
-  let transformCaseFunc;
+  let transformCaseFunc = null;
   /* Keep a reference to config to pass to hooks */
 
   let CONFIG = null;
@@ -500,15 +502,11 @@ function createDOMPurify() {
   // eslint-disable-next-line complexity
 
 
-  const _parseConfig = function _parseConfig(cfg) {
+  const _parseConfig = function _parseConfig() {
+    let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
     if (CONFIG && CONFIG === cfg) {
       return;
-    }
-    /* Shield configuration object from tampering */
-
-
-    if (!cfg || typeof cfg !== 'object') {
-      cfg = {};
     }
     /* Shield configuration object from prototype pollution */
 
@@ -876,8 +874,8 @@ function createDOMPurify() {
 
   const _initDocument = function _initDocument(dirty) {
     /* Create a HTML document */
-    let doc;
-    let leadingWhitespace;
+    let doc = null;
+    let leadingWhitespace = null;
 
     if (FORCE_BODY) {
       dirty = '<remove></remove>' + dirty;
@@ -955,7 +953,7 @@ function createDOMPurify() {
   /**
    * _isNode
    *
-   * @param  {Node} obj object to check whether it's a DOM node
+   * @param  {Node} object object to check whether it's a DOM node
    * @return {Boolean} true is object is a DOM node
    */
 
@@ -1031,8 +1029,13 @@ function createDOMPurify() {
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Check if we have a custom element to handle */
       if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
-        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) return false;
-        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) return false;
+        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) {
+          return false;
+        }
+
+        if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) {
+          return false;
+        }
       }
       /* Keep content except for bad-listed elements */
 
@@ -1157,10 +1160,10 @@ function createDOMPurify() {
 
 
   const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
-    let attr;
-    let value;
-    let lcName;
-    let l;
+    let attr = null;
+    let value = null;
+    let lcName = null;
+    let l = null;
     /* Execute a hook if present */
 
     _executeHook('beforeSanitizeAttributes', currentNode, null);
@@ -1187,9 +1190,10 @@ function createDOMPurify() {
       attr = attributes[l];
       const {
         name,
-        namespaceURI
+        namespaceURI,
+        value: attrValue
       } = attr;
-      value = name === 'value' ? attr.value : stringTrim(attr.value);
+      value = name === 'value' ? attrValue : stringTrim(attrValue);
       lcName = transformCaseFunc(name);
       /* Execute a hook if present */
 
@@ -1299,7 +1303,7 @@ function createDOMPurify() {
 
 
   const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
-    let shadowNode;
+    let shadowNode = null;
 
     const shadowIterator = _createIterator(fragment);
     /* Execute a hook if present */
@@ -1337,17 +1341,17 @@ function createDOMPurify() {
    * Public method providing core sanitation functionality
    *
    * @param {String|Node} dirty string or DOM node
-   * @param {Object} configuration object
+   * @param {Object} cfg object
    */
   // eslint-disable-next-line complexity
 
 
   DOMPurify.sanitize = function (dirty) {
     let cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    let body;
-    let importedNode;
-    let currentNode;
-    let returnNode;
+    let body = null;
+    let importedNode = null;
+    let currentNode = null;
+    let returnNode = null;
     /* Make sure we have a string to sanitize.
       DO NOT return early, as this will return the wrong type if
       the user has requested a DOM object rather than a string */
@@ -1522,7 +1526,9 @@ function createDOMPurify() {
    */
 
 
-  DOMPurify.setConfig = function (cfg) {
+  DOMPurify.setConfig = function () {
+    let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
     _parseConfig(cfg);
 
     SET_CONFIG = true;
