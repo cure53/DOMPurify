@@ -18,6 +18,7 @@ import {
   regExpTest,
   typeErrorCreate,
   lookupGetter,
+  create,
 } from './utils.js';
 
 const getGlobal = function () {
@@ -195,7 +196,7 @@ function createDOMPurify(window = getGlobal()) {
    * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
    */
   let CUSTOM_ELEMENT_HANDLING = Object.seal(
-    Object.create(null, {
+    create(null, {
       tagNameCheck: {
         writable: true,
         configurable: false,
@@ -665,7 +666,7 @@ function createDOMPurify(window = getGlobal()) {
   addToSet(ALL_MATHML_TAGS, TAGS.mathMlDisallowed);
 
   /**
-   *
+   * _checkValidNamespace
    *
    * @param  {Element} element a DOM element whose namespace is being checked
    * @returns {boolean} Return false if the element has a

@@ -9,12 +9,6 @@ const {
 let { freeze, seal, create } = Object; // eslint-disable-line import/no-mutable-exports
 let { apply, construct } = typeof Reflect !== 'undefined' && Reflect;
 
-if (!apply) {
-  apply = function (fun, thisValue, args) {
-    return fun.apply(thisValue, args);
-  };
-}
-
 if (!freeze) {
   freeze = function (x) {
     return x;
@@ -24,6 +18,12 @@ if (!freeze) {
 if (!seal) {
   seal = function (x) {
     return x;
+  };
+}
+
+if (!apply) {
+  apply = function (fun, thisValue, args) {
+    return fun.apply(thisValue, args);
   };
 }
 
@@ -50,17 +50,35 @@ const regExpTest = unapply(RegExp.prototype.test);
 
 const typeErrorCreate = unconstruct(TypeError);
 
-export function unapply(func) {
+/**
+ * Creates a new function that calls the given function with a specified thisArg and arguments.
+ *
+ * @param {Function} func - The function to be wrapped and called.
+ * @returns {Function} A new function that applies the original function with provided thisArg and arguments.
+ */
+function unapply(func) {
   return (thisArg, ...args) => apply(func, thisArg, args);
 }
 
-export function unconstruct(func) {
+/**
+ * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
+ *
+ * @param {Function} func - The constructor function to be wrapped and called.
+ * @returns {Function} A new function that constructs an instance of the original constructor function with provided arguments.
+ */
+function unconstruct(func) {
   return (...args) => construct(func, args);
 }
 
-/* Add properties to a lookup table */
-export function addToSet(set, array, transformCaseFunc) {
-  transformCaseFunc = transformCaseFunc ?? stringToLowerCase;
+/**
+ * Add properties to a lookup table
+ *
+ * @param {Object} set - The set to which elements will be added.
+ * @param {Array} array - The array containing elements to be added to the set.
+ * @param {Function} transformCaseFunc - An optional function to transform the case of each element before adding to the set.
+ * @returns {Object} The modified set with added elements.
+ */
+function addToSet(set, array, transformCaseFunc = stringToLowerCase) {
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
     // independent of any properties defined on Object.prototype.
@@ -89,7 +107,12 @@ export function addToSet(set, array, transformCaseFunc) {
   return set;
 }
 
-/* Shallow clone an object */
+/**
+ * Shallow clone an object
+ *
+ * @param {Object} object - The object to be cloned.
+ * @returns {Object} A new object that copies the original.
+ */
 export function clone(object) {
   const newObject = create(null);
 
@@ -100,11 +123,17 @@ export function clone(object) {
   return newObject;
 }
 
-/* This method automatically checks if the prop is function
- * or getter and behaves accordingly. */
+/**
+ * This method automatically checks if the prop is function or getter and behaves accordingly.
+ *
+ * @param {Object} object - The object to look up the getter function in its prototype chain.
+ * @param {String} prop - The property name for which to find the getter function.
+ * @returns {Function} The getter function found in the prototype chain or a fallback function.
+ */
 function lookupGetter(object, prop) {
   while (object !== null) {
     const desc = getOwnPropertyDescriptor(object, prop);
+
     if (desc) {
       if (desc.get) {
         return unapply(desc.get);
@@ -141,6 +170,7 @@ export {
   isFrozen,
   setPrototypeOf,
   seal,
+  create,
   // RegExp
   regExpTest,
   // String
@@ -154,4 +184,8 @@ export {
   typeErrorCreate,
   // Other
   lookupGetter,
+  addToSet,
+  // Reflect
+  unapply,
+  unconstruct,
 };
