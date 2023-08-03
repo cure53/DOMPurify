@@ -20,7 +20,9 @@ import {
   lookupGetter,
 } from './utils.js';
 
-const getGlobal = () => (typeof window === 'undefined' ? null : window);
+const getGlobal = function () {
+  return typeof window === 'undefined' ? null : window;
+};
 
 /**
  * Creates a no-op policy for internal use only.
@@ -92,10 +94,10 @@ function createDOMPurify(window = getGlobal()) {
     return DOMPurify;
   }
 
-  const originalDocument = window.document;
-  const currentScript = originalDocument.currentScript;
-
   let { document } = window;
+
+  const originalDocument = document;
+  const currentScript = originalDocument.currentScript;
   const {
     DocumentFragment,
     HTMLTemplateElement,
@@ -393,7 +395,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {Object} cfg optional config literal
    */
   // eslint-disable-next-line complexity
-  const _parseConfig = function (cfg) {
+  const _parseConfig = function (cfg = {}) {
     if (CONFIG && CONFIG === cfg) {
       return;
     }
@@ -831,8 +833,8 @@ function createDOMPurify(window = getGlobal()) {
    */
   const _initDocument = function (dirty) {
     /* Create a HTML document */
-    let doc;
-    let leadingWhitespace;
+    let doc = null;
+    let leadingWhitespace = null;
 
     if (FORCE_BODY) {
       dirty = '<remove></remove>' + dirty;
@@ -939,7 +941,7 @@ function createDOMPurify(window = getGlobal()) {
   /**
    * _isNode
    *
-   * @param  {Node} obj object to check whether it's a DOM node
+   * @param  {Node} object object to check whether it's a DOM node
    * @return {Boolean} true is object is a DOM node
    */
   const _isNode = function (object) {
@@ -1020,13 +1022,16 @@ function createDOMPurify(window = getGlobal()) {
         if (
           CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
           regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)
-        )
+        ) {
           return false;
+        }
+
         if (
           CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
           CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)
-        )
+        ) {
           return false;
+        }
       }
 
       /* Keep content except for bad-listed elements */
@@ -1204,10 +1209,10 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {Node} currentNode to sanitize
    */
   const _sanitizeAttributes = function (currentNode) {
-    let attr;
-    let value;
-    let lcName;
-    let l;
+    let attr = null;
+    let value = null;
+    let lcName = null;
+    let l = null;
     /* Execute a hook if present */
     _executeHook('beforeSanitizeAttributes', currentNode, null);
 
@@ -1229,8 +1234,8 @@ function createDOMPurify(window = getGlobal()) {
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
       attr = attributes[l];
-      const { name, namespaceURI } = attr;
-      value = name === 'value' ? attr.value : stringTrim(attr.value);
+      const { name, namespaceURI, value: attrValue } = attr;
+      value = name === 'value' ? attrValue : stringTrim(attrValue);
       lcName = transformCaseFunc(name);
 
       /* Execute a hook if present */
@@ -1333,7 +1338,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {DocumentFragment} fragment to iterate over recursively
    */
   const _sanitizeShadowDOM = function (fragment) {
-    let shadowNode;
+    let shadowNode = null;
     const shadowIterator = _createIterator(fragment);
 
     /* Execute a hook if present */
@@ -1366,14 +1371,14 @@ function createDOMPurify(window = getGlobal()) {
    * Public method providing core sanitation functionality
    *
    * @param {String|Node} dirty string or DOM node
-   * @param {Object} configuration object
+   * @param {Object} cfg object
    */
   // eslint-disable-next-line complexity
   DOMPurify.sanitize = function (dirty, cfg = {}) {
-    let body;
-    let importedNode;
-    let currentNode;
-    let returnNode;
+    let body = null;
+    let importedNode = null;
+    let currentNode = null;
+    let returnNode = null;
     /* Make sure we have a string to sanitize.
       DO NOT return early, as this will return the wrong type if
       the user has requested a DOM object rather than a string */
@@ -1548,7 +1553,7 @@ function createDOMPurify(window = getGlobal()) {
    *
    * @param {Object} cfg configuration object
    */
-  DOMPurify.setConfig = function (cfg) {
+  DOMPurify.setConfig = function (cfg = {}) {
     _parseConfig(cfg);
     SET_CONFIG = true;
   };
@@ -1568,9 +1573,9 @@ function createDOMPurify(window = getGlobal()) {
    * Uses last set config, if any. Otherwise, uses config defaults.
    * isValidAttribute
    *
-   * @param  {string} tag Tag name of containing element.
-   * @param  {string} attr Attribute name.
-   * @param  {string} value Attribute value.
+   * @param  {String} tag Tag name of containing element.
+   * @param  {String} attr Attribute name.
+   * @param  {String} value Attribute value.
    * @return {Boolean} Returns true if `value` is valid. Otherwise, returns false.
    */
   DOMPurify.isValidAttribute = function (tag, attr, value) {
