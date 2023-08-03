@@ -63,7 +63,7 @@
    * Creates a new function that calls the given function with a specified thisArg and arguments.
    *
    * @param {Function} func - The function to be wrapped and called.
-   * @returns {Function} A new function that applies the original function with provided thisArg and arguments.
+   * @returns {Function} A new function that calls the given function with a specified thisArg and arguments.
    */
 
   function unapply(func) {
@@ -79,7 +79,7 @@
    * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
    *
    * @param {Function} func - The constructor function to be wrapped and called.
-   * @returns {Function} A new function that constructs an instance of the original constructor function with provided arguments.
+   * @returns {Function} A new function that constructs an instance of the given constructor function with the provided arguments.
    */
 
 
