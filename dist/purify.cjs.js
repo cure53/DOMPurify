@@ -20,12 +20,6 @@ let {
   construct
 } = typeof Reflect !== 'undefined' && Reflect;
 
-if (!apply) {
-  apply = function apply(fun, thisValue, args) {
-    return fun.apply(thisValue, args);
-  };
-}
-
 if (!freeze) {
   freeze = function freeze(x) {
     return x;
@@ -35,6 +29,12 @@ if (!freeze) {
 if (!seal) {
   seal = function seal(x) {
     return x;
+  };
+}
+
+if (!apply) {
+  apply = function apply(fun, thisValue, args) {
+    return fun.apply(thisValue, args);
   };
 }
 
@@ -55,6 +55,13 @@ const stringIndexOf = unapply(String.prototype.indexOf);
 const stringTrim = unapply(String.prototype.trim);
 const regExpTest = unapply(RegExp.prototype.test);
 const typeErrorCreate = unconstruct(TypeError);
+/**
+ * Creates a new function that calls the given function with a specified thisArg and arguments.
+ *
+ * @param {Function} func - The function to be wrapped and called.
+ * @returns {Function} A new function that calls the given function with a specified thisArg and arguments.
+ */
+
 function unapply(func) {
   return function (thisArg) {
     for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -64,6 +71,14 @@ function unapply(func) {
     return apply(func, thisArg, args);
   };
 }
+/**
+ * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
+ *
+ * @param {Function} func - The constructor function to be wrapped and called.
+ * @returns {Function} A new function that constructs an instance of the given constructor function with the provided arguments.
+ */
+
+
 function unconstruct(func) {
   return function () {
     for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
@@ -73,12 +88,18 @@ function unconstruct(func) {
     return construct(func, args);
   };
 }
-/* Add properties to a lookup table */
+/**
+ * Add properties to a lookup table
+ *
+ * @param {Object} set - The set to which elements will be added.
+ * @param {Array} array - The array containing elements to be added to the set.
+ * @param {Function} transformCaseFunc - An optional function to transform the case of each element before adding to the set.
+ * @returns {Object} The modified set with added elements.
+ */
 
-function addToSet(set, array, transformCaseFunc) {
-  var _transformCaseFunc;
 
-  transformCaseFunc = (_transformCaseFunc = transformCaseFunc) !== null && _transformCaseFunc !== void 0 ? _transformCaseFunc : stringToLowerCase;
+function addToSet(set, array) {
+  let transformCaseFunc = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : stringToLowerCase;
 
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
@@ -110,7 +131,13 @@ function addToSet(set, array, transformCaseFunc) {
 
   return set;
 }
-/* Shallow clone an object */
+/**
+ * Shallow clone an object
+ *
+ * @param {Object} object - The object to be cloned.
+ * @returns {Object} A new object that copies the original.
+ */
+
 
 function clone(object) {
   const newObject = create(null);
@@ -121,8 +148,13 @@ function clone(object) {
 
   return newObject;
 }
-/* This method automatically checks if the prop is function
- * or getter and behaves accordingly. */
+/**
+ * This method automatically checks if the prop is function or getter and behaves accordingly.
+ *
+ * @param {Object} object - The object to look up the getter function in its prototype chain.
+ * @param {String} prop - The property name for which to find the getter function.
+ * @returns {Function} The getter function found in the prototype chain or a fallback function.
+ */
 
 function lookupGetter(object, prop) {
   while (object !== null) {
@@ -356,7 +388,7 @@ function createDOMPurify() {
    * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
    */
 
-  let CUSTOM_ELEMENT_HANDLING = Object.seal(Object.create(null, {
+  let CUSTOM_ELEMENT_HANDLING = Object.seal(create(null, {
     tagNameCheck: {
       writable: true,
       configurable: false,
@@ -725,8 +757,6 @@ function createDOMPurify() {
   const ALL_MATHML_TAGS = addToSet({}, mathMl$1);
   addToSet(ALL_MATHML_TAGS, mathMlDisallowed);
   /**
-   *
-   *
    * @param  {Element} element a DOM element whose namespace is being checked
    * @returns {boolean} Return false if the element has a
    *  namespace that a spec-compliant parser would never
@@ -1148,6 +1178,7 @@ function createDOMPurify() {
    * _basicCustomElementCheck
    * checks if at least one dash is included in tagName, and it's not the first char
    * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+   *
    * @param {string} tagName name of the tag of the node to sanitize
    */
 
@@ -1622,7 +1653,6 @@ function createDOMPurify() {
   /**
    * RemoveAllHooks
    * Public method to remove all DOMPurify hooks
-   *
    */
 
 

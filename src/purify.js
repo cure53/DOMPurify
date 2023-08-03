@@ -18,6 +18,7 @@ import {
   regExpTest,
   typeErrorCreate,
   lookupGetter,
+  create,
 } from './utils.js';
 
 const getGlobal = function () {
@@ -195,7 +196,7 @@ function createDOMPurify(window = getGlobal()) {
    * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
    */
   let CUSTOM_ELEMENT_HANDLING = Object.seal(
-    Object.create(null, {
+    create(null, {
       tagNameCheck: {
         writable: true,
         configurable: false,
@@ -665,8 +666,6 @@ function createDOMPurify(window = getGlobal()) {
   addToSet(ALL_MATHML_TAGS, TAGS.mathMlDisallowed);
 
   /**
-   *
-   *
    * @param  {Element} element a DOM element whose namespace is being checked
    * @returns {boolean} Return false if the element has a
    *  namespace that a spec-compliant parser would never
@@ -1192,6 +1191,7 @@ function createDOMPurify(window = getGlobal()) {
    * _basicCustomElementCheck
    * checks if at least one dash is included in tagName, and it's not the first char
    * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+   *
    * @param {string} tagName name of the tag of the node to sanitize
    */
   const _basicCustomElementTest = function (tagName) {
@@ -1634,7 +1634,6 @@ function createDOMPurify(window = getGlobal()) {
   /**
    * RemoveAllHooks
    * Public method to remove all DOMPurify hooks
-   *
    */
   DOMPurify.removeAllHooks = function () {
     hooks = {};
