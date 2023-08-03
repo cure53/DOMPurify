@@ -757,8 +757,6 @@ function createDOMPurify() {
   const ALL_MATHML_TAGS = addToSet({}, mathMl$1);
   addToSet(ALL_MATHML_TAGS, mathMlDisallowed);
   /**
-   * _checkValidNamespace
-   *
    * @param  {Element} element a DOM element whose namespace is being checked
    * @returns {boolean} Return false if the element has a
    *  namespace that a spec-compliant parser would never
@@ -1180,6 +1178,7 @@ function createDOMPurify() {
    * _basicCustomElementCheck
    * checks if at least one dash is included in tagName, and it's not the first char
    * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+   *
    * @param {string} tagName name of the tag of the node to sanitize
    */
 
@@ -1654,7 +1653,6 @@ function createDOMPurify() {
   /**
    * RemoveAllHooks
    * Public method to remove all DOMPurify hooks
-   *
    */
 
 
