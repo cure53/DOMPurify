@@ -512,10 +512,10 @@ function createDOMPurify() {
   const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
   /* Parsing of strict XHTML documents */
 
-  let PARSER_MEDIA_TYPE;
+  let PARSER_MEDIA_TYPE = null;
   const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
   const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
-  let transformCaseFunc;
+  let transformCaseFunc = null;
   /* Keep a reference to config to pass to hooks */
 
   let CONFIG = null;
@@ -989,15 +989,15 @@ function createDOMPurify() {
     return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
   };
   /**
-   * _isNode
+   * Checks whether the given object is a DOM node.
    *
    * @param  {Node} object object to check whether it's a DOM node
    * @return {Boolean} true is object is a DOM node
    */
 
 
-  const _isNode = function _isNode(object) {
-    return typeof Node === 'object' ? object instanceof Node : object && typeof object === 'object' && typeof object.nodeType === 'number' && typeof object.nodeName === 'string';
+  const _isDOMNode = function _isDOMNode(object) {
+    return object instanceof Node && object.nodeType === Node.ELEMENT_NODE;
   };
   /**
    * _executeHook
@@ -1056,7 +1056,7 @@ function createDOMPurify() {
     /* Detect mXSS attempts abusing namespace confusion */
 
 
-    if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+    if (currentNode.hasChildNodes() && !_isDOMNode(currentNode.firstElementChild) && (!_isDOMNode(currentNode.content) || !_isDOMNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
       _forceRemove(currentNode);
 
       return true;
@@ -1403,7 +1403,7 @@ function createDOMPurify() {
     /* Stringify, in case dirty is an object */
 
 
-    if (typeof dirty !== 'string' && !_isNode(dirty)) {
+    if (typeof dirty !== 'string' && !_isDOMNode(dirty)) {
       if (typeof dirty.toString === 'function') {
         dirty = dirty.toString();
 

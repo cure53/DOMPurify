@@ -373,10 +373,10 @@ function createDOMPurify(window = getGlobal()) {
   );
 
   /* Parsing of strict XHTML documents */
-  let PARSER_MEDIA_TYPE;
+  let PARSER_MEDIA_TYPE = null;
   const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
   const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
-  let transformCaseFunc;
+  let transformCaseFunc = null;
 
   /* Keep a reference to config to pass to hooks */
   let CONFIG = null;
@@ -938,18 +938,13 @@ function createDOMPurify(window = getGlobal()) {
   };
 
   /**
-   * _isNode
+   * Checks whether the given object is a DOM node.
    *
    * @param  {Node} object object to check whether it's a DOM node
    * @return {Boolean} true is object is a DOM node
    */
-  const _isNode = function (object) {
-    return typeof Node === 'object'
-      ? object instanceof Node
-      : object &&
-          typeof object === 'object' &&
-          typeof object.nodeType === 'number' &&
-          typeof object.nodeName === 'string';
+  const _isDOMNode = function (object) {
+    return object instanceof Node && object.nodeType === Node.ELEMENT_NODE;
   };
 
   /**
@@ -1004,9 +999,9 @@ function createDOMPurify(window = getGlobal()) {
     /* Detect mXSS attempts abusing namespace confusion */
     if (
       currentNode.hasChildNodes() &&
-      !_isNode(currentNode.firstElementChild) &&
-      (!_isNode(currentNode.content) ||
-        !_isNode(currentNode.content.firstElementChild)) &&
+      !_isDOMNode(currentNode.firstElementChild) &&
+      (!_isDOMNode(currentNode.content) ||
+        !_isDOMNode(currentNode.content.firstElementChild)) &&
       regExpTest(/<[/\w]/g, currentNode.innerHTML) &&
       regExpTest(/<[/\w]/g, currentNode.textContent)
     ) {
@@ -1388,7 +1383,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Stringify, in case dirty is an object */
-    if (typeof dirty !== 'string' && !_isNode(dirty)) {
+    if (typeof dirty !== 'string' && !_isDOMNode(dirty)) {
       if (typeof dirty.toString === 'function') {
         dirty = dirty.toString();
         if (typeof dirty !== 'string') {
