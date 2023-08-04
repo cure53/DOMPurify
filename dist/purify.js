@@ -1035,7 +1035,7 @@
 
 
     const _sanitizeElements = function _sanitizeElements(currentNode) {
-      let content;
+      let content = null;
       /* Execute a hook if present */
 
       _executeHook('beforeSanitizeElements', currentNode, null);

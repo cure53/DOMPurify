@@ -976,7 +976,7 @@ function createDOMPurify(window = getGlobal()) {
    * @return  {Boolean} true if node was killed, false if left alive
    */
   const _sanitizeElements = function (currentNode) {
-    let content;
+    let content = null;
 
     /* Execute a hook if present */
     _executeHook('beforeSanitizeElements', currentNode, null);
