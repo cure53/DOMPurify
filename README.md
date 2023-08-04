@@ -277,16 +277,16 @@ const clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps
 ### Influence the return-type
 ```js
 // return a DOM HTMLBodyElement instead of an HTML string (default is false)
-var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
+const clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
 
 // return a DOM DocumentFragment instead of an HTML string (default is false)
-var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
+const clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
 
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
-var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
+const clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
 
 // use a provided Trusted Types policy
-var clean = DOMPurify.sanitize(dirty, {
+const clean = DOMPurify.sanitize(dirty, {
     // supplied policy must define createHTML and createScriptURL
     TRUSTED_TYPES_POLICY: trustedTypes.createPolicy({
         createHTML(s) { return s},
