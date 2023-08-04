@@ -39,7 +39,7 @@ It's easy. Just include DOMPurify on your website.
 Afterwards you can sanitize strings by executing the following code:
 
 ```js
-let clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 Or maybe this, if you love working with Angular or alike:
@@ -47,14 +47,14 @@ Or maybe this, if you love working with Angular or alike:
 ```js
 import * as DOMPurify from 'dompurify';
 
-let clean = DOMPurify.sanitize('<b>hello there</b>');
+const clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
 
 The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you.
 Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML, which might be a very common use-case, you can easily set that up as well:
 
 ```js
-let clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
+const clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 ```
 
 ### Where are the TypeScript type definitions?
@@ -160,62 +160,58 @@ When `DOMPurify.sanitize` is used in an environment where the Trusted Types API 
 
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/main/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this).
 
+### General settings
 ```js
-/**
- * General settings
- */
-
 // strip {{ ... }}, ${ ... } and <% ... %> to make output safe for template systems
 // be careful please, this mode is not recommended for production usage.
 // allowing template parsing in user-controlled HTML is not advised at all.
 // only use this mode if there is really no alternative.
-var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
+const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
+```
 
-/**
- * Control our allow-lists and block-lists
- */
+### Control our allow-lists and block-lists
+```js
 // allow only <b> elements, very strict
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
+const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 
 // allow only <b> and <q> with style attributes
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
+const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
 // allow all safe HTML elements but neither SVG nor MathML
 // note that the USE_PROFILES setting will override the ALLOWED_TAGS setting
 // so don't use them together
-var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {html: true}});
+const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {html: true}});
 
 // allow all safe SVG elements and SVG Filters, no HTML or MathML
-var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {svg: true, svgFilters: true}});
+const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {svg: true, svgFilters: true}});
 
 // allow all safe MathML elements and SVG, but no SVG Filters
-var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {mathMl: true, svg: true}});
+const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {mathMl: true, svg: true}});
 
 // change the default namespace from HTML to something different
-var clean = DOMPurify.sanitize(dirty, {NAMESPACE: 'http://www.w3.org/2000/svg'});
+const clean = DOMPurify.sanitize(dirty, {NAMESPACE: 'http://www.w3.org/2000/svg'});
 
 // leave all safe HTML as it is and add <style> elements to block-list
-var clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
+const clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
 
 // leave all safe HTML as it is and add style attributes to block-list
-var clean = DOMPurify.sanitize(dirty, {FORBID_ATTR: ['style']});
+const clean = DOMPurify.sanitize(dirty, {FORBID_ATTR: ['style']});
 
 // extend the existing array of allowed tags and add <my-tag> to allow-list
-var clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
+const clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 
 // extend the existing array of allowed attributes and add my-attr to allow-list
-var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
+const clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 
 // prohibit ARIA attributes, leave other safe HTML as is (default is true)
-var clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
+const clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
 
 // prohibit HTML5 data attributes, leave other safe HTML as is (default is true)
-var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
+const clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
+```
 
-/**
- * Control behavior relating to Custom Elements
- */
-
+### Control behavior relating to Custom Elements
+```js
 // DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING
 // literal, it is possible to define exactly what elements you wish to allow (by default, none are allowed).
 //
@@ -224,8 +220,7 @@ var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 // You can use a RegExp literal to specify what is allowed or a predicate, examples for both can be seen below.
 // The default values are very restrictive to prevent accidental XSS bypasses. Handle with great care!
 
-
-var clean = DOMPurify.sanitize(
+const clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
         CUSTOM_ELEMENT_HANDLING: {
@@ -236,7 +231,7 @@ var clean = DOMPurify.sanitize(
     }
 ); // <div is=""></div>
 
-var clean = DOMPurify.sanitize(
+const clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
         CUSTOM_ELEMENT_HANDLING: {
@@ -247,7 +242,7 @@ var clean = DOMPurify.sanitize(
     }
 ); // <foo-bar baz="foobar"></foo-bar><div is=""></div>
 
-var clean = DOMPurify.sanitize(
+const clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
         CUSTOM_ELEMENT_HANDLING: {
@@ -257,82 +252,80 @@ var clean = DOMPurify.sanitize(
         },
     }
 ); // <foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>
-
-/**
- * Control behavior relating to URI values
- */
+```
+### Control behavior relating to URI values
+```js
 // extend the existing array of elements that can use Data URIs
-var clean = DOMPurify.sanitize(dirty, {ADD_DATA_URI_TAGS: ['a', 'area']});
+const clean = DOMPurify.sanitize(dirty, {ADD_DATA_URI_TAGS: ['a', 'area']});
 
 // extend the existing array of elements that are safe for URI-like values (be careful, XSS risk)
-var clean = DOMPurify.sanitize(dirty, {ADD_URI_SAFE_ATTR: ['my-attr']});
+const clean = DOMPurify.sanitize(dirty, {ADD_URI_SAFE_ATTR: ['my-attr']});
 
-/**
- * Control permitted attribute values
- */
+```
+### Control permitted attribute values
+```js
 // allow external protocol handlers in URL attributes (default is false, be careful, XSS risk)
 // by default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
-var clean = DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true});
+const clean = DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true});
 
 // allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
 // by default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
 // Default RegExp: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;});
+const clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;});
 
-/**
- * Influence the return-type
- */
+```
+### Influence the return-type
+```js
 // return a DOM HTMLBodyElement instead of an HTML string (default is false)
-var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
+const clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
 
 // return a DOM DocumentFragment instead of an HTML string (default is false)
-var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
+const clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
 
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
-var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
+const clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
 
 // use a provided Trusted Types policy
-var clean = DOMPurify.sanitize(dirty, {
+const clean = DOMPurify.sanitize(dirty, {
     // supplied policy must define createHTML and createScriptURL
     TRUSTED_TYPES_POLICY: trustedTypes.createPolicy({
         createHTML(s) { return s},
         createScriptURL(s) { return s},
     }
 });
-
-/**
- * Influence how we sanitize
- */
+```
+### Influence how we sanitize
+```js
 // return entire document including <html> tags (default is false)
-var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
+const clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
 
 // disable DOM Clobbering protection on output (default is true, handle with care, minor XSS risks here)
-var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
+const clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 
 // enforce strict DOM Clobbering protection via namespace isolation (default is false)
 // when enabled, isolates the namespace of named properties (i.e., `id` and `name` attributes)
 // from JS variables by prefixing them with the string `user-content-`
-var clean = DOMPurify.sanitize(dirty, {SANITIZE_NAMED_PROPS: true});
+const clean = DOMPurify.sanitize(dirty, {SANITIZE_NAMED_PROPS: true});
 
 // keep an element's content when the element is removed (default is true)
-var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
+const clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 
 // glue elements like style, script or others to document.body and prevent unintuitive browser behavior in several edge-cases (default is false)
-var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
+const clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 
 // remove all <a> elements under <p> elements that are removed
-var clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
+const clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
 
 // change the parser type so sanitized data is treated as XML and not as HTML, which is the default
-var clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
-
-/**
- * Influence where we sanitize
- */
+const clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
+```
+### Influence where we sanitize
+```js
 // use the IN_PLACE mode to sanitize a node "in place", which is much faster depending on how you use DOMPurify
-var dirty = document.createElement('a');
+const dirty = document.createElement('a');
 dirty.setAttribute('href', 'javascript:alert(1)');
-var clean = DOMPurify.sanitize(dirty, {IN_PLACE: true}); // see https://github.com/cure53/DOMPurify/issues/288 for more info
+
+const clean = DOMPurify.sanitize(dirty, {IN_PLACE: true}); // see https://github.com/cure53/DOMPurify/issues/288 for more info
 ```
 
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
