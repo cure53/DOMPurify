@@ -39,7 +39,7 @@ It's easy. Just include DOMPurify on your website.
 Afterwards you can sanitize strings by executing the following code:
 
 ```js
-let clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 Or maybe this, if you love working with Angular or alike:
@@ -47,14 +47,14 @@ Or maybe this, if you love working with Angular or alike:
 ```js
 import * as DOMPurify from 'dompurify';
 
-let clean = DOMPurify.sanitize('<b>hello there</b>');
+const clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
 
 The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you.
 Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML, which might be a very common use-case, you can easily set that up as well:
 
 ```js
-let clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
+const clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 ```
 
 ### Where are the TypeScript type definitions?
