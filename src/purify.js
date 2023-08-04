@@ -943,7 +943,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {Node} object object to check whether it's a DOM node
    * @return {Boolean} true is object is a DOM node
    */
-  const _isDOMNode = function (object) {
+  const _isNode = function (object) {
     return typeof Node === 'function' && object instanceof Node;
   };
 
@@ -999,9 +999,9 @@ function createDOMPurify(window = getGlobal()) {
     /* Detect mXSS attempts abusing namespace confusion */
     if (
       currentNode.hasChildNodes() &&
-      !_isDOMNode(currentNode.firstElementChild) &&
-      (!_isDOMNode(currentNode.content) ||
-        !_isDOMNode(currentNode.content.firstElementChild)) &&
+      !_isNode(currentNode.firstElementChild) &&
+      (!_isNode(currentNode.content) ||
+        !_isNode(currentNode.content.firstElementChild)) &&
       regExpTest(/<[/\w]/g, currentNode.innerHTML) &&
       regExpTest(/<[/\w]/g, currentNode.textContent)
     ) {
@@ -1383,7 +1383,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Stringify, in case dirty is an object */
-    if (typeof dirty !== 'string' && !_isDOMNode(dirty)) {
+    if (typeof dirty !== 'string' && !_isNode(dirty)) {
       if (typeof dirty.toString === 'function') {
         dirty = dirty.toString();
         if (typeof dirty !== 'string') {

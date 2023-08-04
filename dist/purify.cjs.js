@@ -996,7 +996,7 @@ function createDOMPurify() {
    */
 
 
-  const _isDOMNode = function _isDOMNode(object) {
+  const _isNode = function _isNode(object) {
     return typeof Node === 'function' && object instanceof Node;
   };
   /**
@@ -1056,7 +1056,7 @@ function createDOMPurify() {
     /* Detect mXSS attempts abusing namespace confusion */
 
 
-    if (currentNode.hasChildNodes() && !_isDOMNode(currentNode.firstElementChild) && (!_isDOMNode(currentNode.content) || !_isDOMNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+    if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
       _forceRemove(currentNode);
 
       return true;
@@ -1403,7 +1403,7 @@ function createDOMPurify() {
     /* Stringify, in case dirty is an object */
 
 
-    if (typeof dirty !== 'string' && !_isDOMNode(dirty)) {
+    if (typeof dirty !== 'string' && !_isNode(dirty)) {
       if (typeof dirty.toString === 'function') {
         dirty = dirty.toString();
 
