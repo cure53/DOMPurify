@@ -944,7 +944,7 @@ function createDOMPurify(window = getGlobal()) {
    * @return {Boolean} true is object is a DOM node
    */
   const _isDOMNode = function (object) {
-    return object instanceof Node;
+    return typeof Node === 'function' && object instanceof Node;
   };
 
   /**
