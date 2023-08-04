@@ -997,7 +997,7 @@ function createDOMPurify() {
 
 
   const _isDOMNode = function _isDOMNode(object) {
-    return object instanceof Node && object.nodeType === Node.ELEMENT_NODE;
+    return object instanceof Node;
   };
   /**
    * _executeHook
