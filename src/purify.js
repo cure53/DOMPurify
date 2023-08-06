@@ -373,10 +373,10 @@ function createDOMPurify(window = getGlobal()) {
   );
 
   /* Parsing of strict XHTML documents */
-  let PARSER_MEDIA_TYPE;
+  let PARSER_MEDIA_TYPE = null;
   const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
   const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
-  let transformCaseFunc;
+  let transformCaseFunc = null;
 
   /* Keep a reference to config to pass to hooks */
   let CONFIG = null;
@@ -938,18 +938,13 @@ function createDOMPurify(window = getGlobal()) {
   };
 
   /**
-   * _isNode
+   * Checks whether the given object is a DOM node.
    *
    * @param  {Node} object object to check whether it's a DOM node
    * @return {Boolean} true is object is a DOM node
    */
   const _isNode = function (object) {
-    return typeof Node === 'object'
-      ? object instanceof Node
-      : object &&
-          typeof object === 'object' &&
-          typeof object.nodeType === 'number' &&
-          typeof object.nodeName === 'string';
+    return typeof Node === 'function' && object instanceof Node;
   };
 
   /**
@@ -981,7 +976,7 @@ function createDOMPurify(window = getGlobal()) {
    * @return  {Boolean} true if node was killed, false if left alive
    */
   const _sanitizeElements = function (currentNode) {
-    let content;
+    let content = null;
 
     /* Execute a hook if present */
     _executeHook('beforeSanitizeElements', currentNode, null);
