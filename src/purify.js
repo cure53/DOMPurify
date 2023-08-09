@@ -1068,9 +1068,11 @@ function createDOMPurify(window = getGlobal()) {
     if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
       /* Get the element's text content */
       content = currentNode.textContent;
-      content = stringReplace(content, MUSTACHE_EXPR, ' ');
-      content = stringReplace(content, ERB_EXPR, ' ');
-      content = stringReplace(content, TMPLIT_EXPR, ' ');
+
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+        content = stringReplace(content, expr, ' ');
+      });
+
       if (currentNode.textContent !== content) {
         arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
         currentNode.textContent = content;
@@ -1202,10 +1204,6 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {Node} currentNode to sanitize
    */
   const _sanitizeAttributes = function (currentNode) {
-    let attr = null;
-    let value = null;
-    let lcName = null;
-    let l = null;
     /* Execute a hook if present */
     _executeHook('beforeSanitizeAttributes', currentNode, null);
 
@@ -1222,14 +1220,15 @@ function createDOMPurify(window = getGlobal()) {
       keepAttr: true,
       allowedAttributes: ALLOWED_ATTR,
     };
-    l = attributes.length;
+    let l = attributes.length;
 
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
-      attr = attributes[l];
+      const attr = attributes[l];
       const { name, namespaceURI, value: attrValue } = attr;
-      value = name === 'value' ? attrValue : stringTrim(attrValue);
-      lcName = transformCaseFunc(name);
+      const lcName = transformCaseFunc(name);
+
+      let value = name === 'value' ? attrValue : stringTrim(attrValue);
 
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
@@ -1259,9 +1258,9 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
-        value = stringReplace(value, MUSTACHE_EXPR, ' ');
-        value = stringReplace(value, ERB_EXPR, ' ');
-        value = stringReplace(value, TMPLIT_EXPR, ' ');
+        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+          value = stringReplace(value, expr, ' ');
+        });
       }
 
       /* Is `value` valid for this attribute? */
@@ -1530,9 +1529,9 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
-      serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR, ' ');
-      serializedHTML = stringReplace(serializedHTML, ERB_EXPR, ' ');
-      serializedHTML = stringReplace(serializedHTML, TMPLIT_EXPR, ' ');
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+        serializedHTML = stringReplace(serializedHTML, expr, ' ');
+      });
     }
 
     return trustedTypesPolicy && RETURN_TRUSTED_TYPE
