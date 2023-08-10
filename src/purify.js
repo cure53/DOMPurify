@@ -896,12 +896,12 @@ function createDOMPurify(window = getGlobal()) {
   };
 
   /**
-   * Create a DOM node iterator
+   * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
    *
-   * @param  {Document} root document/fragment to create iterator for
-   * @return {NodeIterator} The created iterator instance.
+   * @param  {Node} root The root element or node to start traversing on.
+   * @return {NodeIterator} The created NodeIterator
    */
-  const _createIterator = function (root) {
+  const _createNodeIterator = function (root) {
     const ownerDocument = root.ownerDocument || root;
 
     return ownerDocument.createNodeIterator(
@@ -1328,7 +1328,7 @@ function createDOMPurify(window = getGlobal()) {
    */
   const _sanitizeShadowDOM = function (fragment) {
     let shadowNode = null;
-    const shadowIterator = _createIterator(fragment);
+    const shadowIterator = _createNodeIterator(fragment);
 
     /* Execute a hook if present */
     _executeHook('beforeSanitizeShadowDOM', fragment, null);
@@ -1459,7 +1459,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Get node iterator */
-    const nodeIterator = _createIterator(IN_PLACE ? dirty : body);
+    const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
 
     /* Now start iterating over the created document */
     while ((currentNode = nodeIterator.nextNode())) {

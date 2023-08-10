@@ -965,14 +965,14 @@ function createDOMPurify() {
     return WHOLE_DOCUMENT ? doc.documentElement : body;
   };
   /**
-   * Create a DOM node iterator
+   * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
    *
-   * @param  {Document} root document/fragment to create iterator for
-   * @return {NodeIterator} The created iterator instance.
+   * @param  {Node} root The root element or node to start traversing on.
+   * @return {NodeIterator} The created NodeIterator
    */
 
 
-  const _createIterator = function _createIterator(root) {
+  const _createNodeIterator = function _createNodeIterator(root) {
     const ownerDocument = root.ownerDocument || root;
     return ownerDocument.createNodeIterator(root, // eslint-disable-next-line no-bitwise
     NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null);
@@ -1340,7 +1340,7 @@ function createDOMPurify() {
   const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
     let shadowNode = null;
 
-    const shadowIterator = _createIterator(fragment);
+    const shadowIterator = _createNodeIterator(fragment);
     /* Execute a hook if present */
 
 
@@ -1481,7 +1481,7 @@ function createDOMPurify() {
     /* Get node iterator */
 
 
-    const nodeIterator = _createIterator(IN_PLACE ? dirty : body);
+    const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
     /* Now start iterating over the created document */
 
 
