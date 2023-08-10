@@ -134,8 +134,12 @@ function createDOMPurify(window = getGlobal()) {
   let trustedTypesPolicy;
   let emptyHTML = '';
 
-  const { implementation, createDocumentFragment, getElementsByTagName } =
-    document;
+  const {
+    implementation,
+    createNodeIterator,
+    createDocumentFragment,
+    getElementsByTagName,
+  } = document;
   const { importNode } = originalDocument;
 
   let hooks = {};
@@ -902,9 +906,8 @@ function createDOMPurify(window = getGlobal()) {
    * @return {NodeIterator} The created NodeIterator
    */
   const _createNodeIterator = function (root) {
-    const ownerDocument = root.ownerDocument || root;
-
-    return ownerDocument.createNodeIterator(
+    return createNodeIterator.call(
+      root.ownerDocument || root,
       root,
       // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,

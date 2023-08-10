@@ -347,6 +347,7 @@
     let emptyHTML = '';
     const {
       implementation,
+      createNodeIterator,
       createDocumentFragment,
       getElementsByTagName
     } = document;
@@ -977,8 +978,7 @@
 
 
     const _createNodeIterator = function _createNodeIterator(root) {
-      const ownerDocument = root.ownerDocument || root;
-      return ownerDocument.createNodeIterator(root, // eslint-disable-next-line no-bitwise
+      return createNodeIterator.call(root.ownerDocument || root, root, // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null);
     };
     /**
