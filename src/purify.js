@@ -134,12 +134,8 @@ function createDOMPurify(window = getGlobal()) {
   let trustedTypesPolicy;
   let emptyHTML = '';
 
-  const {
-    implementation,
-    createNodeIterator,
-    createDocumentFragment,
-    getElementsByTagName,
-  } = document;
+  const { implementation, createDocumentFragment, getElementsByTagName } =
+    document;
   const { importNode } = originalDocument;
 
   let hooks = {};
@@ -900,19 +896,19 @@ function createDOMPurify(window = getGlobal()) {
   };
 
   /**
-   * _createIterator
+   * Create a DOM node iterator
    *
    * @param  {Document} root document/fragment to create iterator for
-   * @return {Iterator} iterator instance
+   * @return {NodeIterator} The created iterator instance.
    */
   const _createIterator = function (root) {
-    return createNodeIterator.call(
-      root.ownerDocument || root,
+    const ownerDocument = root.ownerDocument || root;
+
+    return ownerDocument.createNodeIterator(
       root,
       // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
-      null,
-      false
+      null
     );
   };
 
@@ -1188,6 +1184,7 @@ function createDOMPurify(window = getGlobal()) {
    * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
    *
    * @param {string} tagName name of the tag of the node to sanitize
+   * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
   const _basicCustomElementTest = function (tagName) {
     return tagName.indexOf('-') > 0;

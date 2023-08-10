@@ -341,7 +341,6 @@ function createDOMPurify() {
   let emptyHTML = '';
   const {
     implementation,
-    createNodeIterator,
     createDocumentFragment,
     getElementsByTagName
   } = document;
@@ -964,16 +963,17 @@ function createDOMPurify() {
     return WHOLE_DOCUMENT ? doc.documentElement : body;
   };
   /**
-   * _createIterator
+   * Create a DOM node iterator
    *
    * @param  {Document} root document/fragment to create iterator for
-   * @return {Iterator} iterator instance
+   * @return {NodeIterator} The created iterator instance.
    */
 
 
   const _createIterator = function _createIterator(root) {
-    return createNodeIterator.call(root.ownerDocument || root, root, // eslint-disable-next-line no-bitwise
-    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null, false);
+    const ownerDocument = root.ownerDocument || root;
+    return ownerDocument.createNodeIterator(root, // eslint-disable-next-line no-bitwise
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null);
   };
   /**
    * _isClobbered
@@ -1178,6 +1178,7 @@ function createDOMPurify() {
    * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
    *
    * @param {string} tagName name of the tag of the node to sanitize
+   * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
 
 
