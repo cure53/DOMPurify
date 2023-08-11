@@ -900,19 +900,18 @@ function createDOMPurify(window = getGlobal()) {
   };
 
   /**
-   * _createIterator
+   * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
    *
-   * @param  {Document} root document/fragment to create iterator for
-   * @return {Iterator} iterator instance
+   * @param  {Node} root The root element or node to start traversing on.
+   * @return {NodeIterator} The created NodeIterator
    */
-  const _createIterator = function (root) {
+  const _createNodeIterator = function (root) {
     return createNodeIterator.call(
       root.ownerDocument || root,
       root,
       // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
-      null,
-      false
+      null
     );
   };
 
@@ -1010,7 +1009,7 @@ function createDOMPurify(window = getGlobal()) {
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Check if we have a custom element to handle */
-      if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
+      if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
         if (
           CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
           regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)
@@ -1122,7 +1121,7 @@ function createDOMPurify(window = getGlobal()) {
         // First condition does a very basic check if a) it's basically a valid custom element tagname AND
         // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
         // and c) if the attribute name passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.attributeNameCheck
-        (_basicCustomElementTest(lcTag) &&
+        (_isBasicCustomElement(lcTag) &&
           ((CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
             regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag)) ||
             (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
@@ -1183,13 +1182,14 @@ function createDOMPurify(window = getGlobal()) {
   };
 
   /**
-   * _basicCustomElementCheck
+   * _isBasicCustomElement
    * checks if at least one dash is included in tagName, and it's not the first char
    * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
    *
    * @param {string} tagName name of the tag of the node to sanitize
+   * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
-  const _basicCustomElementTest = function (tagName) {
+  const _isBasicCustomElement = function (tagName) {
     return tagName.indexOf('-') > 0;
   };
 
@@ -1331,7 +1331,7 @@ function createDOMPurify(window = getGlobal()) {
    */
   const _sanitizeShadowDOM = function (fragment) {
     let shadowNode = null;
-    const shadowIterator = _createIterator(fragment);
+    const shadowIterator = _createNodeIterator(fragment);
 
     /* Execute a hook if present */
     _executeHook('beforeSanitizeShadowDOM', fragment, null);
@@ -1462,7 +1462,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Get node iterator */
-    const nodeIterator = _createIterator(IN_PLACE ? dirty : body);
+    const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
 
     /* Now start iterating over the created document */
     while ((currentNode = nodeIterator.nextNode())) {
