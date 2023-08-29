@@ -240,7 +240,7 @@ const clean = DOMPurify.sanitize(
             allowCustomizedBuiltInElements: true, // customized built-ins are allowed
         },
     }
-); // <foo-bar baz="foobar"></foo-bar><div is=""></div>
+); // <foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>
 
 const clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
