@@ -117,7 +117,9 @@ export function clone(object) {
   const newObject = create(null);
 
   for (const [property, value] of entries(object)) {
-    newObject[property] = value;
+    if (getOwnPropertyDescriptor(object, property) !== undefined) {
+      newObject[property] = value;
+    }
   }
 
   return newObject;
