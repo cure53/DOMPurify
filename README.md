@@ -1,12 +1,12 @@
 # DOMPurify
 
-[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![minified size](https://badgen.net/bundlephobia/min/dompurify?color=green&label=minified)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js) [![gzip size](https://badgen.net/bundlephobia/minzip/dompurify?color=green&label=gzipped)](https://packagephobia.now.sh/result?p=dompurify) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
+[![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) ![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=minified) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/cure53/dompurify?color=%233C1) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.0.5**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.0.6**.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
@@ -39,7 +39,7 @@ It's easy. Just include DOMPurify on your website.
 Afterwards you can sanitize strings by executing the following code:
 
 ```js
-let clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 Or maybe this, if you love working with Angular or alike:
@@ -47,14 +47,14 @@ Or maybe this, if you love working with Angular or alike:
 ```js
 import * as DOMPurify from 'dompurify';
 
-let clean = DOMPurify.sanitize('<b>hello there</b>');
+const clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
 
 The resulting HTML can be written into a DOM element using `innerHTML` or the DOM using `document.write()`. That is fully up to you.
 Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML, which might be a very common use-case, you can easily set that up as well:
 
 ```js
-let clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
+const clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 ```
 
 ### Where are the TypeScript type definitions?
@@ -160,62 +160,58 @@ When `DOMPurify.sanitize` is used in an environment where the Trusted Types API 
 
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/main/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this).
 
+### General settings
 ```js
-/**
- * General settings
- */
-
 // strip {{ ... }}, ${ ... } and <% ... %> to make output safe for template systems
 // be careful please, this mode is not recommended for production usage.
 // allowing template parsing in user-controlled HTML is not advised at all.
 // only use this mode if there is really no alternative.
-var clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
+const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
+```
 
-/**
- * Control our allow-lists and block-lists
- */
+### Control our allow-lists and block-lists
+```js
 // allow only <b> elements, very strict
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
+const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
 
 // allow only <b> and <q> with style attributes
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
+const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
 
 // allow all safe HTML elements but neither SVG nor MathML
 // note that the USE_PROFILES setting will override the ALLOWED_TAGS setting
 // so don't use them together
-var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {html: true}});
+const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {html: true}});
 
 // allow all safe SVG elements and SVG Filters, no HTML or MathML
-var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {svg: true, svgFilters: true}});
+const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {svg: true, svgFilters: true}});
 
 // allow all safe MathML elements and SVG, but no SVG Filters
-var clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {mathMl: true, svg: true}});
+const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {mathMl: true, svg: true}});
 
 // change the default namespace from HTML to something different
-var clean = DOMPurify.sanitize(dirty, {NAMESPACE: 'http://www.w3.org/2000/svg'});
+const clean = DOMPurify.sanitize(dirty, {NAMESPACE: 'http://www.w3.org/2000/svg'});
 
 // leave all safe HTML as it is and add <style> elements to block-list
-var clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
+const clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
 
 // leave all safe HTML as it is and add style attributes to block-list
-var clean = DOMPurify.sanitize(dirty, {FORBID_ATTR: ['style']});
+const clean = DOMPurify.sanitize(dirty, {FORBID_ATTR: ['style']});
 
 // extend the existing array of allowed tags and add <my-tag> to allow-list
-var clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
+const clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 
 // extend the existing array of allowed attributes and add my-attr to allow-list
-var clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
+const clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 
 // prohibit ARIA attributes, leave other safe HTML as is (default is true)
-var clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
+const clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
 
 // prohibit HTML5 data attributes, leave other safe HTML as is (default is true)
-var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
+const clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
+```
 
-/**
- * Control behavior relating to Custom Elements
- */
-
+### Control behavior relating to Custom Elements
+```js
 // DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING
 // literal, it is possible to define exactly what elements you wish to allow (by default, none are allowed).
 //
@@ -224,8 +220,7 @@ var clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 // You can use a RegExp literal to specify what is allowed or a predicate, examples for both can be seen below.
 // The default values are very restrictive to prevent accidental XSS bypasses. Handle with great care!
 
-
-var clean = DOMPurify.sanitize(
+const clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
         CUSTOM_ELEMENT_HANDLING: {
@@ -236,7 +231,7 @@ var clean = DOMPurify.sanitize(
     }
 ); // <div is=""></div>
 
-var clean = DOMPurify.sanitize(
+const clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
         CUSTOM_ELEMENT_HANDLING: {
@@ -245,9 +240,9 @@ var clean = DOMPurify.sanitize(
             allowCustomizedBuiltInElements: true, // customized built-ins are allowed
         },
     }
-); // <foo-bar baz="foobar"></foo-bar><div is=""></div>
+); // <foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>
 
-var clean = DOMPurify.sanitize(
+const clean = DOMPurify.sanitize(
     '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
     {
         CUSTOM_ELEMENT_HANDLING: {
@@ -257,82 +252,80 @@ var clean = DOMPurify.sanitize(
         },
     }
 ); // <foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>
-
-/**
- * Control behavior relating to URI values
- */
+```
+### Control behavior relating to URI values
+```js
 // extend the existing array of elements that can use Data URIs
-var clean = DOMPurify.sanitize(dirty, {ADD_DATA_URI_TAGS: ['a', 'area']});
+const clean = DOMPurify.sanitize(dirty, {ADD_DATA_URI_TAGS: ['a', 'area']});
 
 // extend the existing array of elements that are safe for URI-like values (be careful, XSS risk)
-var clean = DOMPurify.sanitize(dirty, {ADD_URI_SAFE_ATTR: ['my-attr']});
+const clean = DOMPurify.sanitize(dirty, {ADD_URI_SAFE_ATTR: ['my-attr']});
 
-/**
- * Control permitted attribute values
- */
+```
+### Control permitted attribute values
+```js
 // allow external protocol handlers in URL attributes (default is false, be careful, XSS risk)
 // by default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
-var clean = DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true});
+const clean = DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true});
 
 // allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
 // by default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
 // Default RegExp: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
-var clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;});
+const clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|xxx):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;});
 
-/**
- * Influence the return-type
- */
+```
+### Influence the return-type
+```js
 // return a DOM HTMLBodyElement instead of an HTML string (default is false)
-var clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
+const clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
 
 // return a DOM DocumentFragment instead of an HTML string (default is false)
-var clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
+const clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
 
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
-var clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
+const clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
 
 // use a provided Trusted Types policy
-var clean = DOMPurify.sanitize(dirty, {
+const clean = DOMPurify.sanitize(dirty, {
     // supplied policy must define createHTML and createScriptURL
     TRUSTED_TYPES_POLICY: trustedTypes.createPolicy({
         createHTML(s) { return s},
         createScriptURL(s) { return s},
     }
 });
-
-/**
- * Influence how we sanitize
- */
+```
+### Influence how we sanitize
+```js
 // return entire document including <html> tags (default is false)
-var clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
+const clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
 
 // disable DOM Clobbering protection on output (default is true, handle with care, minor XSS risks here)
-var clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
+const clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
 
 // enforce strict DOM Clobbering protection via namespace isolation (default is false)
 // when enabled, isolates the namespace of named properties (i.e., `id` and `name` attributes)
 // from JS variables by prefixing them with the string `user-content-`
-var clean = DOMPurify.sanitize(dirty, {SANITIZE_NAMED_PROPS: true});
+const clean = DOMPurify.sanitize(dirty, {SANITIZE_NAMED_PROPS: true});
 
 // keep an element's content when the element is removed (default is true)
-var clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
+const clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
 
 // glue elements like style, script or others to document.body and prevent unintuitive browser behavior in several edge-cases (default is false)
-var clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
+const clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 
 // remove all <a> elements under <p> elements that are removed
-var clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
+const clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
 
 // change the parser type so sanitized data is treated as XML and not as HTML, which is the default
-var clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
-
-/**
- * Influence where we sanitize
- */
+const clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
+```
+### Influence where we sanitize
+```js
 // use the IN_PLACE mode to sanitize a node "in place", which is much faster depending on how you use DOMPurify
-var dirty = document.createElement('a');
+const dirty = document.createElement('a');
 dirty.setAttribute('href', 'javascript:alert(1)');
-var clean = DOMPurify.sanitize(dirty, {IN_PLACE: true}); // see https://github.com/cure53/DOMPurify/issues/288 for more info
+
+const clean = DOMPurify.sanitize(dirty, {IN_PLACE: true}); // see https://github.com/cure53/DOMPurify/issues/288 for more info
 ```
 
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
@@ -416,7 +409,7 @@ Feature releases will not be announced to this list.
 
 Many people helped and help DOMPurify become what it is and need to be acknowledged here!
 
-[JGraph 💸](https://github.com/jgraph), [GitHub 💸](https://github.com/github), [CynegeticIO 💸](https://github.com/CynegeticIO), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [kevin_mizu](https://twitter.com/kevin_mizu), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy 💸](https://twitter.com/lowdefy), [granlem ](https://twitter.com/MaximeVeit), [oreoshake ](https://github.com/oreoshake), [dcramer 💸](https://github.com/dcramer),[tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [SoheilKhodayari](https://github.com/SoheilKhodayari), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
+[dcramer 💸](https://github.com/dcramer), [JGraph 💸](https://github.com/jgraph), [baekilda 💸](https://github.com/baekilda), [Healthchecks 💸](https://github.com/healthchecks), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [CynegeticIO](https://github.com/CynegeticIO), [ssi02014 ❤️](https://github.com/ssi02014), [kevin_mizu](https://twitter.com/kevin_mizu), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy](https://twitter.com/lowdefy), [granlem](https://twitter.com/MaximeVeit), [oreoshake](https://github.com/oreoshake), [tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [SoheilKhodayari](https://github.com/SoheilKhodayari), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
 
 ## Testing powered by
 

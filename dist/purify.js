@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.0.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.5/LICENSE */
+/*! @license DOMPurify 3.0.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.6/LICENSE */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -24,12 +24,6 @@
     construct
   } = typeof Reflect !== 'undefined' && Reflect;
 
-  if (!apply) {
-    apply = function apply(fun, thisValue, args) {
-      return fun.apply(thisValue, args);
-    };
-  }
-
   if (!freeze) {
     freeze = function freeze(x) {
       return x;
@@ -39,6 +33,12 @@
   if (!seal) {
     seal = function seal(x) {
       return x;
+    };
+  }
+
+  if (!apply) {
+    apply = function apply(fun, thisValue, args) {
+      return fun.apply(thisValue, args);
     };
   }
 
@@ -59,6 +59,13 @@
   const stringTrim = unapply(String.prototype.trim);
   const regExpTest = unapply(RegExp.prototype.test);
   const typeErrorCreate = unconstruct(TypeError);
+  /**
+   * Creates a new function that calls the given function with a specified thisArg and arguments.
+   *
+   * @param {Function} func - The function to be wrapped and called.
+   * @returns {Function} A new function that calls the given function with a specified thisArg and arguments.
+   */
+
   function unapply(func) {
     return function (thisArg) {
       for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -68,6 +75,14 @@
       return apply(func, thisArg, args);
     };
   }
+  /**
+   * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
+   *
+   * @param {Function} func - The constructor function to be wrapped and called.
+   * @returns {Function} A new function that constructs an instance of the given constructor function with the provided arguments.
+   */
+
+
   function unconstruct(func) {
     return function () {
       for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
@@ -77,12 +92,18 @@
       return construct(func, args);
     };
   }
-  /* Add properties to a lookup table */
+  /**
+   * Add properties to a lookup table
+   *
+   * @param {Object} set - The set to which elements will be added.
+   * @param {Array} array - The array containing elements to be added to the set.
+   * @param {Function} transformCaseFunc - An optional function to transform the case of each element before adding to the set.
+   * @returns {Object} The modified set with added elements.
+   */
 
-  function addToSet(set, array, transformCaseFunc) {
-    var _transformCaseFunc;
 
-    transformCaseFunc = (_transformCaseFunc = transformCaseFunc) !== null && _transformCaseFunc !== void 0 ? _transformCaseFunc : stringToLowerCase;
+  function addToSet(set, array) {
+    let transformCaseFunc = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : stringToLowerCase;
 
     if (setPrototypeOf) {
       // Make 'in' and truthy checks like Boolean(set.constructor)
@@ -114,19 +135,32 @@
 
     return set;
   }
-  /* Shallow clone an object */
+  /**
+   * Shallow clone an object
+   *
+   * @param {Object} object - The object to be cloned.
+   * @returns {Object} A new object that copies the original.
+   */
+
 
   function clone(object) {
     const newObject = create(null);
 
     for (const [property, value] of entries(object)) {
-      newObject[property] = value;
+      if (getOwnPropertyDescriptor(object, property) !== undefined) {
+        newObject[property] = value;
+      }
     }
 
     return newObject;
   }
-  /* This method automatically checks if the prop is function
-   * or getter and behaves accordingly. */
+  /**
+   * This method automatically checks if the prop is function or getter and behaves accordingly.
+   *
+   * @param {Object} object - The object to look up the getter function in its prototype chain.
+   * @param {String} prop - The property name for which to find the getter function.
+   * @returns {Function} The getter function found in the prototype chain or a fallback function.
+   */
 
   function lookupGetter(object, prop) {
     while (object !== null) {
@@ -201,7 +235,9 @@
     DOCTYPE_NAME: DOCTYPE_NAME
   });
 
-  const getGlobal = () => typeof window === 'undefined' ? null : window;
+  const getGlobal = function getGlobal() {
+    return typeof window === 'undefined' ? null : window;
+  };
   /**
    * Creates a no-op policy for internal use only.
    * Don't export this function outside this module!
@@ -259,7 +295,7 @@
      */
 
 
-    DOMPurify.version = '3.0.5';
+    DOMPurify.version = '3.0.6';
     /**
      * Array of elements that DOMPurify removed during sanitation.
      * Empty if nothing was removed.
@@ -274,11 +310,11 @@
       return DOMPurify;
     }
 
-    const originalDocument = window.document;
-    const currentScript = originalDocument.currentScript;
     let {
       document
     } = window;
+    const originalDocument = document;
+    const currentScript = originalDocument.currentScript;
     const {
       DocumentFragment,
       HTMLTemplateElement,
@@ -358,7 +394,7 @@
      * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
      */
 
-    let CUSTOM_ELEMENT_HANDLING = Object.seal(Object.create(null, {
+    let CUSTOM_ELEMENT_HANDLING = Object.seal(create(null, {
       tagNameCheck: {
         writable: true,
         configurable: false,
@@ -482,10 +518,10 @@
     const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
     /* Parsing of strict XHTML documents */
 
-    let PARSER_MEDIA_TYPE;
+    let PARSER_MEDIA_TYPE = null;
     const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
     const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
-    let transformCaseFunc;
+    let transformCaseFunc = null;
     /* Keep a reference to config to pass to hooks */
 
     let CONFIG = null;
@@ -506,7 +542,9 @@
     // eslint-disable-next-line complexity
 
 
-    const _parseConfig = function _parseConfig(cfg) {
+    const _parseConfig = function _parseConfig() {
+      let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
       if (CONFIG && CONFIG === cfg) {
         return;
       }
@@ -725,8 +763,6 @@
     const ALL_MATHML_TAGS = addToSet({}, mathMl$1);
     addToSet(ALL_MATHML_TAGS, mathMlDisallowed);
     /**
-     *
-     *
      * @param  {Element} element a DOM element whose namespace is being checked
      * @returns {boolean} Return false if the element has a
      *  namespace that a spec-compliant parser would never
@@ -882,8 +918,8 @@
 
     const _initDocument = function _initDocument(dirty) {
       /* Create a HTML document */
-      let doc;
-      let leadingWhitespace;
+      let doc = null;
+      let leadingWhitespace = null;
 
       if (FORCE_BODY) {
         dirty = '<remove></remove>' + dirty;
@@ -936,16 +972,16 @@
       return WHOLE_DOCUMENT ? doc.documentElement : body;
     };
     /**
-     * _createIterator
+     * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
      *
-     * @param  {Document} root document/fragment to create iterator for
-     * @return {Iterator} iterator instance
+     * @param  {Node} root The root element or node to start traversing on.
+     * @return {NodeIterator} The created NodeIterator
      */
 
 
-    const _createIterator = function _createIterator(root) {
+    const _createNodeIterator = function _createNodeIterator(root) {
       return createNodeIterator.call(root.ownerDocument || root, root, // eslint-disable-next-line no-bitwise
-      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null, false);
+      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null);
     };
     /**
      * _isClobbered
@@ -959,15 +995,15 @@
       return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
     };
     /**
-     * _isNode
+     * Checks whether the given object is a DOM node.
      *
-     * @param  {Node} obj object to check whether it's a DOM node
+     * @param  {Node} object object to check whether it's a DOM node
      * @return {Boolean} true is object is a DOM node
      */
 
 
     const _isNode = function _isNode(object) {
-      return typeof Node === 'object' ? object instanceof Node : object && typeof object === 'object' && typeof object.nodeType === 'number' && typeof object.nodeName === 'string';
+      return typeof Node === 'function' && object instanceof Node;
     };
     /**
      * _executeHook
@@ -1001,7 +1037,7 @@
 
 
     const _sanitizeElements = function _sanitizeElements(currentNode) {
-      let content;
+      let content = null;
       /* Execute a hook if present */
 
       _executeHook('beforeSanitizeElements', currentNode, null);
@@ -1026,7 +1062,7 @@
       /* Detect mXSS attempts abusing namespace confusion */
 
 
-      if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && (!_isNode(currentNode.content) || !_isNode(currentNode.content.firstElementChild)) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+      if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
         _forceRemove(currentNode);
 
         return true;
@@ -1036,9 +1072,14 @@
 
       if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
         /* Check if we have a custom element to handle */
-        if (!FORBID_TAGS[tagName] && _basicCustomElementTest(tagName)) {
-          if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) return false;
-          if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) return false;
+        if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
+          if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) {
+            return false;
+          }
+
+          if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)) {
+            return false;
+          }
         }
         /* Keep content except for bad-listed elements */
 
@@ -1082,9 +1123,9 @@
       if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
         /* Get the element's text content */
         content = currentNode.textContent;
-        content = stringReplace(content, MUSTACHE_EXPR, ' ');
-        content = stringReplace(content, ERB_EXPR, ' ');
-        content = stringReplace(content, TMPLIT_EXPR, ' ');
+        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+          content = stringReplace(content, expr, ' ');
+        });
 
         if (currentNode.textContent !== content) {
           arrayPush(DOMPurify.removed, {
@@ -1126,7 +1167,7 @@
         if ( // First condition does a very basic check if a) it's basically a valid custom element tagname AND
         // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
         // and c) if the attribute name passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.attributeNameCheck
-        _basicCustomElementTest(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)) || // Alternative, second condition checks if it's an `is`-attribute, AND
+        _isBasicCustomElement(lcTag) && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(lcTag)) && (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName) || CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)) || // Alternative, second condition checks if it's an `is`-attribute, AND
         // the value passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
         lcName === 'is' && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value) || CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function && CUSTOM_ELEMENT_HANDLING.tagNameCheck(value))) ; else {
           return false;
@@ -1140,14 +1181,16 @@
       return true;
     };
     /**
-     * _basicCustomElementCheck
+     * _isBasicCustomElement
      * checks if at least one dash is included in tagName, and it's not the first char
      * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
+     *
      * @param {string} tagName name of the tag of the node to sanitize
+     * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
      */
 
 
-    const _basicCustomElementTest = function _basicCustomElementTest(tagName) {
+    const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
       return tagName.indexOf('-') > 0;
     };
     /**
@@ -1163,12 +1206,7 @@
 
 
     const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
-      let attr;
-      let value;
-      let lcName;
-      let l;
       /* Execute a hook if present */
-
       _executeHook('beforeSanitizeAttributes', currentNode, null);
 
       const {
@@ -1186,17 +1224,18 @@
         keepAttr: true,
         allowedAttributes: ALLOWED_ATTR
       };
-      l = attributes.length;
+      let l = attributes.length;
       /* Go backwards over all attributes; safely remove bad ones */
 
       while (l--) {
-        attr = attributes[l];
+        const attr = attributes[l];
         const {
           name,
-          namespaceURI
+          namespaceURI,
+          value: attrValue
         } = attr;
-        value = name === 'value' ? attr.value : stringTrim(attr.value);
-        lcName = transformCaseFunc(name);
+        const lcName = transformCaseFunc(name);
+        let value = name === 'value' ? attrValue : stringTrim(attrValue);
         /* Execute a hook if present */
 
         hookEvent.attrName = lcName;
@@ -1234,9 +1273,9 @@
 
 
         if (SAFE_FOR_TEMPLATES) {
-          value = stringReplace(value, MUSTACHE_EXPR, ' ');
-          value = stringReplace(value, ERB_EXPR, ' ');
-          value = stringReplace(value, TMPLIT_EXPR, ' ');
+          arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+            value = stringReplace(value, expr, ' ');
+          });
         }
         /* Is `value` valid for this attribute? */
 
@@ -1305,9 +1344,9 @@
 
 
     const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
-      let shadowNode;
+      let shadowNode = null;
 
-      const shadowIterator = _createIterator(fragment);
+      const shadowIterator = _createNodeIterator(fragment);
       /* Execute a hook if present */
 
 
@@ -1343,17 +1382,17 @@
      * Public method providing core sanitation functionality
      *
      * @param {String|Node} dirty string or DOM node
-     * @param {Object} configuration object
+     * @param {Object} cfg object
      */
     // eslint-disable-next-line complexity
 
 
     DOMPurify.sanitize = function (dirty) {
       let cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      let body;
-      let importedNode;
-      let currentNode;
-      let returnNode;
+      let body = null;
+      let importedNode = null;
+      let currentNode = null;
+      let returnNode = null;
       /* Make sure we have a string to sanitize.
         DO NOT return early, as this will return the wrong type if
         the user has requested a DOM object rather than a string */
@@ -1448,7 +1487,7 @@
       /* Get node iterator */
 
 
-      const nodeIterator = _createIterator(IN_PLACE ? dirty : body);
+      const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
       /* Now start iterating over the created document */
 
 
@@ -1513,9 +1552,9 @@
 
 
       if (SAFE_FOR_TEMPLATES) {
-        serializedHTML = stringReplace(serializedHTML, MUSTACHE_EXPR, ' ');
-        serializedHTML = stringReplace(serializedHTML, ERB_EXPR, ' ');
-        serializedHTML = stringReplace(serializedHTML, TMPLIT_EXPR, ' ');
+        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+          serializedHTML = stringReplace(serializedHTML, expr, ' ');
+        });
       }
 
       return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
@@ -1528,7 +1567,9 @@
      */
 
 
-    DOMPurify.setConfig = function (cfg) {
+    DOMPurify.setConfig = function () {
+      let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
       _parseConfig(cfg);
 
       SET_CONFIG = true;
@@ -1549,9 +1590,9 @@
      * Uses last set config, if any. Otherwise, uses config defaults.
      * isValidAttribute
      *
-     * @param  {string} tag Tag name of containing element.
-     * @param  {string} attr Attribute name.
-     * @param  {string} value Attribute value.
+     * @param  {String} tag Tag name of containing element.
+     * @param  {String} attr Attribute name.
+     * @param  {String} value Attribute value.
      * @return {Boolean} Returns true if `value` is valid. Otherwise, returns false.
      */
 
@@ -1614,7 +1655,6 @@
     /**
      * RemoveAllHooks
      * Public method to remove all DOMPurify hooks
-     *
      */
 
 
