@@ -6,6 +6,7 @@ const { terser } = require('rollup-plugin-terser');
 const pkg = require('./package.json');
 
 const env = process.env.NODE_ENV;
+const isProd = env === 'production';
 const version = process.env.npm_package_version;
 const license = fs
   .readFileSync('./src/license_header', 'utf8')
@@ -31,7 +32,7 @@ const config = {
       ...commonOutputConfig,
       file: pkg.production,
       format: 'umd',
-      plugins: [terser()],
+      plugins: isProd ? [terser()] : [],
     },
     {
       ...commonOutputConfig,
