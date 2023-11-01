@@ -7,7 +7,7 @@
     "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist/**",
     "dev": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
-    "build": "cross-env NODE_ENV=production rollup -c",
+    "build": "rollup -c",
     "build:umd": "rollup -c -f umd -o dist/purify.js",
     "build:umd:min": "rollup -c -f umd -o dist/purify.min.js -p terser",
     "build:es": "rollup -c -f es -o dist/purify.es.js",
