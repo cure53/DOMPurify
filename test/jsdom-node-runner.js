@@ -3,15 +3,17 @@
 
 const jsdom = require('jsdom');
 const { JSDOM, VirtualConsole } = jsdom;
-const virtualConsole = new VirtualConsole();
+
+const {run, documentHtml} = require('./base-node-runner');
 
 function createWindow() {
+  const virtualConsole = new VirtualConsole();
   const { window } = new JSDOM(
-    `<html><head></head><body><div id="qunit-fixture"></div></body></html>`,
+    documentHtml,
     { runScripts: 'dangerously', virtualConsole }
   );
   require('jquery')(window);
   return window;
 }
 
-require('./base-node-runner')(createWindow);
+run(createWindow);

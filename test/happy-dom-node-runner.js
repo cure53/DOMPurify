@@ -4,11 +4,13 @@
 const happyDom = require('happy-dom');
 const { Window } = happyDom;
 
+const {run, documentHtml} = require('./base-node-runner');
+
 function createWindow() {
   const window = new Window();
-  window.document.documentElement.innerHTML = `<html><head></head><body><div id="qunit-fixture"></div></body></html>`;
+  window.document.documentElement.innerHTML = documentHtml;
   require('jquery')(window);
   return window;
 }
 
-require('./base-node-runner')(createWindow);
+run(createWindow);

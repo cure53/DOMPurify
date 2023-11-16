@@ -63,4 +63,10 @@ async function run(createWindow) {
   QUnit.load()
 }
 
-module.exports = run;
+module.exports = {
+  run,
+  documentHtml: `<html>
+    <head><</head>
+    <body><div id="qunit-fixture"></div></body>
+  </html>`
+};
