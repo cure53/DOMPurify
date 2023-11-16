@@ -13,9 +13,10 @@
     "build:es": "rollup -c -f es -o dist/purify.es.mjs",
     "build:cjs": "rollup -c -f cjs -o dist/purify.cjs.js",
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
+    "test:happy-dom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/happy-dom-node-runner --dot",
     "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
-    "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TEST_PROBE_ONLY}\"",
-    "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint &&  npm run test:jsdom && npm run test:karma -- --browsers Chrome"
+    "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:happy-dom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TEST_PROBE_ONLY}\"",
+    "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint &&  npm run test:jsdom && npm run test:happy-dom && npm run test:karma -- --browsers Chrome"
   },
   "exports": {
     ".": {
@@ -79,6 +80,7 @@
     "cross-env": "^7.0.3",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "happy-dom": "^12.10.3",
     "jquery": "^3.6.0",
     "jsdom": "^20.0.0",
     "karma": "^6.3.17",

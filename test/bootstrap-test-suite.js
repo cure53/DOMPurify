@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-module.exports = function (JSDOM) {
+module.exports = function (createWindow) {
   class StringWrapper {
     constructor(s) {
       this.s = s;
@@ -19,10 +19,8 @@ module.exports = function (JSDOM) {
     onload
   ) {
     const testDone = assert.async();
-    const { window } = new JSDOM('<head></head>', {
-      runScripts: 'dangerously',
-    });
-    require('jquery')(window);
+    const window = createWindow();
+
     if (setup) {
       setup(window);
     }
@@ -272,4 +270,4 @@ module.exports = function (JSDOM) {
       );
     }
   );
-};
+}

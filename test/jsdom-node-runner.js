@@ -1,24 +1,17 @@
 /* jshint node: true, esnext: true */
-/* global QUnit */
 'use strict';
 
-global.QUnit = require('qunit');
+const jsdom = require('jsdom');
+const { JSDOM, VirtualConsole } = jsdom;
+const virtualConsole = new VirtualConsole();
 
-const qunitTap = require('qunit-tap');
-const argument = process.argv[2];
+function createWindow() {
+  const { window } = new JSDOM(
+    `<html><head></head><body><div id="qunit-fixture"></div></body></html>`,
+    { runScripts: 'dangerously', virtualConsole }
+  );
+  require('jquery')(window);
+  return window;
+}
 
-qunitTap(QUnit, (line) => {
-  if (/^not ok/.test(line)) {
-    process.exitCode = 1;
-    return console.log('\n', line);
-  }
-
-  if (argument === '--dot') {
-    return process.stdout.write('.');
-  }
-
-  console.log(line);
-});
-
-const startQUnit = require('./jsdom-node');
-startQUnit().then(() => QUnit.load());
+require('./base-node-runner')(createWindow);

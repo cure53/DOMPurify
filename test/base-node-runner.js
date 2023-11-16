@@ -2,21 +2,30 @@
 /* global QUnit */
 'use strict';
 
-// Test DOMPurify + jsdom using Node.js (version 8 and up)
+global.QUnit = require('qunit');
+
+const qunitTap = require('qunit-tap');
+const argument = process.argv[2];
+
 const createDOMPurify = require('../dist/purify.cjs');
-const jsdom = require('jsdom');
-const { JSDOM, VirtualConsole } = jsdom;
-const virtualConsole = new VirtualConsole();
-const { window } = new JSDOM(
-  `<html><head></head><body><div id="qunit-fixture"></div></body></html>`,
-  { runScripts: 'dangerously', virtualConsole }
-);
-require('jquery')(window);
 
 const sanitizeTestSuite = require('./test-suite');
 const bootstrapTestSuite = require('./bootstrap-test-suite');
 
-async function startQUnit() {
+async function run(createWindow) {
+  qunitTap(QUnit, (line) => {
+    if (/^not ok/.test(line)) {
+      process.exitCode = 1;
+      return console.log('\n', line);
+    }
+
+    if (argument === '--dot') {
+      return process.stdout.write('.');
+    }
+
+    console.log(line);
+  });
+
   const { default: tests } = await import('./fixtures/expect.mjs');
   const xssTests = tests.filter((element) => /alert/.test(element.payload));
 
@@ -33,17 +42,14 @@ async function startQUnit() {
 
   QUnit.config.autostart = false;
 
-  QUnit.module('DOMPurify - bootstrap', bootstrapTestSuite(JSDOM));
+  QUnit.module('DOMPurify - bootstrap', bootstrapTestSuite(createWindow));
 
   QUnit.module('DOMPurify in jsdom');
 
-  if (!window.jQuery) {
-    console.warn('Unable to load jQuery');
-  }
-
+  const window = createWindow();
   const DOMPurify = createDOMPurify(window);
   if (!DOMPurify.isSupported) {
-    console.error('Unexpected error returned by jsdom.env():', err, err.stack);
+    console.error('DOMPurify reports as not supported');
     process.exit(1);
   }
 
@@ -53,6 +59,8 @@ async function startQUnit() {
 
   sanitizeTestSuite(DOMPurify, window, tests, xssTests);
   QUnit.start();
+
+  QUnit.load()
 }
 
-module.exports = startQUnit;
+module.exports = run;
