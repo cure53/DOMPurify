@@ -53,7 +53,7 @@ async function run(createWindow) {
     process.exit(1);
   }
 
-  window.alert = () => {
+  window.__proto__.alert = () => {
     window.xssed = true;
   };
 
