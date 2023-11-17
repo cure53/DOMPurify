@@ -13,4 +13,4 @@ function createWindow() {
   return window;
 }
 
-run(createWindow);
+run(createWindow, 'happy-dom');

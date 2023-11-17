@@ -12,7 +12,7 @@ const createDOMPurify = require('../dist/purify.cjs');
 const sanitizeTestSuite = require('./test-suite');
 const bootstrapTestSuite = require('./bootstrap-test-suite');
 
-async function run(createWindow) {
+async function run(createWindow, runtimeName) {
   qunitTap(QUnit, (line) => {
     if (/^not ok/.test(line)) {
       process.exitCode = 1;
@@ -44,7 +44,7 @@ async function run(createWindow) {
 
   QUnit.module('DOMPurify - bootstrap', bootstrapTestSuite(createWindow));
 
-  QUnit.module('DOMPurify in jsdom');
+  QUnit.module(`DOMPurify in ${runtimeName}`);
 
   const window = createWindow();
   const DOMPurify = createDOMPurify(window);
