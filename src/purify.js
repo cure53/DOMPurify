@@ -28,9 +28,9 @@ const getGlobal = function () {
 /**
  * Creates a no-op policy for internal use only.
  * Don't export this function outside this module!
- * @param {?TrustedTypePolicyFactory} trustedTypes The policy factory.
+ * @param {TrustedTypePolicyFactory} trustedTypes The policy factory.
  * @param {HTMLScriptElement} purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
- * @return {?TrustedTypePolicy} The policy created (or null, if Trusted Types
+ * @return {TrustedTypePolicy} The policy created (or null, if Trusted Types
  * are not supported or creating the policy failed).
  */
 const _createTrustedTypesPolicy = function (trustedTypes, purifyHostElement) {
@@ -412,8 +412,8 @@ function createDOMPurify(window = getGlobal()) {
     PARSER_MEDIA_TYPE =
       // eslint-disable-next-line unicorn/prefer-includes
       SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1
-        ? (PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE)
-        : (PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE);
+        ? DEFAULT_PARSER_MEDIA_TYPE
+        : cfg.PARSER_MEDIA_TYPE;
 
     // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
     transformCaseFunc =
@@ -515,7 +515,7 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Parse profile info */
     if (USE_PROFILES) {
-      ALLOWED_TAGS = addToSet({}, [...TAGS.text]);
+      ALLOWED_TAGS = addToSet({}, TAGS.text);
       ALLOWED_ATTR = [];
       if (USE_PROFILES.html === true) {
         addToSet(ALLOWED_TAGS, TAGS.html);
@@ -658,12 +658,15 @@ function createDOMPurify(window = getGlobal()) {
   /* Keep track of all possible SVG and MathML tags
    * so that we can perform the namespace checks
    * correctly. */
-  const ALL_SVG_TAGS = addToSet({}, TAGS.svg);
-  addToSet(ALL_SVG_TAGS, TAGS.svgFilters);
-  addToSet(ALL_SVG_TAGS, TAGS.svgDisallowed);
-
-  const ALL_MATHML_TAGS = addToSet({}, TAGS.mathMl);
-  addToSet(ALL_MATHML_TAGS, TAGS.mathMlDisallowed);
+  const ALL_SVG_TAGS = addToSet({}, [
+    ...TAGS.svg,
+    ...TAGS.svgFilters,
+    ...TAGS.svgDisallowed,
+  ]);
+  const ALL_MATHML_TAGS = addToSet({}, [
+    ...TAGS.mathMl,
+    ...TAGS.mathMlDisallowed,
+  ]);
 
   /**
    * @param  {Element} element a DOM element whose namespace is being checked

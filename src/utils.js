@@ -130,7 +130,7 @@ function cleanArray(array) {
  * @returns {Object} A new object that copies the original.
  */
 function clone(object) {
-  const newObject = Object.create(null);
+  const newObject = create(null);
 
   for (const [property, value] of entries(object)) {
     if (getOwnPropertyDescriptor(object, property) !== undefined) {

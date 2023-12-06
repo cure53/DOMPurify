@@ -155,7 +155,7 @@ function cleanArray(array) {
 
 
 function clone(object) {
-  const newObject = Object.create(null);
+  const newObject = create(null);
 
   for (const [property, value] of entries(object)) {
     if (getOwnPropertyDescriptor(object, property) !== undefined) {
@@ -259,9 +259,9 @@ const getGlobal = function getGlobal() {
 /**
  * Creates a no-op policy for internal use only.
  * Don't export this function outside this module!
- * @param {?TrustedTypePolicyFactory} trustedTypes The policy factory.
+ * @param {TrustedTypePolicyFactory} trustedTypes The policy factory.
  * @param {HTMLScriptElement} purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
- * @return {?TrustedTypePolicy} The policy created (or null, if Trusted Types
+ * @return {TrustedTypePolicy} The policy created (or null, if Trusted Types
  * are not supported or creating the policy failed).
  */
 
@@ -577,7 +577,7 @@ function createDOMPurify() {
 
     cfg = clone(cfg);
     PARSER_MEDIA_TYPE = // eslint-disable-next-line unicorn/prefer-includes
-    SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? PARSER_MEDIA_TYPE = DEFAULT_PARSER_MEDIA_TYPE : PARSER_MEDIA_TYPE = cfg.PARSER_MEDIA_TYPE; // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
+    SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? DEFAULT_PARSER_MEDIA_TYPE : cfg.PARSER_MEDIA_TYPE; // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
 
     transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? stringToString : stringToLowerCase;
     /* Set configuration parameters */
@@ -654,7 +654,7 @@ function createDOMPurify() {
 
 
     if (USE_PROFILES) {
-      ALLOWED_TAGS = addToSet({}, [...text]);
+      ALLOWED_TAGS = addToSet({}, text);
       ALLOWED_ATTR = [];
 
       if (USE_PROFILES.html === true) {
@@ -775,11 +775,8 @@ function createDOMPurify() {
    * so that we can perform the namespace checks
    * correctly. */
 
-  const ALL_SVG_TAGS = addToSet({}, svg$1);
-  addToSet(ALL_SVG_TAGS, svgFilters);
-  addToSet(ALL_SVG_TAGS, svgDisallowed);
-  const ALL_MATHML_TAGS = addToSet({}, mathMl$1);
-  addToSet(ALL_MATHML_TAGS, mathMlDisallowed);
+  const ALL_SVG_TAGS = addToSet({}, [...svg$1, ...svgFilters, ...svgDisallowed]);
+  const ALL_MATHML_TAGS = addToSet({}, [...mathMl$1, ...mathMlDisallowed]);
   /**
    * @param  {Element} element a DOM element whose namespace is being checked
    * @returns {boolean} Return false if the element has a
@@ -1686,4 +1683,4 @@ function createDOMPurify() {
 var purify = createDOMPurify();
 
 export { purify as default };
-//# sourceMappingURL=purify.es.js.map
+//# sourceMappingURL=purify.es.mjs.map

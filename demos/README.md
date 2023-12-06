@@ -286,7 +286,7 @@ var config = {
 };
 
 // Specify attributes to proxy
-var attributes = ['action', 'background', 'href', 'poster', 'src'];
+var attributes = ['action', 'background', 'href', 'poster', 'src', 'srcset']
 
 // specify the regex to detect external content
 var regex = /(url\("?)(?!data:)/gim;
