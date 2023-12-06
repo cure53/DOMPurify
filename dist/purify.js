@@ -136,23 +136,6 @@
     return set;
   }
   /**
-   * Clean up an array to harden against CSPP
-   *
-   * @param {Array} array - The array to be cleaned.
-   * @returns {Array} The cleaned version of the array
-   */
-
-
-  function cleanArray(array) {
-    for (let index = 0; index < array.length; index++) {
-      if (Object.getOwnPropertyDescriptor(array, index) === undefined) {
-        array[index] = null;
-      }
-    }
-
-    return array;
-  }
-  /**
    * Shallow clone an object
    *
    * @param {Object} object - The object to be cloned.
@@ -161,17 +144,11 @@
 
 
   function clone(object) {
-    const newObject = Object.create(null);
+    const newObject = create(null);
 
-    for (const [property, value] of Object.entries(object)) {
-      if (Object.getOwnPropertyDescriptor(object, property) !== undefined) {
-        if (Array.isArray(value)) {
-          newObject[property] = cleanArray(value);
-        } else if (typeof value === 'object') {
-          newObject[property] = clone(value);
-        } else {
-          newObject[property] = value;
-        }
+    for (const [property, value] of entries(object)) {
+      if (getOwnPropertyDescriptor(object, property) !== undefined) {
+        newObject[property] = value;
       }
     }
 
@@ -184,7 +161,6 @@
    * @param {String} prop - The property name for which to find the getter function.
    * @returns {Function} The getter function found in the prototype chain or a fallback function.
    */
-
 
   function lookupGetter(object, prop) {
     while (object !== null) {
