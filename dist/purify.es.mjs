@@ -880,6 +880,9 @@ function createDOMPurify() {
     arrayPush(DOMPurify.removed, {
       element: node
     });
+    /* Execute a hook if present */
+
+    _executeHook('uponRemoveElement', node, null);
 
     try {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
@@ -908,6 +911,10 @@ function createDOMPurify() {
         from: node
       });
     }
+    /* Execute a hook if present */
+
+
+    _executeHook('uponRemoveAttribute', node, null);
 
     node.removeAttribute(name); // We void attribute values for unremovable "is"" attributes
 
