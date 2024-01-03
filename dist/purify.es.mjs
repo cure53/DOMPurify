@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.0.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.6/LICENSE */
+/*! @license DOMPurify 3.0.7 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.7/LICENSE */
 
 const {
   entries,
@@ -113,6 +113,21 @@ function addToSet(set, array) {
 }
 
 /**
+ * Clean up an array to harden against CSPP
+ *
+ * @param {Array} array - The array to be cleaned.
+ * @returns {Array} The cleaned version of the array
+ */
+function cleanArray(array) {
+  for (let index = 0; index < array.length; index++) {
+    if (getOwnPropertyDescriptor(array, index) === undefined) {
+      array[index] = null;
+    }
+  }
+  return array;
+}
+
+/**
  * Shallow clone an object
  *
  * @param {Object} object - The object to be cloned.
@@ -122,7 +137,13 @@ function clone(object) {
   const newObject = create(null);
   for (const [property, value] of entries(object)) {
     if (getOwnPropertyDescriptor(object, property) !== undefined) {
-      newObject[property] = value;
+      if (Array.isArray(value)) {
+        newObject[property] = cleanArray(value);
+      } else if (typeof value === 'object' && value.constructor === Object) {
+        newObject[property] = clone(value);
+      } else {
+        newObject[property] = value;
+      }
     }
   }
   return newObject;
@@ -257,7 +278,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '3.0.6';
+  DOMPurify.version = '3.0.7';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.

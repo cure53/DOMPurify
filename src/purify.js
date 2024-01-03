@@ -784,6 +784,7 @@ function createDOMPurify(window = getGlobal()) {
    */
   const _forceRemove = function (node) {
     arrayPush(DOMPurify.removed, { element: node });
+
     try {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
       node.parentNode.removeChild(node);

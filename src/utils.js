@@ -108,17 +108,39 @@ function addToSet(set, array, transformCaseFunc = stringToLowerCase) {
 }
 
 /**
+ * Clean up an array to harden against CSPP
+ *
+ * @param {Array} array - The array to be cleaned.
+ * @returns {Array} The cleaned version of the array
+ */
+function cleanArray(array) {
+  for (let index = 0; index < array.length; index++) {
+    if (getOwnPropertyDescriptor(array, index) === undefined) {
+      array[index] = null;
+    }
+  }
+
+  return array;
+}
+
+/**
  * Shallow clone an object
  *
  * @param {Object} object - The object to be cloned.
  * @returns {Object} A new object that copies the original.
  */
-export function clone(object) {
+function clone(object) {
   const newObject = create(null);
 
   for (const [property, value] of entries(object)) {
     if (getOwnPropertyDescriptor(object, property) !== undefined) {
-      newObject[property] = value;
+      if (Array.isArray(value)) {
+        newObject[property] = cleanArray(value);
+      } else if (typeof value === 'object' && value.constructor === Object) {
+        newObject[property] = clone(value);
+      } else {
+        newObject[property] = value;
+      }
     }
   }
 
@@ -172,6 +194,7 @@ export {
   isFrozen,
   setPrototypeOf,
   seal,
+  clone,
   create,
   // RegExp
   regExpTest,
