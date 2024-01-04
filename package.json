@@ -17,13 +17,6 @@
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TEST_PROBE_ONLY}\"",
     "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint &&  npm run test:jsdom && npm run test:karma -- --browsers Chrome"
   },
-  "exports": {
-    ".": {
-      "require": "./dist/purify.cjs.js",
-      "import": "./dist/purify.es.mjs"
-    },
-    "./package.json": "./package.json"
-  },
   "main": "./dist/purify.cjs.js",
   "module": "./dist/purify.es.mjs",
   "browser": "./dist/purify.js",
