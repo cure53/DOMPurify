@@ -804,6 +804,21 @@
         );
       }
     );
+    QUnit.test(
+      'CUSTOM_ELEMENT_HANDLING config values of null do not throw a TypeError.',
+      function (assert) {
+        DOMPurify.sanitize('', {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: null,
+            attributeNameCheck: null,
+            allowCustomizedBuiltInElements: null,
+          },
+        });
+    
+        // Don't see a great way to assert NOT throws...
+        assert.ok(true);
+      }
+    );
     QUnit.test('Test dirty being an array', function (assert) {
       assert.equal(
         DOMPurify.sanitize(['<a>123<b>456</b></a>']),
