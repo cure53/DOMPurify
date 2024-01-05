@@ -145,7 +145,7 @@
       if (getOwnPropertyDescriptor(object, property) !== undefined) {
         if (Array.isArray(value)) {
           newObject[property] = cleanArray(value);
-        } else if (typeof value === 'object' && value.constructor === Object) {
+        } else if (value && typeof value === 'object' && value.constructor === Object) {
           newObject[property] = clone(value);
         } else {
           newObject[property] = value;
