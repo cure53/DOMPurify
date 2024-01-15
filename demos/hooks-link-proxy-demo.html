@@ -9,44 +9,42 @@
 
         <!-- Now let's sanitize that content -->
         <script>
-            /* jshint globalstrict:true */
-            /* global DOMPurify */
             'use strict';
-
-            var proxy = 'https://my.proxy.service/?';
-
+            
+            // Assuming DOMPurify is globally available
+            // import DOMPurify from 'dompurify'; // Uncomment if using ES6 modules
+            
+            const proxy = 'https://my.proxy.service/?';
+            
             // Specify dirty HTML
-            var dirty = '<a href="http://evil.com/">CLICK</a>\
-                         <a href="http://evil.com/" target="jajaja">CLICK</a>\
-                         <svg><a xlink:href="http://evil.com/"><circle r=40></a></svg>\
-                         <svg><a xlink:href="http://evil.com/" href="http://evil.com/"><circle r=40></a></svg>\
-                         <form action="http://evil.com/"><input type="submit"></form>\
-                         <map name="test"><area href="http://evil.com/" shape="rect" \
-                         coords="0,0,200,200"></area></map>\
-                         <math href="http://evil.com/">CLICKME</math>\
-                         ';
-
+            const dirty = `
+                <a href="http://evil.com/">CLICK</a>
+                <a href="http://evil.com/" target="jajaja">CLICK</a>
+                <svg><a xlink:href="http://evil.com/"><circle r=40></a></svg>
+                <svg><a xlink:href="http://evil.com/" href="http://evil.com/"><circle r=40></a></svg>
+                <form action="http://evil.com/"><input type="submit"></form>
+                <map name="test"><area href="http://evil.com/" shape="rect" coords="0,0,200,200"></area></map>
+                <math href="http://evil.com/">CLICKME</math>
+            `;
+            
             // Add a hook to make all links point to a proxy
-            DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+            DOMPurify.addHook('afterSanitizeAttributes', node => {
                 // proxy form actions
                 if ('action' in node) {
-                    node.setAttribute('action', proxy
-                        + encodeURIComponent(node.getAttribute('action')));
+                    node.setAttribute('action', `${proxy}${encodeURIComponent(node.getAttribute('action'))}`);
                 }
                 // proxy regular HTML links
                 if (node.hasAttribute('href')) {
-                    node.setAttribute('href', proxy
-                        + encodeURIComponent(node.getAttribute('href')));
+                    node.setAttribute('href', `${proxy}${encodeURIComponent(node.getAttribute('href'))}`);
                 }
                 // proxy SVG/MathML links
                 if (node.hasAttribute('xlink:href')) {
-                    node.setAttribute('xlink:href', proxy
-                        + encodeURIComponent(node.getAttribute('xlink:href')));
+                    node.setAttribute('xlink:href', `${proxy}${encodeURIComponent(node.getAttribute('xlink:href'))}`);
                 }
             });
-
+            
             // Clean HTML string and write into our DIV
-            var clean = DOMPurify.sanitize(dirty);
+            const clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML = clean;
         </script>
     </body>

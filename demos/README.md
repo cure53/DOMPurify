@@ -12,7 +12,7 @@ This is the relevant code:
 
 ```javascript
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 ### Config Demo [Link](config-demo.html)
@@ -24,10 +24,10 @@ This is the relevant code:
 ```javascript
 // Specify a configuration directive, only <P> elements allowed
 // Note: We want to also keep <p>'s text content, so we add #text too
-var config = { ALLOWED_TAGS: ['p', '#text'], KEEP_CONTENT: false };
+const config = { ALLOWED_TAGS: ['p', '#text'], KEEP_CONTENT: false };
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty, config);
+const clean = DOMPurify.sanitize(dirty, config);
 ```
 
 ### Advanced Config Demo [Link](advanced-config-demo.html)
@@ -38,7 +38,7 @@ This is the relevant code:
 
 ```javascript
 // Specify a configuration directive
-var config = {
+const config = {
   ALLOWED_TAGS: ['p', '#text'], // only <P> and text nodes
   KEEP_CONTENT: false, // remove content from non-allow-listed nodes too
   ADD_ATTR: ['kitty-litter'], // permit kitty-litter attributes
@@ -47,7 +47,7 @@ var config = {
 };
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty, config);
+const clean = DOMPurify.sanitize(dirty, config);
 ```
 
 ### Hooks Demo [Link](hooks-demo.html)
@@ -66,7 +66,7 @@ DOMPurify.addHook('beforeSanitizeAttributes', function (node) {
 });
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 ### Add hooks and remove hooks [Link](hooks-removal-demo.html)
@@ -85,13 +85,13 @@ DOMPurify.addHook('beforeSanitizeAttributes', function (node) {
 });
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty);
+let clean = DOMPurify.sanitize(dirty);
 
 // now let's remove the hook again
 console.log(DOMPurify.removeHook('beforeSanitizeAttributes'));
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty);
+let clean = DOMPurify.sanitize(dirty);
 ```
 
 ### Hook to open all links in a new window [Link](hooks-target-blank-demo.html)
@@ -117,7 +117,7 @@ DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 });
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 ### Hook to white-list safe URI Schemes [Link](hooks-scheme-allowlist.html)
@@ -130,15 +130,15 @@ This is the relevant code:
 
 ```javascript
 // allowed URI schemes
-var allowlist = ['http', 'https', 'ftp'];
+const allowlist = ['http', 'https', 'ftp'];
 
 // build fitting regex
-var regex = RegExp('^(' + allowlist.join('|') + '):', 'gim');
+const regex = RegExp('^(' + allowlist.join('|') + '):', 'gim');
 
 // Add a hook to enforce URI scheme allow-list
 DOMPurify.addHook('afterSanitizeAttributes', function (node) {
   // build an anchor to map URLs to
-  var anchor = document.createElement('a');
+  const anchor = document.createElement('a');
 
   // check all href attributes for validity
   if (node.hasAttribute('href')) {
@@ -164,7 +164,7 @@ DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 });
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 ### Hook to allow and sand-box all JavaScript [Link](hooks-mentaljs-demo.html)
@@ -177,7 +177,7 @@ This is the relevant code:
 
 ```javascript
 // allow script elements
-var config = {
+const config = {
   ADD_TAGS: ['script'],
   ADD_ATTR: ['onclick', 'onmouseover', 'onload', 'onunload'],
 };
@@ -185,7 +185,7 @@ var config = {
 // Add a hook to sanitize all script content with MentalJS
 DOMPurify.addHook('uponSanitizeElement', function (node, data) {
   if (data.tagName === 'script') {
-    var script = node.textContent;
+    let script = node.textContent;
     if (
       !script ||
       'src' in node.attributes ||
@@ -195,7 +195,7 @@ DOMPurify.addHook('uponSanitizeElement', function (node, data) {
       return node.parentNode.removeChild(node);
     }
     try {
-      var mental = MentalJS().parse({
+      let mental = MentalJS().parse({
         options: {
           eval: false,
           dom: true,
@@ -212,7 +212,7 @@ DOMPurify.addHook('uponSanitizeElement', function (node, data) {
 // Add a hook to sanitize all white-listed events with MentalJS
 DOMPurify.addHook('uponSanitizeAttribute', function (node, data) {
   if (data.attrName.match(/^on\w+/)) {
-    var script = data.attrValue;
+    let script = data.attrValue;
     try {
       return (data.attrValue = MentalJS().parse({
         options: {
@@ -228,7 +228,7 @@ DOMPurify.addHook('uponSanitizeAttribute', function (node, data) {
 });
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty, config);
+const clean = DOMPurify.sanitize(dirty, config);
 ```
 
 ### Hook to proxy all links [Link](hooks-link-proxy-demo.html)
@@ -264,7 +264,7 @@ DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 });
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty);
+const clean = DOMPurify.sanitize(dirty);
 ```
 
 ### Hook to proxy all HTTP leaks including CSS [Link](hooks-proxy-demo.html)
@@ -277,28 +277,28 @@ This is the relevant code:
 
 ```javascript
 // Specify proxy URL
-var proxy = 'https://my.proxy/?url=';
+const proxy = 'https://my.proxy/?url=';
 
 // What do we allow? Not much for now. But it's tight.
-var config = {
+const config = {
   FORBID_TAGS: ['svg'],
   WHOLE_DOCUMENT: true,
 };
 
 // Specify attributes to proxy
-var attributes = ['action', 'background', 'href', 'poster', 'src', 'srcset']
+const attributes = ['action', 'background', 'href', 'poster', 'src', 'srcset']
 
 // specify the regex to detect external content
-var regex = /(url\("?)(?!data:)/gim;
+const regex = /(url\("?)(?!data:)/gim;
 
 /**
  *  Take CSS property-value pairs and proxy URLs in values,
  *  then add the styles to an array of property-value pairs
  */
 function addStyles(output, styles) {
-  for (var prop = styles.length - 1; prop >= 0; prop--) {
+  for (let prop = styles.length - 1; prop >= 0; prop--) {
     if (styles[styles[prop]]) {
-      var url = styles[styles[prop]].replace(regex, '$1' + proxy);
+      let url = styles[styles[prop]].replace(regex, '$1' + proxy);
       styles[styles[prop]] = url;
     }
     if (styles[styles[prop]]) {
@@ -312,8 +312,8 @@ function addStyles(output, styles) {
  * then create matching CSS text for later application to the DOM
  */
 function addCSSRules(output, cssRules) {
-  for (var index = cssRules.length - 1; index >= 0; index--) {
-    var rule = cssRules[index];
+  for (let index = cssRules.length - 1; index >= 0; index--) {
+    let rule = cssRules[index];
     // check for rules with selector
     if (rule.type == 1 && rule.selectorText) {
       output.push(rule.selectorText + '{');
@@ -336,8 +336,8 @@ function addCSSRules(output, cssRules) {
       // check for @keyframes rules
     } else if (rule.type === rule.KEYFRAMES_RULE) {
       output.push('@keyframes ' + rule.name + '{');
-      for (var i = rule.cssRules.length - 1; i >= 0; i--) {
-        var frame = rule.cssRules[i];
+      for (let i = rule.cssRules.length - 1; i >= 0; i--) {
+        let frame = rule.cssRules[i];
         if (frame.type === 8 && frame.keyText) {
           output.push(frame.keyText + '{');
           if (frame.style) {
@@ -365,7 +365,7 @@ function proxyAttribute(url) {
 // Add a hook to enforce proxy for leaky CSS rules
 DOMPurify.addHook('uponSanitizeElement', function (node, data) {
   if (data.tagName === 'style') {
-    var output = [];
+    let output = [];
     addCSSRules(output, node.sheet.cssRules);
     node.textContent = output.join('\n');
   }
@@ -374,7 +374,7 @@ DOMPurify.addHook('uponSanitizeElement', function (node, data) {
 // Add a hook to enforce proxy for all HTTP leaks incl. inline CSS
 DOMPurify.addHook('afterSanitizeAttributes', function (node) {
   // Check all src attributes and proxy them
-  for (var i = 0; i <= attributes.length - 1; i++) {
+  for (let i = 0; i <= attributes.length - 1; i++) {
     if (node.hasAttribute(attributes[i])) {
       node.setAttribute(
         attributes[i],
@@ -385,12 +385,12 @@ DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 
   // Check all style attribute values and proxy them
   if (node.hasAttribute('style')) {
-    var styles = node.style;
-    var output = [];
-    for (var prop = styles.length - 1; prop >= 0; prop--) {
+    let styles = node.style;
+    let output = [];
+    for (let prop = styles.length - 1; prop >= 0; prop--) {
       // we re-write each property-value pair to remove invalid CSS
       if (node.style[styles[prop]] && regex.test(node.style[styles[prop]])) {
-        var url = node.style[styles[prop]].replace(regex, '$1' + proxy);
+        let url = node.style[styles[prop]].replace(regex, '$1' + proxy);
         node.style[styles[prop]] = url;
       }
       output.push(styles[prop] + ':' + node.style[styles[prop]] + ';');
@@ -405,7 +405,7 @@ DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 });
 
 // Clean HTML string and write into our DIV
-var clean = DOMPurify.sanitize(dirty, config);
+const clean = DOMPurify.sanitize(dirty, config);
 ```
 
 ### Hook to sanitize SVGs shown via an `<img>` tag. [Link](hooks-svg-demo.html)
@@ -423,14 +423,14 @@ DOMPurify.addHook('afterSanitizeAttributes', function (node) {
 });
 
 // Clean SVG string and allow the "filter" tag
-var clean = DOMPurify.sanitize(dirty, { ADD_TAGS: ['filter'] });
+const clean = DOMPurify.sanitize(dirty, { ADD_TAGS: ['filter'] });
 
 // Remove partial XML comment left in the HTML
-var badTag = clean.indexOf(']&gt;');
-var pureSvg = clean.substring(badTag < 0 ? 0 : 5, clean.length);
+let badTag = clean.indexOf(']&gt;');
+let pureSvg = clean.substring(badTag < 0 ? 0 : 5, clean.length);
 
 // Show sanitized content in <img> element
-var img = new Image();
+let img = new Image();
 img.src = 'data:image/svg+xml;base64,' + window.btoa(pureSvg);
 document.getElementById('sanitized').appendChild(img);
 ```
