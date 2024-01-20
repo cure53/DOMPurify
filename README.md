@@ -413,6 +413,6 @@ Many people helped and help DOMPurify become what it is and need to be acknowled
 
 ## Testing powered by
 
-<a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png"></a><br>
+<a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://github.com/cure53/DOMPurify/assets/6709482/f70be7eb-8fc4-41ea-9653-9d359235328f"></a><br>
 
 And last but not least, thanks to [BrowserStack Open-Source Program](https://www.browserstack.com/open-source) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
