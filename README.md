@@ -18,7 +18,10 @@ DOMPurify is written by security people who have vast background in web attacks 
 
 ## What does it do?
 
-DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with string full of dirty HTML and it will return a string (unless configured otherwise) with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
+
+DOMPurify is a JavaScript library designed to sanitize HTML and prevent XSS (Cross-Site Scripting) attacks. By providing it with a potentially harmful HTML string, DOMPurify efficiently cleans the content and returns a sanitized string. It removes elements and attributes that pose security risks, offering protection against malicious code. DOMPurify leverages browser technologies to create a fast and effective XSS filter. Its speed is influenced by the performance of the user's browser, making it a reliable tool for enhancing web security.
+
+
 
 ## How do I use it?
 
