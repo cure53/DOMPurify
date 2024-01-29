@@ -51,6 +51,7 @@
   const stringReplace = unapply(String.prototype.replace);
   const stringIndexOf = unapply(String.prototype.indexOf);
   const stringTrim = unapply(String.prototype.trim);
+  const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
   const regExpTest = unapply(RegExp.prototype.test);
   const typeErrorCreate = unconstruct(TypeError);
 
@@ -126,7 +127,7 @@
    */
   function cleanArray(array) {
     for (let index = 0; index < array.length; index++) {
-      const isPropertyExist = Object.prototype.hasOwnProperty.call(array, index);
+      const isPropertyExist = objectHasOwnProperty(array, index);
       if (!isPropertyExist) {
         array[index] = null;
       }
@@ -143,7 +144,7 @@
   function clone(object) {
     const newObject = create(null);
     for (const [property, value] of entries(object)) {
-      const isPropertyExist = Object.prototype.hasOwnProperty.call(object, property);
+      const isPropertyExist = objectHasOwnProperty(object, property);
       if (isPropertyExist) {
         if (Array.isArray(value)) {
           newObject[property] = cleanArray(value);
