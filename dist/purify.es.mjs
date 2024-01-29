@@ -120,7 +120,8 @@ function addToSet(set, array) {
  */
 function cleanArray(array) {
   for (let index = 0; index < array.length; index++) {
-    if (getOwnPropertyDescriptor(array, index) === undefined) {
+    const isHasOwnProperty = Object.prototype.hasOwnProperty.call(array, index);
+    if (!isHasOwnProperty) {
       array[index] = null;
     }
   }
@@ -136,7 +137,8 @@ function cleanArray(array) {
 function clone(object) {
   const newObject = create(null);
   for (const [property, value] of entries(object)) {
-    if (getOwnPropertyDescriptor(object, property) !== undefined) {
+    const isHasOwnProperty = Object.prototype.hasOwnProperty.call(object, property);
+    if (isHasOwnProperty) {
       if (Array.isArray(value)) {
         newObject[property] = cleanArray(value);
       } else if (value && typeof value === 'object' && value.constructor === Object) {
@@ -169,8 +171,7 @@ function lookupGetter(object, prop) {
     }
     object = getPrototypeOf(object);
   }
-  function fallbackValue(element) {
-    console.warn('fallback value for', element);
+  function fallbackValue() {
     return null;
   }
   return fallbackValue;

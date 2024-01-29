@@ -115,7 +115,9 @@ function addToSet(set, array, transformCaseFunc = stringToLowerCase) {
  */
 function cleanArray(array) {
   for (let index = 0; index < array.length; index++) {
-    if (getOwnPropertyDescriptor(array, index) === undefined) {
+    const isHasOwnProperty = Object.prototype.hasOwnProperty.call(array, index);
+
+    if (!isHasOwnProperty) {
       array[index] = null;
     }
   }
@@ -133,7 +135,12 @@ function clone(object) {
   const newObject = create(null);
 
   for (const [property, value] of entries(object)) {
-    if (getOwnPropertyDescriptor(object, property) !== undefined) {
+    const isHasOwnProperty = Object.prototype.hasOwnProperty.call(
+      object,
+      property
+    );
+
+    if (isHasOwnProperty) {
       if (Array.isArray(value)) {
         newObject[property] = cleanArray(value);
       } else if (
