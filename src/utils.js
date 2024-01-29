@@ -115,12 +115,9 @@ function addToSet(set, array, transformCaseFunc = stringToLowerCase) {
  */
 function cleanArray(array) {
   for (let index = 0; index < array.length; index++) {
-    const hasOwnPropertyCheck = Object.prototype.hasOwnProperty.call(
-      array,
-      index
-    );
+    const isPropertyExist = Object.prototype.hasOwnProperty.call(array, index);
 
-    if (!hasOwnPropertyCheck) {
+    if (!isPropertyExist) {
       array[index] = null;
     }
   }
@@ -138,12 +135,12 @@ function clone(object) {
   const newObject = create(null);
 
   for (const [property, value] of entries(object)) {
-    const hasOwnPropertyCheck = Object.prototype.hasOwnProperty.call(
+    const isPropertyExist = Object.prototype.hasOwnProperty.call(
       object,
       property
     );
 
-    if (hasOwnPropertyCheck) {
+    if (isPropertyExist) {
       if (Array.isArray(value)) {
         newObject[property] = cleanArray(value);
       } else if (

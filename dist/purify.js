@@ -126,8 +126,8 @@
    */
   function cleanArray(array) {
     for (let index = 0; index < array.length; index++) {
-      const hasOwnPropertyCheck = Object.prototype.hasOwnProperty.call(array, index);
-      if (!hasOwnPropertyCheck) {
+      const isPropertyExist = Object.prototype.hasOwnProperty.call(array, index);
+      if (!isPropertyExist) {
         array[index] = null;
       }
     }
@@ -143,8 +143,8 @@
   function clone(object) {
     const newObject = create(null);
     for (const [property, value] of entries(object)) {
-      const hasOwnPropertyCheck = Object.prototype.hasOwnProperty.call(object, property);
-      if (hasOwnPropertyCheck) {
+      const isPropertyExist = Object.prototype.hasOwnProperty.call(object, property);
+      if (isPropertyExist) {
         if (Array.isArray(value)) {
           newObject[property] = cleanArray(value);
         } else if (value && typeof value === 'object' && value.constructor === Object) {
