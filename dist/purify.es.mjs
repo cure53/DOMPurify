@@ -45,6 +45,7 @@ const stringMatch = unapply(String.prototype.match);
 const stringReplace = unapply(String.prototype.replace);
 const stringIndexOf = unapply(String.prototype.indexOf);
 const stringTrim = unapply(String.prototype.trim);
+const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
 const regExpTest = unapply(RegExp.prototype.test);
 const typeErrorCreate = unconstruct(TypeError);
 
@@ -120,7 +121,8 @@ function addToSet(set, array) {
  */
 function cleanArray(array) {
   for (let index = 0; index < array.length; index++) {
-    if (getOwnPropertyDescriptor(array, index) === undefined) {
+    const isPropertyExist = objectHasOwnProperty(array, index);
+    if (!isPropertyExist) {
       array[index] = null;
     }
   }
@@ -136,7 +138,8 @@ function cleanArray(array) {
 function clone(object) {
   const newObject = create(null);
   for (const [property, value] of entries(object)) {
-    if (getOwnPropertyDescriptor(object, property) !== undefined) {
+    const isPropertyExist = objectHasOwnProperty(object, property);
+    if (isPropertyExist) {
       if (Array.isArray(value)) {
         newObject[property] = cleanArray(value);
       } else if (value && typeof value === 'object' && value.constructor === Object) {
@@ -169,8 +172,7 @@ function lookupGetter(object, prop) {
     }
     object = getPrototypeOf(object);
   }
-  function fallbackValue(element) {
-    console.warn('fallback value for', element);
+  function fallbackValue() {
     return null;
   }
   return fallbackValue;
