@@ -1088,7 +1088,7 @@ function createDOMPurify() {
    * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
   const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
-    return tagName.indexOf('-') > 0;
+    return tagName !== 'annotation-xml' && tagName.indexOf('-') > 0;
   };
 
   /**
