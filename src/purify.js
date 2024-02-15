@@ -19,6 +19,7 @@ import {
   typeErrorCreate,
   lookupGetter,
   create,
+  objectHasOwnProperty,
 } from './utils.js';
 
 const getGlobal = function () {
@@ -422,47 +423,41 @@ function createDOMPurify(window = getGlobal()) {
         : stringToLowerCase;
 
     /* Set configuration parameters */
-    ALLOWED_TAGS =
-      'ALLOWED_TAGS' in cfg
-        ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
-        : DEFAULT_ALLOWED_TAGS;
-    ALLOWED_ATTR =
-      'ALLOWED_ATTR' in cfg
-        ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
-        : DEFAULT_ALLOWED_ATTR;
-    ALLOWED_NAMESPACES =
-      'ALLOWED_NAMESPACES' in cfg
-        ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString)
-        : DEFAULT_ALLOWED_NAMESPACES;
-    URI_SAFE_ATTRIBUTES =
-      'ADD_URI_SAFE_ATTR' in cfg
-        ? addToSet(
-            clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
-            cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
-            transformCaseFunc // eslint-disable-line indent
-          ) // eslint-disable-line indent
-        : DEFAULT_URI_SAFE_ATTRIBUTES;
-    DATA_URI_TAGS =
-      'ADD_DATA_URI_TAGS' in cfg
-        ? addToSet(
-            clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
-            cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
-            transformCaseFunc // eslint-disable-line indent
-          ) // eslint-disable-line indent
-        : DEFAULT_DATA_URI_TAGS;
-    FORBID_CONTENTS =
-      'FORBID_CONTENTS' in cfg
-        ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
-        : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS =
-      'FORBID_TAGS' in cfg
-        ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
-        : {};
-    FORBID_ATTR =
-      'FORBID_ATTR' in cfg
-        ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
-        : {};
-    USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
+    ALLOWED_TAGS = objectHasOwnProperty(cfg, 'ALLOWED_TAGS')
+      ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
+      : DEFAULT_ALLOWED_TAGS;
+    ALLOWED_ATTR = objectHasOwnProperty(cfg, 'ALLOWED_ATTR')
+      ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
+      : DEFAULT_ALLOWED_ATTR;
+    ALLOWED_NAMESPACES = objectHasOwnProperty(cfg, 'ALLOWED_NAMESPACES')
+      ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString)
+      : DEFAULT_ALLOWED_NAMESPACES;
+    URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR')
+      ? addToSet(
+          clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
+          cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
+          transformCaseFunc // eslint-disable-line indent
+        ) // eslint-disable-line indent
+      : DEFAULT_URI_SAFE_ATTRIBUTES;
+    DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS')
+      ? addToSet(
+          clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
+          cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
+          transformCaseFunc // eslint-disable-line indent
+        ) // eslint-disable-line indent
+      : DEFAULT_DATA_URI_TAGS;
+    FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS')
+      ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
+      : DEFAULT_FORBID_CONTENTS;
+    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS')
+      ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
+      : {};
+    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR')
+      ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
+      : {};
+    USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES')
+      ? cfg.USE_PROFILES
+      : false;
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
     ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
