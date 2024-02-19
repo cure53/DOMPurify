@@ -205,6 +205,7 @@ export {
   seal,
   clone,
   create,
+  objectHasOwnProperty,
   // RegExp
   regExpTest,
   // String
