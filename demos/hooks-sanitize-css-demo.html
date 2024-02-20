@@ -13,21 +13,21 @@
             /* global DOMPurify */
             'use strict';
             window.onload = function(){
-
+            
                 // Specify dirty HTML
-                var dirty = document.getElementById('payload').value;
+                let dirty = document.getElementById('payload').value;
 
                 // We can allow all (default elements) but SVG
-                var config = {
+                const config = {
                     FORBID_TAGS: ['svg'] // SVG is not yet supported. Too messy.
                 };
 
-                // Specify CSS property allow-list
-                var allowed_properties = [
-                    'color',
+                // Specify CSS property whitelist
+                const allowed_properties = [
+                    'color', 
                     'background',
-                    'border',
-                    'padding',
+                    'border', 
+                    'padding', 
                     'margin',
                     'font-family',
                     'content',
@@ -35,48 +35,47 @@
                 ];
 
                 // Specify if CSS functions are permitted
-                var allow_css_functions = true;
+                const allow_css_functions = true;
 
                 /**
-                 *  Take CSS property-value pairs and validate against allow-list,
+                 *  Take CSS property-value pairs and validate against white-list,
                  *  then add the styles to an array of property-value pairs
                  */
                 function validateStyles(output, styles) {
-                    // Validate regular CSS properties
-                    for (var prop in styles) {
-                        if (typeof styles[prop] === 'string') {
-                            if (styles[prop] && allowed_properties.indexOf(prop) > -1) {
-                               if (allow_css_functions || !/\w+\(/.test(styles[prop])) {
-                                    output.push(prop + ':' + styles[prop] +';');
-                                }
+                    Object.keys(styles).forEach(prop => {
+                        const value = styles[prop];
+                        if (value && typeof value === 'string') {
+                            const normalizedProp = prop.replace(/([A-Z])/g, '-$1').toLowerCase();
+                            if (allowed_properties.includes(normalizedProp) && 
+                                (allow_css_functions || !/\w+\(/.test(value))) {
+                                output.push(`${normalizedProp}:${value};`);
                             }
                         }
-                    }
+                    });
                 }
 
                 /**
                  * Take CSS rules and analyze them, create string wrapper to
-                 * apply them to the DOM later on. Note that only selector rules
+                 * apply them to the DOM later on. Note that only selector rules 
                  * are supported right now
                  */
                 function addCSSRules(output, cssRules) {
-                    for (var index = cssRules.length-1; index >= 0; index--) {
-                        var rule = cssRules[index];
+                    Array.from(cssRules).reverse().forEach(rule => {
                         // check for rules with selector
-                        if (rule.type == 1 && rule.selectorText) {
-                            output.push(rule.selectorText + '{')
+                        if (rule.type === 1 && rule.selectorText) {
+                            output.push(`${rule.selectorText}{`);
                             if (rule.style) {
-                                validateStyles(output, rule.style)
+                                validateStyles(output, rule.style);
                             }
                             output.push('}');
                         }
-                    }
+                    });
                 }
 
                 // Add a hook to enforce CSS element sanitization
                 DOMPurify.addHook('uponSanitizeElement', function(node, data) {
                     if (data.tagName === 'style') {
-                        var output  = [];
+                        let output  = [];
                         addCSSRules(output, node.sheet.cssRules);
                         node.textContent = output.join("\n");
                     }
@@ -86,13 +85,13 @@
                 DOMPurify.addHook('afterSanitizeAttributes', function(node) {
                     // Nasty hack to fix baseURI + CSS problems in Chrome
                     if (!node.ownerDocument.baseURI) {
-                        var base = document.createElement('base');
+                        let base = document.createElement('base');
                         base.href = document.baseURI;
                         node.ownerDocument.head.appendChild(base);
                     }
                     // Check all style attribute values and validate them
                     if (node.hasAttribute('style')) {
-                        var output = [];
+                        let output = [];
                         validateStyles(output, node.style);
                         // re-add styles in case any are left
                         if (output.length) {
@@ -104,7 +103,7 @@
                 });
 
                 // Clean HTML string and write into our DIV
-                var clean = DOMPurify.sanitize(dirty, config);
+                let clean = DOMPurify.sanitize(dirty, config);
                 document.getElementById('sanitized').innerHTML = clean;
             }
         </script>

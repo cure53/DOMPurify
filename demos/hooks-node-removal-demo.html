@@ -9,23 +9,21 @@
 
         <!-- Now let's sanitize that content -->
         <script>
-            /* jshint globalstrict:true */
-            /* global DOMPurify */
             'use strict';
-
+            
             // Specify dirty HTML
-            var dirty = '<p>Not empty</p><p class="empty"></p>';
-
+            const dirty = '<p>Not empty</p><p class="empty"></p>';
+            
             // Add a hook to remove empty nodes
-            DOMPurify.addHook('beforeSanitizeAttributes', function(node) {
+            DOMPurify.addHook('beforeSanitizeAttributes', node => {
                 // Remove the node in case it is empty
                 if (!node.hasChildNodes() && !node.textContent) {
                     node.remove();
                 }
             });
-
+            
             // Clean HTML string and write into our DIV
-            var clean = DOMPurify.sanitize(dirty);
+            const clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML = clean;
         </script>
     </body>

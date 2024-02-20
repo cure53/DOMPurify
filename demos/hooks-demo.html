@@ -9,23 +9,24 @@
 
         <!-- Now let's sanitize that content -->
         <script>
-            /* jshint globalstrict:true */
-            /* global DOMPurify */
             'use strict';
-
+            
+            // Assuming DOMPurify is globally available
+            // import DOMPurify from 'dompurify'; // Uncomment if using ES6 modules
+            
             // Specify dirty HTML
-            var dirty = '<p>HELLO<iframe/\/src=JavScript:alert&lpar;1)></ifrAMe><br>goodbye</p>';
-
+            const dirty = '<p>HELLO<iframe/\/src=JavScript:alert&lpar;1)></ifrAMe><br>goodbye</p>';
+            
             // Add a hook to convert all text to capitals
-            DOMPurify.addHook('beforeSanitizeAttributes', function(node) {
+            DOMPurify.addHook('beforeSanitizeAttributes', node => {
                 // Set text node content to uppercase
                 if (node.nodeName && node.nodeName === '#text') {
                     node.textContent = node.textContent.toUpperCase();
                 }
             });
-
+            
             // Clean HTML string and write into our DIV
-            var clean = DOMPurify.sanitize(dirty);
+            const clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML = clean;
         </script>
     </body>

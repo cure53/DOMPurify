@@ -2093,5 +2093,16 @@
       // cleanup hook
       DOMPurify.removeHook(entryPoint);
     });
+    
+    QUnit.test('Test proper removal of annotation-xml w. custom elements', function (assert) {
+      const dirty  = '<svg><annotation-xml><foreignobject><style><!--</style><p id="--><img src=\'x\' onerror=\'alert(1)\'>">';
+      const config = { 
+        CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /.*/ },
+        FORBID_CONTENTS: [""] 
+      };
+      const expected = '<svg></svg>';
+      let clean = DOMPurify.sanitize(dirty, config);
+      assert.contains(clean, expected);
+    });
   };
 });

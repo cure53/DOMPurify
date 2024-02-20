@@ -11,84 +11,73 @@
         <div id="test"></div>
         <!-- Now let's sanitize that content -->
         <script>
-            /* jshint globalstrict:true */
-            /* global DOMPurify */
             'use strict';
+            
             // Initialize MentalJS
-            MentalJS().init({dom: true, parseInnerHTML: filter});
-
+            MentalJS().init({ dom: true, parseInnerHTML: filter });
+            
             // Specify dirty HTML
-            var dirty = 'abc<script>alert(\'from script:\'+location)<\/script>\
-                <img src="xyz" onerror="document.getElementById(\'test\').innerHTML=\'<img src=123 onerror=alert(/from_innerhtml/)>\';" />\
-                <img src="xyz" onerror="alert(\'from img:\'+location)">\
-                <img src="xyz" onload="alert`3`">\
-                <img src="xyz" onload="">\
-                <script src=//evil.com><\/script>\
-                <script>alert`4`<\/script>\
-                <script src=//evil.com>alert(5)<\/script>\
-                <svg><script xlink:href=//evil.com>alert(6)<\/script></svg>\
-                <svg><script href="//evil.com">123<\/script><p>';
-                // Add a hook to sanitize all script content with MentalJS
-                DOMPurify.addHook('uponSanitizeElement', function(node, data) {
-                    if (data.tagName === 'script') {
-                        var script = node.textContent;
-                        if (!script || 'src' in node.attributes
-                            || 'href' in node.attributes
-                            || 'xlink:href' in node.attributes) {
-                                return node.parentNode.removeChild(node)
-                        }
-                        try {
-                            // Pass scripts to MentalJS
-                            var mental = MentalJS().parse(
-                                {
-                                    options: {
-                                        eval: false,
-                                        dom:false
-                                    },
-                                 code:script
-                                }
-                            );
-                            var scriptNode = document.createElement('script');
-                            scriptNode.appendChild(document.createTextNode(mental));
-                            document.head.appendChild(scriptNode);
+            const dirty = `
+                abc<script>alert('from script:'+location)<\/script>
+                <img src="xyz" onerror="document.getElementById('test').innerHTML='<img src=123 onerror=alert(/from_innerhtml/);';" />
+                <img src="xyz" onerror="alert('from img:'+location)">
+                <img src="xyz" onload="alert\`3\`">
+                <img src="xyz" onload="">
+                <script src=//evil.com><\/script>
+                <script>alert\`4\`<\/script>
+                <script src=//evil.com>alert(5)<\/script>
+                <svg><script xlink:href=//evil.com>alert(6)<\/script></svg>
+                <svg><script href="//evil.com">123<\/script><p>
+            `;
+            
+            // Add a hook to sanitize all script content with MentalJS
+            DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+                if (data.tagName === 'script') {
+                    const script = node.textContent;
+                    if (!script || 'src' in node.attributes
+                        || 'href' in node.attributes
+                        || 'xlink:href' in node.attributes) {
                             return node.parentNode.removeChild(node);
-                        } catch (e) {
-                            return node.parentNode.removeChild(node);
-                        }
                     }
-                });
-
-                // Add a hook to sanitize all allow-listed events with MentalJS
-                DOMPurify.addHook('uponSanitizeAttribute', function(node, data) {
-                    if (data.attrName.match(/^on\w+/)) {
-                        var script = data.attrValue;
-                        try {
-                            // Pass scripts to MentalJS
-                            return data.attrValue = MentalJS().parse(
-                                {
-                                    options: {
-                                        eval: false,
-                                        dom: false
-                                    },
-                                    code: script
-                                }
-                            );
-                        } catch (e) {
-                            return data.attrValue = '';
-                        }
+                    try {
+                        const mental = MentalJS().parse({
+                            options: { eval: false, dom: false },
+                            code: script
+                        });
+                        const scriptNode = document.createElement('script');
+                        scriptNode.appendChild(document.createTextNode(mental));
+                        document.head.appendChild(scriptNode);
+                        return node.parentNode.removeChild(node);
+                    } catch (e) {
+                        return node.parentNode.removeChild(node);
                     }
-                });
-
+                }
+            });
+            
+            // Add a hook to sanitize all allow-listed events with MentalJS
+            DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+                if (data.attrName.match(/^on\w+/)) {
+                    const script = data.attrValue;
+                    try {
+                        return data.attrValue = MentalJS().parse({
+                            options: { eval: false, dom: false },
+                            code: script
+                        });
+                    } catch (e) {
+                        return data.attrValue = '';
+                    }
+                }
+            });
+            
             function filter(dirty) {
-              // allow script elements
-              var config = {
-                  ADD_TAGS: ['script'],
-                  ADD_ATTR: ['onclick', 'onmouseover', 'onload', 'onunload','onerror']
-              };
-              // Clean HTML string and write into our DIV
-              var clean = DOMPurify.sanitize(dirty, config);
-              return clean;
+                const config = {
+                    ADD_TAGS: ['script'],
+                    ADD_ATTR: ['onclick', 'onmouseover', 'onload', 'onunload', 'onerror']
+                };
+                const clean = DOMPurify.sanitize(dirty, config);
+                return clean;
             }
+            
             document.getElementById('sanitized').innerHTML = filter(dirty);
         </script>
     </body>

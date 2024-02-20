@@ -6,7 +6,7 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.0.8**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.0.9**.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
@@ -413,6 +413,6 @@ Many people helped and help DOMPurify become what it is and need to be acknowled
 
 ## Testing powered by
 
-<a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png"></a><br>
+<a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://github.com/cure53/DOMPurify/assets/6709482/f70be7eb-8fc4-41ea-9653-9d359235328f"></a><br>
 
 And last but not least, thanks to [BrowserStack Open-Source Program](https://www.browserstack.com/open-source) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.

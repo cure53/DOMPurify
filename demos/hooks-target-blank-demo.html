@@ -9,42 +9,35 @@
 
         <!-- Now let's sanitize that content -->
         <script>
-            /* jshint globalstrict:true */
-            /* global DOMPurify */
             'use strict';
 
             // Specify dirty HTML
-            var dirty = '<a href="?a">CLICK</a>\
-                         <a href="?a" target="jajaja">CLICK</a>\
-                         <svg><a href="?svg"><circle r=40></a></svg>\
-                         <form action="?form"><input type="submit"></form>\
-                         <img src="404" width="200" height="200" usemap="#test">\
-                         <map name="test"><area href="?area" shape="rect" \
-                         coords="0,0,200,200"></area></map>\
-                         <math href="?mathml">CLICKME</math>\
-                         <math><mi href="?mathml">CLICKME</mi></math>\
-                         <math><mi target="xxx" href="?mathml">CLICKME</mi></math>\
-                         <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="?bla"><circle r=40></a></svg>\
-                         ';
-
+            const dirty = `
+                <a href="?a">CLICK</a>
+                <a href="?a" target="jajaja">CLICK</a>
+                <svg><a href="?svg"><circle r=40></a></svg>
+                <form action="?form"><input type="submit"></form>
+                <img src="404" width="200" height="200" usemap="#test">
+                <map name="test"><area href="?area" shape="rect" coords="0,0,200,200"></area></map>
+                <math href="?mathml">CLICKME</math>
+                <math><mi href="?mathml">CLICKME</mi></math>
+                <math><mi target="xxx" href="?mathml">CLICKME</mi></math>
+                <svg xmlns:xlink="http://www.w3.org/2000/svg"><a xlink:href="?bla"><circle r=40></a></svg>
+            `;
+            
             // Add a hook to make all links open a new window
-            DOMPurify.addHook('afterSanitizeAttributes', function(node) {
-                // set all elements owning target to target=_blank
+            DOMPurify.addHook('afterSanitizeAttributes', (node) => {
                 if ('target' in node) {
-                    node.setAttribute('target','_blank');
-                    // prevent https://www.owasp.org/index.php/Reverse_Tabnabbing
+                    node.setAttribute('target', '_blank');
                     node.setAttribute('rel', 'noopener noreferrer');
                 }
-                // set non-HTML/MathML links to xlink:show=new
-                if (!node.hasAttribute('target')
-                    && (node.hasAttribute('xlink:href')
-                        || node.hasAttribute('href'))) {
+                if (!node.hasAttribute('target') && (node.hasAttribute('xlink:href') || node.hasAttribute('href'))) {
                     node.setAttribute('xlink:show', 'new');
                 }
             });
-
+            
             // Clean HTML string and write into our DIV
-            var clean = DOMPurify.sanitize(dirty);
+            const clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML = clean;
         </script>
     </body>
