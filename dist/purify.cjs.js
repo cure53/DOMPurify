@@ -908,7 +908,7 @@ function createDOMPurify() {
   const _createNodeIterator = function _createNodeIterator(root) {
     return createNodeIterator.call(root.ownerDocument || root, root,
     // eslint-disable-next-line no-bitwise
-    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null);
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
   };
 
   /**
