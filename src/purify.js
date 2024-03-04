@@ -167,6 +167,7 @@ function createDOMPurify(window = getGlobal()) {
     ARIA_ATTR,
     IS_SCRIPT_OR_DATA,
     ATTR_WHITESPACE,
+    CUSTOM_ELEMENT,
   } = EXPRESSIONS;
 
   let { IS_ALLOWED_URI } = EXPRESSIONS;
@@ -889,7 +890,10 @@ function createDOMPurify(window = getGlobal()) {
       root.ownerDocument || root,
       root,
       // eslint-disable-next-line no-bitwise
-      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
+      NodeFilter.SHOW_ELEMENT |
+        NodeFilter.SHOW_COMMENT |
+        NodeFilter.SHOW_TEXT |
+        NodeFilter.SHOW_PROCESSING_INSTRUCTION,
       null,
       false
     );
@@ -1185,7 +1189,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param {string} tagName name of the tag of the node to sanitize
    */
   const _basicCustomElementTest = function (tagName) {
-    return tagName.indexOf('-') > 0;
+    return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
   };
 
   /**
