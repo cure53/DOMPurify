@@ -221,6 +221,7 @@
   );
 
   const DOCTYPE_NAME = seal(/^html$/i);
+  const CUSTOM_ELEMENT = seal(/^[a-z][a-z\d]*(-[a-z\d]+)+$/i);
 
   var EXPRESSIONS = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -232,7 +233,8 @@
     IS_ALLOWED_URI: IS_ALLOWED_URI,
     IS_SCRIPT_OR_DATA: IS_SCRIPT_OR_DATA,
     ATTR_WHITESPACE: ATTR_WHITESPACE,
-    DOCTYPE_NAME: DOCTYPE_NAME
+    DOCTYPE_NAME: DOCTYPE_NAME,
+    CUSTOM_ELEMENT: CUSTOM_ELEMENT
   });
 
   const getGlobal = function getGlobal() {
@@ -357,7 +359,8 @@
       DATA_ATTR,
       ARIA_ATTR,
       IS_SCRIPT_OR_DATA,
-      ATTR_WHITESPACE
+      ATTR_WHITESPACE,
+      CUSTOM_ELEMENT
     } = EXPRESSIONS;
     let {
       IS_ALLOWED_URI: IS_ALLOWED_URI$1
@@ -1094,7 +1097,7 @@
      * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
      */
     const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
-      return tagName !== 'annotation-xml' && tagName.indexOf('-') > 0;
+      return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
     };
 
     /**
