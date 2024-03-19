@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.0.9 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.9/LICENSE */
+/*! @license DOMPurify 3.0.10 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.10/LICENSE */
 
 const {
   entries,
@@ -215,6 +215,7 @@ const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205
 );
 
 const DOCTYPE_NAME = seal(/^html$/i);
+const CUSTOM_ELEMENT = seal(/^[a-z][a-z\d]*(-[a-z\d]+)+$/i);
 
 var EXPRESSIONS = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -226,7 +227,8 @@ var EXPRESSIONS = /*#__PURE__*/Object.freeze({
   IS_ALLOWED_URI: IS_ALLOWED_URI,
   IS_SCRIPT_OR_DATA: IS_SCRIPT_OR_DATA,
   ATTR_WHITESPACE: ATTR_WHITESPACE,
-  DOCTYPE_NAME: DOCTYPE_NAME
+  DOCTYPE_NAME: DOCTYPE_NAME,
+  CUSTOM_ELEMENT: CUSTOM_ELEMENT
 });
 
 const getGlobal = function getGlobal() {
@@ -280,7 +282,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '3.0.9';
+  DOMPurify.version = '3.0.10';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.
@@ -351,7 +353,8 @@ function createDOMPurify() {
     DATA_ATTR,
     ARIA_ATTR,
     IS_SCRIPT_OR_DATA,
-    ATTR_WHITESPACE
+    ATTR_WHITESPACE,
+    CUSTOM_ELEMENT
   } = EXPRESSIONS;
   let {
     IS_ALLOWED_URI: IS_ALLOWED_URI$1
@@ -906,7 +909,7 @@ function createDOMPurify() {
   const _createNodeIterator = function _createNodeIterator(root) {
     return createNodeIterator.call(root.ownerDocument || root, root,
     // eslint-disable-next-line no-bitwise
-    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT, null);
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
   };
 
   /**
@@ -1088,7 +1091,7 @@ function createDOMPurify() {
    * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
   const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
-    return tagName !== 'annotation-xml' && tagName.indexOf('-') > 0;
+    return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
   };
 
   /**
