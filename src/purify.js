@@ -1009,6 +1009,12 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
+    /* Remove any ocurrence of processing instructions */
+    if (currentNode.nodeType === 7) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Check if we have a custom element to handle */

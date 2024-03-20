@@ -1,9 +1,9 @@
 import { seal } from './utils.js';
 
 // eslint-disable-next-line unicorn/better-regex
-export const MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
-export const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
-export const TMPLIT_EXPR = seal(/\${[\w\W]*}/gm);
+export const MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*?\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
+export const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*?%>/gm);
+export const TMPLIT_EXPR = seal(/\${[\w\W]*?}/gm);
 export const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/); // eslint-disable-line no-useless-escape
 export const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
 export const IS_ALLOWED_URI = seal(
