@@ -378,7 +378,7 @@
           '<a>123{{45}}6}}<b><style><% <%alert(1) %></style>456</b></a>',
           { SAFE_FOR_TEMPLATES: true }
         ),
-        '<a>  <b><style> </style>456</b></a>'
+        '<a> <b><style> </style>456</b></a>'
       );
       assert.equal(
         DOMPurify.sanitize(

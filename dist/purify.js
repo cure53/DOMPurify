@@ -235,10 +235,10 @@
   const mathMl = freeze(['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnsalign', 'columnlines', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'encoding', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lspace', 'lquote', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns']);
   const xml = freeze(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink']);
 
-  const MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*?\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
+  const MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
 
-  const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*?%>/gm);
-  const TMPLIT_EXPR = seal(/\${[\w\W]*?}/gm);
+  const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
+  const TMPLIT_EXPR = seal(/\${[\w\W]*}/gm);
   const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/); // eslint-disable-line no-useless-escape
 
   const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
@@ -249,7 +249,7 @@
   const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
   );
   const DOCTYPE_NAME = seal(/^html$/i);
-  const CUSTOM_ELEMENT = seal(/^[a-z][a-z\d]*(-[a-z\d]+)+$/i);
+  const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 
   var EXPRESSIONS = /*#__PURE__*/Object.freeze({
     __proto__: null,
@@ -1009,7 +1009,7 @@
 
     const _createNodeIterator = function _createNodeIterator(root) {
       return createNodeIterator.call(root.ownerDocument || root, root, // eslint-disable-next-line no-bitwise
-      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
+      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
     };
     /**
      * _isClobbered

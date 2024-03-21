@@ -913,7 +913,8 @@ function createDOMPurify(window = getGlobal()) {
       NodeFilter.SHOW_ELEMENT |
         NodeFilter.SHOW_COMMENT |
         NodeFilter.SHOW_TEXT |
-        NodeFilter.SHOW_PROCESSING_INSTRUCTION,
+        NodeFilter.SHOW_PROCESSING_INSTRUCTION |
+        NodeFilter.SHOW_CDATA_SECTION,
       null
     );
   };
