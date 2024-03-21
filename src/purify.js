@@ -913,7 +913,8 @@ function createDOMPurify(window = getGlobal()) {
       NodeFilter.SHOW_ELEMENT |
         NodeFilter.SHOW_COMMENT |
         NodeFilter.SHOW_TEXT |
-        NodeFilter.SHOW_PROCESSING_INSTRUCTION,
+        NodeFilter.SHOW_PROCESSING_INSTRUCTION |
+        NodeFilter.SHOW_CDATA_SECTION,
       null
     );
   };
@@ -1005,6 +1006,12 @@ function createDOMPurify(window = getGlobal()) {
       regExpTest(/<[/\w]/g, currentNode.innerHTML) &&
       regExpTest(/<[/\w]/g, currentNode.textContent)
     ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove any ocurrence of processing instructions */
+    if (currentNode.nodeType === 7) {
       _forceRemove(currentNode);
       return true;
     }

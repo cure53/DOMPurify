@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.0.10 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.10/LICENSE */
+/*! @license DOMPurify 3.0.11 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.0.11/LICENSE */
 
 const {
   entries,
@@ -215,7 +215,7 @@ const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205
 );
 
 const DOCTYPE_NAME = seal(/^html$/i);
-const CUSTOM_ELEMENT = seal(/^[a-z][a-z\d]*(-[a-z\d]+)+$/i);
+const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 
 var EXPRESSIONS = /*#__PURE__*/Object.freeze({
   __proto__: null,
@@ -282,7 +282,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '3.0.10';
+  DOMPurify.version = '3.0.11';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.
@@ -909,7 +909,7 @@ function createDOMPurify() {
   const _createNodeIterator = function _createNodeIterator(root) {
     return createNodeIterator.call(root.ownerDocument || root, root,
     // eslint-disable-next-line no-bitwise
-    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
+    NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
   };
 
   /**
@@ -982,6 +982,12 @@ function createDOMPurify() {
 
     /* Detect mXSS attempts abusing namespace confusion */
     if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove any ocurrence of processing instructions */
+    if (currentNode.nodeType === 7) {
       _forceRemove(currentNode);
       return true;
     }
