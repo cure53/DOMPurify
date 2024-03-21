@@ -269,7 +269,7 @@
   var ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
   );
   var DOCTYPE_NAME = seal(/^html$/i);
-  var CUSTOM_ELEMENT = seal(/^[a-z][a-z\d]*(-[a-z\d]+)+$/i);
+  var CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 
   var getGlobal = function getGlobal() {
     return typeof window === 'undefined' ? null : window;
@@ -993,7 +993,7 @@
 
     var _createIterator = function _createIterator(root) {
       return createNodeIterator.call(root.ownerDocument || root, root, // eslint-disable-next-line no-bitwise
-      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null, false);
+      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null, false);
     };
     /**
      * _isClobbered
@@ -1091,6 +1091,14 @@
 
 
       if (tagName === 'select' && regExpTest(/<template/i, currentNode.innerHTML)) {
+        _forceRemove(currentNode);
+
+        return true;
+      }
+      /* Remove any ocurrence of processing instructions */
+
+
+      if (currentNode.nodeType === 7) {
         _forceRemove(currentNode);
 
         return true;

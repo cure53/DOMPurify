@@ -893,7 +893,8 @@ function createDOMPurify(window = getGlobal()) {
       NodeFilter.SHOW_ELEMENT |
         NodeFilter.SHOW_COMMENT |
         NodeFilter.SHOW_TEXT |
-        NodeFilter.SHOW_PROCESSING_INSTRUCTION,
+        NodeFilter.SHOW_PROCESSING_INSTRUCTION |
+        NodeFilter.SHOW_CDATA_SECTION,
       null,
       false
     );
@@ -1008,6 +1009,12 @@ function createDOMPurify(window = getGlobal()) {
       tagName === 'select' &&
       regExpTest(/<template/i, currentNode.innerHTML)
     ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove any ocurrence of processing instructions */
+    if (currentNode.nodeType === 7) {
       _forceRemove(currentNode);
       return true;
     }
