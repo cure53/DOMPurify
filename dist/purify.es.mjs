@@ -919,7 +919,7 @@ function createDOMPurify() {
    * @return {Boolean} true if clobbered, false if safe
    */
   const _isClobbered = function _isClobbered(elm) {
-    return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.data !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
+    return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
   };
 
   /**
@@ -986,14 +986,12 @@ function createDOMPurify() {
       return true;
     }
 
-    /* Remove any ocurrence of possibly malicious comments */
-    if (currentNode.nodeType === 8 && regExpTest(/<[/\w]/g, currentNode.data)) {
+    /* Remove any ocurrence of processing instructions */
+    if (currentNode.nodeType === 7) {
       _forceRemove(currentNode);
       return true;
     }
-
-    /* Remove any ocurrence of processing instructions */
-    if (currentNode.nodeType === 7) {
+    if (currentNode.nodeType === 8 && regExpTest(/<[/\w]/g, currentNode.data)) {
       _forceRemove(currentNode);
       return true;
     }
