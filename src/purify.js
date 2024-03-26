@@ -582,6 +582,13 @@ function createDOMPurify(window = getGlobal()) {
       delete FORBID_TAGS.tbody;
     }
 
+    /* We cannot have comments in XML due to parser differences. Allowing them 
+       will cause mXSS in case the sanitized output is later being used in an 
+       HTML context, which we cannot predict */
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+      delete ALLOWED_TAGS['#comment'];
+    }
+
     if (cfg.TRUSTED_TYPES_POLICY) {
       if (typeof cfg.TRUSTED_TYPES_POLICY.createHTML !== 'function') {
         throw typeErrorCreate(
