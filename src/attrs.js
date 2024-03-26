@@ -108,6 +108,7 @@ export const html = freeze([
   'valign',
   'value',
   'width',
+  'wrap',
   'xmlns',
   'slot',
 ]);
