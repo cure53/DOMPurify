@@ -664,13 +664,6 @@ function createDOMPurify() {
       addToSet(ALLOWED_TAGS, ['tbody']);
       delete FORBID_TAGS.tbody;
     }
-
-    /* We cannot have comments in XML due to parser differences. Allowing them 
-       will cause mXSS in case the sanitized output is later being used in an 
-       HTML context, which we cannot predict */
-    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
-      delete ALLOWED_TAGS['#comment'];
-    }
     if (cfg.TRUSTED_TYPES_POLICY) {
       if (typeof cfg.TRUSTED_TYPES_POLICY.createHTML !== 'function') {
         throw typeErrorCreate('TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.');
@@ -983,6 +976,10 @@ function createDOMPurify() {
     /* Now let's check the element's type and name */
     const tagName = transformCaseFunc(currentNode.nodeName);
 
+    /* Reliably map the parent node and child node(s) */
+    const parentNode = getParentNode(currentNode) || currentNode.parentNode;
+    const childNodes = getChildNodes(currentNode) || currentNode.childNodes;
+
     /* Execute a hook if present */
     _executeHook('uponSanitizeElement', currentNode, {
       tagName,
@@ -1001,6 +998,12 @@ function createDOMPurify() {
       return true;
     }
 
+    /* Remove comment nodes from XML-ish content */
+    if (currentNode.nodeType === 8 && parentNode.namespaceURI !== HTML_NAMESPACE) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Remove element if anything forbids its presence */
     if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
       /* Check if we have a custom element to handle */
@@ -1014,14 +1017,10 @@ function createDOMPurify() {
       }
 
       /* Keep content except for bad-listed elements */
-      if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
-        const parentNode = getParentNode(currentNode) || currentNode.parentNode;
-        const childNodes = getChildNodes(currentNode) || currentNode.childNodes;
-        if (childNodes && parentNode) {
-          const childCount = childNodes.length;
-          for (let i = childCount - 1; i >= 0; --i) {
-            parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
-          }
+      if (KEEP_CONTENT && !FORBID_CONTENTS[tagName] && childNodes && parentNode) {
+        const childCount = childNodes.length;
+        for (let i = childCount - 1; i >= 0; --i) {
+          parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
         }
       }
       _forceRemove(currentNode);
