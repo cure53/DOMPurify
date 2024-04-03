@@ -469,7 +469,7 @@ function createDOMPurify(window = getGlobal()) {
     ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
     ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false; // Default true
     SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
-    SAFE_FOR_XML = cfg.SAFE_FOR_XML || true; // Default true
+    SAFE_FOR_XML = cfg.SAFE_FOR_XML !== false; // Default true
     WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
