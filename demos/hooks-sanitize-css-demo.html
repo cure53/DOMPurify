@@ -42,16 +42,15 @@
                  *  then add the styles to an array of property-value pairs
                  */
                 function validateStyles(output, styles) {
-                    Object.keys(styles).forEach(prop => {
-                        const value = styles[prop];
-                        if (value && typeof value === 'string') {
-                            const normalizedProp = prop.replace(/([A-Z])/g, '-$1').toLowerCase();
-                            if (allowed_properties.includes(normalizedProp) && 
-                                (allow_css_functions || !/\w+\(/.test(value))) {
-                                output.push(`${normalizedProp}:${value};`);
-                            }
-                        }
-                    });
+                  Object.keys(styles).forEach(function(index) {
+                    if (styles.hasOwnProperty(index)) {
+                      let normalizedKey = styles[index].replace(/([A-Z])/g, '-$1').toLowerCase();
+                      if (allowed_properties.includes(normalizedKey)) {
+                        let value = styles[normalizedKey];
+                        output.push(`${normalizedKey}:${value};`);
+                      }
+                    }
+                  });
                 }
 
                 /**

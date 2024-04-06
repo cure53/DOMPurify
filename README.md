@@ -6,11 +6,11 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.0.11**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.1.0**.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
-**Note that [DOMPurify v2.4.9](https://github.com/cure53/DOMPurify/releases/tag/2.4.9) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
+**Note that [DOMPurify v2.5.0](https://github.com/cure53/DOMPurify/releases/tag/2.5.0) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
 
 Our automated tests cover [19 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v16.x, v17.x, v18.x and v19.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
 
@@ -73,9 +73,11 @@ After sanitizing your markup, you can also have a look at the property `DOMPurif
 
 DOMPurify technically also works server-side with Node.js. Our support strives to follow the [Node.js release cycle](https://nodejs.org/en/about/releases/).
 
-Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of _jsdom_.
+Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of _jsdom_. 
 
 Why? Because older versions of _jsdom_ are known to be buggy in ways that result in XSS _even if_ DOMPurify does everything 100% correctly. There are **known attack vectors** in, e.g. _jsdom v19.0.0_ that are fixed in _jsdom v20.0.0_ - and we really recommend to keep _jsdom_ up to date because of that.
+
+Please also be aware that tools like [happy-dom](https://github.com/capricorn86/happy-dom) exist but **are not considered safe** at this point. Combining DOMPurify with _happy-dom_ is currently not recommended and will likely lead to XSS.
 
 Other than that, you are fine to use DOMPurify on the server. Probably. This really depends on _jsdom_ or whatever DOM you utilize server-side. If you can live with that, this is how you get it to work:
 
@@ -167,6 +169,10 @@ Yes. The included default configuration values are pretty good already - but you
 // allowing template parsing in user-controlled HTML is not advised at all.
 // only use this mode if there is really no alternative.
 const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
+
+
+// change how e.g. comments containing risky HTML characters are treated.
+const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_XML: false});
 ```
 
 ### Control our allow-lists and block-lists
