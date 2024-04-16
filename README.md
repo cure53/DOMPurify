@@ -158,6 +158,15 @@ In version 2.0.0, a config flag was added to control DOMPurify's behavior regard
 
 When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM` and `RETURN_DOM_FRAGMENT` config options does not change).
 
+Note that in order to create a policy in `trustedTypes` using DOMPurify, `RETURN_TRUSTED_TYPE: false` is required, as `createHTML` expects a normal string, not `TrustedHTML`. The example below shows this.
+
+```js
+window.trustedTypes!.createPolicy('default', {
+  createHTML: (to_escape) =>
+    DOMPurify.sanitize(to_escape, { RETURN_TRUSTED_TYPE: false }),
+});
+```
+
 ## Can I configure DOMPurify?
 
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/main/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this).
