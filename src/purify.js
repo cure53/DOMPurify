@@ -1502,8 +1502,12 @@ function createDOMPurify(window = getGlobal()) {
       }
 
       /* Count the nesting depth of an element */
-      if (currentNode.hasChildNodes()) {
-        depth++;
+      if (currentNode.nodeType === 1 && currentNode.hasChildNodes()) {
+        if (currentNode.hasChildNodes()) {
+          depth++;
+        } else {
+          depth--;
+        }
       }
 
       /* Remove an element if nested too deeply to avoid mXSS */
