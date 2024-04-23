@@ -515,6 +515,9 @@ function createDOMPurify() {
   /* Keep a reference to config to pass to hooks */
   let CONFIG = null;
 
+  /* Specify the maximum element nesting depth to prevent mXSS */
+  const MAX_NESTING_DEPTH = 511;
+
   /* Ideally, do not touch anything below this line */
   /* ______________________________________________ */
 
@@ -1283,6 +1286,7 @@ function createDOMPurify() {
     let importedNode = null;
     let currentNode = null;
     let returnNode = null;
+    let depth = 0;
     /* Make sure we have a string to sanitize.
       DO NOT return early, as this will return the wrong type if
       the user has requested a DOM object rather than a string */
@@ -1372,6 +1376,16 @@ function createDOMPurify() {
       /* Sanitize tags and elements */
       if (_sanitizeElements(currentNode)) {
         continue;
+      }
+
+      /* Count the nesting depth of an element */
+      if (currentNode.hasChildNodes()) {
+        depth++;
+      }
+
+      /* Remove an element if nested too deeply to avoid mXSS */
+      if (depth >= MAX_NESTING_DEPTH) {
+        _forceRemove(currentNode);
       }
 
       /* Shadow DOM detected, sanitize it */
