@@ -516,7 +516,7 @@ function createDOMPurify() {
   let CONFIG = null;
 
   /* Specify the maximum element nesting depth to prevent mXSS */
-  const MAX_NESTING_DEPTH = 511;
+  const MAX_NESTING_DEPTH = 512;
 
   /* Ideally, do not touch anything below this line */
   /* ______________________________________________ */
@@ -1388,7 +1388,7 @@ function createDOMPurify() {
       }
 
       /* Remove an element if nested too deeply to avoid mXSS */
-      if (depth >= MAX_NESTING_DEPTH) {
+      if (depth > MAX_NESTING_DEPTH) {
         _forceRemove(currentNode);
       }
 
