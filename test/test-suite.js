@@ -2107,41 +2107,42 @@
     
     QUnit.test('Test proper handling of nesting-based mXSS 1/3', function (assert) {
       
-      let dirty = `${`<div>`.repeat(509)}${`</div>`.repeat(509)}<img>`;
-      let expected = `${`<div>`.repeat(509)}${`</div>`.repeat(509)}<img>`;
+      let dirty = `${`<div>`.repeat(496)}${`</div>`.repeat(496)}<img>`;
+      let expected = `${`<div>`.repeat(496)}${`</div>`.repeat(496)}<img>`;
       let clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
+
+      dirty = `${`<div>`.repeat(500)}${`</div>`.repeat(500)}<img>`;
+      expected = `${`<div>`.repeat(498)}${`</div>`.repeat(498)}<img>`;
+      clean = DOMPurify.sanitize(dirty);
+      assert.contains(clean, expected);
+
+      dirty = `${`<div>`.repeat(502)}${`</div>`.repeat(502)}<img>`;
+      expected = `${`<div>`.repeat(498)}${`</div>`.repeat(498)}<img>`;
+      clean = DOMPurify.sanitize(dirty);
+      assert.contains(clean, expected);
       
-      dirty = `${`<div>`.repeat(510)}${`</div>`.repeat(510)}<img>`;
-      expected = `${`<div>`.repeat(510)}${`</div>`.repeat(510)}<img>`;
+      dirty = `<template>${`<div>`.repeat(502)}${`</div>`.repeat(502)}<img>`;
+      expected = `<template>${`<div>`.repeat(498)}${`</div>`.repeat(498)}<img>`;
       clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
-        
-      dirty = `${`<div>`.repeat(511)}${`</div>`.repeat(511)}<img>`;
-      expected = `${`<div>`.repeat(510)}${`</div>`.repeat(510)}<img>`;
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-        
-      dirty = `${`<div>`.repeat(512)}${`</div>`.repeat(512)}<img>`;
-      expected = `${`<div>`.repeat(510)}${`</div>`.repeat(510)}<img>`;
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
+      
     });
     
     QUnit.test('Test proper handling of nesting-based mXSS 2/3', function (assert) {
       
-      let dirty = `<form><input name="__depth">${`<div>`.repeat(509)}${`</div>`.repeat(509)}<img>`;
+      let dirty = `<form><input name="__depth">${`<div>`.repeat(500)}${`</div>`.repeat(500)}<img>`;
       let expected = [
           ``,
-          `<form><input name="__depth">${`<div>`.repeat(509)}${`</div>`.repeat(509)}<img></form>`,
+          `<form><input name="__depth">${`<div>`.repeat(497)}${`</div>`.repeat(497)}<img></form>`,
       ];
       let clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
       
-      dirty = `<form><input name="__depth"></form>${`<div>`.repeat(509)}${`</div>`.repeat(509)}<img>`;
+      dirty = `<form><input name="__depth"></form>${`<div>`.repeat(500)}${`</div>`.repeat(500)}<img>`;
       expected = [
-          `${`<div>`.repeat(509)}${`</div>`.repeat(509)}<img>`,
-          `<form><input name="__depth"></form>${`<div>`.repeat(509)}${`</div>`.repeat(509)}<img>`
+          `${`<div>`.repeat(498)}${`</div>`.repeat(498)}<img>`,
+          `<form><input name="__depth"></form>${`<div>`.repeat(498)}${`</div>`.repeat(498)}<img>`
       ];
       clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);

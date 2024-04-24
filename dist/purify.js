@@ -522,7 +522,7 @@
     let CONFIG = null;
 
     /* Specify the maximum element nesting depth to prevent mXSS */
-    const MAX_NESTING_DEPTH = 512;
+    const MAX_NESTING_DEPTH = 500;
 
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
@@ -1267,6 +1267,22 @@
           continue;
         }
 
+        /* Set the nesting depth of an element */
+        if (shadowNode.nodeType === 1) {
+          // eslint-disable-next-line unicorn/prefer-ternary
+          if (shadowNode.parentNode && shadowNode.parentNode.__depth) {
+            shadowNode.__depth = shadowNode.parentNode.__depth + 1;
+          } else {
+            shadowNode.__depth = 1;
+          }
+        }
+
+        /* Remove an element if nested too deeply to avoid mXSS */
+        if (shadowNode.__depth >= MAX_NESTING_DEPTH) {
+          shadowNode.content.__depth = shadowNode.__depth;
+          _forceRemove(shadowNode);
+        }
+
         /* Deep shadow DOM detected */
         if (shadowNode.content instanceof DocumentFragment) {
           _sanitizeShadowDOM(shadowNode.content);
@@ -1402,6 +1418,7 @@
 
         /* Shadow DOM detected, sanitize it */
         if (currentNode.content instanceof DocumentFragment) {
+          currentNode.content.__depth = currentNode.__depth;
           _sanitizeShadowDOM(currentNode.content);
         }
 
