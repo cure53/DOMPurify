@@ -1381,6 +1381,7 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Set the nesting depth of an element */
       if (shadowNode.nodeType === 1) {
+        // eslint-disable-next-line unicorn/prefer-ternary
         if (shadowNode.parentNode && shadowNode.parentNode.__depth) {
           /*
             We want the depth of the node in the original tree, which can
@@ -1529,6 +1530,7 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Set the nesting depth of an element */
       if (currentNode.nodeType === 1) {
+        // eslint-disable-next-line unicorn/prefer-ternary
         if (currentNode.parentNode && currentNode.parentNode.__depth) {
           /*
             We want the depth of the node in the original tree, which can
