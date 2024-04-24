@@ -1498,6 +1498,11 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Now start iterating over the created document */
     while ((currentNode = nodeIterator.nextNode())) {
+      /* Sanitize tags and elements */
+      if (_sanitizeElements(currentNode)) {
+        continue;
+      }
+
       /* Set the nesting depth of an element */
       if (currentNode.nodeType === 1) {
         // eslint-disable-next-line unicorn/prefer-ternary
@@ -1511,11 +1516,6 @@ function createDOMPurify(window = getGlobal()) {
       /* Remove an element if nested too deeply to avoid mXSS */
       if (currentNode.__depth >= MAX_NESTING_DEPTH) {
         _forceRemove(currentNode);
-      }
-
-      /* Sanitize tags and elements */
-      if (_sanitizeElements(currentNode)) {
-        continue;
       }
 
       /* Shadow DOM detected, sanitize it */
