@@ -1276,12 +1276,12 @@ function createDOMPurify() {
 
       /* Remove an element if nested too deeply to avoid mXSS */
       if (shadowNode.__depth >= MAX_NESTING_DEPTH) {
-        shadowNode.content.__depth = shadowNode.__depth;
         _forceRemove(shadowNode);
       }
 
       /* Deep shadow DOM detected */
       if (shadowNode.content instanceof DocumentFragment) {
+        shadowNode.content.__depth = shadowNode.__depth;
         _sanitizeShadowDOM(shadowNode.content);
       }
 
