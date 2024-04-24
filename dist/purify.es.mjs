@@ -1028,6 +1028,7 @@ function createDOMPurify() {
         if (childNodes && parentNode) {
           const childCount = childNodes.length;
           for (let i = childCount - 1; i >= 0; --i) {
+            childNodes[i].__depth++;
             parentNode.insertBefore(cloneNode(childNodes[i], true), getNextSibling(currentNode));
           }
         }
