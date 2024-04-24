@@ -937,7 +937,10 @@ function createDOMPurify(window = getGlobal()) {
   const _isClobbered = function (elm) {
     return (
       elm instanceof HTMLFormElement &&
-      (typeof elm.nodeName !== 'string' ||
+      // eslint-disable-next-line unicorn/no-typeof-undefined
+      ((typeof elm.__depth !== 'undefined' &&
+        typeof elm.__depth !== 'number') ||
+        typeof elm.nodeName !== 'string' ||
         typeof elm.textContent !== 'string' ||
         typeof elm.removeChild !== 'function' ||
         !(elm.attributes instanceof NamedNodeMap) ||
@@ -1400,7 +1403,6 @@ function createDOMPurify(window = getGlobal()) {
     let importedNode = null;
     let currentNode = null;
     let returnNode = null;
-    let depth = 0;
     /* Make sure we have a string to sanitize.
       DO NOT return early, as this will return the wrong type if
       the user has requested a DOM object rather than a string */
@@ -1496,23 +1498,24 @@ function createDOMPurify(window = getGlobal()) {
 
     /* Now start iterating over the created document */
     while ((currentNode = nodeIterator.nextNode())) {
-      /* Sanitize tags and elements */
-      if (_sanitizeElements(currentNode)) {
-        continue;
-      }
-
-      /* Count the nesting depth of an element */
-      if (currentNode.nodeType === 1 && currentNode.hasChildNodes()) {
-        if (currentNode.hasChildNodes()) {
-          depth++;
+      /* Set the nesting depth of an element */
+      if (currentNode.nodeType === 1) {
+        // eslint-disable-next-line unicorn/prefer-ternary
+        if (currentNode.parentNode && currentNode.parentNode.__depth) {
+          currentNode.__depth = currentNode.parentNode.__depth + 1;
         } else {
-          depth--;
+          currentNode.__depth = 1;
         }
       }
 
       /* Remove an element if nested too deeply to avoid mXSS */
-      if (depth > MAX_NESTING_DEPTH) {
+      if (currentNode.__depth >= MAX_NESTING_DEPTH) {
         _forceRemove(currentNode);
+      }
+
+      /* Sanitize tags and elements */
+      if (_sanitizeElements(currentNode)) {
+        continue;
       }
 
       /* Shadow DOM detected, sanitize it */
