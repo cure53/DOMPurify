@@ -373,6 +373,7 @@ DOMPurify.addHook(
   function (currentNode, hookEvent, config) {
     // Do something with the current node
     // You can also mutate hookEvent for current node (i.e. set hookEvent.forceKeepAttr = true)
+    // For other than 'uponSanitizeAttribute' hook types hookEvent equals to null
   }
 );
 ```
