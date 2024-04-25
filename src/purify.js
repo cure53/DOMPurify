@@ -393,6 +393,9 @@ function createDOMPurify(window = getGlobal()) {
   /* Keep a reference to config to pass to hooks */
   let CONFIG = null;
 
+  /* Specify the maximum element nesting depth to prevent mXSS */
+  const MAX_NESTING_DEPTH = 500;
+
   /* Ideally, do not touch anything below this line */
   /* ______________________________________________ */
 
@@ -915,7 +918,13 @@ function createDOMPurify(window = getGlobal()) {
   const _isClobbered = function (elm) {
     return (
       elm instanceof HTMLFormElement &&
-      (typeof elm.nodeName !== 'string' ||
+      // eslint-disable-next-line unicorn/no-typeof-undefined
+      ((typeof elm.__depth !== 'undefined' &&
+        typeof elm.__depth !== 'number') ||
+        // eslint-disable-next-line unicorn/no-typeof-undefined
+        (typeof elm.__removalCount !== 'undefined' &&
+          typeof elm.__removalCount !== 'number') ||
+        typeof elm.nodeName !== 'string' ||
         typeof elm.textContent !== 'string' ||
         typeof elm.removeChild !== 'function' ||
         !(elm.attributes instanceof NamedNodeMap) ||
@@ -1060,10 +1069,9 @@ function createDOMPurify(window = getGlobal()) {
           const childCount = childNodes.length;
 
           for (let i = childCount - 1; i >= 0; --i) {
-            parentNode.insertBefore(
-              cloneNode(childNodes[i], true),
-              getNextSibling(currentNode)
-            );
+            const childClone = cloneNode(childNodes[i], true);
+            childClone.__removalCount = (currentNode.__removalCount || 0) + 1;
+            parentNode.insertBefore(childClone, getNextSibling(currentNode));
           }
         }
       }
@@ -1370,8 +1378,30 @@ function createDOMPurify(window = getGlobal()) {
         continue;
       }
 
+      /* Set the nesting depth of an element */
+      if (shadowNode.nodeType === 1) {
+        if (shadowNode.parentNode && shadowNode.parentNode.__depth) {
+          /*
+            We want the depth of the node in the original tree, which can
+            change when it's removed from its parent.
+          */
+          shadowNode.__depth =
+            (shadowNode.__removalCount || 0) +
+            shadowNode.parentNode.__depth +
+            1;
+        } else {
+          shadowNode.__depth = 1;
+        }
+      }
+
+      /* Remove an element if nested too deeply to avoid mXSS */
+      if (shadowNode.__depth >= MAX_NESTING_DEPTH) {
+        _forceRemove(shadowNode);
+      }
+
       /* Deep shadow DOM detected */
       if (shadowNode.content instanceof DocumentFragment) {
+        shadowNode.content.__depth = shadowNode.__depth;
         _sanitizeShadowDOM(shadowNode.content);
       }
 
@@ -1515,8 +1545,30 @@ function createDOMPurify(window = getGlobal()) {
         continue;
       }
 
+      /* Set the nesting depth of an element */
+      if (currentNode.nodeType === 1) {
+        if (currentNode.parentNode && currentNode.parentNode.__depth) {
+          /*
+            We want the depth of the node in the original tree, which can
+            change when it's removed from its parent.
+          */
+          currentNode.__depth =
+            (currentNode.__removalCount || 0) +
+            currentNode.parentNode.__depth +
+            1;
+        } else {
+          currentNode.__depth = 1;
+        }
+      }
+
+      /* Remove an element if nested too deeply to avoid mXSS */
+      if (currentNode.__depth >= MAX_NESTING_DEPTH) {
+        _forceRemove(currentNode);
+      }
+
       /* Shadow DOM detected, sanitize it */
       if (currentNode.content instanceof DocumentFragment) {
+        currentNode.content.__depth = currentNode.__depth;
         _sanitizeShadowDOM(currentNode.content);
       }
 
