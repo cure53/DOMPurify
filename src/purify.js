@@ -918,10 +918,8 @@ function createDOMPurify(window = getGlobal()) {
   const _isClobbered = function (elm) {
     return (
       elm instanceof HTMLFormElement &&
-      // eslint-disable-next-line unicorn/no-typeof-undefined
       ((typeof elm.__depth !== 'undefined' &&
         typeof elm.__depth !== 'number') ||
-        // eslint-disable-next-line unicorn/no-typeof-undefined
         (typeof elm.__removalCount !== 'undefined' &&
           typeof elm.__removalCount !== 'number') ||
         typeof elm.nodeName !== 'string' ||
