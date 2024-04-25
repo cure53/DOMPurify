@@ -940,6 +940,9 @@ function createDOMPurify(window = getGlobal()) {
       // eslint-disable-next-line unicorn/no-typeof-undefined
       ((typeof elm.__depth !== 'undefined' &&
         typeof elm.__depth !== 'number') ||
+        // eslint-disable-next-line unicorn/no-typeof-undefined
+        (typeof elm.__removalCount !== 'undefined' &&
+          typeof elm.__removalCount !== 'number') ||
         typeof elm.nodeName !== 'string' ||
         typeof elm.textContent !== 'string' ||
         typeof elm.removeChild !== 'function' ||
@@ -1066,11 +1069,9 @@ function createDOMPurify(window = getGlobal()) {
           const childCount = childNodes.length;
 
           for (let i = childCount - 1; i >= 0; --i) {
-            childNodes[i].__depth++;
-            parentNode.insertBefore(
-              cloneNode(childNodes[i], true),
-              getNextSibling(currentNode)
-            );
+            const childClone = cloneNode(childNodes[i], true);
+            childClone.__removalCount = (currentNode.__removalCount || 0) + 1;
+            parentNode.insertBefore(childClone, getNextSibling(currentNode));
           }
         }
       }
@@ -1380,9 +1381,15 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Set the nesting depth of an element */
       if (shadowNode.nodeType === 1) {
-        // eslint-disable-next-line unicorn/prefer-ternary
         if (shadowNode.parentNode && shadowNode.parentNode.__depth) {
-          shadowNode.__depth = shadowNode.parentNode.__depth + 1;
+          /*
+            We want the depth of the node in the original tree, which can
+            change when it's removed from its parent.
+          */
+          shadowNode.__depth =
+            (shadowNode.__removalCount || 0) +
+            shadowNode.parentNode.__depth +
+            1;
         } else {
           shadowNode.__depth = 1;
         }
@@ -1522,9 +1529,15 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Set the nesting depth of an element */
       if (currentNode.nodeType === 1) {
-        // eslint-disable-next-line unicorn/prefer-ternary
         if (currentNode.parentNode && currentNode.parentNode.__depth) {
-          currentNode.__depth = currentNode.parentNode.__depth + 1;
+          /*
+            We want the depth of the node in the original tree, which can
+            change when it's removed from its parent.
+          */
+          currentNode.__depth =
+            (currentNode.__removalCount || 0) +
+            currentNode.parentNode.__depth +
+            1;
         } else {
           currentNode.__depth = 1;
         }
