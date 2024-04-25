@@ -73,7 +73,7 @@ After sanitizing your markup, you can also have a look at the property `DOMPurif
 
 DOMPurify technically also works server-side with Node.js. Our support strives to follow the [Node.js release cycle](https://nodejs.org/en/about/releases/).
 
-Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of _jsdom_. 
+Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of _jsdom_.
 
 Why? Because older versions of _jsdom_ are known to be buggy in ways that result in XSS _even if_ DOMPurify does everything 100% correctly. There are **known attack vectors** in, e.g. _jsdom v19.0.0_ that are fixed in _jsdom v20.0.0_ - and we really recommend to keep _jsdom_ up to date because of that.
 
@@ -157,6 +157,15 @@ In version 1.0.9, support for [Trusted Types API](https://github.com/w3c/webapps
 In version 2.0.0, a config flag was added to control DOMPurify's behavior regarding this.
 
 When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM` and `RETURN_DOM_FRAGMENT` config options does not change).
+
+Note that in order to create a policy in `trustedTypes` using DOMPurify, `RETURN_TRUSTED_TYPE: false` is required, as `createHTML` expects a normal string, not `TrustedHTML`. The example below shows this.
+
+```js
+window.trustedTypes!.createPolicy('default', {
+  createHTML: (to_escape) =>
+    DOMPurify.sanitize(to_escape, { RETURN_TRUSTED_TYPE: false }),
+});
+```
 
 ## Can I configure DOMPurify?
 
@@ -360,11 +369,11 @@ _Example_:
 
 ```js
 DOMPurify.addHook(
-  'beforeSanitizeElements',
+  'uponSanitizeAttribute',
   function (currentNode, hookEvent, config) {
-    // Do something with the current node and return it
-    // You can also mutate hookEvent (i.e. set hookEvent.forceKeepAttr = true)
-    return currentNode;
+    // Do something with the current node
+    // You can also mutate hookEvent for current node (i.e. set hookEvent.forceKeepAttr = true)
+    // For other than 'uponSanitizeAttribute' hook types hookEvent equals to null
   }
 );
 ```
