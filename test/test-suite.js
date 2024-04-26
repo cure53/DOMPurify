@@ -2112,8 +2112,8 @@
       clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
       
-      dirty = `<template>${`<div>`.repeat(502)}${`</div>`.repeat(502)}<img>`;
-      expected = `<template>${`<div>`.repeat(498)}${`</div>`.repeat(498)}<img>`;
+      dirty = `<div><template>${`<div>`.repeat(502)}${`</div>`.repeat(502)}<img>`;
+      expected = `<div><template>${`<div>`.repeat(498)}${`</div>`.repeat(498)}<img></template></div>`;
       clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
 

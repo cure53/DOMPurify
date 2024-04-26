@@ -514,7 +514,7 @@
     var CONFIG = null;
 
     /* Specify the maximum element nesting depth to prevent mXSS */
-    var MAX_NESTING_DEPTH = 500;
+    var MAX_NESTING_DEPTH = 255;
 
     /* Ideally, do not touch anything below this line */
     /* ______________________________________________ */
