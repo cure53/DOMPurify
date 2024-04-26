@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.1.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.1.0/LICENSE */
+/*! @license DOMPurify 3.1.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.1.1/LICENSE */
 
 const {
   entries,
@@ -282,7 +282,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '3.1.0';
+  DOMPurify.version = '3.1.1';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.
@@ -516,7 +516,7 @@ function createDOMPurify() {
   let CONFIG = null;
 
   /* Specify the maximum element nesting depth to prevent mXSS */
-  const MAX_NESTING_DEPTH = 500;
+  const MAX_NESTING_DEPTH = 255;
 
   /* Ideally, do not touch anything below this line */
   /* ______________________________________________ */
