@@ -2177,6 +2177,15 @@
       ];
       clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
+
+      dirty = `<form><input name="parentNode"></form>${`<div>`.repeat(
+        500
+      )}${`</div>`.repeat(500)}<img>`;
+      expected = [
+        `<form><input></form>${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`
+      ];
+      clean = DOMPurify.sanitize(dirty);
+      assert.contains(clean, expected);
     });
     
     QUnit.test('Test proper handling of nesting-based mXSS 3/3', function (assert) {
