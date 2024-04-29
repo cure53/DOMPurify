@@ -704,7 +704,7 @@ function createDOMPurify() {
     CONFIG = cfg;
   };
   const MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
-  const HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'desc', 'title', 'annotation-xml']);
+  const HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'annotation-xml']);
 
   // Certain elements are allowed in both SVG and HTML
   // namespace. We need to specify them explicitly

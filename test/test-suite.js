@@ -1709,8 +1709,8 @@
           test:
             '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
           expected: [
-            '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
-            '<svg xmlns="http://www.w3.org/2000/svg"><desc><canvas></canvas><textarea></textarea></desc></svg>',
+            '<svg><desc></desc></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><desc></desc></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
           ],
         },
@@ -1735,9 +1735,9 @@
         {
           test: '<svg><math></math><title><math></math></title></svg>',
           expected: [
-            '<svg><title><math></math></title></svg>',
+            '<svg><title></title></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
-            '<svg xmlns="http://www.w3.org/2000/svg"><title><math></math></title></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><title></title></svg>',
           ],
         },
         {

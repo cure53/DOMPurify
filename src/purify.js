@@ -643,8 +643,6 @@ function createDOMPurify(window = getGlobal()) {
 
   const HTML_INTEGRATION_POINTS = addToSet({}, [
     'foreignobject',
-    'desc',
-    'title',
     'annotation-xml',
   ]);
 
