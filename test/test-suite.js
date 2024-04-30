@@ -1709,8 +1709,8 @@
           test:
             '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
           expected: [
-            '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
-            '<svg xmlns="http://www.w3.org/2000/svg"><desc><canvas></canvas><textarea></textarea></desc></svg>',
+            '<svg><desc></desc></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><desc></desc></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
           ],
         },
@@ -1735,9 +1735,9 @@
         {
           test: '<svg><math></math><title><math></math></title></svg>',
           expected: [
-            '<svg><title><math></math></title></svg>',
+            '<svg><title></title></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
-            '<svg xmlns="http://www.w3.org/2000/svg"><title><math></math></title></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><title></title></svg>',
           ],
         },
         {
@@ -2174,6 +2174,15 @@
         `<form><input name="__removalCount"></form>${`<div>`.repeat(
           253
         )}${`</div>`.repeat(253)}<img>`,
+      ];
+      clean = DOMPurify.sanitize(dirty);
+      assert.contains(clean, expected);
+
+      dirty = `<form><input name="parentNode"></form>${`<div>`.repeat(
+        500
+      )}${`</div>`.repeat(500)}<img>`;
+      expected = [
+        `<form><input></form>${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`
       ];
       clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
