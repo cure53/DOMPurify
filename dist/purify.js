@@ -677,7 +677,7 @@
       CONFIG = cfg;
     };
     var MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
-    var HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'desc', 'title', 'annotation-xml']);
+    var HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'annotation-xml']);
 
     // Certain elements are allowed in both SVG and HTML
     // namespace. We need to specify them explicitly
@@ -1248,15 +1248,16 @@
         if (_sanitizeElements(shadowNode)) {
           continue;
         }
+        var parentNode = getParentNode(shadowNode);
 
         /* Set the nesting depth of an element */
         if (shadowNode.nodeType === 1) {
-          if (shadowNode.parentNode && shadowNode.parentNode.__depth) {
+          if (parentNode && parentNode.__depth) {
             /*
               We want the depth of the node in the original tree, which can
               change when it's removed from its parent.
             */
-            shadowNode.__depth = (shadowNode.__removalCount || 0) + shadowNode.parentNode.__depth + 1;
+            shadowNode.__depth = (shadowNode.__removalCount || 0) + parentNode.__depth + 1;
           } else {
             shadowNode.__depth = 1;
           }
@@ -1399,15 +1400,16 @@
         if (_sanitizeElements(currentNode)) {
           continue;
         }
+        var parentNode = getParentNode(currentNode);
 
         /* Set the nesting depth of an element */
         if (currentNode.nodeType === 1) {
-          if (currentNode.parentNode && currentNode.parentNode.__depth) {
+          if (parentNode && parentNode.__depth) {
             /*
               We want the depth of the node in the original tree, which can
               change when it's removed from its parent.
             */
-            currentNode.__depth = (currentNode.__removalCount || 0) + currentNode.parentNode.__depth + 1;
+            currentNode.__depth = (currentNode.__removalCount || 0) + parentNode.__depth + 1;
           } else {
             currentNode.__depth = 1;
           }

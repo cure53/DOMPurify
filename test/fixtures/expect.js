@@ -1018,7 +1018,8 @@ module.exports = [
           "<svg></svg><p></p><textarea>&lt;title&gt;&lt;style&gt;</textarea><img src=\"x\">",
           "<svg></svg>",
           "<svg></svg><p></p><img src=\"x\">",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\" />"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\" />",
+          "<svg><title></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike 2/2",
@@ -1028,7 +1029,8 @@ module.exports = [
           "<svg></svg><p></p><title>&lt;a id=\"</title><img src=\"x\">\"&gt;",
           "<svg><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></title></svg></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></title></svg></svg>",
+          "<svg><title></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
@@ -1048,7 +1050,8 @@ module.exports = [
           "<svg></svg><p></p><img src=\"x\">",
           "<svg><title><template></template></title></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></title></svg></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></title></svg></svg>",
+          "<svg><title></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
