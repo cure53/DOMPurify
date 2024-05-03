@@ -1130,7 +1130,10 @@ function createDOMPurify(window = getGlobal()) {
     if (
       SANITIZE_DOM &&
       (lcName === 'id' || lcName === 'name') &&
-      (value in document || value in formElement)
+      (value in document ||
+        value in formElement ||
+        value === '__depth' ||
+        value === '__removalCount')
     ) {
       return false;
     }
