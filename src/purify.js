@@ -1348,7 +1348,11 @@ function createDOMPurify(window = getGlobal()) {
           currentNode.setAttribute(name, value);
         }
 
-        arrayPop(DOMPurify.removed);
+        if (_isClobbered(currentNode)) {
+          _forceRemove(currentNode);
+        } else {
+          arrayPop(DOMPurify.removed);
+        }
       } catch (_) {}
     }
 
