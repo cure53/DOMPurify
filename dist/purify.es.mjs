@@ -231,6 +231,24 @@ var EXPRESSIONS = /*#__PURE__*/Object.freeze({
   CUSTOM_ELEMENT: CUSTOM_ELEMENT
 });
 
+// https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+const NODE_TYPE = {
+  element: 1,
+  attribute: 2,
+  text: 3,
+  cdataSection: 4,
+  entityReference: 5,
+  // Deprecated
+  entityNode: 6,
+  // Deprecated
+  progressingInstruction: 7,
+  comment: 8,
+  document: 9,
+  documentType: 10,
+  documentFragment: 11,
+  notation: 12 // Deprecated
+};
+
 const getGlobal = function getGlobal() {
   return typeof window === 'undefined' ? null : window;
 };
@@ -289,7 +307,7 @@ function createDOMPurify() {
    * Empty if nothing was removed.
    */
   DOMPurify.removed = [];
-  if (!window || !window.document || window.document.nodeType !== 9) {
+  if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document) {
     // Not running in a browser, provide a factory function
     // so that you can pass your own Window
     DOMPurify.isSupported = false;
@@ -1000,13 +1018,13 @@ function createDOMPurify() {
     }
 
     /* Remove any ocurrence of processing instructions */
-    if (currentNode.nodeType === 7) {
+    if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
       _forceRemove(currentNode);
       return true;
     }
 
     /* Remove any kind of possibly harmful comments */
-    if (SAFE_FOR_XML && currentNode.nodeType === 8 && regExpTest(/<[/\w]/g, currentNode.data)) {
+    if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(/<[/\w]/g, currentNode.data)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -1053,7 +1071,7 @@ function createDOMPurify() {
     }
 
     /* Sanitize element content to be template-safe */
-    if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
+    if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
       /* Get the element's text content */
       content = currentNode.textContent;
       arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
@@ -1271,7 +1289,7 @@ function createDOMPurify() {
       const parentNode = getParentNode(shadowNode);
 
       /* Set the nesting depth of an element */
-      if (shadowNode.nodeType === 1) {
+      if (shadowNode.nodeType === NODE_TYPE.element) {
         if (parentNode && parentNode.__depth) {
           /*
             We want the depth of the node in the original tree, which can
@@ -1366,7 +1384,7 @@ function createDOMPurify() {
          elements being stripped by the parser */
       body = _initDocument('<!---->');
       importedNode = body.ownerDocument.importNode(dirty, true);
-      if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+      if (importedNode.nodeType === NODE_TYPE.element && importedNode.nodeName === 'BODY') {
         /* Node is already a body, use as is */
         body = importedNode;
       } else if (importedNode.nodeName === 'HTML') {
@@ -1409,7 +1427,7 @@ function createDOMPurify() {
       const parentNode = getParentNode(currentNode);
 
       /* Set the nesting depth of an element */
-      if (currentNode.nodeType === 1) {
+      if (currentNode.nodeType === NODE_TYPE.element) {
         if (parentNode && parentNode.__depth) {
           /*
             We want the depth of the node in the original tree, which can
