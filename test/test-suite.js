@@ -2131,7 +2131,7 @@
       let dirty = `<form><input name="__depth">${`<div>`.repeat(500)}${`</div>`.repeat(500)}<img>`;
       let expected = [
           ``,
-          `<form><input name="__depth">${`<div>`.repeat(252)}${`</div>`.repeat(252)}<img></form>`,
+          `<form><input>${`<div>`.repeat(252)}${`</div>`.repeat(252)}<img></form>`,
       ];
       let clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
@@ -2139,7 +2139,7 @@
       dirty = `<form><input name="__depth"></form>${`<div>`.repeat(500)}${`</div>`.repeat(500)}<img>`;
       expected = [
           `${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`,
-          `<form><input name="__depth"></form>${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`
+          `<form><input></form>${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`
       ];
       clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
@@ -2149,7 +2149,7 @@
       )}${`</div>`.repeat(500)}<img>`;
       expected = [
         ``,
-        `<form><input name="__removalCount">${`<div>`.repeat(
+        `<form><input>${`<div>`.repeat(
           252
         )}${`</div>`.repeat(252)}<img></form>`,
       ];
@@ -2161,7 +2161,7 @@
       )}${`</div>`.repeat(500)}<img>`;
       expected = [
         `${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`,
-        `<form><input name="__removalCount"></form>${`<div>`.repeat(
+        `<form><input></form>${`<div>`.repeat(
           253
         )}${`</div>`.repeat(253)}<img>`,
       ];
@@ -2172,12 +2172,12 @@
     QUnit.test('Test proper handling of nesting-based mXSS 3/3', function (assert) {
       
       let dirty = `<form><input name="__depth">`;
-      let expected = [``, `<form><input name="__depth"></form>`];
+      let expected = [``, `<form><input></form>`];
       let clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
 
       dirty = `<form><input name="__removalCount">`;
-      expected = [``, `<form><input name="__removalCount"></form>`];
+      expected = [``, `<form><input></form>`];
       clean = DOMPurify.sanitize(dirty);
       assert.contains(clean, expected);
     });

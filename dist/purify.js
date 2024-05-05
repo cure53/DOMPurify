@@ -1069,7 +1069,7 @@
     // eslint-disable-next-line complexity
     var _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
       /* Make sure attribute cannot clobber */
-      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
+      if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement || value === '__depth' || value === '__removalCount')) {
         return false;
       }
 
@@ -1171,6 +1171,12 @@
           continue;
         }
 
+        /* Work around a security issue with comments inside attribites */
+        if (regExpTest(/(--!?|])>/i, value)) {
+          _removeAttribute(name, currentNode);
+          continue;
+        }
+
         /* Sanitize attribute content to be template-safe */
         if (SAFE_FOR_TEMPLATES) {
           value = stringReplace(value, MUSTACHE_EXPR$1, ' ');
@@ -1221,7 +1227,11 @@
             /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
             currentNode.setAttribute(name, value);
           }
-          arrayPop(DOMPurify.removed);
+          if (_isClobbered(currentNode)) {
+            _forceRemove(currentNode);
+          } else {
+            arrayPop(DOMPurify.removed);
+          }
         } catch (_) {}
       }
 

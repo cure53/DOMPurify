@@ -458,6 +458,7 @@ module.exports = [
   }, {
       "payload": "<![><img src=\"]><img src=x onerror=alert(39)//\">",
       "expected": [
+          "<img>",
           "<img src=\"]&gt;&lt;img src=x onerror=alert(39)//\">",
           "<img src=\"]><img src=x onerror=alert(39)//\">",
           "<img src=\"]%3E%3Cimg%20src=x%20onerror=alert%2839%29//\">"
