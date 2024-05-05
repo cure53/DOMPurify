@@ -1311,7 +1311,7 @@ function createDOMPurify(window = getGlobal()) {
         continue;
       }
 
-      /* Work around an issue with comments inside attribites */
+      /* Work around a security issue with comments inside attribites */
       if (regExpTest(/(--!?|])>/i, value)) {
         _removeAttribute(name, currentNode);
         continue;
