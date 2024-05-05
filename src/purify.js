@@ -1311,6 +1311,12 @@ function createDOMPurify(window = getGlobal()) {
         continue;
       }
 
+      /* Work around an issue with comments inside attribites */
+      if (regExpTest(/(--!?|])>/i, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
+
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
         arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
