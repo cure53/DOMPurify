@@ -357,6 +357,7 @@ export default [
   }, {
       "payload": "<![><img src=\"]><img src=x onerror=alert(39)//\">",
       "expected": [
+        "<img>",
         "<img src=\"]><img src=x onerror=alert(39)//\">",
         "<img src=\"]&gt;&lt;img src=x onerror=alert(39)//\">"
       ]
