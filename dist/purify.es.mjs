@@ -1206,7 +1206,7 @@ function createDOMPurify() {
       }
 
       /* Work around a security issue with comments inside attributes */
-      if (SAFE_FOR_XML && regExpTest(/(--!?|])>/i, value)) {
+      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/style/i, value)) {
         _removeAttribute(name, currentNode);
         continue;
       }
