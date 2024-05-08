@@ -1433,6 +1433,7 @@ function createDOMPurify(window = getGlobal()) {
        */
       if (
         shadowNode.__depth >= MAX_NESTING_DEPTH ||
+        shadowNode.__depth < 0 ||
         numberIsNaN(shadowNode.__depth)
       ) {
         _forceRemove(shadowNode);
@@ -1590,6 +1591,7 @@ function createDOMPurify(window = getGlobal()) {
        */
       if (
         currentNode.__depth >= MAX_NESTING_DEPTH ||
+        currentNode.__depth < 0 ||
         numberIsNaN(currentNode.__depth)
       ) {
         _forceRemove(currentNode);

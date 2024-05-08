@@ -1318,7 +1318,7 @@
          * Remove an element if nested too deeply to avoid mXSS
          * or if the __depth might have been tampered with
          */
-        if (shadowNode.__depth >= MAX_NESTING_DEPTH || numberIsNaN(shadowNode.__depth)) {
+        if (shadowNode.__depth >= MAX_NESTING_DEPTH || shadowNode.__depth < 0 || numberIsNaN(shadowNode.__depth)) {
           _forceRemove(shadowNode);
         }
 
@@ -1459,7 +1459,7 @@
          * Remove an element if nested too deeply to avoid mXSS
          * or if the __depth might have been tampered with
          */
-        if (currentNode.__depth >= MAX_NESTING_DEPTH || numberIsNaN(currentNode.__depth)) {
+        if (currentNode.__depth >= MAX_NESTING_DEPTH || currentNode.__depth < 0 || numberIsNaN(currentNode.__depth)) {
           _forceRemove(currentNode);
         }
 
