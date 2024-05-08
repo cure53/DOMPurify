@@ -50,6 +50,7 @@ const stringTrim = unapply(String.prototype.trim);
 const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
 const regExpTest = unapply(RegExp.prototype.test);
 const typeErrorCreate = unconstruct(TypeError);
+const numberIsNaN = unapply(Number.isNaN);
 
 /**
  * Creates a new function that calls the given function with a specified thisArg and arguments.
@@ -1309,8 +1310,11 @@ function createDOMPurify() {
         }
       }
 
-      /* Remove an element if nested too deeply to avoid mXSS */
-      if (shadowNode.__depth >= MAX_NESTING_DEPTH) {
+      /*
+       * Remove an element if nested too deeply to avoid mXSS
+       * or if the __depth might have been tampered with
+       */
+      if (shadowNode.__depth >= MAX_NESTING_DEPTH || numberIsNaN(shadowNode.__depth)) {
         _forceRemove(shadowNode);
       }
 
@@ -1447,8 +1451,11 @@ function createDOMPurify() {
         }
       }
 
-      /* Remove an element if nested too deeply to avoid mXSS */
-      if (currentNode.__depth >= MAX_NESTING_DEPTH) {
+      /*
+       * Remove an element if nested too deeply to avoid mXSS
+       * or if the __depth might have been tampered with
+       */
+      if (currentNode.__depth >= MAX_NESTING_DEPTH || numberIsNaN(currentNode.__depth)) {
         _forceRemove(currentNode);
       }
 
