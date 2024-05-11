@@ -14,6 +14,7 @@ import {
   stringToString,
   stringIndexOf,
   stringTrim,
+  numberIsNaN,
   regExpTest,
   typeErrorCreate,
   lookupGetter,
@@ -1403,8 +1404,14 @@ function createDOMPurify(window = getGlobal()) {
         }
       }
 
-      /* Remove an element if nested too deeply to avoid mXSS */
-      if (shadowNode.__depth >= MAX_NESTING_DEPTH) {
+      /*
+       * Remove an element if nested too deeply to avoid mXSS
+       * or if the __depth might have been tampered with
+       */
+      if (
+        shadowNode.__depth >= MAX_NESTING_DEPTH ||
+        numberIsNaN(shadowNode.__depth)
+      ) {
         _forceRemove(shadowNode);
       }
 
@@ -1570,8 +1577,14 @@ function createDOMPurify(window = getGlobal()) {
         }
       }
 
-      /* Remove an element if nested too deeply to avoid mXSS */
-      if (currentNode.__depth >= MAX_NESTING_DEPTH) {
+      /*
+       * Remove an element if nested too deeply to avoid mXSS
+       * or if the __depth might have been tampered with
+       */
+      if (
+        currentNode.__depth >= MAX_NESTING_DEPTH ||
+        numberIsNaN(currentNode.__depth)
+      ) {
         _forceRemove(currentNode);
       }
 

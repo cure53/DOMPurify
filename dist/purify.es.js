@@ -110,6 +110,7 @@ var stringIndexOf = unapply(String.prototype.indexOf);
 var stringTrim = unapply(String.prototype.trim);
 var regExpTest = unapply(RegExp.prototype.test);
 var typeErrorCreate = unconstruct(TypeError);
+var numberIsNaN = unapply(Number.isNaN);
 function unapply(func) {
   return function (thisArg) {
     for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -1267,8 +1268,11 @@ function createDOMPurify() {
         }
       }
 
-      /* Remove an element if nested too deeply to avoid mXSS */
-      if (shadowNode.__depth >= MAX_NESTING_DEPTH) {
+      /*
+       * Remove an element if nested too deeply to avoid mXSS
+       * or if the __depth might have been tampered with
+       */
+      if (shadowNode.__depth >= MAX_NESTING_DEPTH || numberIsNaN(shadowNode.__depth)) {
         _forceRemove(shadowNode);
       }
 
@@ -1419,8 +1423,11 @@ function createDOMPurify() {
         }
       }
 
-      /* Remove an element if nested too deeply to avoid mXSS */
-      if (currentNode.__depth >= MAX_NESTING_DEPTH) {
+      /*
+       * Remove an element if nested too deeply to avoid mXSS
+       * or if the __depth might have been tampered with
+       */
+      if (currentNode.__depth >= MAX_NESTING_DEPTH || numberIsNaN(currentNode.__depth)) {
         _forceRemove(currentNode);
       }
 
