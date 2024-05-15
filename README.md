@@ -45,7 +45,7 @@ const clean = DOMPurify.sanitize(dirty);
 Or maybe this, if you love working with Angular or alike:
 
 ```js
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 
 const clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
