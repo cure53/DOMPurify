@@ -110,7 +110,10 @@ var stringIndexOf = unapply(String.prototype.indexOf);
 var stringTrim = unapply(String.prototype.trim);
 var regExpTest = unapply(RegExp.prototype.test);
 var typeErrorCreate = unconstruct(TypeError);
-var numberIsNaN = unapply(Number.isNaN);
+function numberIsNaN(x) {
+  // eslint-disable-next-line no-self-compare
+  return x !== x;
+}
 function unapply(func) {
   return function (thisArg) {
     for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {

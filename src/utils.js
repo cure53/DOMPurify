@@ -50,7 +50,10 @@ const regExpTest = unapply(RegExp.prototype.test);
 
 const typeErrorCreate = unconstruct(TypeError);
 
-const numberIsNaN = unapply(Number.isNaN);
+export function numberIsNaN(x) {
+  // eslint-disable-next-line no-self-compare
+  return x !== x;
+}
 
 export function unapply(func) {
   return (thisArg, ...args) => apply(func, thisArg, args);
@@ -157,8 +160,6 @@ export {
   stringToLowerCase,
   stringToString,
   stringTrim,
-  // Number
-  numberIsNaN,
   // Errors
   typeErrorCreate,
   // Other
