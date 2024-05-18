@@ -117,8 +117,8 @@
   var regExpTest = unapply(RegExp.prototype.test);
   var typeErrorCreate = unconstruct(TypeError);
   function numberIsNaN(x) {
-    // eslint-disable-next-line no-self-compare
-    return x !== x;
+    // eslint-disable-next-line unicorn/prefer-number-properties
+    return typeof x === 'number' && isNaN(x);
   }
   function unapply(func) {
     return function (thisArg) {

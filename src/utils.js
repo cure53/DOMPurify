@@ -51,8 +51,8 @@ const regExpTest = unapply(RegExp.prototype.test);
 const typeErrorCreate = unconstruct(TypeError);
 
 export function numberIsNaN(x) {
-  // eslint-disable-next-line no-self-compare
-  return x !== x;
+  // eslint-disable-next-line unicorn/prefer-number-properties
+  return typeof x === 'number' && isNaN(x);
 }
 
 export function unapply(func) {
