@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - 3.x
+      - 2.x
   pull_request:
 
 jobs:
