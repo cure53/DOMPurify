@@ -2,14 +2,6 @@ const sample = require('lodash.sample');
 const argv = require('minimist')(process.argv.slice(2));
 
 const customLaunchers = {
-  bs_windows_msie_11: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '11.0',
-    browser: 'msie',
-    os_version: '10',
-  },    
   bs_sierra_safari_10: {
     base: 'BrowserStack',
     device: null,
