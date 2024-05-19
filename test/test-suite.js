@@ -1764,6 +1764,7 @@
             '<svg><title></title></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
             '<svg xmlns="http://www.w3.org/2000/svg"><title></title></svg>',
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><title /></svg>"
           ],
         },
         {

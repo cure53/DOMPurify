@@ -42,6 +42,14 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Big Sur',
   },
+  bs_sonoma_safari_17: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'OS X',
+    browser_version: '17.0',
+    browser: 'safari',
+    os_version: 'Sonoma',
+  },
   bs_win81_ie_11: {
     base: 'BrowserStack',
     browser: 'ie',
@@ -113,6 +121,14 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: '10',
   },
+  bs_win10_firefox_124: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '124.0',
+    browser: 'firefox',
+    os_version: '11',
+  },
   bs_win10_chrome_60: {
     base: 'BrowserStack',
     device: null,
@@ -152,6 +168,14 @@ const customLaunchers = {
     browser_version: '96.0',
     browser: 'chrome',
     os_version: '10',
+  },
+  bs_win10_chrome_124: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '124.0',
+    browser: 'chrome',
+    os_version: '11',
   },
 };
 
