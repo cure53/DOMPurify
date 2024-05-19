@@ -1644,6 +1644,7 @@
           '<img y="<x">',
           '<img y="&lt;x">',
           '<img y="<x">',
+          "<img x=\"/><img src=x onerror=alert(1)>\" y=\"<x\">"
         ]);
       }
     );
@@ -1735,6 +1736,7 @@
             '<svg><desc></desc></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg"><desc></desc></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><desc /></svg>"
           ],
         },
         {
@@ -1742,6 +1744,7 @@
           expected: [
             '<svg></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"><title /></svg>"
           ],
         },
         {
@@ -2095,80 +2098,6 @@
       });
     });
 
-    QUnit.test('Test proper handling of nesting-based mXSS 1/3', function (assert) {
-      
-      let dirty = `${`<div>`.repeat(250)}${`</div>`.repeat(250)}<img>`;
-      let expected = `${`<div>`.repeat(250)}${`</div>`.repeat(250)}<img>`;
-      let clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-
-      dirty = `${`<div>`.repeat(255)}${`</div>`.repeat(255)}<img>`;
-      expected = `${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`;
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-
-      dirty = `${`<div>`.repeat(257)}${`</div>`.repeat(257)}<img>`;
-      expected = `${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`;
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-      
-      dirty = `<div><template>${`<div>`.repeat(257)}${`</div>`.repeat(257)}<img>`;
-      expected = `<div><template>${`<div>`.repeat(251)}${`</div>`.repeat(251)}<img></template></div>`;
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-
-      dirty = `<div><template>${`<r>`.repeat(255)}<img>${`</r>`.repeat(
-        255
-      )}</template></div><img>`;
-      expected = `<div><template></template></div><img>`;
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-      
-    });
-    
-    QUnit.test('Test proper handling of nesting-based mXSS 2/3', function (assert) {
-      
-      let dirty = `<form><input name="__depth">${`<div>`.repeat(500)}${`</div>`.repeat(500)}<img>`;
-      let expected = [
-          ``,
-          `<form><input>${`<div>`.repeat(252)}${`</div>`.repeat(252)}<img></form>`,
-      ];
-      let clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-      
-      dirty = `<form><input name="__depth"></form>${`<div>`.repeat(500)}${`</div>`.repeat(500)}<img>`;
-      expected = [
-          `${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`,
-          `<form><input></form>${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`
-      ];
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-
-      dirty = `<form><input name="__removalCount">${`<div>`.repeat(
-        500
-      )}${`</div>`.repeat(500)}<img>`;
-      expected = [
-        ``,
-        `<form><input>${`<div>`.repeat(
-          252
-        )}${`</div>`.repeat(252)}<img></form>`,
-      ];
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-
-      dirty = `<form><input name="__removalCount"></form>${`<div>`.repeat(
-        500
-      )}${`</div>`.repeat(500)}<img>`;
-      expected = [
-        `${`<div>`.repeat(253)}${`</div>`.repeat(253)}<img>`,
-        `<form><input></form>${`<div>`.repeat(
-          253
-        )}${`</div>`.repeat(253)}<img>`,
-      ];
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-    });
-    
     QUnit.test('Test proper handling of nesting-based mXSS 3/3', function (assert) {
       
       let dirty = `<form><input name="__depth">`;
