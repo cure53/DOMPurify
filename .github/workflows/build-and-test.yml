@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - 3.x
+      - 2.x
   pull_request:
 
 jobs:
@@ -39,6 +40,6 @@ jobs:
           run: npm run test:ci
         env:
           TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '21') }}
-          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' }}
+          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/2.x' }}
           BS_USERNAME: ${{ secrets.BS_USERNAME }}
           BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
