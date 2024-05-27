@@ -50,11 +50,6 @@ const regExpTest = unapply(RegExp.prototype.test);
 
 const typeErrorCreate = unconstruct(TypeError);
 
-export function numberIsNaN(x) {
-  // eslint-disable-next-line unicorn/prefer-number-properties
-  return typeof x === 'number' && isNaN(x);
-}
-
 export function unapply(func) {
   return (thisArg, ...args) => apply(func, thisArg, args);
 }

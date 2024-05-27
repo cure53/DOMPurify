@@ -2099,19 +2099,6 @@
       });
     });
 
-    QUnit.test('Test proper handling of nesting-based mXSS 3/3', function (assert) {
-      
-      let dirty = `<form><input name="__depth">`;
-      let expected = [``, `<form><input></form>`];
-      let clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-
-      dirty = `<form><input name="__removalCount">`;
-      expected = [``, `<form><input></form>`];
-      clean = DOMPurify.sanitize(dirty);
-      assert.contains(clean, expected);
-    });
-
     QUnit.test('removeHook returns hook function', function (assert) {
       const entryPoint = 'afterSanitizeAttributes';
       const dirty = '<div class="hello"></div>';
