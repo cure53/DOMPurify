@@ -378,6 +378,12 @@ DOMPurify.addHook(
 );
 ```
 
+## Removed Configuration
+
+| Option          | Since | Note                     |
+|-----------------|-------|--------------------------|
+| SAFE_FOR_JQUERY | 2.1.0 | No replacement required. |
+
 ## Continuous Integration
 
 We are currently using Github Actions in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://github.com/cure53/DOMPurify/actions
