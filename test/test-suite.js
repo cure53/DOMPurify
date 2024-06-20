@@ -1124,9 +1124,9 @@
         assert.equal(DOMPurify.removed.length, 0);
       }
     );
-    // Tests to make sure that the node scanning feature delivers acurate results on all browsers
+    // Tests to make sure that the node scanning feature delivers accurate results on all browsers
     QUnit.test(
-      'DOMPurify should deliver acurate results when sanitizing nodes 1',
+      'DOMPurify should deliver accurate results when sanitizing nodes 1',
       function (assert) {
         var clean = DOMPurify.sanitize(document.createElement('td'));
         assert.equal(clean, '<td></td>');
@@ -1443,7 +1443,7 @@
         ALLOWED_URI_REGEXP: /test\.com/i
       }), '<img src="https://test.com">');
 
-      // ensure that the previous regexp does not affect future santize calls
+      // ensure that the previous regexp does not affect future sanitize calls
       assert.equal(DOMPurify.sanitize(dirty), expected);
     });
     QUnit.test(
@@ -1588,7 +1588,7 @@
       }
     );
     QUnit.test(
-      'Test for less agressive mXSS handling, See #369',
+      'Test for less aggressive mXSS handling, See #369',
       function (assert) {
         var config = {
           FORBID_TAGS: ['svg', 'math'],

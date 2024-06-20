@@ -1034,7 +1034,7 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
-    /* Remove any ocurrence of processing instructions */
+    /* Remove any occurrence of processing instructions */
     if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
       _forceRemove(currentNode);
       return true;
