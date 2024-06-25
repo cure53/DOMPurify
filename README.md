@@ -181,6 +181,9 @@ const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
 
 
 // change how e.g. comments containing risky HTML characters are treated.
+// be very careful, this setting should only be set to `false` if you really only handle 
+// HTML and nothing else, no SVG, MathML or the like. 
+// Otherwise, changing from `true` to `false` will lead to XSS in this or some other way.
 const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_XML: false});
 ```
 
