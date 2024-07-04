@@ -807,7 +807,7 @@ function createDOMPurify(window = getGlobal()) {
 
     try {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
-      node.parentNode.removeChild(node);
+      getParentNode(node).removeChild(node);
     } catch (_) {
       node.remove();
     }
