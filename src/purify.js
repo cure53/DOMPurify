@@ -135,6 +135,7 @@ function createDOMPurify(window = getGlobal()) {
   const ElementPrototype = Element.prototype;
 
   const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
+  const remove = lookupGetter(ElementPrototype, 'remove');
   const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
   const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
   const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
@@ -807,9 +808,9 @@ function createDOMPurify(window = getGlobal()) {
 
     try {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
-      node.parentNode.removeChild(node);
+      getParentNode(node).removeChild(node);
     } catch (_) {
-      node.remove();
+      remove(node);
     }
   };
 
@@ -1034,7 +1035,7 @@ function createDOMPurify(window = getGlobal()) {
       return true;
     }
 
-    /* Remove any ocurrence of processing instructions */
+    /* Remove any occurrence of processing instructions */
     if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
       _forceRemove(currentNode);
       return true;
@@ -1280,6 +1281,13 @@ function createDOMPurify(window = getGlobal()) {
       hookEvent.forceKeepAttr = undefined; // Allows developers to see this is a property they can set
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
+
+      /* Work around a security issue with comments inside attributes */
+      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
+
       /* Did the hooks approve of the attribute? */
       if (hookEvent.forceKeepAttr) {
         continue;
@@ -1295,12 +1303,6 @@ function createDOMPurify(window = getGlobal()) {
 
       /* Work around a security issue in jQuery 3.0 */
       if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
-        _removeAttribute(name, currentNode);
-        continue;
-      }
-
-      /* Work around a security issue with comments inside attributes */
-      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
         _removeAttribute(name, currentNode);
         continue;
       }

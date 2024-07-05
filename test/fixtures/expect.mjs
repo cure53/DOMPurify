@@ -191,7 +191,7 @@ export default [
       "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
       "expected": "<img><img>@mmrupp<img><svg></svg>"
   }, {
-      "title": "Special esacpes in protocol handler for XSS in Blink",
+      "title": "Special escapes in protocol handler for XSS in Blink",
       "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
       "expected": "<a>@shafigullin</a><a></a>"
   }, {
@@ -879,11 +879,11 @@ export default [
           "<math></math>"
       ]
   }, {
-      "title": "Tests against additonal problems regarding HTML inside MathML 1/2",
+      "title": "Tests against additional problems regarding HTML inside MathML 1/2",
       "payload": "<math><mtext><h1><a><h6></a></h6><mglyph><svg><mtext><style><a title=\"</style><img src onerror='alert(1)'>\"></style></h1>",
       "expected": "<math><mtext><h1><a></a><h6><a></a></h6></h1></mtext></math>"
   }, {
-      "title": "Tests against additonal problems regarding HTML inside MathML 2/2",
+      "title": "Tests against additional problems regarding HTML inside MathML 2/2",
       "payload": "<!-- more soon -->",
       "expected": ""
   },   {
