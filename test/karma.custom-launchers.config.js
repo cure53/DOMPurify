@@ -201,7 +201,7 @@ const getRandomBrowser = () => sample(getAllBrowsers());
 
 /**
  * Environment variables are passed into the script and the depth of testing
- * is affected accordginly.
+ * is affected accordingly.
  *
  * - Whenever on a PR we only want to probe test with Firefox
  * - Whenever we are on the most recent node version on GitHub Actions we test via BrowserStack
