@@ -722,7 +722,7 @@ function createDOMPurify() {
     CONFIG = cfg;
   };
   const MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
-  const HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'annotation-xml']);
+  const HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
 
   // Certain elements are allowed in both SVG and HTML
   // namespace. We need to specify them explicitly
@@ -1183,12 +1183,6 @@ function createDOMPurify() {
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
 
-      /* Work around a security issue with comments inside attributes */
-      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
-        _removeAttribute(name, currentNode);
-        continue;
-      }
-
       /* Did the hooks approve of the attribute? */
       if (hookEvent.forceKeepAttr) {
         continue;
@@ -1230,6 +1224,12 @@ function createDOMPurify() {
 
         // Prefix the value and later re-create the attribute with the sanitized value
         value = SANITIZE_NAMED_PROPS_PREFIX + value;
+      }
+
+      /* Work around a security issue with comments inside attributes */
+      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
       }
 
       /* Handle attributes that require Trusted Types */
