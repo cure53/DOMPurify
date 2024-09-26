@@ -19,6 +19,7 @@
   },
   "main": "./dist/purify.cjs.js",
   "module": "./dist/purify.es.mjs",
+  "es2020": "./dist/purify.es.mjs",
   "browser": "./dist/purify.js",
   "production": "./dist/purify.min.js",
   "files": [
