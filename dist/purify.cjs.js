@@ -1,4 +1,4 @@
-/*! @license DOMPurify 2.5.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.5.6/LICENSE */
+/*! @license DOMPurify 2.5.7 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/2.5.7/LICENSE */
 
 'use strict';
 
@@ -283,7 +283,7 @@ function createDOMPurify() {
    * Version label, exposed for easier checks
    * if DOMPurify is up to date or not
    */
-  DOMPurify.version = '2.5.6';
+  DOMPurify.version = '2.5.7';
 
   /**
    * Array of elements that DOMPurify removed during sanitation.
@@ -670,7 +670,7 @@ function createDOMPurify() {
     CONFIG = cfg;
   };
   var MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
-  var HTML_INTEGRATION_POINTS = addToSet({}, ['foreignobject', 'annotation-xml']);
+  var HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
 
   // Certain elements are allowed in both SVG and HTML
   // namespace. We need to specify them explicitly
@@ -1146,12 +1146,6 @@ function createDOMPurify() {
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
 
-      /* Work around a security issue with comments inside attributes */
-      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
-        _removeAttribute(name, currentNode);
-        continue;
-      }
-
       /* Did the hooks approve of the attribute? */
       if (hookEvent.forceKeepAttr) {
         continue;
@@ -1193,6 +1187,12 @@ function createDOMPurify() {
 
         // Prefix the value and later re-create the attribute with the sanitized value
         value = SANITIZE_NAMED_PROPS_PREFIX + value;
+      }
+
+      /* Work around a security issue with comments inside attributes */
+      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
       }
 
       /* Handle attributes that require Trusted Types */
