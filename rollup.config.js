@@ -1,8 +1,10 @@
 const fs = require('fs');
+const { DEFAULT_EXTENSIONS } = require('@babel/core');
 const babel = require('@rollup/plugin-babel').babel;
 const nodeResolve = require('@rollup/plugin-node-resolve').nodeResolve;
 const replace = require('@rollup/plugin-replace');
 const { terser } = require('rollup-plugin-terser');
+const typescript = require('rollup-plugin-typescript2');
 const pkg = require('./package.json');
 
 const env = process.env.NODE_ENV;
@@ -20,7 +22,7 @@ const commonOutputConfig = {
 };
 
 const config = {
-  input: 'src/purify.js',
+  input: 'src/purify.ts',
   external: [],
   output: [
     {
@@ -46,11 +48,15 @@ const config = {
     },
   ],
   plugins: [
+    typescript({
+      clean: true,
+    }),
     babel({
       // It is recommended to configure this option explicitly (even if with its default value) so an informed decision is taken on how those babel helpers are inserted into the code.
       // Ref: https://github.com/rollup/plugins/tree/master/packages/babel#babelhelpers
       babelHelpers: 'bundled',
       exclude: ['**/node_modules/**'],
+      extensions: [...DEFAULT_EXTENSIONS, '.ts'],
     }),
     nodeResolve(),
     replace({
