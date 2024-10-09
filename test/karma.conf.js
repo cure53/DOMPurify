@@ -27,7 +27,7 @@ module.exports = function (config) {
     ],
 
     preprocessors: {
-      'src/*.js': ['rollup'],
+      'src/*.ts': ['rollup'],
       'test/**/*.spec.js': ['rollup'],
     },
 
