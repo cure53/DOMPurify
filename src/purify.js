@@ -400,6 +400,28 @@ function createDOMPurify(window = getGlobal()) {
     stringToString
   );
 
+  let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, [
+    'mi',
+    'mo',
+    'mn',
+    'ms',
+    'mtext',
+  ]);
+
+  let HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
+
+  // Certain elements are allowed in both SVG and HTML
+  // namespace. We need to specify them explicitly
+  // so that they don't get erroneously deleted from
+  // HTML namespace.
+  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
+    'title',
+    'style',
+    'font',
+    'a',
+    'script',
+  ]);
+
   /* Parsing of strict XHTML documents */
   let PARSER_MEDIA_TYPE = null;
   const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
@@ -502,6 +524,11 @@ function createDOMPurify(window = getGlobal()) {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || EXPRESSIONS.IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+    MATHML_TEXT_INTEGRATION_POINTS =
+      cfg.MATHML_TEXT_INTEGRATION_POINTS || MATHML_TEXT_INTEGRATION_POINTS;
+    HTML_INTEGRATION_POINTS =
+      cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
+
     CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
     if (
       cfg.CUSTOM_ELEMENT_HANDLING &&
@@ -650,28 +677,6 @@ function createDOMPurify(window = getGlobal()) {
 
     CONFIG = cfg;
   };
-
-  const MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, [
-    'mi',
-    'mo',
-    'mn',
-    'ms',
-    'mtext',
-  ]);
-
-  const HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
-
-  // Certain elements are allowed in both SVG and HTML
-  // namespace. We need to specify them explicitly
-  // so that they don't get erroneously deleted from
-  // HTML namespace.
-  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
-    'title',
-    'style',
-    'font',
-    'a',
-    'script',
-  ]);
 
   /* Keep track of all possible SVG and MathML tags
    * so that we can perform the namespace checks

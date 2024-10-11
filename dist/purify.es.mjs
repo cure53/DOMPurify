@@ -521,6 +521,14 @@ function createDOMPurify() {
   /* Allowed XHTML+XML namespaces */
   let ALLOWED_NAMESPACES = null;
   const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
+  let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
+  let HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
+
+  // Certain elements are allowed in both SVG and HTML
+  // namespace. We need to specify them explicitly
+  // so that they don't get erroneously deleted from
+  // HTML namespace.
+  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
 
   /* Parsing of strict XHTML documents */
   let PARSER_MEDIA_TYPE = null;
@@ -604,6 +612,8 @@ function createDOMPurify() {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+    MATHML_TEXT_INTEGRATION_POINTS = cfg.MATHML_TEXT_INTEGRATION_POINTS || MATHML_TEXT_INTEGRATION_POINTS;
+    HTML_INTEGRATION_POINTS = cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
     CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
     if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
       CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
@@ -716,14 +726,6 @@ function createDOMPurify() {
     }
     CONFIG = cfg;
   };
-  const MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
-  const HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
-
-  // Certain elements are allowed in both SVG and HTML
-  // namespace. We need to specify them explicitly
-  // so that they don't get erroneously deleted from
-  // HTML namespace.
-  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, ['title', 'style', 'font', 'a', 'script']);
 
   /* Keep track of all possible SVG and MathML tags
    * so that we can perform the namespace checks
