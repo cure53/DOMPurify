@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/indent */
+
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
 import * as EXPRESSIONS from './regexp.js';
@@ -483,17 +485,17 @@ function createDOMPurify(window = getGlobal()) {
       : DEFAULT_ALLOWED_NAMESPACES;
     URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR')
       ? addToSet(
-          clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
-          cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
-          transformCaseFunc // eslint-disable-line indent
-        ) // eslint-disable-line indent
+          clone(DEFAULT_URI_SAFE_ATTRIBUTES),
+          cfg.ADD_URI_SAFE_ATTR,
+          transformCaseFunc
+        )
       : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS')
       ? addToSet(
-          clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
-          cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
-          transformCaseFunc // eslint-disable-line indent
-        ) // eslint-disable-line indent
+          clone(DEFAULT_DATA_URI_TAGS),
+          cfg.ADD_DATA_URI_TAGS,
+          transformCaseFunc
+        )
       : DEFAULT_DATA_URI_TAGS;
     FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS')
       ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
