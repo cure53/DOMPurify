@@ -7,11 +7,15 @@
     "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist/**",
     "dev": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
-    "build": "rollup -c",
+    "build": "run-s build:types build:rollup build:fix-cjs-types build:cleanup",
+    "build:types": "tsc --outDir dist/types --declaration --emitDeclarationOnly",
+    "build:rollup": "rollup -c",
+    "build:fix-cjs-types": "node ./scripts/fix-cjs-types.js",
     "build:umd": "rollup -c -f umd -o dist/purify.js",
     "build:umd:min": "rollup -c -f umd -o dist/purify.min.js -p terser",
     "build:es": "rollup -c -f es -o dist/purify.es.mjs",
     "build:cjs": "rollup -c -f cjs -o dist/purify.cjs.js",
+    "build:cleanup": "rimraf dist/types",
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
     "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TEST_PROBE_ONLY}\"",
@@ -19,9 +23,21 @@
   },
   "main": "./dist/purify.cjs.js",
   "module": "./dist/purify.es.mjs",
-  "es2020": "./dist/purify.es.mjs",
   "browser": "./dist/purify.js",
   "production": "./dist/purify.min.js",
+  "types": "./dist/purify.cjs.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/purify.cjs.d.ts",
+        "default": "./dist/purify.cjs.js"
+      },
+      "import": {
+        "types": "./dist/purify.es.d.mts",
+        "default": "./dist/purify.es.mjs"
+      }
+    }
+  },
   "files": [
     "dist"
   ],
