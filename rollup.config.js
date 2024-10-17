@@ -3,7 +3,7 @@ const { DEFAULT_EXTENSIONS } = require('@babel/core');
 const babel = require('@rollup/plugin-babel').babel;
 const nodeResolve = require('@rollup/plugin-node-resolve').nodeResolve;
 const replace = require('@rollup/plugin-replace');
-const { terser } = require('rollup-plugin-terser');
+const terser = require('@rollup/plugin-terser');
 const typescript = require('rollup-plugin-typescript2');
 const pkg = require('./package.json');
 
