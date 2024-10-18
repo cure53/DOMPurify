@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/indent */
+
+import type { Config, UseProfilesConfig } from './config';
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
 import * as EXPRESSIONS from './regexp.js';
@@ -22,6 +25,8 @@ import {
   objectHasOwnProperty,
 } from './utils.js';
 
+declare const VERSION: string;
+
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 const NODE_TYPE = {
   element: 1,
@@ -38,7 +43,7 @@ const NODE_TYPE = {
   notation: 12, // Deprecated
 };
 
-const getGlobal = function () {
+const getGlobal = function (): WindowLike {
   return typeof window === 'undefined' ? null : window;
 };
 
@@ -89,19 +94,11 @@ const _createTrustedTypesPolicy = function (trustedTypes, purifyHostElement) {
   }
 };
 
-function createDOMPurify(window = getGlobal()) {
-  const DOMPurify = (root) => createDOMPurify(root);
+function createDOMPurify(window: WindowLike = getGlobal()) {
+  const DOMPurify: DOMPurify = (root: WindowLike) => createDOMPurify(root);
 
-  /**
-   * Version label, exposed for easier checks
-   * if DOMPurify is up to date or not
-   */
   DOMPurify.version = VERSION;
 
-  /**
-   * Array of elements that DOMPurify removed during sanitation.
-   * Empty if nothing was removed.
-   */
   DOMPurify.removed = [];
 
   if (
@@ -119,14 +116,15 @@ function createDOMPurify(window = getGlobal()) {
   let { document } = window;
 
   const originalDocument = document;
-  const currentScript = originalDocument.currentScript;
+  const currentScript: HTMLScriptElement =
+    originalDocument.currentScript as HTMLScriptElement;
   const {
     DocumentFragment,
     HTMLTemplateElement,
     Node,
     Element,
     NodeFilter,
-    NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
+    NamedNodeMap = window.NamedNodeMap || (window as any).MozNamedAttrMap,
     HTMLFormElement,
     DOMParser,
     trustedTypes,
@@ -213,7 +211,7 @@ function createDOMPurify(window = getGlobal()) {
   ]);
 
   /*
-   * Configure how DOMPUrify should handle custom elements and their attributes as well as customized built-in elements.
+   * Configure how DOMPurify should handle custom elements and their attributes as well as customized built-in elements.
    * @property {RegExp|Function|null} tagNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any custom elements)
    * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
    * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
@@ -323,7 +321,7 @@ function createDOMPurify(window = getGlobal()) {
   let IN_PLACE = false;
 
   /* Allow usage of profiles like html, svg and mathMl */
-  let USE_PROFILES = {};
+  let USE_PROFILES: UseProfilesConfig | false = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
   let FORBID_CONTENTS = null;
@@ -429,7 +427,7 @@ function createDOMPurify(window = getGlobal()) {
   let transformCaseFunc = null;
 
   /* Keep a reference to config to pass to hooks */
-  let CONFIG = null;
+  let CONFIG: Config | null = null;
 
   /* Ideally, do not touch anything below this line */
   /* ______________________________________________ */
@@ -446,7 +444,7 @@ function createDOMPurify(window = getGlobal()) {
    * @param  {Object} cfg optional config literal
    */
   // eslint-disable-next-line complexity
-  const _parseConfig = function (cfg = {}) {
+  const _parseConfig = function (cfg: Config = {}) {
     if (CONFIG && CONFIG === cfg) {
       return;
     }
@@ -483,17 +481,17 @@ function createDOMPurify(window = getGlobal()) {
       : DEFAULT_ALLOWED_NAMESPACES;
     URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR')
       ? addToSet(
-          clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
-          cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
-          transformCaseFunc // eslint-disable-line indent
-        ) // eslint-disable-line indent
+          clone(DEFAULT_URI_SAFE_ATTRIBUTES),
+          cfg.ADD_URI_SAFE_ATTR,
+          transformCaseFunc
+        )
       : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS')
       ? addToSet(
-          clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
-          cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
-          transformCaseFunc // eslint-disable-line indent
-        ) // eslint-disable-line indent
+          clone(DEFAULT_DATA_URI_TAGS),
+          cfg.ADD_DATA_URI_TAGS,
+          transformCaseFunc
+        )
       : DEFAULT_DATA_URI_TAGS;
     FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS')
       ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
@@ -977,15 +975,40 @@ function createDOMPurify(window = getGlobal()) {
     return typeof Node === 'function' && object instanceof Node;
   };
 
+  // The following overloads of `_executeHook` add type-safety to the callers,
+  // ensuring that the caller provides the correct `data` parameter.
+
+  function _executeHook(
+    entryPoint: BasicHookName,
+    currentNode: Node,
+    data: null
+  ): void;
+
+  function _executeHook(
+    entryPoint: UponSanitizeElementHookName,
+    currentNode: Node,
+    data: UponSanitizeElementHookEvent
+  ): void;
+
+  function _executeHook(
+    entryPoint: UponSanitizeAttributeHookName,
+    currentNode: Node,
+    data: UponSanitizeAttributeHookEvent
+  ): void;
+
   /**
    * _executeHook
    * Execute user configurable hooks
    *
-   * @param  {String} entryPoint  Name of the hook's entry point
-   * @param  {Node} currentNode node to work on with the hook
+   * @param  entryPoint  Name of the hook's entry point
+   * @param  currentNode node to work on with the hook
    * @param  {Object} data additional hook parameters
    */
-  const _executeHook = function (entryPoint, currentNode, data) {
+  function _executeHook(
+    entryPoint: HookName,
+    currentNode: Node,
+    data: UponSanitizeAttributeHookEvent | UponSanitizeElementHookEvent | null
+  ) {
     if (!hooks[entryPoint]) {
       return;
     }
@@ -993,7 +1016,7 @@ function createDOMPurify(window = getGlobal()) {
     arrayForEach(hooks[entryPoint], (hook) => {
       hook.call(DOMPurify, currentNode, data, CONFIG);
     });
-  };
+  }
 
   /**
    * _sanitizeElements
@@ -1265,6 +1288,7 @@ function createDOMPurify(window = getGlobal()) {
       attrValue: '',
       keepAttr: true,
       allowedAttributes: ALLOWED_ATTR,
+      forceKeepAttr: undefined,
     };
     let l = attributes.length;
 
@@ -1415,13 +1439,6 @@ function createDOMPurify(window = getGlobal()) {
     _executeHook('afterSanitizeShadowDOM', fragment, null);
   };
 
-  /**
-   * Sanitize
-   * Public method providing core sanitation functionality
-   *
-   * @param {String|Node} dirty string or DOM node
-   * @param {Object} cfg object
-   */
   // eslint-disable-next-line complexity
   DOMPurify.sanitize = function (dirty, cfg = {}) {
     let body = null;
@@ -1468,8 +1485,8 @@ function createDOMPurify(window = getGlobal()) {
 
     if (IN_PLACE) {
       /* Do some early pre-sanitization to avoid unsafe root nodes */
-      if (dirty.nodeName) {
-        const tagName = transformCaseFunc(dirty.nodeName);
+      if ((dirty as Node).nodeName) {
+        const tagName = transformCaseFunc((dirty as Node).nodeName);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
           throw typeErrorCreate(
             'root node is forbidden and cannot be sanitized in-place'
@@ -1599,37 +1616,16 @@ function createDOMPurify(window = getGlobal()) {
       : serializedHTML;
   };
 
-  /**
-   * Public method to set the configuration once
-   * setConfig
-   *
-   * @param {Object} cfg configuration object
-   */
   DOMPurify.setConfig = function (cfg = {}) {
     _parseConfig(cfg);
     SET_CONFIG = true;
   };
 
-  /**
-   * Public method to remove the configuration
-   * clearConfig
-   *
-   */
   DOMPurify.clearConfig = function () {
     CONFIG = null;
     SET_CONFIG = false;
   };
 
-  /**
-   * Public method to check if an attribute value is valid.
-   * Uses last set config, if any. Otherwise, uses config defaults.
-   * isValidAttribute
-   *
-   * @param  {String} tag Tag name of containing element.
-   * @param  {String} attr Attribute name.
-   * @param  {String} value Attribute value.
-   * @return {Boolean} Returns true if `value` is valid. Otherwise, returns false.
-   */
   DOMPurify.isValidAttribute = function (tag, attr, value) {
     /* Initialize shared config vars if necessary. */
     if (!CONFIG) {
@@ -1641,13 +1637,6 @@ function createDOMPurify(window = getGlobal()) {
     return _isValidAttribute(lcTag, lcName, value);
   };
 
-  /**
-   * AddHook
-   * Public method to add DOMPurify hooks
-   *
-   * @param {String} entryPoint entry point for the hook to add
-   * @param {Function} hookFunction function to execute
-   */
   DOMPurify.addHook = function (entryPoint, hookFunction) {
     if (typeof hookFunction !== 'function') {
       return;
@@ -1657,36 +1646,18 @@ function createDOMPurify(window = getGlobal()) {
     arrayPush(hooks[entryPoint], hookFunction);
   };
 
-  /**
-   * RemoveHook
-   * Public method to remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
-   *
-   * @param {String} entryPoint entry point for the hook to remove
-   * @return {Function} removed(popped) hook
-   */
   DOMPurify.removeHook = function (entryPoint) {
     if (hooks[entryPoint]) {
       return arrayPop(hooks[entryPoint]);
     }
   };
 
-  /**
-   * RemoveHooks
-   * Public method to remove all DOMPurify hooks at a given entryPoint
-   *
-   * @param  {String} entryPoint entry point for the hooks to remove
-   */
   DOMPurify.removeHooks = function (entryPoint) {
     if (hooks[entryPoint]) {
       hooks[entryPoint] = [];
     }
   };
 
-  /**
-   * RemoveAllHooks
-   * Public method to remove all DOMPurify hooks
-   */
   DOMPurify.removeAllHooks = function () {
     hooks = {};
   };
@@ -1695,3 +1666,279 @@ function createDOMPurify(window = getGlobal()) {
 }
 
 export default createDOMPurify();
+
+interface DOMPurify {
+  /**
+   * Creates a DOMPurify instance using the given window-like object.
+   */
+  (root: WindowLike): DOMPurify;
+
+  /**
+   * Version label, exposed for easier checks
+   * if DOMPurify is up to date or not
+   */
+  version: string;
+
+  /**
+   * Array of elements that DOMPurify removed during sanitation.
+   * Empty if nothing was removed.
+   */
+  removed: Array<RemovedElement | RemovedAttribute>;
+
+  /**
+   * Expose whether this browser supports running the full DOMPurify.
+   */
+  isSupported: boolean;
+
+  /**
+   * Set the configuration once.
+   *
+   * @param cfg configuration object
+   */
+  setConfig(cfg?: Config): void;
+
+  /**
+   * Removes the configuration.
+   */
+  clearConfig(): void;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @return Sanitized TrustedHTML.
+   */
+  sanitize(
+    dirty: string | Node,
+    cfg: Config & { RETURN_TRUSTED_TYPE: true }
+  ): TrustedHTML;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty DOM node
+   * @param cfg object
+   * @return Sanitized DOM node.
+   */
+  sanitize(dirty: Node, cfg: Config & { IN_PLACE: true }): Node;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @return Sanitized DOM node.
+   */
+  sanitize(dirty: string | Node, cfg: Config & { RETURN_DOM: true }): Node;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @return Sanitized document fragment.
+   */
+  sanitize(
+    dirty: string | Node,
+    cfg: Config & { RETURN_DOM_FRAGMENT: true }
+  ): DocumentFragment;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @return Sanitized string.
+   */
+  sanitize(dirty: string | Node, cfg?: Config): string;
+
+  /**
+   * Checks if an attribute value is valid.
+   * Uses last set config, if any. Otherwise, uses config defaults.
+   *
+   * @param  tag Tag name of containing element.
+   * @param  attr Attribute name.
+   * @param  value Attribute value.
+   * @return Returns true if `value` is valid. Otherwise, returns false.
+   */
+  isValidAttribute(tag: string, attr: string, value: string): boolean;
+
+  /**
+   * Adds a DOMPurify hook.
+   *
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
+   */
+  addHook(
+    entryPoint:
+      | 'beforeSanitizeElements'
+      | 'afterSanitizeElements'
+      | 'beforeSanitizeAttributes'
+      | 'afterSanitizeAttributes'
+      | 'beforeSanitizeShadowDOM'
+      | 'uponSanitizeShadowNode'
+      | 'afterSanitizeShadowDOM',
+    hookFunction: Hook
+  ): void;
+
+  /**
+   * Adds a DOMPurify hook.
+   *
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
+   */
+  addHook(
+    entryPoint: 'uponSanitizeElement',
+    hookFunction: UponSanitizeElementHook
+  ): void;
+
+  /**
+   * Adds a DOMPurify hook.
+   *
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
+   */
+  addHook(
+    entryPoint: 'uponSanitizeAttribute',
+    hookFunction: UponSanitizeAttributeHook
+  ): void;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param  entryPoint entry point for the hook to remove
+   * @return removed(popped) hook
+   */
+  removeHook(entryPoint: BasicHookName): Hook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param  entryPoint entry point for the hook to remove
+   * @return removed(popped) hook
+   */
+  removeHook(
+    entryPoint: 'uponSanitizeElement'
+  ): UponSanitizeElementHook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param  entryPoint entry point for the hook to remove
+   * @return removed(popped) hook
+   */
+  removeHook(
+    entryPoint: 'uponSanitizeAttribute'
+  ): UponSanitizeAttributeHook | undefined;
+
+  /**
+   * Removes all DOMPurify hooks at a given entryPoint
+   *
+   * @param entryPoint entry point for the hooks to remove
+   */
+  removeHooks(entryPoint: HookName): void;
+
+  /**
+   * Removes all DOMPurify hooks.
+   */
+  removeAllHooks(): void;
+}
+
+/**
+ * An element removed by DOMPurify.
+ */
+export interface RemovedElement {
+  /**
+   * The element that was removed.
+   */
+  element: Node;
+}
+
+/**
+ * An element removed by DOMPurify.
+ */
+export interface RemovedAttribute {
+  /**
+   * The attribute that was removed.
+   */
+  attribute: Attr | null;
+
+  /**
+   * The element that the attribute was removed.
+   */
+  from: Node;
+}
+
+type BasicHookName =
+  | 'beforeSanitizeElements'
+  | 'afterSanitizeElements'
+  | 'beforeSanitizeAttributes'
+  | 'afterSanitizeAttributes'
+  | 'beforeSanitizeShadowDOM'
+  | 'uponSanitizeShadowNode'
+  | 'afterSanitizeShadowDOM';
+
+type UponSanitizeElementHookName = 'uponSanitizeElement';
+type UponSanitizeAttributeHookName = 'uponSanitizeAttribute';
+
+export type HookName =
+  | BasicHookName
+  | UponSanitizeElementHookName
+  | UponSanitizeAttributeHookName;
+
+export type Hook = (
+  this: DOMPurify,
+  currentNode: Node,
+  hookEvent: null,
+  config: Config
+) => void;
+
+export type UponSanitizeElementHook = (
+  this: DOMPurify,
+  currentNode: Node,
+  hookEvent: UponSanitizeElementHookEvent,
+  config: Config
+) => void;
+
+export type UponSanitizeAttributeHook = (
+  this: DOMPurify,
+  currentNode: Node,
+  hookEvent: UponSanitizeAttributeHookEvent,
+  config: Config
+) => void;
+
+export interface UponSanitizeElementHookEvent {
+  tagName: string;
+  allowedTags: Record<string, boolean>;
+}
+
+export interface UponSanitizeAttributeHookEvent {
+  attrName: string;
+  attrValue: string;
+  keepAttr: boolean;
+  allowedAttributes: Record<string, boolean>;
+  forceKeepAttr: boolean | undefined;
+}
+
+/**
+ * A `Window`-like object containing the properties and types that DOMPurify requires.
+ */
+export type WindowLike = Pick<
+  typeof globalThis,
+  | 'DocumentFragment'
+  | 'HTMLTemplateElement'
+  | 'Node'
+  | 'Element'
+  | 'NodeFilter'
+  | 'NamedNodeMap'
+  | 'HTMLFormElement'
+  | 'DOMParser'
+> & {
+  document?: Document;
+  MozNamedAttrMap?: typeof window.NamedNodeMap;
+  trustedTypes?: typeof window.trustedTypes;
+};

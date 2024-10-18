@@ -1,17 +1,21 @@
 {
   "scripts": {
-    "lint": "xo src/*.js",
+    "lint": "xo src/*.ts",
     "format": "npm run format:js && npm run format:md",
     "format:md": "prettier --write --parser markdown '**/*.md'",
-    "format:js": "prettier --write '{src,demos,scripts,test,website}/*.js'",
+    "format:js": "prettier --write '{src,demos,scripts,test,website}/*.{js,ts}'",
     "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist/**",
     "dev": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
-    "build": "rollup -c",
+    "build": "run-s build:types build:rollup build:fix-cjs-types build:cleanup",
+    "build:types": "tsc --outDir dist/types --declaration --emitDeclarationOnly",
+    "build:rollup": "rollup -c",
+    "build:fix-cjs-types": "node ./scripts/fix-cjs-types.js",
     "build:umd": "rollup -c -f umd -o dist/purify.js",
     "build:umd:min": "rollup -c -f umd -o dist/purify.min.js -p terser",
     "build:es": "rollup -c -f es -o dist/purify.es.mjs",
     "build:cjs": "rollup -c -f cjs -o dist/purify.cjs.js",
+    "build:cleanup": "rimraf dist/types",
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
     "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TEST_PROBE_ONLY}\"",
@@ -19,9 +23,21 @@
   },
   "main": "./dist/purify.cjs.js",
   "module": "./dist/purify.es.mjs",
-  "es2020": "./dist/purify.es.mjs",
   "browser": "./dist/purify.js",
   "production": "./dist/purify.min.js",
+  "types": "./dist/purify.cjs.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/purify.cjs.d.ts",
+        "default": "./dist/purify.cjs.js"
+      },
+      "import": {
+        "types": "./dist/purify.es.d.mts",
+        "default": "./dist/purify.es.mjs"
+      }
+    }
+  },
   "files": [
     "dist"
   ],
@@ -55,7 +71,21 @@
         {
           "properties": "never"
         }
-      ]
+      ],
+      "@typescript-eslint/ban-types": 0,
+      "@typescript-eslint/consistent-type-definitions": 0,
+      "@typescript-eslint/indent": 0,
+      "@typescript-eslint/naming-convention": 0,
+      "@typescript-eslint/no-throw-literal": 0,
+      "@typescript-eslint/no-unnecessary-boolean-literal-compare": 0,
+      "@typescript-eslint/no-unsafe-argument": 0,
+      "@typescript-eslint/no-unsafe-assignment": 0,
+      "@typescript-eslint/no-unsafe-call": 0,
+      "@typescript-eslint/no-unsafe-return": 0,
+      "@typescript-eslint/prefer-includes": 0,
+      "@typescript-eslint/prefer-optional-chain": 0,
+      "@typescript-eslint/prefer-nullish-coalescing": 0,
+      "@typescript-eslint/restrict-plus-operands": 0
     },
     "globals": [
       "window",
@@ -65,11 +95,12 @@
   "devDependencies": {
     "@babel/core": "^7.17.8",
     "@babel/preset-env": "^7.16.11",
-    "@rollup/plugin-babel": "^5.3.1",
-    "@rollup/plugin-node-resolve": "^13.1.3",
-    "@rollup/plugin-replace": "^4.0.0",
-    "@types/dompurify": "^2.3.3",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-replace": "^6.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
     "@types/estree": "^1.0.0",
+    "@types/trusted-types": "^2.0.7",
     "cross-env": "^7.0.3",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
@@ -89,9 +120,12 @@
     "qunit": "^2.4.1",
     "qunit-tap": "^1.5.0",
     "rimraf": "^3.0.2",
-    "rollup": "^2.70.1",
-    "rollup-plugin-includepaths": "^0.2.3",
-    "rollup-plugin-terser": "^7.0.2",
+    "rollup": "^3.29.5",
+    "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-includepaths": "^0.2.4",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "tslib": "^2.7.0",
+    "typescript": "^5.6.3",
     "xo": "^0.54.1"
   },
   "resolutions": {

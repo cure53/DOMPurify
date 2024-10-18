@@ -57,10 +57,6 @@ Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML,
 const clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 ```
 
-### Where are the TypeScript type definitions?
-
-They can be found here: [@types/dompurify](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dompurify)
-
 ### Is there any foot-gun potential?
 
 Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library _after_ sanitization, please be certain that the library doesn't mess around with the HTML on its own.
