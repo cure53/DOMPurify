@@ -25,6 +25,8 @@ import {
   objectHasOwnProperty,
 } from './utils.js';
 
+export type { Config } from './config';
+
 declare const VERSION: string;
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
