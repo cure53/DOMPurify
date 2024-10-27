@@ -970,6 +970,20 @@
           currentNode.textContent = content;
         }
       }
+      /* Reverting the order of the attributes to keep the original order for consistency of output string */
+      try {
+        var _currentNode$attribut;
+        let lr = currentNode === null || currentNode === void 0 ? void 0 : (_currentNode$attribut = currentNode.attributes) === null || _currentNode$attribut === void 0 ? void 0 : _currentNode$attribut.length;
+        while (lr--) {
+          const attrToRevert = currentNode.attributes[lr];
+          currentNode.removeAttribute(attrToRevert.name);
+          if (attrToRevert.namespaceURI) {
+            currentNode.setAttributeNS(attrToRevert.namespaceURI, attrToRevert.name, attrToRevert.value);
+          } else {
+            currentNode.setAttribute(attrToRevert.name, attrToRevert.value);
+          }
+        }
+      } catch (_) {}
       /* Execute a hook if present */
       _executeHook('afterSanitizeElements', currentNode, null);
       return false;

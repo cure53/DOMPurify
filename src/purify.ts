@@ -1149,6 +1149,24 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
       }
     }
 
+    /* Reverting the order of the attributes to keep the original order for consistency of output string */
+    try {
+      let lr = currentNode?.attributes?.length;
+      while (lr--) {
+        const attrToRevert = currentNode.attributes[lr];
+        currentNode.removeAttribute(attrToRevert.name);
+        if (attrToRevert.namespaceURI) {
+          currentNode.setAttributeNS(
+            attrToRevert.namespaceURI,
+            attrToRevert.name,
+            attrToRevert.value
+          );
+        } else {
+          currentNode.setAttribute(attrToRevert.name, attrToRevert.value);
+        }
+      }
+    } catch (_) {}
+
     /* Execute a hook if present */
     _executeHook('afterSanitizeElements', currentNode, null);
 
