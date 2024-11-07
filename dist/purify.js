@@ -250,8 +250,8 @@
   /**
    * Creates a no-op policy for internal use only.
    * Don't export this function outside this module!
-   * @param {TrustedTypePolicyFactory} trustedTypes The policy factory.
-   * @param {HTMLScriptElement} purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
+   * @param {TrustedTypePolicyFactory} trustedTypes - The policy factory.
+   * @param {HTMLScriptElement} purifyHostElement - The Script element used to load DOMPurify (to determine policy name suffix).
    * @return {TrustedTypePolicy} The policy created (or null, if Trusted Types
    * are not supported or creating the policy failed).
    */
@@ -501,7 +501,7 @@
     /**
      * _parseConfig
      *
-     * @param  {Config} cfg optional config literal
+     * @param {Config} cfg optional config literal
      * @returns {void}
      */
     // eslint-disable-next-line complexity
@@ -659,7 +659,7 @@
     const ALL_SVG_TAGS = addToSet({}, [...svg$1, ...svgFilters, ...svgDisallowed]);
     const ALL_MATHML_TAGS = addToSet({}, [...mathMl$1, ...mathMlDisallowed]);
     /**
-     * @param  {Element} element a DOM element whose namespace is being checked
+     * @param {Element} element a DOM element whose namespace is being checked
      * @returns {boolean} Return false if the element has a
      *  namespace that a spec-compliant parser would never
      *  return. Return true otherwise.
@@ -739,7 +739,7 @@
     /**
      * _forceRemove
      *
-     * @param  {Node} node a DOM node
+     * @param {Node} node a DOM node
      */
     const _forceRemove = function _forceRemove(node) {
       arrayPush(DOMPurify.removed, {
@@ -755,8 +755,8 @@
     /**
      * _removeAttribute
      *
-     * @param  {string} name an Attribute name
-     * @param  {Element} element a DOM node
+     * @param {string} name an Attribute name
+     * @param {Element} element a DOM node
      * @returns {void}
      */
     const _removeAttribute = function _removeAttribute(name, element) {
@@ -788,7 +788,7 @@
     /**
      * _initDocument
      *
-     * @param  {string} dirty a string of dirty markup
+     * @param {string} dirty - a string of dirty markup
      * @return {Document} a DOM, filled with the dirty markup
      */
     const _initDocument = function _initDocument(dirty) {
@@ -838,7 +838,7 @@
     /**
      * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
      *
-     * @param  {Node} root The root element or node to start traversing on.
+     * @param {Node} root The root element or node to start traversing on.
      * @return {NodeIterator} The created NodeIterator
      */
     const _createNodeIterator = function _createNodeIterator(root) {
@@ -849,16 +849,16 @@
     /**
      * _isClobbered
      *
-     * @param  {Node} elm element to check for clobbering attacks
+     * @param {Element} element element to check for clobbering attacks
      * @return {boolean} true if clobbered, false if safe
      */
-    const _isClobbered = function _isClobbered(elm) {
-      return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
+    const _isClobbered = function _isClobbered(element) {
+      return element instanceof HTMLFormElement && (typeof element.nodeName !== 'string' || typeof element.textContent !== 'string' || typeof element.removeChild !== 'function' || !(element.attributes instanceof NamedNodeMap) || typeof element.removeAttribute !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function');
     };
     /**
      * Checks whether the given object is a DOM node.
      *
-     * @param  {unknown} value object to check whether it's a DOM node
+     * @param {unknown} value object to check whether it's a DOM node
      * @return {value is Node} true is object is a DOM node
      */
     const _isNode = function _isNode(value) {
@@ -1022,7 +1022,7 @@
      * @protect removeAttribute
      * @protect setAttribute
      *
-     * @param  {Element} currentNode to sanitize
+     * @param {Element} currentNode to sanitize
      * @returns {void}
      */
     const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
@@ -1138,7 +1138,7 @@
     /**
      * _sanitizeShadowDOM
      *
-     * @param  {DocumentFragment} fragment to iterate over recursively
+     * @param {DocumentFragment} fragment to iterate over recursively
      * @returns {void}
      */
     const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {

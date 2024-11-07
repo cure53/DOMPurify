@@ -277,7 +277,7 @@ interface DOMPurify {
     /**
      * Provides core sanitation functionality.
      *
-     * @param { string | Node} dirty string or DOM node
+     * @param {string | Node} dirty string or DOM node
      * @param {Config} cfg object
      * @returns {string} Sanitized string.
      */

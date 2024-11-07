@@ -52,12 +52,15 @@ const getGlobal = function (): WindowLike {
 /**
  * Creates a no-op policy for internal use only.
  * Don't export this function outside this module!
- * @param {TrustedTypePolicyFactory} trustedTypes The policy factory.
- * @param {HTMLScriptElement} purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
+ * @param {TrustedTypePolicyFactory} trustedTypes - The policy factory.
+ * @param {HTMLScriptElement} purifyHostElement - The Script element used to load DOMPurify (to determine policy name suffix).
  * @return {TrustedTypePolicy} The policy created (or null, if Trusted Types
  * are not supported or creating the policy failed).
  */
-const _createTrustedTypesPolicy = function (trustedTypes, purifyHostElement) {
+const _createTrustedTypesPolicy = function (
+  trustedTypes: TrustedTypePolicyFactory,
+  purifyHostElement: HTMLScriptElement
+) {
   if (
     typeof trustedTypes !== 'object' ||
     typeof trustedTypes.createPolicy !== 'function'
@@ -96,7 +99,7 @@ const _createTrustedTypesPolicy = function (trustedTypes, purifyHostElement) {
   }
 };
 
-function createDOMPurify(window: WindowLike = getGlobal()) {
+function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const DOMPurify: DOMPurify = (root: WindowLike) => createDOMPurify(root);
 
   DOMPurify.version = VERSION;
@@ -445,7 +448,7 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
   /**
    * _parseConfig
    *
-   * @param  {Config} cfg optional config literal
+   * @param {Config} cfg optional config literal
    * @returns {void}
    */
   // eslint-disable-next-line complexity
@@ -695,7 +698,7 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
   ]);
 
   /**
-   * @param  {Element} element a DOM element whose namespace is being checked
+   * @param {Element} element a DOM element whose namespace is being checked
    * @returns {boolean} Return false if the element has a
    *  namespace that a spec-compliant parser would never
    *  return. Return true otherwise.
@@ -806,9 +809,9 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
   /**
    * _forceRemove
    *
-   * @param  {Node} node a DOM node
+   * @param {Node} node a DOM node
    */
-  const _forceRemove = function (node) {
+  const _forceRemove = function (node: Node) {
     arrayPush(DOMPurify.removed, { element: node });
 
     try {
@@ -822,8 +825,8 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
   /**
    * _removeAttribute
    *
-   * @param  {string} name an Attribute name
-   * @param  {Element} element a DOM node
+   * @param {string} name an Attribute name
+   * @param {Element} element a DOM node
    * @returns {void}
    */
   const _removeAttribute = function (name: string, element: Element): void {
@@ -858,7 +861,7 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
   /**
    * _initDocument
    *
-   * @param  {string} dirty a string of dirty markup
+   * @param {string} dirty - a string of dirty markup
    * @return {Document} a DOM, filled with the dirty markup
    */
   const _initDocument = function (dirty: string): Document {
@@ -933,7 +936,7 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
   /**
    * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
    *
-   * @param  {Node} root The root element or node to start traversing on.
+   * @param {Node} root The root element or node to start traversing on.
    * @return {NodeIterator} The created NodeIterator
    */
   const _createNodeIterator = function (root: Node): NodeIterator {
@@ -953,28 +956,28 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
   /**
    * _isClobbered
    *
-   * @param  {Node} elm element to check for clobbering attacks
+   * @param {Element} element element to check for clobbering attacks
    * @return {boolean} true if clobbered, false if safe
    */
-  const _isClobbered = function (elm: Node): boolean {
+  const _isClobbered = function (element: Element): boolean {
     return (
-      elm instanceof HTMLFormElement &&
-      (typeof elm.nodeName !== 'string' ||
-        typeof elm.textContent !== 'string' ||
-        typeof elm.removeChild !== 'function' ||
-        !(elm.attributes instanceof NamedNodeMap) ||
-        typeof elm.removeAttribute !== 'function' ||
-        typeof elm.setAttribute !== 'function' ||
-        typeof elm.namespaceURI !== 'string' ||
-        typeof elm.insertBefore !== 'function' ||
-        typeof elm.hasChildNodes !== 'function')
+      element instanceof HTMLFormElement &&
+      (typeof element.nodeName !== 'string' ||
+        typeof element.textContent !== 'string' ||
+        typeof element.removeChild !== 'function' ||
+        !(element.attributes instanceof NamedNodeMap) ||
+        typeof element.removeAttribute !== 'function' ||
+        typeof element.setAttribute !== 'function' ||
+        typeof element.namespaceURI !== 'string' ||
+        typeof element.insertBefore !== 'function' ||
+        typeof element.hasChildNodes !== 'function')
     );
   };
 
   /**
    * Checks whether the given object is a DOM node.
    *
-   * @param  {unknown} value object to check whether it's a DOM node
+   * @param {unknown} value object to check whether it's a DOM node
    * @return {value is Node} true is object is a DOM node
    */
   const _isNode = function (value: unknown): value is Node {
@@ -988,11 +991,18 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
    * _executeHook
    * Execute user configurable hooks
    *
-   * @param entryPoint Name of the hook's entry point
+   * @param {
+   *  | BasicHookName
+   *  | UponSanitizeElementHookName
+   *  | UponSanitizeAttributeHookName
+   *  | HookName
+   * } entryPoint Name of the hook's entry point
    * @param currentNode node to work on with the hook
-   * @param  {UponSanitizeAttributeHookEvent
-   * | UponSanitizeElementHookEvent
-   * | null} data additional hook parameters
+   * @param {
+   *  | UponSanitizeAttributeHookEvent
+   *  | UponSanitizeElementHookEvent
+   *  | null
+   * } data additional hook parameters
    * @returns {void}
    */
   function _executeHook(
@@ -1283,7 +1293,7 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
    * @protect removeAttribute
    * @protect setAttribute
    *
-   * @param  {Element} currentNode to sanitize
+   * @param {Element} currentNode to sanitize
    * @returns {void}
    */
   const _sanitizeAttributes = function (currentNode: Element): void {
@@ -1422,7 +1432,7 @@ function createDOMPurify(window: WindowLike = getGlobal()) {
   /**
    * _sanitizeShadowDOM
    *
-   * @param  {DocumentFragment} fragment to iterate over recursively
+   * @param {DocumentFragment} fragment to iterate over recursively
    * @returns {void}
    */
   const _sanitizeShadowDOM = function (fragment: DocumentFragment): void {
@@ -1763,7 +1773,7 @@ interface DOMPurify {
   /**
    * Provides core sanitation functionality.
    *
-   * @param { string | Node} dirty string or DOM node
+   * @param {string | Node} dirty string or DOM node
    * @param {Config} cfg object
    * @returns {string} Sanitized string.
    */
