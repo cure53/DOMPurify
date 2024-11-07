@@ -57,8 +57,8 @@
   /**
    * Creates a new function that calls the given function with a specified thisArg and arguments.
    *
-   * @param func - The function to be wrapped and called.
-   * @returns A new function that calls the given function with a specified thisArg and arguments.
+   * @param {(thisArg: any, ...args: any[]) => T} func - The function to be wrapped and called.
+   * @returns {(thisArg: any, ...args: any[]) => T} A new function that calls the given function with a specified thisArg and arguments.
    */
   function unapply(func) {
     return function (thisArg) {
@@ -71,8 +71,8 @@
   /**
    * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
    *
-   * @param func - The constructor function to be wrapped and called.
-   * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
+   * @param {(...args: any[]) => T} func - The constructor function to be wrapped and called.
+   * @returns { (...args: any[]) => T} A new function that constructs an instance of the given constructor function with the provided arguments.
    */
   function unconstruct(func) {
     return function () {
@@ -85,10 +85,10 @@
   /**
    * Add properties to a lookup table
    *
-   * @param set - The set to which elements will be added.
-   * @param array - The array containing elements to be added to the set.
-   * @param transformCaseFunc - An optional function to transform the case of each element before adding to the set.
-   * @returns The modified set with added elements.
+   * @param {Record<string, any>} set - The set to which elements will be added.
+   * @param {readonly any[]} array - The array containing elements to be added to the set.
+   * @param {ReturnType<typeof unapply<string>>} transformCaseFunc - An optional function to transform the case of each element before adding to the set.
+   * @returns {Record<string, any>} The modified set with added elements.
    */
   function addToSet(set, array) {
     let transformCaseFunc = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : stringToLowerCase;
@@ -133,8 +133,8 @@
   /**
    * Shallow clone an object
    *
-   * @param object - The object to be cloned.
-   * @returns A new object that copies the original.
+   * @param {T} object - The object to be cloned.
+   * @returns {T} A new object that copies the original.
    */
   function clone(object) {
     const newObject = create(null);
@@ -155,9 +155,9 @@
   /**
    * This method automatically checks if the prop is function or getter and behaves accordingly.
    *
-   * @param object - The object to look up the getter function in its prototype chain.
-   * @param prop - The property name for which to find the getter function.
-   * @returns The getter function found in the prototype chain or a fallback function.
+   * @param {T} object - The object to look up the getter function in its prototype chain.
+   * @param {string} prop - The property name for which to find the getter function.
+   * @returns {ReturnType<typeof unapply<any>> | (() => null)} The getter function found in the prototype chain or a fallback function.
    */
   function lookupGetter(object, prop) {
     while (object !== null) {
@@ -501,7 +501,7 @@
     /**
      * _parseConfig
      *
-     * @param  {Object} cfg optional config literal
+     * @param  {Config} cfg optional config literal
      * @returns {void}
      */
     // eslint-disable-next-line complexity
@@ -864,15 +864,6 @@
     const _isNode = function _isNode(value) {
       return typeof Node === 'function' && value instanceof Node;
     };
-    /**
-     * _executeHook
-     * Execute user configurable hooks
-     *
-     * @param  entryPoint  Name of the hook's entry point
-     * @param  currentNode node to work on with the hook
-     * @param  {Object} data additional hook parameters
-     * @returns {void}
-     */
     function _executeHook(entryPoint, currentNode, data) {
       if (!hooks[entryPoint]) {
         return;
@@ -980,9 +971,9 @@
     /**
      * _isValidAttribute
      *
-     * @param  {string} lcTag Lowercase tag name of containing element.
-     * @param  {string} lcName Lowercase attribute name.
-     * @param  {string} value Attribute value.
+     * @param {string} lcTag Lowercase tag name of containing element.
+     * @param {string} lcName Lowercase attribute name.
+     * @param {string} value Attribute value.
      * @return {boolean} Returns true if `value` is valid, otherwise false.
      */
     // eslint-disable-next-line complexity
