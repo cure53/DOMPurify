@@ -114,7 +114,7 @@ export const html = freeze([
   'wrap',
   'xmlns',
   'slot',
-]);
+] as const);
 
 export const svg = freeze([
   'accent-height',
@@ -304,7 +304,7 @@ export const svg = freeze([
   'y2',
   'z',
   'zoomandpan',
-]);
+] as const);
 
 export const mathMl = freeze([
   'accent',
@@ -368,4 +368,4 @@ export const xml = freeze([
   'xlink:title',
   'xml:space',
   'xmlns:xlink',
-]);
+] as const);

@@ -118,8 +118,8 @@
   /**
    * Clean up an array to harden against CSPP
    *
-   * @param array - The array to be cleaned.
-   * @returns The cleaned version of the array
+   * @param {T[]} array - The array to be cleaned.
+   * @returns {Array<T | null>} The cleaned version of the array
    */
   function cleanArray(array) {
     for (let index = 0; index < array.length; index++) {
@@ -502,6 +502,7 @@
      * _parseConfig
      *
      * @param  {Object} cfg optional config literal
+     * @returns {void}
      */
     // eslint-disable-next-line complexity
     const _parseConfig = function _parseConfig() {
@@ -754,31 +755,32 @@
     /**
      * _removeAttribute
      *
-     * @param  {String} name an Attribute name
-     * @param  {Node} node a DOM node
+     * @param  {string} name an Attribute name
+     * @param  {Element} element a DOM node
+     * @returns {void}
      */
-    const _removeAttribute = function _removeAttribute(name, node) {
+    const _removeAttribute = function _removeAttribute(name, element) {
       try {
         arrayPush(DOMPurify.removed, {
-          attribute: node.getAttributeNode(name),
-          from: node
+          attribute: element.getAttributeNode(name),
+          from: element
         });
       } catch (_) {
         arrayPush(DOMPurify.removed, {
           attribute: null,
-          from: node
+          from: element
         });
       }
-      node.removeAttribute(name);
+      element.removeAttribute(name);
       // We void attribute values for unremovable "is"" attributes
       if (name === 'is' && !ALLOWED_ATTR[name]) {
         if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
           try {
-            _forceRemove(node);
+            _forceRemove(element);
           } catch (_) {}
         } else {
           try {
-            node.setAttribute(name, '');
+            element.setAttribute(name, '');
           } catch (_) {}
         }
       }
@@ -786,7 +788,7 @@
     /**
      * _initDocument
      *
-     * @param  {String} dirty a string of dirty markup
+     * @param  {string} dirty a string of dirty markup
      * @return {Document} a DOM, filled with the dirty markup
      */
     const _initDocument = function _initDocument(dirty) {
@@ -848,7 +850,7 @@
      * _isClobbered
      *
      * @param  {Node} elm element to check for clobbering attacks
-     * @return {Boolean} true if clobbered, false if safe
+     * @return {boolean} true if clobbered, false if safe
      */
     const _isClobbered = function _isClobbered(elm) {
       return elm instanceof HTMLFormElement && (typeof elm.nodeName !== 'string' || typeof elm.textContent !== 'string' || typeof elm.removeChild !== 'function' || !(elm.attributes instanceof NamedNodeMap) || typeof elm.removeAttribute !== 'function' || typeof elm.setAttribute !== 'function' || typeof elm.namespaceURI !== 'string' || typeof elm.insertBefore !== 'function' || typeof elm.hasChildNodes !== 'function');
@@ -856,11 +858,11 @@
     /**
      * Checks whether the given object is a DOM node.
      *
-     * @param  {Node} object object to check whether it's a DOM node
-     * @return {Boolean} true is object is a DOM node
+     * @param  {unknown} value object to check whether it's a DOM node
+     * @return {value is Node} true is object is a DOM node
      */
-    const _isNode = function _isNode(object) {
-      return typeof Node === 'function' && object instanceof Node;
+    const _isNode = function _isNode(value) {
+      return typeof Node === 'function' && value instanceof Node;
     };
     /**
      * _executeHook
@@ -869,6 +871,7 @@
      * @param  entryPoint  Name of the hook's entry point
      * @param  currentNode node to work on with the hook
      * @param  {Object} data additional hook parameters
+     * @returns {void}
      */
     function _executeHook(entryPoint, currentNode, data) {
       if (!hooks[entryPoint]) {
@@ -980,7 +983,7 @@
      * @param  {string} lcTag Lowercase tag name of containing element.
      * @param  {string} lcName Lowercase attribute name.
      * @param  {string} value Attribute value.
-     * @return {Boolean} Returns true if `value` is valid, otherwise false.
+     * @return {boolean} Returns true if `value` is valid, otherwise false.
      */
     // eslint-disable-next-line complexity
     const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
@@ -1015,7 +1018,7 @@
      * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
      *
      * @param {string} tagName name of the tag of the node to sanitize
-     * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
+     * @returns {RegExpMatchArray} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
      */
     const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
       return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
@@ -1028,7 +1031,8 @@
      * @protect removeAttribute
      * @protect setAttribute
      *
-     * @param  {Node} currentNode to sanitize
+     * @param  {Element} currentNode to sanitize
+     * @returns {void}
      */
     const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
       /* Execute a hook if present */
@@ -1144,6 +1148,7 @@
      * _sanitizeShadowDOM
      *
      * @param  {DocumentFragment} fragment to iterate over recursively
+     * @returns {void}
      */
     const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
       let shadowNode = null;
