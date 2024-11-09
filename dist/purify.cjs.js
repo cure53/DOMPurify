@@ -246,8 +246,8 @@ const getGlobal = function getGlobal() {
 /**
  * Creates a no-op policy for internal use only.
  * Don't export this function outside this module!
- * @param trustedTypes - The policy factory.
- * @param purifyHostElement - The Script element used to load DOMPurify (to determine policy name suffix).
+ * @param trustedTypes The policy factory.
+ * @param purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
  * @return The policy created (or null, if Trusted Types
  * are not supported or creating the policy failed).
  */

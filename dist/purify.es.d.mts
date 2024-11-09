@@ -226,8 +226,7 @@ interface DOMPurify {
     /**
      * Set the configuration once.
      *
-     * @param {Config} cfg configuration object
-     * @returns {void}
+     * @param cfg configuration object
      */
     setConfig(cfg?: Config): void;
     /**
