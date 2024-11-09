@@ -237,9 +237,9 @@ interface DOMPurify {
     /**
      * Provides core sanitation functionality.
      *
-     * @param {string | Node} dirty string or DOM node
-     * @param {Config & { RETURN_TRUSTED_TYPE: true }} cfg object
-     * @returns {TrustedHTML} Sanitized TrustedHTML.
+     * @param dirty string or DOM node
+     * @param cfg object
+     * @returns Sanitized TrustedHTML.
      */
     sanitize(dirty: string | Node, cfg: Config & {
         RETURN_TRUSTED_TYPE: true;
@@ -247,9 +247,9 @@ interface DOMPurify {
     /**
      * Provides core sanitation functionality.
      *
-     * @param {Node} dirty DOM node
-     * @param {Config & { IN_PLACE: true }} cfg object
-     * @returns {Node} Sanitized DOM node.
+     * @param dirty DOM node
+     * @param cfg object
+     * @returns Sanitized DOM node.
      */
     sanitize(dirty: Node, cfg: Config & {
         IN_PLACE: true;
@@ -257,9 +257,9 @@ interface DOMPurify {
     /**
      * Provides core sanitation functionality.
      *
-     * @param {string | Node} dirty string or DOM node
-     * @param {Config & { RETURN_DOM: true }} cfg object
-     * @returns {Node} Sanitized DOM node.
+     * @param dirty string or DOM node
+     * @param cfg object
+     * @returns Sanitized DOM node.
      */
     sanitize(dirty: string | Node, cfg: Config & {
         RETURN_DOM: true;
@@ -267,9 +267,9 @@ interface DOMPurify {
     /**
      * Provides core sanitation functionality.
      *
-     * @param {string | Node} dirty string or DOM node
-     * @param {Config & { RETURN_DOM_FRAGMENT: true }} cfg object
-     * @returns {DocumentFragment} Sanitized document fragment.
+     * @param dirty string or DOM node
+     * @param cfg object
+     * @returns Sanitized document fragment.
      */
     sanitize(dirty: string | Node, cfg: Config & {
         RETURN_DOM_FRAGMENT: true;
@@ -277,80 +277,74 @@ interface DOMPurify {
     /**
      * Provides core sanitation functionality.
      *
-     * @param {string | Node} dirty string or DOM node
-     * @param {Config} cfg object
-     * @returns {string} Sanitized string.
+     * @param dirty string or DOM node
+     * @param cfg object
+     * @returns Sanitized string.
      */
     sanitize(dirty: string | Node, cfg?: Config): string;
     /**
      * Checks if an attribute value is valid.
      * Uses last set config, if any. Otherwise, uses config defaults.
      *
-     * @param {string} tag Tag name of containing element.
-     * @param {string} attr Attribute name.
-     * @param {string} value Attribute value.
-     * @returns {boolean} Returns true if `value` is valid. Otherwise, returns false.
+     * @param tag Tag name of containing element.
+     * @param attr Attribute name.
+     * @param value Attribute value.
+     * @returns Returns true if `value` is valid. Otherwise, returns false.
      */
     isValidAttribute(tag: string, attr: string, value: string): boolean;
     /**
      * Adds a DOMPurify hook.
      *
-     * @param {BasicHookName} entryPoint entry point for the hook to add
-     * @param {Hook} hookFunction function to execute
-     * @returns {void}
+     * @param entryPoint entry point for the hook to add
+     * @param hookFunction function to execute
      */
     addHook(entryPoint: BasicHookName, hookFunction: Hook): void;
     /**
      * Adds a DOMPurify hook.
      *
-     * @param {'uponSanitizeElement'} entryPoint entry point for the hook to add
-     * @param {UponSanitizeElementHook} hookFunction function to execute
-     * @returns {void}
+     * @param entryPoint entry point for the hook to add
+     * @param hookFunction function to execute
      */
     addHook(entryPoint: 'uponSanitizeElement', hookFunction: UponSanitizeElementHook): void;
     /**
      * Adds a DOMPurify hook.
      *
-     * @param {'uponSanitizeAttribute'} entryPoint entry point for the hook to add
-     * @param {UponSanitizeAttributeHook} hookFunction function to execute
-     * @returns {void}
+     * @param entryPoint entry point for the hook to add
+     * @param hookFunction function to execute
      */
     addHook(entryPoint: 'uponSanitizeAttribute', hookFunction: UponSanitizeAttributeHook): void;
     /**
      * Remove a DOMPurify hook at a given entryPoint
      * (pops it from the stack of hooks if more are present)
      *
-     * @param {BasicHookName} entryPoint entry point for the hook to remove
-     * @returns {Hook | undefined} removed(popped) hook
+     * @param entryPoint entry point for the hook to remove
+     * @returns removed(popped) hook
      */
     removeHook(entryPoint: BasicHookName): Hook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
      * (pops it from the stack of hooks if more are present)
      *
-     * @param {'uponSanitizeElement'} entryPoint entry point for the hook to remove
-     * @returns {UponSanitizeElementHook | undefined} removed(popped) hook
+     * @param entryPoint entry point for the hook to remove
+     * @returns removed(popped) hook
      */
     removeHook(entryPoint: 'uponSanitizeElement'): UponSanitizeElementHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
      * (pops it from the stack of hooks if more are present)
      *
-     * @param {'uponSanitizeAttribute'} entryPoint entry point for the hook to remove
-     * @returns {UponSanitizeAttributeHook | undefined} removed(popped) hook
+     * @param entryPoint entry point for the hook to remove
+     * @returns removed(popped) hook
      */
     removeHook(entryPoint: 'uponSanitizeAttribute'): UponSanitizeAttributeHook | undefined;
     /**
      * Removes all DOMPurify hooks at a given entryPoint
      *
-     * @param {HookName} entryPoint entry point for the hooks to remove
-     * @returns {void}
+     * @param entryPoint entry point for the hooks to remove
      */
     removeHooks(entryPoint: HookName): void;
     /**
      * Removes all DOMPurify hooks.
-     *
-     * @returns {void}
      */
     removeAllHooks(): void;
 }

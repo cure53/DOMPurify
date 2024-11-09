@@ -250,9 +250,9 @@
   /**
    * Creates a no-op policy for internal use only.
    * Don't export this function outside this module!
-   * @param {TrustedTypePolicyFactory} trustedTypes - The policy factory.
-   * @param {HTMLScriptElement} purifyHostElement - The Script element used to load DOMPurify (to determine policy name suffix).
-   * @return {TrustedTypePolicy} The policy created (or null, if Trusted Types
+   * @param trustedTypes - The policy factory.
+   * @param purifyHostElement - The Script element used to load DOMPurify (to determine policy name suffix).
+   * @return The policy created (or null, if Trusted Types
    * are not supported or creating the policy failed).
    */
   const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, purifyHostElement) {
@@ -501,8 +501,7 @@
     /**
      * _parseConfig
      *
-     * @param {Config} cfg optional config literal
-     * @returns {void}
+     * @param cfg optional config literal
      */
     // eslint-disable-next-line complexity
     const _parseConfig = function _parseConfig() {
@@ -659,8 +658,8 @@
     const ALL_SVG_TAGS = addToSet({}, [...svg$1, ...svgFilters, ...svgDisallowed]);
     const ALL_MATHML_TAGS = addToSet({}, [...mathMl$1, ...mathMlDisallowed]);
     /**
-     * @param {Element} element a DOM element whose namespace is being checked
-     * @returns {boolean} Return false if the element has a
+     * @param element a DOM element whose namespace is being checked
+     * @returns Return false if the element has a
      *  namespace that a spec-compliant parser would never
      *  return. Return true otherwise.
      */
@@ -739,7 +738,7 @@
     /**
      * _forceRemove
      *
-     * @param {Node} node a DOM node
+     * @param node a DOM node
      */
     const _forceRemove = function _forceRemove(node) {
       arrayPush(DOMPurify.removed, {
@@ -755,9 +754,8 @@
     /**
      * _removeAttribute
      *
-     * @param {string} name an Attribute name
-     * @param {Element} element a DOM node
-     * @returns {void}
+     * @param name an Attribute name
+     * @param element a DOM node
      */
     const _removeAttribute = function _removeAttribute(name, element) {
       try {
@@ -788,8 +786,8 @@
     /**
      * _initDocument
      *
-     * @param {string} dirty - a string of dirty markup
-     * @return {Document} a DOM, filled with the dirty markup
+     * @param dirty - a string of dirty markup
+     * @return a DOM, filled with the dirty markup
      */
     const _initDocument = function _initDocument(dirty) {
       /* Create a HTML document */
@@ -838,8 +836,8 @@
     /**
      * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
      *
-     * @param {Node} root The root element or node to start traversing on.
-     * @return {NodeIterator} The created NodeIterator
+     * @param root The root element or node to start traversing on.
+     * @return The created NodeIterator
      */
     const _createNodeIterator = function _createNodeIterator(root) {
       return createNodeIterator.call(root.ownerDocument || root, root,
@@ -849,8 +847,8 @@
     /**
      * _isClobbered
      *
-     * @param {Element} element element to check for clobbering attacks
-     * @return {boolean} true if clobbered, false if safe
+     * @param element element to check for clobbering attacks
+     * @return true if clobbered, false if safe
      */
     const _isClobbered = function _isClobbered(element) {
       return element instanceof HTMLFormElement && (typeof element.nodeName !== 'string' || typeof element.textContent !== 'string' || typeof element.removeChild !== 'function' || !(element.attributes instanceof NamedNodeMap) || typeof element.removeAttribute !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function');
@@ -858,8 +856,8 @@
     /**
      * Checks whether the given object is a DOM node.
      *
-     * @param {unknown} value object to check whether it's a DOM node
-     * @return {value is Node} true is object is a DOM node
+     * @param value object to check whether it's a DOM node
+     * @return true is object is a DOM node
      */
     const _isNode = function _isNode(value) {
       return typeof Node === 'function' && value instanceof Node;
@@ -878,9 +876,8 @@
      * @protect nodeName
      * @protect textContent
      * @protect removeChild
-     *
-     * @param   {Node} currentNode to check for permission to exist
-     * @return  {Boolean} true if node was killed, false if left alive
+     * @param currentNode to check for permission to exist
+     * @return true if node was killed, false if left alive
      */
     const _sanitizeElements = function _sanitizeElements(currentNode) {
       let content = null;
@@ -971,10 +968,10 @@
     /**
      * _isValidAttribute
      *
-     * @param {string} lcTag Lowercase tag name of containing element.
-     * @param {string} lcName Lowercase attribute name.
-     * @param {string} value Attribute value.
-     * @return {boolean} Returns true if `value` is valid, otherwise false.
+     * @param lcTag Lowercase tag name of containing element.
+     * @param lcName Lowercase attribute name.
+     * @param value Attribute value.
+     * @return Returns true if `value` is valid, otherwise false.
      */
     // eslint-disable-next-line complexity
     const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
@@ -1008,8 +1005,8 @@
      * checks if at least one dash is included in tagName, and it's not the first char
      * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
      *
-     * @param {string} tagName name of the tag of the node to sanitize
-     * @returns {RegExpMatchArray} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
+     * @param tagName name of the tag of the node to sanitize
+     * @returns Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
      */
     const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
       return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
@@ -1022,8 +1019,7 @@
      * @protect removeAttribute
      * @protect setAttribute
      *
-     * @param {Element} currentNode to sanitize
-     * @returns {void}
+     * @param currentNode to sanitize
      */
     const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
       /* Execute a hook if present */
@@ -1138,8 +1134,7 @@
     /**
      * _sanitizeShadowDOM
      *
-     * @param {DocumentFragment} fragment to iterate over recursively
-     * @returns {void}
+     * @param fragment to iterate over recursively
      */
     const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
       let shadowNode = null;

@@ -52,9 +52,9 @@ const getGlobal = function (): WindowLike {
 /**
  * Creates a no-op policy for internal use only.
  * Don't export this function outside this module!
- * @param {TrustedTypePolicyFactory} trustedTypes - The policy factory.
- * @param {HTMLScriptElement} purifyHostElement - The Script element used to load DOMPurify (to determine policy name suffix).
- * @return {TrustedTypePolicy} The policy created (or null, if Trusted Types
+ * @param trustedTypes - The policy factory.
+ * @param purifyHostElement - The Script element used to load DOMPurify (to determine policy name suffix).
+ * @return The policy created (or null, if Trusted Types
  * are not supported or creating the policy failed).
  */
 const _createTrustedTypesPolicy = function (
@@ -448,8 +448,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * _parseConfig
    *
-   * @param {Config} cfg optional config literal
-   * @returns {void}
+   * @param cfg optional config literal
    */
   // eslint-disable-next-line complexity
   const _parseConfig = function (cfg: Config = {}): void {
@@ -698,8 +697,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   ]);
 
   /**
-   * @param {Element} element a DOM element whose namespace is being checked
-   * @returns {boolean} Return false if the element has a
+   * @param element a DOM element whose namespace is being checked
+   * @returns Return false if the element has a
    *  namespace that a spec-compliant parser would never
    *  return. Return true otherwise.
    */
@@ -809,9 +808,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * _forceRemove
    *
-   * @param {Node} node a DOM node
+   * @param node a DOM node
    */
-  const _forceRemove = function (node: Node) {
+  const _forceRemove = function (node: Node): void {
     arrayPush(DOMPurify.removed, { element: node });
 
     try {
@@ -825,9 +824,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * _removeAttribute
    *
-   * @param {string} name an Attribute name
-   * @param {Element} element a DOM node
-   * @returns {void}
+   * @param name an Attribute name
+   * @param element a DOM node
    */
   const _removeAttribute = function (name: string, element: Element): void {
     try {
@@ -861,8 +859,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * _initDocument
    *
-   * @param {string} dirty - a string of dirty markup
-   * @return {Document} a DOM, filled with the dirty markup
+   * @param dirty - a string of dirty markup
+   * @return a DOM, filled with the dirty markup
    */
   const _initDocument = function (dirty: string): Document {
     /* Create a HTML document */
@@ -936,8 +934,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
    *
-   * @param {Node} root The root element or node to start traversing on.
-   * @return {NodeIterator} The created NodeIterator
+   * @param root The root element or node to start traversing on.
+   * @return The created NodeIterator
    */
   const _createNodeIterator = function (root: Node): NodeIterator {
     return createNodeIterator.call(
@@ -956,8 +954,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * _isClobbered
    *
-   * @param {Element} element element to check for clobbering attacks
-   * @return {boolean} true if clobbered, false if safe
+   * @param element element to check for clobbering attacks
+   * @return true if clobbered, false if safe
    */
   const _isClobbered = function (element: Element): boolean {
     return (
@@ -977,8 +975,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * Checks whether the given object is a DOM node.
    *
-   * @param {unknown} value object to check whether it's a DOM node
-   * @return {value is Node} true is object is a DOM node
+   * @param value object to check whether it's a DOM node
+   * @return true is object is a DOM node
    */
   const _isNode = function (value: unknown): value is Node {
     return typeof Node === 'function' && value instanceof Node;
@@ -991,19 +989,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * _executeHook
    * Execute user configurable hooks
    *
-   * @param {
-   *  | BasicHookName
-   *  | UponSanitizeElementHookName
-   *  | UponSanitizeAttributeHookName
-   *  | HookName
-   * } entryPoint Name of the hook's entry point
+   * @param entryPoint Name of the hook's entry point
    * @param currentNode node to work on with the hook
-   * @param {
-   *  | UponSanitizeAttributeHookEvent
-   *  | UponSanitizeElementHookEvent
-   *  | null
-   * } data additional hook parameters
-   * @returns {void}
+   * @param data additional hook parameters
    */
   function _executeHook(
     entryPoint: BasicHookName,
@@ -1043,11 +1031,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @protect nodeName
    * @protect textContent
    * @protect removeChild
-   *
-   * @param   {Node} currentNode to check for permission to exist
-   * @return  {Boolean} true if node was killed, false if left alive
+   * @param currentNode to check for permission to exist
+   * @return true if node was killed, false if left alive
    */
-  const _sanitizeElements = function (currentNode) {
+  const _sanitizeElements = function (currentNode: any): boolean {
     let content = null;
 
     /* Execute a hook if present */
@@ -1175,10 +1162,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * _isValidAttribute
    *
-   * @param {string} lcTag Lowercase tag name of containing element.
-   * @param {string} lcName Lowercase attribute name.
-   * @param {string} value Attribute value.
-   * @return {boolean} Returns true if `value` is valid, otherwise false.
+   * @param lcTag Lowercase tag name of containing element.
+   * @param lcName Lowercase attribute name.
+   * @param value Attribute value.
+   * @return Returns true if `value` is valid, otherwise false.
    */
   // eslint-disable-next-line complexity
   const _isValidAttribute = function (
@@ -1278,8 +1265,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * checks if at least one dash is included in tagName, and it's not the first char
    * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
    *
-   * @param {string} tagName name of the tag of the node to sanitize
-   * @returns {RegExpMatchArray} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
+   * @param tagName name of the tag of the node to sanitize
+   * @returns Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
   const _isBasicCustomElement = function (tagName: string): RegExpMatchArray {
     return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
@@ -1293,8 +1280,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @protect removeAttribute
    * @protect setAttribute
    *
-   * @param {Element} currentNode to sanitize
-   * @returns {void}
+   * @param currentNode to sanitize
    */
   const _sanitizeAttributes = function (currentNode: Element): void {
     /* Execute a hook if present */
@@ -1432,8 +1418,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * _sanitizeShadowDOM
    *
-   * @param {DocumentFragment} fragment to iterate over recursively
-   * @returns {void}
+   * @param fragment to iterate over recursively
    */
   const _sanitizeShadowDOM = function (fragment: DocumentFragment): void {
     let shadowNode = null;
@@ -1731,9 +1716,9 @@ interface DOMPurify {
   /**
    * Provides core sanitation functionality.
    *
-   * @param {string | Node} dirty string or DOM node
-   * @param {Config & { RETURN_TRUSTED_TYPE: true }} cfg object
-   * @returns {TrustedHTML} Sanitized TrustedHTML.
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @returns Sanitized TrustedHTML.
    */
   sanitize(
     dirty: string | Node,
@@ -1743,27 +1728,27 @@ interface DOMPurify {
   /**
    * Provides core sanitation functionality.
    *
-   * @param {Node} dirty DOM node
-   * @param {Config & { IN_PLACE: true }} cfg object
-   * @returns {Node} Sanitized DOM node.
+   * @param dirty DOM node
+   * @param cfg object
+   * @returns Sanitized DOM node.
    */
   sanitize(dirty: Node, cfg: Config & { IN_PLACE: true }): Node;
 
   /**
    * Provides core sanitation functionality.
    *
-   * @param {string | Node} dirty string or DOM node
-   * @param {Config & { RETURN_DOM: true }} cfg object
-   * @returns {Node} Sanitized DOM node.
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @returns Sanitized DOM node.
    */
   sanitize(dirty: string | Node, cfg: Config & { RETURN_DOM: true }): Node;
 
   /**
    * Provides core sanitation functionality.
    *
-   * @param {string | Node} dirty string or DOM node
-   * @param {Config & { RETURN_DOM_FRAGMENT: true }} cfg object
-   * @returns {DocumentFragment} Sanitized document fragment.
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @returns Sanitized document fragment.
    */
   sanitize(
     dirty: string | Node,
@@ -1773,9 +1758,9 @@ interface DOMPurify {
   /**
    * Provides core sanitation functionality.
    *
-   * @param {string | Node} dirty string or DOM node
-   * @param {Config} cfg object
-   * @returns {string} Sanitized string.
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @returns Sanitized string.
    */
   sanitize(dirty: string | Node, cfg?: Config): string;
 
@@ -1783,28 +1768,26 @@ interface DOMPurify {
    * Checks if an attribute value is valid.
    * Uses last set config, if any. Otherwise, uses config defaults.
    *
-   * @param {string} tag Tag name of containing element.
-   * @param {string} attr Attribute name.
-   * @param {string} value Attribute value.
-   * @returns {boolean} Returns true if `value` is valid. Otherwise, returns false.
+   * @param tag Tag name of containing element.
+   * @param attr Attribute name.
+   * @param value Attribute value.
+   * @returns Returns true if `value` is valid. Otherwise, returns false.
    */
   isValidAttribute(tag: string, attr: string, value: string): boolean;
 
   /**
    * Adds a DOMPurify hook.
    *
-   * @param {BasicHookName} entryPoint entry point for the hook to add
-   * @param {Hook} hookFunction function to execute
-   * @returns {void}
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
    */
   addHook(entryPoint: BasicHookName, hookFunction: Hook): void;
 
   /**
    * Adds a DOMPurify hook.
    *
-   * @param {'uponSanitizeElement'} entryPoint entry point for the hook to add
-   * @param {UponSanitizeElementHook} hookFunction function to execute
-   * @returns {void}
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
    */
   addHook(
     entryPoint: 'uponSanitizeElement',
@@ -1814,9 +1797,8 @@ interface DOMPurify {
   /**
    * Adds a DOMPurify hook.
    *
-   * @param {'uponSanitizeAttribute'} entryPoint entry point for the hook to add
-   * @param {UponSanitizeAttributeHook} hookFunction function to execute
-   * @returns {void}
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
    */
   addHook(
     entryPoint: 'uponSanitizeAttribute',
@@ -1827,8 +1809,8 @@ interface DOMPurify {
    * Remove a DOMPurify hook at a given entryPoint
    * (pops it from the stack of hooks if more are present)
    *
-   * @param {BasicHookName} entryPoint entry point for the hook to remove
-   * @returns {Hook | undefined} removed(popped) hook
+   * @param entryPoint entry point for the hook to remove
+   * @returns removed(popped) hook
    */
   removeHook(entryPoint: BasicHookName): Hook | undefined;
 
@@ -1836,8 +1818,8 @@ interface DOMPurify {
    * Remove a DOMPurify hook at a given entryPoint
    * (pops it from the stack of hooks if more are present)
    *
-   * @param {'uponSanitizeElement'} entryPoint entry point for the hook to remove
-   * @returns {UponSanitizeElementHook | undefined} removed(popped) hook
+   * @param entryPoint entry point for the hook to remove
+   * @returns removed(popped) hook
    */
   removeHook(
     entryPoint: 'uponSanitizeElement'
@@ -1847,8 +1829,8 @@ interface DOMPurify {
    * Remove a DOMPurify hook at a given entryPoint
    * (pops it from the stack of hooks if more are present)
    *
-   * @param {'uponSanitizeAttribute'} entryPoint entry point for the hook to remove
-   * @returns {UponSanitizeAttributeHook | undefined} removed(popped) hook
+   * @param entryPoint entry point for the hook to remove
+   * @returns removed(popped) hook
    */
   removeHook(
     entryPoint: 'uponSanitizeAttribute'
@@ -1857,15 +1839,12 @@ interface DOMPurify {
   /**
    * Removes all DOMPurify hooks at a given entryPoint
    *
-   * @param {HookName} entryPoint entry point for the hooks to remove
-   * @returns {void}
+   * @param entryPoint entry point for the hooks to remove
    */
   removeHooks(entryPoint: HookName): void;
 
   /**
    * Removes all DOMPurify hooks.
-   *
-   * @returns {void}
    */
   removeAllHooks(): void;
 }
