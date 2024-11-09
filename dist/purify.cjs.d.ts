@@ -238,7 +238,7 @@ interface DOMPurify {
      *
      * @param dirty string or DOM node
      * @param cfg object
-     * @return Sanitized TrustedHTML.
+     * @returns Sanitized TrustedHTML.
      */
     sanitize(dirty: string | Node, cfg: Config & {
         RETURN_TRUSTED_TYPE: true;
@@ -248,7 +248,7 @@ interface DOMPurify {
      *
      * @param dirty DOM node
      * @param cfg object
-     * @return Sanitized DOM node.
+     * @returns Sanitized DOM node.
      */
     sanitize(dirty: Node, cfg: Config & {
         IN_PLACE: true;
@@ -258,7 +258,7 @@ interface DOMPurify {
      *
      * @param dirty string or DOM node
      * @param cfg object
-     * @return Sanitized DOM node.
+     * @returns Sanitized DOM node.
      */
     sanitize(dirty: string | Node, cfg: Config & {
         RETURN_DOM: true;
@@ -268,7 +268,7 @@ interface DOMPurify {
      *
      * @param dirty string or DOM node
      * @param cfg object
-     * @return Sanitized document fragment.
+     * @returns Sanitized document fragment.
      */
     sanitize(dirty: string | Node, cfg: Config & {
         RETURN_DOM_FRAGMENT: true;
@@ -278,17 +278,17 @@ interface DOMPurify {
      *
      * @param dirty string or DOM node
      * @param cfg object
-     * @return Sanitized string.
+     * @returns Sanitized string.
      */
     sanitize(dirty: string | Node, cfg?: Config): string;
     /**
      * Checks if an attribute value is valid.
      * Uses last set config, if any. Otherwise, uses config defaults.
      *
-     * @param  tag Tag name of containing element.
-     * @param  attr Attribute name.
-     * @param  value Attribute value.
-     * @return Returns true if `value` is valid. Otherwise, returns false.
+     * @param tag Tag name of containing element.
+     * @param attr Attribute name.
+     * @param value Attribute value.
+     * @returns Returns true if `value` is valid. Otherwise, returns false.
      */
     isValidAttribute(tag: string, attr: string, value: string): boolean;
     /**
@@ -297,7 +297,7 @@ interface DOMPurify {
      * @param entryPoint entry point for the hook to add
      * @param hookFunction function to execute
      */
-    addHook(entryPoint: 'beforeSanitizeElements' | 'afterSanitizeElements' | 'beforeSanitizeAttributes' | 'afterSanitizeAttributes' | 'beforeSanitizeShadowDOM' | 'uponSanitizeShadowNode' | 'afterSanitizeShadowDOM', hookFunction: Hook): void;
+    addHook(entryPoint: BasicHookName, hookFunction: Hook): void;
     /**
      * Adds a DOMPurify hook.
      *
@@ -316,24 +316,24 @@ interface DOMPurify {
      * Remove a DOMPurify hook at a given entryPoint
      * (pops it from the stack of hooks if more are present)
      *
-     * @param  entryPoint entry point for the hook to remove
-     * @return removed(popped) hook
+     * @param entryPoint entry point for the hook to remove
+     * @returns removed(popped) hook
      */
     removeHook(entryPoint: BasicHookName): Hook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
      * (pops it from the stack of hooks if more are present)
      *
-     * @param  entryPoint entry point for the hook to remove
-     * @return removed(popped) hook
+     * @param entryPoint entry point for the hook to remove
+     * @returns removed(popped) hook
      */
     removeHook(entryPoint: 'uponSanitizeElement'): UponSanitizeElementHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
      * (pops it from the stack of hooks if more are present)
      *
-     * @param  entryPoint entry point for the hook to remove
-     * @return removed(popped) hook
+     * @param entryPoint entry point for the hook to remove
+     * @returns removed(popped) hook
      */
     removeHook(entryPoint: 'uponSanitizeAttribute'): UponSanitizeAttributeHook | undefined;
     /**

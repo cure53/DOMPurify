@@ -118,7 +118,7 @@ export const html = freeze([
   'var',
   'video',
   'wbr',
-]);
+] as const);
 
 // SVG
 export const svg = freeze([
@@ -165,7 +165,7 @@ export const svg = freeze([
   'tspan',
   'view',
   'vkern',
-]);
+] as const);
 
 export const svgFilters = freeze([
   'feBlend',
@@ -193,7 +193,7 @@ export const svgFilters = freeze([
   'feSpotLight',
   'feTile',
   'feTurbulence',
-]);
+] as const);
 
 // List of SVG elements that are disallowed by default.
 // We still need to know them so that we can do namespace
@@ -222,7 +222,7 @@ export const svgDisallowed = freeze([
   'solidcolor',
   'unknown',
   'use',
-]);
+] as const);
 
 export const mathMl = freeze([
   'math',
@@ -255,7 +255,7 @@ export const mathMl = freeze([
   'munder',
   'munderover',
   'mprescripts',
-]);
+] as const);
 
 // Similarly to SVG, we want to know all MathML elements,
 // even those that we disallow by default.
@@ -275,6 +275,6 @@ export const mathMlDisallowed = freeze([
   'annotation-xml',
   'mprescripts',
   'none',
-]);
+] as const);
 
-export const text = freeze(['#text']);
+export const text = freeze(['#text'] as const);

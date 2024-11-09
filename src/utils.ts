@@ -58,8 +58,10 @@ const typeErrorCreate = unconstruct(TypeError);
  * @param func - The function to be wrapped and called.
  * @returns A new function that calls the given function with a specified thisArg and arguments.
  */
-function unapply(func: Function): Function {
-  return (thisArg, ...args) => apply(func, thisArg, args);
+function unapply<T>(
+  func: (thisArg: any, ...args: any[]) => T
+): (thisArg: any, ...args: any[]) => T {
+  return (thisArg: any, ...args: any[]): T => apply(func, thisArg, args);
 }
 
 /**
@@ -68,8 +70,8 @@ function unapply(func: Function): Function {
  * @param func - The constructor function to be wrapped and called.
  * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
  */
-function unconstruct(func: Function): Function {
-  return (...args) => construct(func, args);
+function unconstruct<T>(func: (...args: any[]) => T): (...args: any[]) => T {
+  return (...args: any[]): T => construct(func, args);
 }
 
 /**
@@ -83,7 +85,7 @@ function unconstruct(func: Function): Function {
 function addToSet(
   set: Record<string, any>,
   array: readonly any[],
-  transformCaseFunc: Function = stringToLowerCase
+  transformCaseFunc: ReturnType<typeof unapply<string>> = stringToLowerCase
 ): Record<string, any> {
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
@@ -119,7 +121,7 @@ function addToSet(
  * @param array - The array to be cleaned.
  * @returns The cleaned version of the array
  */
-function cleanArray(array: any[]): any[] {
+function cleanArray<T>(array: T[]): Array<T | null> {
   for (let index = 0; index < array.length; index++) {
     const isPropertyExist = objectHasOwnProperty(array, index);
 
@@ -137,7 +139,7 @@ function cleanArray(array: any[]): any[] {
  * @param object - The object to be cloned.
  * @returns A new object that copies the original.
  */
-function clone<T extends object>(object: T): T {
+function clone<T extends Record<string, any>>(object: T): T {
   const newObject = create(null);
 
   for (const [property, value] of entries(object)) {
@@ -168,7 +170,10 @@ function clone<T extends object>(object: T): T {
  * @param prop - The property name for which to find the getter function.
  * @returns The getter function found in the prototype chain or a fallback function.
  */
-function lookupGetter(object: object, prop: string): Function {
+function lookupGetter<T extends Record<string, any>>(
+  object: T,
+  prop: string
+): ReturnType<typeof unapply<any>> | (() => null) {
   while (object !== null) {
     const desc = getOwnPropertyDescriptor(object, prop);
 
@@ -185,7 +190,7 @@ function lookupGetter(object: object, prop: string): Function {
     object = getPrototypeOf(object);
   }
 
-  function fallbackValue() {
+  function fallbackValue(): null {
     return null;
   }
 
