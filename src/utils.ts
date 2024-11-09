@@ -55,30 +55,32 @@ const typeErrorCreate = unconstruct(TypeError);
 /**
  * Creates a new function that calls the given function with a specified thisArg and arguments.
  *
- * @param {(thisArg: any, ...args: any[]) => T} func - The function to be wrapped and called.
- * @returns {(thisArg: any, ...args: any[]) => T} A new function that calls the given function with a specified thisArg and arguments.
+ * @param func - The function to be wrapped and called.
+ * @returns A new function that calls the given function with a specified thisArg and arguments.
  */
-function unapply<T>(func: (thisArg: any, ...args: any[]) => T) {
+function unapply<T>(
+  func: (thisArg: any, ...args: any[]) => T
+): (thisArg: any, ...args: any[]) => T {
   return (thisArg: any, ...args: any[]): T => apply(func, thisArg, args);
 }
 
 /**
  * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
  *
- * @param {(...args: any[]) => T} func - The constructor function to be wrapped and called.
- * @returns { (...args: any[]) => T} A new function that constructs an instance of the given constructor function with the provided arguments.
+ * @param func - The constructor function to be wrapped and called.
+ * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
  */
-function unconstruct<T>(func: (...args: any[]) => T) {
+function unconstruct<T>(func: (...args: any[]) => T): (...args: any[]) => T {
   return (...args: any[]): T => construct(func, args);
 }
 
 /**
  * Add properties to a lookup table
  *
- * @param {Record<string, any>} set - The set to which elements will be added.
- * @param {readonly any[]} array - The array containing elements to be added to the set.
- * @param {ReturnType<typeof unapply<string>>} transformCaseFunc - An optional function to transform the case of each element before adding to the set.
- * @returns {Record<string, any>} The modified set with added elements.
+ * @param set - The set to which elements will be added.
+ * @param array - The array containing elements to be added to the set.
+ * @param transformCaseFunc - An optional function to transform the case of each element before adding to the set.
+ * @returns The modified set with added elements.
  */
 function addToSet(
   set: Record<string, any>,
@@ -116,8 +118,8 @@ function addToSet(
 /**
  * Clean up an array to harden against CSPP
  *
- * @param {T[]} array - The array to be cleaned.
- * @returns {Array<T | null>} The cleaned version of the array
+ * @param array - The array to be cleaned.
+ * @returns The cleaned version of the array
  */
 function cleanArray<T>(array: T[]): Array<T | null> {
   for (let index = 0; index < array.length; index++) {
@@ -134,8 +136,8 @@ function cleanArray<T>(array: T[]): Array<T | null> {
 /**
  * Shallow clone an object
  *
- * @param {T} object - The object to be cloned.
- * @returns {T} A new object that copies the original.
+ * @param object - The object to be cloned.
+ * @returns A new object that copies the original.
  */
 function clone<T extends Record<string, any>>(object: T): T {
   const newObject = create(null);
@@ -164,9 +166,9 @@ function clone<T extends Record<string, any>>(object: T): T {
 /**
  * This method automatically checks if the prop is function or getter and behaves accordingly.
  *
- * @param {T} object - The object to look up the getter function in its prototype chain.
- * @param {string} prop - The property name for which to find the getter function.
- * @returns {ReturnType<typeof unapply<any>> | (() => null)} The getter function found in the prototype chain or a fallback function.
+ * @param object - The object to look up the getter function in its prototype chain.
+ * @param prop - The property name for which to find the getter function.
+ * @returns The getter function found in the prototype chain or a fallback function.
  */
 function lookupGetter<T extends Record<string, any>>(
   object: T,

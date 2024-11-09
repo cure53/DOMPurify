@@ -53,8 +53,8 @@ const typeErrorCreate = unconstruct(TypeError);
 /**
  * Creates a new function that calls the given function with a specified thisArg and arguments.
  *
- * @param {(thisArg: any, ...args: any[]) => T} func - The function to be wrapped and called.
- * @returns {(thisArg: any, ...args: any[]) => T} A new function that calls the given function with a specified thisArg and arguments.
+ * @param func - The function to be wrapped and called.
+ * @returns A new function that calls the given function with a specified thisArg and arguments.
  */
 function unapply(func) {
   return function (thisArg) {
@@ -67,8 +67,8 @@ function unapply(func) {
 /**
  * Creates a new function that constructs an instance of the given constructor function with the provided arguments.
  *
- * @param {(...args: any[]) => T} func - The constructor function to be wrapped and called.
- * @returns { (...args: any[]) => T} A new function that constructs an instance of the given constructor function with the provided arguments.
+ * @param func - The constructor function to be wrapped and called.
+ * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
  */
 function unconstruct(func) {
   return function () {
@@ -81,10 +81,10 @@ function unconstruct(func) {
 /**
  * Add properties to a lookup table
  *
- * @param {Record<string, any>} set - The set to which elements will be added.
- * @param {readonly any[]} array - The array containing elements to be added to the set.
- * @param {ReturnType<typeof unapply<string>>} transformCaseFunc - An optional function to transform the case of each element before adding to the set.
- * @returns {Record<string, any>} The modified set with added elements.
+ * @param set - The set to which elements will be added.
+ * @param array - The array containing elements to be added to the set.
+ * @param transformCaseFunc - An optional function to transform the case of each element before adding to the set.
+ * @returns The modified set with added elements.
  */
 function addToSet(set, array) {
   let transformCaseFunc = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : stringToLowerCase;
@@ -114,8 +114,8 @@ function addToSet(set, array) {
 /**
  * Clean up an array to harden against CSPP
  *
- * @param {T[]} array - The array to be cleaned.
- * @returns {Array<T | null>} The cleaned version of the array
+ * @param array - The array to be cleaned.
+ * @returns The cleaned version of the array
  */
 function cleanArray(array) {
   for (let index = 0; index < array.length; index++) {
@@ -129,8 +129,8 @@ function cleanArray(array) {
 /**
  * Shallow clone an object
  *
- * @param {T} object - The object to be cloned.
- * @returns {T} A new object that copies the original.
+ * @param object - The object to be cloned.
+ * @returns A new object that copies the original.
  */
 function clone(object) {
   const newObject = create(null);
@@ -151,9 +151,9 @@ function clone(object) {
 /**
  * This method automatically checks if the prop is function or getter and behaves accordingly.
  *
- * @param {T} object - The object to look up the getter function in its prototype chain.
- * @param {string} prop - The property name for which to find the getter function.
- * @returns {ReturnType<typeof unapply<any>> | (() => null)} The getter function found in the prototype chain or a fallback function.
+ * @param object - The object to look up the getter function in its prototype chain.
+ * @param prop - The property name for which to find the getter function.
+ * @returns The getter function found in the prototype chain or a fallback function.
  */
 function lookupGetter(object, prop) {
   while (object !== null) {
