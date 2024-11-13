@@ -14,4 +14,4 @@ export const ATTR_WHITESPACE = seal(
   /[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
 );
 export const DOCTYPE_NAME = seal(/^html$/i);
-export const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
+export const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*([-|:][.\w]+)+$/i);
