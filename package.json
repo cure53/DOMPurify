@@ -92,6 +92,9 @@
       "VERSION"
     ]
   },
+  "optionalDependencies": {
+    "@types/trusted-types": "^2.0.7"
+  },
   "devDependencies": {
     "@babel/core": "^7.17.8",
     "@babel/preset-env": "^7.16.11",
@@ -100,7 +103,6 @@
     "@rollup/plugin-replace": "^6.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/estree": "^1.0.0",
-    "@types/trusted-types": "^2.0.7",
     "cross-env": "^7.0.3",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
