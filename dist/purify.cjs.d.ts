@@ -396,7 +396,7 @@ type WindowLike = Pick<typeof globalThis, 'DocumentFragment' | 'HTMLTemplateElem
     trustedTypes?: typeof window.trustedTypes;
 };
 
-export { type Config, type Hook, type HookName, type RemovedAttribute, type RemovedElement, type UponSanitizeAttributeHook, type UponSanitizeAttributeHookEvent, type UponSanitizeElementHook, type UponSanitizeElementHookEvent, type WindowLike };
+export { type Config, type DOMPurify, type Hook, type HookName, type RemovedAttribute, type RemovedElement, type UponSanitizeAttributeHook, type UponSanitizeAttributeHookEvent, type UponSanitizeElementHook, type UponSanitizeElementHookEvent, type WindowLike };
 
 // @ts-ignore
 export = _default;
