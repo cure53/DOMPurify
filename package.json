@@ -28,13 +28,13 @@
   "types": "./dist/purify.cjs.d.ts",
   "exports": {
     ".": {
-      "require": {
-        "types": "./dist/purify.cjs.d.ts",
-        "default": "./dist/purify.cjs.js"
-      },
       "import": {
         "types": "./dist/purify.es.d.mts",
         "default": "./dist/purify.es.mjs"
+      },
+      "default": {
+        "types": "./dist/purify.cjs.d.ts",
+        "default": "./dist/purify.cjs.js"
       }
     }
   },
