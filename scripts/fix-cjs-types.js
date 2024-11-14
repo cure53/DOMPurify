@@ -22,7 +22,7 @@ const path = require('node:path');
   // Append `export = _default;` to match the
   // `module.exports = DOMPurify` statement
   // that Rollup creates.
-  fixed += '\nexport = _default;\n';
+  fixed += '\n// @ts-ignore\nexport = _default;\n';
 
   await fs.writeFile(fileName, fixed);
 })().catch((ex) => {
