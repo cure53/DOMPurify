@@ -206,9 +206,9 @@ declare const _default: DOMPurify;
 
 interface DOMPurify {
     /**
-     * Creates a DOMPurify instance using the given window-like object.
+     * Creates a DOMPurify instance using the given window-like object. Defaults to `window`.
      */
-    (root: WindowLike): DOMPurify;
+    (root?: WindowLike): DOMPurify;
     /**
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
