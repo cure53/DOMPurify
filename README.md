@@ -6,13 +6,13 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.0.6**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.2.0**.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
-**Note that [DOMPurify v2.4.7](https://github.com/cure53/DOMPurify/releases/tag/2.4.6) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
+**Note that [DOMPurify v2.5.7](https://github.com/cure53/DOMPurify/releases/tag/2.5.7) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
 
-Our automated tests cover [19 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v16.x, v17.x, v18.x and v19.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
+Our automated tests cover [24 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v16.x, v17.x, v18.x and v19.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
@@ -45,7 +45,7 @@ const clean = DOMPurify.sanitize(dirty);
 Or maybe this, if you love working with Angular or alike:
 
 ```js
-import * as DOMPurify from 'dompurify';
+import DOMPurify from 'dompurify';
 
 const clean = DOMPurify.sanitize('<b>hello there</b>');
 ```
@@ -56,10 +56,6 @@ Note that by default, we permit HTML, SVG **and** MathML. If you only need HTML,
 ```js
 const clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 ```
-
-### Where are the TypeScript type definitions?
-
-They can be found here: [@types/dompurify](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/dompurify)
 
 ### Is there any foot-gun potential?
 
@@ -76,6 +72,8 @@ DOMPurify technically also works server-side with Node.js. Our support strives t
 Running DOMPurify on the server requires a DOM to be present, which is probably no surprise. Usually, [jsdom](https://github.com/jsdom/jsdom) is the tool of choice and we **strongly recommend** to use the latest version of _jsdom_.
 
 Why? Because older versions of _jsdom_ are known to be buggy in ways that result in XSS _even if_ DOMPurify does everything 100% correctly. There are **known attack vectors** in, e.g. _jsdom v19.0.0_ that are fixed in _jsdom v20.0.0_ - and we really recommend to keep _jsdom_ up to date because of that.
+
+Please also be aware that tools like [happy-dom](https://github.com/capricorn86/happy-dom) exist but **are not considered safe** at this point. Combining DOMPurify with _happy-dom_ is currently not recommended and will likely lead to XSS.
 
 Other than that, you are fine to use DOMPurify on the server. Probably. This really depends on _jsdom_ or whatever DOM you utilize server-side. If you can live with that, this is how you get it to work:
 
@@ -156,6 +154,15 @@ In version 2.0.0, a config flag was added to control DOMPurify's behavior regard
 
 When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM` and `RETURN_DOM_FRAGMENT` config options does not change).
 
+Note that in order to create a policy in `trustedTypes` using DOMPurify, `RETURN_TRUSTED_TYPE: false` is required, as `createHTML` expects a normal string, not `TrustedHTML`. The example below shows this.
+
+```js
+window.trustedTypes!.createPolicy('default', {
+  createHTML: (to_escape) =>
+    DOMPurify.sanitize(to_escape, { RETURN_TRUSTED_TYPE: false }),
+});
+```
+
 ## Can I configure DOMPurify?
 
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/main/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this).
@@ -167,6 +174,13 @@ Yes. The included default configuration values are pretty good already - but you
 // allowing template parsing in user-controlled HTML is not advised at all.
 // only use this mode if there is really no alternative.
 const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
+
+
+// change how e.g. comments containing risky HTML characters are treated.
+// be very careful, this setting should only be set to `false` if you really only handle 
+// HTML and nothing else, no SVG, MathML or the like. 
+// Otherwise, changing from `true` to `false` will lead to XSS in this or some other way.
+const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_XML: false});
 ```
 
 ### Control our allow-lists and block-lists
@@ -354,14 +368,20 @@ _Example_:
 
 ```js
 DOMPurify.addHook(
-  'beforeSanitizeElements',
+  'uponSanitizeAttribute',
   function (currentNode, hookEvent, config) {
-    // Do something with the current node and return it
-    // You can also mutate hookEvent (i.e. set hookEvent.forceKeepAttr = true)
-    return currentNode;
+    // Do something with the current node
+    // You can also mutate hookEvent for current node (i.e. set hookEvent.forceKeepAttr = true)
+    // For other than 'uponSanitizeAttribute' hook types hookEvent equals to null
   }
 );
 ```
+
+## Removed Configuration
+
+| Option          | Since | Note                     |
+|-----------------|-------|--------------------------|
+| SAFE_FOR_JQUERY | 2.1.0 | No replacement required. |
 
 ## Continuous Integration
 
@@ -409,10 +429,10 @@ Feature releases will not be announced to this list.
 
 Many people helped and help DOMPurify become what it is and need to be acknowledged here!
 
-[dcramer 💸](https://github.com/dcramer), [JGraph 💸](https://github.com/jgraph), [baekilda 💸](https://github.com/baekilda), [Healthchecks 💸](https://github.com/healthchecks), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [CynegeticIO](https://github.com/CynegeticIO), [ssi02014 ❤️](https://github.com/ssi02014), [kevin_mizu](https://twitter.com/kevin_mizu), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy](https://twitter.com/lowdefy), [granlem](https://twitter.com/MaximeVeit), [oreoshake](https://github.com/oreoshake), [tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [SoheilKhodayari](https://github.com/SoheilKhodayari), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
+[hash_kitten ❤️](https://twitter.com/hash_kitten), [kevin_mizu ❤️](https://twitter.com/kevin_mizu), [icesfont ❤️](https://github.com/icesfont) [dcramer 💸](https://github.com/dcramer), [JGraph 💸](https://github.com/jgraph), [baekilda 💸](https://github.com/baekilda), [Healthchecks 💸](https://github.com/healthchecks), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [CynegeticIO](https://github.com/CynegeticIO), [ssi02014 ❤️](https://github.com/ssi02014), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy](https://twitter.com/lowdefy), [granlem](https://twitter.com/MaximeVeit), [oreoshake](https://github.com/oreoshake), [tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [SoheilKhodayari](https://github.com/SoheilKhodayari), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
 
 ## Testing powered by
 
-<a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png"></a><br>
+<a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://github.com/cure53/DOMPurify/assets/6709482/f70be7eb-8fc4-41ea-9653-9d359235328f"></a><br>
 
 And last but not least, thanks to [BrowserStack Open-Source Program](https://www.browserstack.com/open-source) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.

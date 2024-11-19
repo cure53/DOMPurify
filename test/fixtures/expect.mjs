@@ -191,7 +191,7 @@ export default [
       "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
       "expected": "<img><img>@mmrupp<img><svg></svg>"
   }, {
-      "title": "Special esacpes in protocol handler for XSS in Blink",
+      "title": "Special escapes in protocol handler for XSS in Blink",
       "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
       "expected": "<a>@shafigullin</a><a></a>"
   }, {
@@ -357,6 +357,7 @@ export default [
   }, {
       "payload": "<![><img src=\"]><img src=x onerror=alert(39)//\">",
       "expected": [
+        "<img>",
         "<img src=\"]><img src=x onerror=alert(39)//\">",
         "<img src=\"]&gt;&lt;img src=x onerror=alert(39)//\">"
       ]
@@ -780,7 +781,8 @@ export default [
           "<svg></svg><p></p><title>&lt;a id=\"</title><img src=\"x\">\"&gt;",
           "<svg><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></title></svg></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><a id=\"</title><img src=x onerror=alert()>\"></a></title></title></svg></svg>",
+          "<svg><title></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML in Chrome 77 and alike",
@@ -800,7 +802,8 @@ export default [
           "<svg></svg><p></p><img src=\"x\">",
           "<svg><title><template></template></title></svg>",
           "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></svg>",
-          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></title></svg></svg>"
+          "<svg xmlns=\"http://www.w3.org/2000/svg\"><title><template></template></title></title></svg></svg>",
+          "<svg><title></title></svg>"
       ]
   }, {
       "title": "Tests against mXSS behavior with MathML Templates in Chrome 77 and alike",
@@ -876,11 +879,11 @@ export default [
           "<math></math>"
       ]
   }, {
-      "title": "Tests against additonal problems regarding HTML inside MathML 1/2",
+      "title": "Tests against additional problems regarding HTML inside MathML 1/2",
       "payload": "<math><mtext><h1><a><h6></a></h6><mglyph><svg><mtext><style><a title=\"</style><img src onerror='alert(1)'>\"></style></h1>",
       "expected": "<math><mtext><h1><a></a><h6><a></a></h6></h1></mtext></math>"
   }, {
-      "title": "Tests against additonal problems regarding HTML inside MathML 2/2",
+      "title": "Tests against additional problems regarding HTML inside MathML 2/2",
       "payload": "<!-- more soon -->",
       "expected": ""
   },   {

@@ -1,5 +1,5 @@
 const includePaths = require('rollup-plugin-includepaths');
-const rollupConfig = require('../rollup.config.js');
+const rollupConfig = require('../rollup.config.js')[0];
 const customLaunchers =
   require('./karma.custom-launchers.config.js').customLaunchers;
 const browsers = require('./karma.custom-launchers.config.js').browsers;
@@ -27,7 +27,7 @@ module.exports = function (config) {
     ],
 
     preprocessors: {
-      'src/*.js': ['rollup'],
+      'src/*.ts': ['rollup'],
       'test/**/*.spec.js': ['rollup'],
     },
 

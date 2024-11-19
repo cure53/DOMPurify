@@ -804,6 +804,21 @@
         );
       }
     );
+    QUnit.test(
+      'CUSTOM_ELEMENT_HANDLING config values of null do not throw a TypeError.',
+      function (assert) {
+        DOMPurify.sanitize('', {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: null,
+            attributeNameCheck: null,
+            allowCustomizedBuiltInElements: null,
+          },
+        });
+    
+        // Don't see a great way to assert NOT throws...
+        assert.ok(true);
+      }
+    );
     QUnit.test('Test dirty being an array', function (assert) {
       assert.equal(
         DOMPurify.sanitize(['<a>123<b>456</b></a>']),
@@ -1109,9 +1124,9 @@
         assert.equal(DOMPurify.removed.length, 0);
       }
     );
-    // Tests to make sure that the node scanning feature delivers acurate results on all browsers
+    // Tests to make sure that the node scanning feature delivers accurate results on all browsers
     QUnit.test(
-      'DOMPurify should deliver acurate results when sanitizing nodes 1',
+      'DOMPurify should deliver accurate results when sanitizing nodes 1',
       function (assert) {
         var clean = DOMPurify.sanitize(document.createElement('td'));
         assert.equal(clean, '<td></td>');
@@ -1428,7 +1443,7 @@
         ALLOWED_URI_REGEXP: /test\.com/i
       }), '<img src="https://test.com">');
 
-      // ensure that the previous regexp does not affect future santize calls
+      // ensure that the previous regexp does not affect future sanitize calls
       assert.equal(DOMPurify.sanitize(dirty), expected);
     });
     QUnit.test(
@@ -1573,7 +1588,7 @@
       }
     );
     QUnit.test(
-      'Test for less agressive mXSS handling, See #369',
+      'Test for less aggressive mXSS handling, See #369',
       function (assert) {
         var config = {
           FORBID_TAGS: ['svg', 'math'],
@@ -1694,8 +1709,8 @@
           test:
             '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
           expected: [
-            '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
-            '<svg xmlns="http://www.w3.org/2000/svg"><desc><canvas></canvas><textarea></textarea></desc></svg>',
+            '<svg><desc></desc></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><desc></desc></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
           ],
         },
@@ -1720,9 +1735,9 @@
         {
           test: '<svg><math></math><title><math></math></title></svg>',
           expected: [
-            '<svg><title><math></math></title></svg>',
+            '<svg><title></title></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg" />',
-            '<svg xmlns="http://www.w3.org/2000/svg"><title><math></math></title></svg>',
+            '<svg xmlns="http://www.w3.org/2000/svg"><title></title></svg>',
           ],
         },
         {
@@ -2077,6 +2092,17 @@
 
       // cleanup hook
       DOMPurify.removeHook(entryPoint);
+    });
+    
+    QUnit.test('Test proper removal of annotation-xml w. custom elements', function (assert) {
+      const dirty  = '<svg><annotation-xml><foreignobject><style><!--</style><p id="--><img src=\'x\' onerror=\'alert(1)\'>">';
+      const config = { 
+        CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /.*/ },
+        FORBID_CONTENTS: [""] 
+      };
+      const expected = '<svg></svg>';
+      let clean = DOMPurify.sanitize(dirty, config);
+      assert.contains(clean, expected);
     });
   };
 });

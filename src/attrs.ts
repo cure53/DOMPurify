@@ -74,6 +74,9 @@ export const html = freeze([
   'pattern',
   'placeholder',
   'playsinline',
+  'popover',
+  'popovertarget',
+  'popovertargetaction',
   'poster',
   'preload',
   'pubdate',
@@ -108,15 +111,17 @@ export const html = freeze([
   'valign',
   'value',
   'width',
+  'wrap',
   'xmlns',
   'slot',
-]);
+] as const);
 
 export const svg = freeze([
   'accent-height',
   'accumulate',
   'additive',
   'alignment-baseline',
+  'amplitude',
   'ascent',
   'attributename',
   'attributetype',
@@ -149,6 +154,7 @@ export const svg = freeze([
   'edgemode',
   'elevation',
   'end',
+  'exponent',
   'fill',
   'fill-opacity',
   'fill-rule',
@@ -177,6 +183,7 @@ export const svg = freeze([
   'image-rendering',
   'in',
   'in2',
+  'intercept',
   'k',
   'k1',
   'k2',
@@ -241,6 +248,7 @@ export const svg = freeze([
   'scale',
   'seed',
   'shape-rendering',
+  'slope',
   'specularconstant',
   'specularexponent',
   'spreadmethod',
@@ -261,6 +269,7 @@ export const svg = freeze([
   'surfacescale',
   'systemlanguage',
   'tabindex',
+  'tablevalues',
   'targetx',
   'targety',
   'transform',
@@ -295,7 +304,7 @@ export const svg = freeze([
   'y2',
   'z',
   'zoomandpan',
-]);
+] as const);
 
 export const mathMl = freeze([
   'accent',
@@ -359,4 +368,4 @@ export const xml = freeze([
   'xlink:title',
   'xml:space',
   'xmlns:xlink',
-]);
+] as const);

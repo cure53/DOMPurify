@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/indent */
+
+import type { Config, UseProfilesConfig } from './config';
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
 import * as EXPRESSIONS from './regexp.js';
@@ -19,21 +22,45 @@ import {
   typeErrorCreate,
   lookupGetter,
   create,
+  objectHasOwnProperty,
 } from './utils.js';
 
-const getGlobal = function () {
+export type { Config } from './config';
+
+declare const VERSION: string;
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+const NODE_TYPE = {
+  element: 1,
+  attribute: 2,
+  text: 3,
+  cdataSection: 4,
+  entityReference: 5, // Deprecated
+  entityNode: 6, // Deprecated
+  progressingInstruction: 7,
+  comment: 8,
+  document: 9,
+  documentType: 10,
+  documentFragment: 11,
+  notation: 12, // Deprecated
+};
+
+const getGlobal = function (): WindowLike {
   return typeof window === 'undefined' ? null : window;
 };
 
 /**
  * Creates a no-op policy for internal use only.
  * Don't export this function outside this module!
- * @param {TrustedTypePolicyFactory} trustedTypes The policy factory.
- * @param {HTMLScriptElement} purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
- * @return {TrustedTypePolicy} The policy created (or null, if Trusted Types
+ * @param trustedTypes The policy factory.
+ * @param purifyHostElement The Script element used to load DOMPurify (to determine policy name suffix).
+ * @return The policy created (or null, if Trusted Types
  * are not supported or creating the policy failed).
  */
-const _createTrustedTypesPolicy = function (trustedTypes, purifyHostElement) {
+const _createTrustedTypesPolicy = function (
+  trustedTypes: TrustedTypePolicyFactory,
+  purifyHostElement: HTMLScriptElement
+) {
   if (
     typeof trustedTypes !== 'object' ||
     typeof trustedTypes.createPolicy !== 'function'
@@ -72,22 +99,18 @@ const _createTrustedTypesPolicy = function (trustedTypes, purifyHostElement) {
   }
 };
 
-function createDOMPurify(window = getGlobal()) {
-  const DOMPurify = (root) => createDOMPurify(root);
+function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
+  const DOMPurify: DOMPurify = (root: WindowLike) => createDOMPurify(root);
 
-  /**
-   * Version label, exposed for easier checks
-   * if DOMPurify is up to date or not
-   */
   DOMPurify.version = VERSION;
 
-  /**
-   * Array of elements that DOMPurify removed during sanitation.
-   * Empty if nothing was removed.
-   */
   DOMPurify.removed = [];
 
-  if (!window || !window.document || window.document.nodeType !== 9) {
+  if (
+    !window ||
+    !window.document ||
+    window.document.nodeType !== NODE_TYPE.document
+  ) {
     // Not running in a browser, provide a factory function
     // so that you can pass your own Window
     DOMPurify.isSupported = false;
@@ -98,14 +121,15 @@ function createDOMPurify(window = getGlobal()) {
   let { document } = window;
 
   const originalDocument = document;
-  const currentScript = originalDocument.currentScript;
+  const currentScript: HTMLScriptElement =
+    originalDocument.currentScript as HTMLScriptElement;
   const {
     DocumentFragment,
     HTMLTemplateElement,
     Node,
     Element,
     NodeFilter,
-    NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
+    NamedNodeMap = window.NamedNodeMap || (window as any).MozNamedAttrMap,
     HTMLFormElement,
     DOMParser,
     trustedTypes,
@@ -114,6 +138,7 @@ function createDOMPurify(window = getGlobal()) {
   const ElementPrototype = Element.prototype;
 
   const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
+  const remove = lookupGetter(ElementPrototype, 'remove');
   const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
   const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
   const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
@@ -161,6 +186,7 @@ function createDOMPurify(window = getGlobal()) {
     ARIA_ATTR,
     IS_SCRIPT_OR_DATA,
     ATTR_WHITESPACE,
+    CUSTOM_ELEMENT,
   } = EXPRESSIONS;
 
   let { IS_ALLOWED_URI } = EXPRESSIONS;
@@ -190,7 +216,7 @@ function createDOMPurify(window = getGlobal()) {
   ]);
 
   /*
-   * Configure how DOMPUrify should handle custom elements and their attributes as well as customized built-in elements.
+   * Configure how DOMPurify should handle custom elements and their attributes as well as customized built-in elements.
    * @property {RegExp|Function|null} tagNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any custom elements)
    * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
    * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
@@ -241,6 +267,11 @@ function createDOMPurify(window = getGlobal()) {
    * This means, DOMPurify removes data attributes, mustaches and ERB
    */
   let SAFE_FOR_TEMPLATES = false;
+
+  /* Output should be safe even for XML used within HTML and alike.
+   * This means, DOMPurify removes comments when containing risky content.
+   */
+  let SAFE_FOR_XML = true;
 
   /* Decide if document with <html>... should be returned */
   let WHOLE_DOCUMENT = false;
@@ -295,7 +326,7 @@ function createDOMPurify(window = getGlobal()) {
   let IN_PLACE = false;
 
   /* Allow usage of profiles like html, svg and mathMl */
-  let USE_PROFILES = {};
+  let USE_PROFILES: UseProfilesConfig | false = {};
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
   let FORBID_CONTENTS = null;
@@ -372,31 +403,55 @@ function createDOMPurify(window = getGlobal()) {
     stringToString
   );
 
+  let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, [
+    'mi',
+    'mo',
+    'mn',
+    'ms',
+    'mtext',
+  ]);
+
+  let HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
+
+  // Certain elements are allowed in both SVG and HTML
+  // namespace. We need to specify them explicitly
+  // so that they don't get erroneously deleted from
+  // HTML namespace.
+  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
+    'title',
+    'style',
+    'font',
+    'a',
+    'script',
+  ]);
+
   /* Parsing of strict XHTML documents */
-  let PARSER_MEDIA_TYPE = null;
+  let PARSER_MEDIA_TYPE: null | DOMParserSupportedType = null;
   const SUPPORTED_PARSER_MEDIA_TYPES = ['application/xhtml+xml', 'text/html'];
   const DEFAULT_PARSER_MEDIA_TYPE = 'text/html';
-  let transformCaseFunc = null;
+  let transformCaseFunc: null | Parameters<typeof addToSet>[2] = null;
 
   /* Keep a reference to config to pass to hooks */
-  let CONFIG = null;
+  let CONFIG: Config | null = null;
 
   /* Ideally, do not touch anything below this line */
   /* ______________________________________________ */
 
   const formElement = document.createElement('form');
 
-  const isRegexOrFunction = function (testValue) {
+  const isRegexOrFunction = function (
+    testValue: unknown
+  ): testValue is Function | RegExp {
     return testValue instanceof RegExp || testValue instanceof Function;
   };
 
   /**
    * _parseConfig
    *
-   * @param  {Object} cfg optional config literal
+   * @param cfg optional config literal
    */
   // eslint-disable-next-line complexity
-  const _parseConfig = function (cfg = {}) {
+  const _parseConfig = function (cfg: Config = {}): void {
     if (CONFIG && CONFIG === cfg) {
       return;
     }
@@ -422,52 +477,47 @@ function createDOMPurify(window = getGlobal()) {
         : stringToLowerCase;
 
     /* Set configuration parameters */
-    ALLOWED_TAGS =
-      'ALLOWED_TAGS' in cfg
-        ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
-        : DEFAULT_ALLOWED_TAGS;
-    ALLOWED_ATTR =
-      'ALLOWED_ATTR' in cfg
-        ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
-        : DEFAULT_ALLOWED_ATTR;
-    ALLOWED_NAMESPACES =
-      'ALLOWED_NAMESPACES' in cfg
-        ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString)
-        : DEFAULT_ALLOWED_NAMESPACES;
-    URI_SAFE_ATTRIBUTES =
-      'ADD_URI_SAFE_ATTR' in cfg
-        ? addToSet(
-            clone(DEFAULT_URI_SAFE_ATTRIBUTES), // eslint-disable-line indent
-            cfg.ADD_URI_SAFE_ATTR, // eslint-disable-line indent
-            transformCaseFunc // eslint-disable-line indent
-          ) // eslint-disable-line indent
-        : DEFAULT_URI_SAFE_ATTRIBUTES;
-    DATA_URI_TAGS =
-      'ADD_DATA_URI_TAGS' in cfg
-        ? addToSet(
-            clone(DEFAULT_DATA_URI_TAGS), // eslint-disable-line indent
-            cfg.ADD_DATA_URI_TAGS, // eslint-disable-line indent
-            transformCaseFunc // eslint-disable-line indent
-          ) // eslint-disable-line indent
-        : DEFAULT_DATA_URI_TAGS;
-    FORBID_CONTENTS =
-      'FORBID_CONTENTS' in cfg
-        ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
-        : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS =
-      'FORBID_TAGS' in cfg
-        ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
-        : {};
-    FORBID_ATTR =
-      'FORBID_ATTR' in cfg
-        ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
-        : {};
-    USE_PROFILES = 'USE_PROFILES' in cfg ? cfg.USE_PROFILES : false;
+    ALLOWED_TAGS = objectHasOwnProperty(cfg, 'ALLOWED_TAGS')
+      ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
+      : DEFAULT_ALLOWED_TAGS;
+    ALLOWED_ATTR = objectHasOwnProperty(cfg, 'ALLOWED_ATTR')
+      ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
+      : DEFAULT_ALLOWED_ATTR;
+    ALLOWED_NAMESPACES = objectHasOwnProperty(cfg, 'ALLOWED_NAMESPACES')
+      ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString)
+      : DEFAULT_ALLOWED_NAMESPACES;
+    URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR')
+      ? addToSet(
+          clone(DEFAULT_URI_SAFE_ATTRIBUTES),
+          cfg.ADD_URI_SAFE_ATTR,
+          transformCaseFunc
+        )
+      : DEFAULT_URI_SAFE_ATTRIBUTES;
+    DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS')
+      ? addToSet(
+          clone(DEFAULT_DATA_URI_TAGS),
+          cfg.ADD_DATA_URI_TAGS,
+          transformCaseFunc
+        )
+      : DEFAULT_DATA_URI_TAGS;
+    FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS')
+      ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
+      : DEFAULT_FORBID_CONTENTS;
+    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS')
+      ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
+      : {};
+    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR')
+      ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
+      : {};
+    USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES')
+      ? cfg.USE_PROFILES
+      : false;
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
     ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
     ALLOW_SELF_CLOSE_IN_ATTR = cfg.ALLOW_SELF_CLOSE_IN_ATTR !== false; // Default true
     SAFE_FOR_TEMPLATES = cfg.SAFE_FOR_TEMPLATES || false; // Default false
+    SAFE_FOR_XML = cfg.SAFE_FOR_XML !== false; // Default true
     WHOLE_DOCUMENT = cfg.WHOLE_DOCUMENT || false; // Default false
     RETURN_DOM = cfg.RETURN_DOM || false; // Default false
     RETURN_DOM_FRAGMENT = cfg.RETURN_DOM_FRAGMENT || false; // Default false
@@ -479,6 +529,11 @@ function createDOMPurify(window = getGlobal()) {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || EXPRESSIONS.IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
+    MATHML_TEXT_INTEGRATION_POINTS =
+      cfg.MATHML_TEXT_INTEGRATION_POINTS || MATHML_TEXT_INTEGRATION_POINTS;
+    HTML_INTEGRATION_POINTS =
+      cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
+
     CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
     if (
       cfg.CUSTOM_ELEMENT_HANDLING &&
@@ -628,33 +683,6 @@ function createDOMPurify(window = getGlobal()) {
     CONFIG = cfg;
   };
 
-  const MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, [
-    'mi',
-    'mo',
-    'mn',
-    'ms',
-    'mtext',
-  ]);
-
-  const HTML_INTEGRATION_POINTS = addToSet({}, [
-    'foreignobject',
-    'desc',
-    'title',
-    'annotation-xml',
-  ]);
-
-  // Certain elements are allowed in both SVG and HTML
-  // namespace. We need to specify them explicitly
-  // so that they don't get erroneously deleted from
-  // HTML namespace.
-  const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
-    'title',
-    'style',
-    'font',
-    'a',
-    'script',
-  ]);
-
   /* Keep track of all possible SVG and MathML tags
    * so that we can perform the namespace checks
    * correctly. */
@@ -669,12 +697,12 @@ function createDOMPurify(window = getGlobal()) {
   ]);
 
   /**
-   * @param  {Element} element a DOM element whose namespace is being checked
-   * @returns {boolean} Return false if the element has a
+   * @param element a DOM element whose namespace is being checked
+   * @returns Return false if the element has a
    *  namespace that a spec-compliant parser would never
    *  return. Return true otherwise.
    */
-  const _checkValidNamespace = function (element) {
+  const _checkValidNamespace = function (element: Element): boolean {
     let parent = getParentNode(element);
 
     // In JSDOM, if we're inside shadow DOM, then parentNode
@@ -780,48 +808,49 @@ function createDOMPurify(window = getGlobal()) {
   /**
    * _forceRemove
    *
-   * @param  {Node} node a DOM node
+   * @param node a DOM node
    */
-  const _forceRemove = function (node) {
+  const _forceRemove = function (node: Node): void {
     arrayPush(DOMPurify.removed, { element: node });
+
     try {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
-      node.parentNode.removeChild(node);
+      getParentNode(node).removeChild(node);
     } catch (_) {
-      node.remove();
+      remove(node);
     }
   };
 
   /**
    * _removeAttribute
    *
-   * @param  {String} name an Attribute name
-   * @param  {Node} node a DOM node
+   * @param name an Attribute name
+   * @param element a DOM node
    */
-  const _removeAttribute = function (name, node) {
+  const _removeAttribute = function (name: string, element: Element): void {
     try {
       arrayPush(DOMPurify.removed, {
-        attribute: node.getAttributeNode(name),
-        from: node,
+        attribute: element.getAttributeNode(name),
+        from: element,
       });
     } catch (_) {
       arrayPush(DOMPurify.removed, {
         attribute: null,
-        from: node,
+        from: element,
       });
     }
 
-    node.removeAttribute(name);
+    element.removeAttribute(name);
 
     // We void attribute values for unremovable "is"" attributes
     if (name === 'is' && !ALLOWED_ATTR[name]) {
       if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
         try {
-          _forceRemove(node);
+          _forceRemove(element);
         } catch (_) {}
       } else {
         try {
-          node.setAttribute(name, '');
+          element.setAttribute(name, '');
         } catch (_) {}
       }
     }
@@ -830,10 +859,10 @@ function createDOMPurify(window = getGlobal()) {
   /**
    * _initDocument
    *
-   * @param  {String} dirty a string of dirty markup
-   * @return {Document} a DOM, filled with the dirty markup
+   * @param dirty - a string of dirty markup
+   * @return a DOM, filled with the dirty markup
    */
-  const _initDocument = function (dirty) {
+  const _initDocument = function (dirty: string): Document {
     /* Create a HTML document */
     let doc = null;
     let leadingWhitespace = null;
@@ -905,15 +934,19 @@ function createDOMPurify(window = getGlobal()) {
   /**
    * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
    *
-   * @param  {Node} root The root element or node to start traversing on.
-   * @return {NodeIterator} The created NodeIterator
+   * @param root The root element or node to start traversing on.
+   * @return The created NodeIterator
    */
-  const _createNodeIterator = function (root) {
+  const _createNodeIterator = function (root: Node): NodeIterator {
     return createNodeIterator.call(
       root.ownerDocument || root,
       root,
       // eslint-disable-next-line no-bitwise
-      NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT,
+      NodeFilter.SHOW_ELEMENT |
+        NodeFilter.SHOW_COMMENT |
+        NodeFilter.SHOW_TEXT |
+        NodeFilter.SHOW_PROCESSING_INSTRUCTION |
+        NodeFilter.SHOW_CDATA_SECTION,
       null
     );
   };
@@ -921,43 +954,68 @@ function createDOMPurify(window = getGlobal()) {
   /**
    * _isClobbered
    *
-   * @param  {Node} elm element to check for clobbering attacks
-   * @return {Boolean} true if clobbered, false if safe
+   * @param element element to check for clobbering attacks
+   * @return true if clobbered, false if safe
    */
-  const _isClobbered = function (elm) {
+  const _isClobbered = function (element: Element): boolean {
     return (
-      elm instanceof HTMLFormElement &&
-      (typeof elm.nodeName !== 'string' ||
-        typeof elm.textContent !== 'string' ||
-        typeof elm.removeChild !== 'function' ||
-        !(elm.attributes instanceof NamedNodeMap) ||
-        typeof elm.removeAttribute !== 'function' ||
-        typeof elm.setAttribute !== 'function' ||
-        typeof elm.namespaceURI !== 'string' ||
-        typeof elm.insertBefore !== 'function' ||
-        typeof elm.hasChildNodes !== 'function')
+      element instanceof HTMLFormElement &&
+      (typeof element.nodeName !== 'string' ||
+        typeof element.textContent !== 'string' ||
+        typeof element.removeChild !== 'function' ||
+        !(element.attributes instanceof NamedNodeMap) ||
+        typeof element.removeAttribute !== 'function' ||
+        typeof element.setAttribute !== 'function' ||
+        typeof element.namespaceURI !== 'string' ||
+        typeof element.insertBefore !== 'function' ||
+        typeof element.hasChildNodes !== 'function')
     );
   };
 
   /**
    * Checks whether the given object is a DOM node.
    *
-   * @param  {Node} object object to check whether it's a DOM node
-   * @return {Boolean} true is object is a DOM node
+   * @param value object to check whether it's a DOM node
+   * @return true is object is a DOM node
    */
-  const _isNode = function (object) {
-    return typeof Node === 'function' && object instanceof Node;
+  const _isNode = function (value: unknown): value is Node {
+    return typeof Node === 'function' && value instanceof Node;
   };
+
+  // The following overloads of `_executeHook` add type-safety to the callers,
+  // ensuring that the caller provides the correct `data` parameter.
 
   /**
    * _executeHook
    * Execute user configurable hooks
    *
-   * @param  {String} entryPoint  Name of the hook's entry point
-   * @param  {Node} currentNode node to work on with the hook
-   * @param  {Object} data additional hook parameters
+   * @param entryPoint Name of the hook's entry point
+   * @param currentNode node to work on with the hook
+   * @param data additional hook parameters
    */
-  const _executeHook = function (entryPoint, currentNode, data) {
+  function _executeHook(
+    entryPoint: BasicHookName,
+    currentNode: Node,
+    data: null
+  ): void;
+
+  function _executeHook(
+    entryPoint: UponSanitizeElementHookName,
+    currentNode: Node,
+    data: UponSanitizeElementHookEvent
+  ): void;
+
+  function _executeHook(
+    entryPoint: UponSanitizeAttributeHookName,
+    currentNode: Node,
+    data: UponSanitizeAttributeHookEvent
+  ): void;
+
+  function _executeHook(
+    entryPoint: HookName,
+    currentNode: Node,
+    data: UponSanitizeAttributeHookEvent | UponSanitizeElementHookEvent | null
+  ): void {
     if (!hooks[entryPoint]) {
       return;
     }
@@ -965,7 +1023,7 @@ function createDOMPurify(window = getGlobal()) {
     arrayForEach(hooks[entryPoint], (hook) => {
       hook.call(DOMPurify, currentNode, data, CONFIG);
     });
-  };
+  }
 
   /**
    * _sanitizeElements
@@ -973,11 +1031,10 @@ function createDOMPurify(window = getGlobal()) {
    * @protect nodeName
    * @protect textContent
    * @protect removeChild
-   *
-   * @param   {Node} currentNode to check for permission to exist
-   * @return  {Boolean} true if node was killed, false if left alive
+   * @param currentNode to check for permission to exist
+   * @return true if node was killed, false if left alive
    */
-  const _sanitizeElements = function (currentNode) {
+  const _sanitizeElements = function (currentNode: any): boolean {
     let content = null;
 
     /* Execute a hook if present */
@@ -1004,6 +1061,22 @@ function createDOMPurify(window = getGlobal()) {
       !_isNode(currentNode.firstElementChild) &&
       regExpTest(/<[/\w]/g, currentNode.innerHTML) &&
       regExpTest(/<[/\w]/g, currentNode.textContent)
+    ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove any occurrence of processing instructions */
+    if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove any kind of possibly harmful comments */
+    if (
+      SAFE_FOR_XML &&
+      currentNode.nodeType === NODE_TYPE.comment &&
+      regExpTest(/<[/\w]/g, currentNode.data)
     ) {
       _forceRemove(currentNode);
       return true;
@@ -1037,10 +1110,9 @@ function createDOMPurify(window = getGlobal()) {
           const childCount = childNodes.length;
 
           for (let i = childCount - 1; i >= 0; --i) {
-            parentNode.insertBefore(
-              cloneNode(childNodes[i], true),
-              getNextSibling(currentNode)
-            );
+            const childClone = cloneNode(childNodes[i], true);
+            childClone.__removalCount = (currentNode.__removalCount || 0) + 1;
+            parentNode.insertBefore(childClone, getNextSibling(currentNode));
           }
         }
       }
@@ -1067,7 +1139,7 @@ function createDOMPurify(window = getGlobal()) {
     }
 
     /* Sanitize element content to be template-safe */
-    if (SAFE_FOR_TEMPLATES && currentNode.nodeType === 3) {
+    if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
       /* Get the element's text content */
       content = currentNode.textContent;
 
@@ -1090,13 +1162,17 @@ function createDOMPurify(window = getGlobal()) {
   /**
    * _isValidAttribute
    *
-   * @param  {string} lcTag Lowercase tag name of containing element.
-   * @param  {string} lcName Lowercase attribute name.
-   * @param  {string} value Attribute value.
-   * @return {Boolean} Returns true if `value` is valid, otherwise false.
+   * @param lcTag Lowercase tag name of containing element.
+   * @param lcName Lowercase attribute name.
+   * @param value Attribute value.
+   * @return Returns true if `value` is valid, otherwise false.
    */
   // eslint-disable-next-line complexity
-  const _isValidAttribute = function (lcTag, lcName, value) {
+  const _isValidAttribute = function (
+    lcTag: string,
+    lcName: string,
+    value: string
+  ): boolean {
     /* Make sure attribute cannot clobber */
     if (
       SANITIZE_DOM &&
@@ -1189,11 +1265,11 @@ function createDOMPurify(window = getGlobal()) {
    * checks if at least one dash is included in tagName, and it's not the first char
    * for more sophisticated checking see https://github.com/sindresorhus/validate-element-name
    *
-   * @param {string} tagName name of the tag of the node to sanitize
-   * @returns {boolean} Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
+   * @param tagName name of the tag of the node to sanitize
+   * @returns Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
-  const _isBasicCustomElement = function (tagName) {
-    return tagName.indexOf('-') > 0;
+  const _isBasicCustomElement = function (tagName: string): RegExpMatchArray {
+    return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
   };
 
   /**
@@ -1204,9 +1280,9 @@ function createDOMPurify(window = getGlobal()) {
    * @protect removeAttribute
    * @protect setAttribute
    *
-   * @param  {Node} currentNode to sanitize
+   * @param currentNode to sanitize
    */
-  const _sanitizeAttributes = function (currentNode) {
+  const _sanitizeAttributes = function (currentNode: Element): void {
     /* Execute a hook if present */
     _executeHook('beforeSanitizeAttributes', currentNode, null);
 
@@ -1222,6 +1298,7 @@ function createDOMPurify(window = getGlobal()) {
       attrValue: '',
       keepAttr: true,
       allowedAttributes: ALLOWED_ATTR,
+      forceKeepAttr: undefined,
     };
     let l = attributes.length;
 
@@ -1240,6 +1317,24 @@ function createDOMPurify(window = getGlobal()) {
       hookEvent.forceKeepAttr = undefined; // Allows developers to see this is a property they can set
       _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
       value = hookEvent.attrValue;
+
+      /* Full DOM Clobbering protection via namespace isolation,
+       * Prefix id and name attributes with `user-content-`
+       */
+      if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
+        // Remove the attribute with this value
+        _removeAttribute(name, currentNode);
+
+        // Prefix the value and later re-create the attribute with the sanitized value
+        value = SANITIZE_NAMED_PROPS_PREFIX + value;
+      }
+
+      /* Work around a security issue with comments inside attributes */
+      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
+
       /* Did the hooks approve of the attribute? */
       if (hookEvent.forceKeepAttr) {
         continue;
@@ -1270,17 +1365,6 @@ function createDOMPurify(window = getGlobal()) {
       const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
         continue;
-      }
-
-      /* Full DOM Clobbering protection via namespace isolation,
-       * Prefix id and name attributes with `user-content-`
-       */
-      if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
-        // Remove the attribute with this value
-        _removeAttribute(name, currentNode);
-
-        // Prefix the value and later re-create the attribute with the sanitized value
-        value = SANITIZE_NAMED_PROPS_PREFIX + value;
       }
 
       /* Handle attributes that require Trusted Types */
@@ -1319,7 +1403,11 @@ function createDOMPurify(window = getGlobal()) {
           currentNode.setAttribute(name, value);
         }
 
-        arrayPop(DOMPurify.removed);
+        if (_isClobbered(currentNode)) {
+          _forceRemove(currentNode);
+        } else {
+          arrayPop(DOMPurify.removed);
+        }
       } catch (_) {}
     }
 
@@ -1330,9 +1418,9 @@ function createDOMPurify(window = getGlobal()) {
   /**
    * _sanitizeShadowDOM
    *
-   * @param  {DocumentFragment} fragment to iterate over recursively
+   * @param fragment to iterate over recursively
    */
-  const _sanitizeShadowDOM = function (fragment) {
+  const _sanitizeShadowDOM = function (fragment: DocumentFragment): void {
     let shadowNode = null;
     const shadowIterator = _createNodeIterator(fragment);
 
@@ -1361,13 +1449,6 @@ function createDOMPurify(window = getGlobal()) {
     _executeHook('afterSanitizeShadowDOM', fragment, null);
   };
 
-  /**
-   * Sanitize
-   * Public method providing core sanitation functionality
-   *
-   * @param {String|Node} dirty string or DOM node
-   * @param {Object} cfg object
-   */
   // eslint-disable-next-line complexity
   DOMPurify.sanitize = function (dirty, cfg = {}) {
     let body = null;
@@ -1414,8 +1495,8 @@ function createDOMPurify(window = getGlobal()) {
 
     if (IN_PLACE) {
       /* Do some early pre-sanitization to avoid unsafe root nodes */
-      if (dirty.nodeName) {
-        const tagName = transformCaseFunc(dirty.nodeName);
+      if ((dirty as Node).nodeName) {
+        const tagName = transformCaseFunc((dirty as Node).nodeName);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
           throw typeErrorCreate(
             'root node is forbidden and cannot be sanitized in-place'
@@ -1427,7 +1508,10 @@ function createDOMPurify(window = getGlobal()) {
          elements being stripped by the parser */
       body = _initDocument('<!---->');
       importedNode = body.ownerDocument.importNode(dirty, true);
-      if (importedNode.nodeType === 1 && importedNode.nodeName === 'BODY') {
+      if (
+        importedNode.nodeType === NODE_TYPE.element &&
+        importedNode.nodeName === 'BODY'
+      ) {
         /* Node is already a body, use as is */
         body = importedNode;
       } else if (importedNode.nodeName === 'HTML') {
@@ -1542,37 +1626,16 @@ function createDOMPurify(window = getGlobal()) {
       : serializedHTML;
   };
 
-  /**
-   * Public method to set the configuration once
-   * setConfig
-   *
-   * @param {Object} cfg configuration object
-   */
   DOMPurify.setConfig = function (cfg = {}) {
     _parseConfig(cfg);
     SET_CONFIG = true;
   };
 
-  /**
-   * Public method to remove the configuration
-   * clearConfig
-   *
-   */
   DOMPurify.clearConfig = function () {
     CONFIG = null;
     SET_CONFIG = false;
   };
 
-  /**
-   * Public method to check if an attribute value is valid.
-   * Uses last set config, if any. Otherwise, uses config defaults.
-   * isValidAttribute
-   *
-   * @param  {String} tag Tag name of containing element.
-   * @param  {String} attr Attribute name.
-   * @param  {String} value Attribute value.
-   * @return {Boolean} Returns true if `value` is valid. Otherwise, returns false.
-   */
   DOMPurify.isValidAttribute = function (tag, attr, value) {
     /* Initialize shared config vars if necessary. */
     if (!CONFIG) {
@@ -1584,13 +1647,6 @@ function createDOMPurify(window = getGlobal()) {
     return _isValidAttribute(lcTag, lcName, value);
   };
 
-  /**
-   * AddHook
-   * Public method to add DOMPurify hooks
-   *
-   * @param {String} entryPoint entry point for the hook to add
-   * @param {Function} hookFunction function to execute
-   */
   DOMPurify.addHook = function (entryPoint, hookFunction) {
     if (typeof hookFunction !== 'function') {
       return;
@@ -1600,36 +1656,18 @@ function createDOMPurify(window = getGlobal()) {
     arrayPush(hooks[entryPoint], hookFunction);
   };
 
-  /**
-   * RemoveHook
-   * Public method to remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
-   *
-   * @param {String} entryPoint entry point for the hook to remove
-   * @return {Function} removed(popped) hook
-   */
   DOMPurify.removeHook = function (entryPoint) {
     if (hooks[entryPoint]) {
       return arrayPop(hooks[entryPoint]);
     }
   };
 
-  /**
-   * RemoveHooks
-   * Public method to remove all DOMPurify hooks at a given entryPoint
-   *
-   * @param  {String} entryPoint entry point for the hooks to remove
-   */
   DOMPurify.removeHooks = function (entryPoint) {
     if (hooks[entryPoint]) {
       hooks[entryPoint] = [];
     }
   };
 
-  /**
-   * RemoveAllHooks
-   * Public method to remove all DOMPurify hooks
-   */
   DOMPurify.removeAllHooks = function () {
     hooks = {};
   };
@@ -1638,3 +1676,269 @@ function createDOMPurify(window = getGlobal()) {
 }
 
 export default createDOMPurify();
+
+export interface DOMPurify {
+  /**
+   * Creates a DOMPurify instance using the given window-like object. Defaults to `window`.
+   */
+  (root?: WindowLike): DOMPurify;
+
+  /**
+   * Version label, exposed for easier checks
+   * if DOMPurify is up to date or not
+   */
+  version: string;
+
+  /**
+   * Array of elements that DOMPurify removed during sanitation.
+   * Empty if nothing was removed.
+   */
+  removed: Array<RemovedElement | RemovedAttribute>;
+
+  /**
+   * Expose whether this browser supports running the full DOMPurify.
+   */
+  isSupported: boolean;
+
+  /**
+   * Set the configuration once.
+   *
+   * @param cfg configuration object
+   */
+  setConfig(cfg?: Config): void;
+
+  /**
+   * Removes the configuration.
+   */
+  clearConfig(): void;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @returns Sanitized TrustedHTML.
+   */
+  sanitize(
+    dirty: string | Node,
+    cfg: Config & { RETURN_TRUSTED_TYPE: true }
+  ): TrustedHTML;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty DOM node
+   * @param cfg object
+   * @returns Sanitized DOM node.
+   */
+  sanitize(dirty: Node, cfg: Config & { IN_PLACE: true }): Node;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @returns Sanitized DOM node.
+   */
+  sanitize(dirty: string | Node, cfg: Config & { RETURN_DOM: true }): Node;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @returns Sanitized document fragment.
+   */
+  sanitize(
+    dirty: string | Node,
+    cfg: Config & { RETURN_DOM_FRAGMENT: true }
+  ): DocumentFragment;
+
+  /**
+   * Provides core sanitation functionality.
+   *
+   * @param dirty string or DOM node
+   * @param cfg object
+   * @returns Sanitized string.
+   */
+  sanitize(dirty: string | Node, cfg?: Config): string;
+
+  /**
+   * Checks if an attribute value is valid.
+   * Uses last set config, if any. Otherwise, uses config defaults.
+   *
+   * @param tag Tag name of containing element.
+   * @param attr Attribute name.
+   * @param value Attribute value.
+   * @returns Returns true if `value` is valid. Otherwise, returns false.
+   */
+  isValidAttribute(tag: string, attr: string, value: string): boolean;
+
+  /**
+   * Adds a DOMPurify hook.
+   *
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
+   */
+  addHook(entryPoint: BasicHookName, hookFunction: Hook): void;
+
+  /**
+   * Adds a DOMPurify hook.
+   *
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
+   */
+  addHook(
+    entryPoint: 'uponSanitizeElement',
+    hookFunction: UponSanitizeElementHook
+  ): void;
+
+  /**
+   * Adds a DOMPurify hook.
+   *
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
+   */
+  addHook(
+    entryPoint: 'uponSanitizeAttribute',
+    hookFunction: UponSanitizeAttributeHook
+  ): void;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @returns removed(popped) hook
+   */
+  removeHook(entryPoint: BasicHookName): Hook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @returns removed(popped) hook
+   */
+  removeHook(
+    entryPoint: 'uponSanitizeElement'
+  ): UponSanitizeElementHook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @returns removed(popped) hook
+   */
+  removeHook(
+    entryPoint: 'uponSanitizeAttribute'
+  ): UponSanitizeAttributeHook | undefined;
+
+  /**
+   * Removes all DOMPurify hooks at a given entryPoint
+   *
+   * @param entryPoint entry point for the hooks to remove
+   */
+  removeHooks(entryPoint: HookName): void;
+
+  /**
+   * Removes all DOMPurify hooks.
+   */
+  removeAllHooks(): void;
+}
+
+/**
+ * An element removed by DOMPurify.
+ */
+export interface RemovedElement {
+  /**
+   * The element that was removed.
+   */
+  element: Node;
+}
+
+/**
+ * An element removed by DOMPurify.
+ */
+export interface RemovedAttribute {
+  /**
+   * The attribute that was removed.
+   */
+  attribute: Attr | null;
+
+  /**
+   * The element that the attribute was removed.
+   */
+  from: Node;
+}
+
+type BasicHookName =
+  | 'beforeSanitizeElements'
+  | 'afterSanitizeElements'
+  | 'beforeSanitizeAttributes'
+  | 'afterSanitizeAttributes'
+  | 'beforeSanitizeShadowDOM'
+  | 'uponSanitizeShadowNode'
+  | 'afterSanitizeShadowDOM';
+
+type UponSanitizeElementHookName = 'uponSanitizeElement';
+type UponSanitizeAttributeHookName = 'uponSanitizeAttribute';
+
+export type HookName =
+  | BasicHookName
+  | UponSanitizeElementHookName
+  | UponSanitizeAttributeHookName;
+
+export type Hook = (
+  this: DOMPurify,
+  currentNode: Node,
+  hookEvent: null,
+  config: Config
+) => void;
+
+export type UponSanitizeElementHook = (
+  this: DOMPurify,
+  currentNode: Node,
+  hookEvent: UponSanitizeElementHookEvent,
+  config: Config
+) => void;
+
+export type UponSanitizeAttributeHook = (
+  this: DOMPurify,
+  currentNode: Node,
+  hookEvent: UponSanitizeAttributeHookEvent,
+  config: Config
+) => void;
+
+export interface UponSanitizeElementHookEvent {
+  tagName: string;
+  allowedTags: Record<string, boolean>;
+}
+
+export interface UponSanitizeAttributeHookEvent {
+  attrName: string;
+  attrValue: string;
+  keepAttr: boolean;
+  allowedAttributes: Record<string, boolean>;
+  forceKeepAttr: boolean | undefined;
+}
+
+/**
+ * A `Window`-like object containing the properties and types that DOMPurify requires.
+ */
+export type WindowLike = Pick<
+  typeof globalThis,
+  | 'DocumentFragment'
+  | 'HTMLTemplateElement'
+  | 'Node'
+  | 'Element'
+  | 'NodeFilter'
+  | 'NamedNodeMap'
+  | 'HTMLFormElement'
+  | 'DOMParser'
+> & {
+  document?: Document;
+  MozNamedAttrMap?: typeof window.NamedNodeMap;
+  trustedTypes?: typeof window.trustedTypes;
+};

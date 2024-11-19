@@ -9,68 +9,69 @@
 
         <!-- Now let's sanitize that content -->
         <script>
-            /* jshint globalstrict:true */
-            /* global DOMPurify */
             'use strict';
-
+            
             // Specify dirty HTML
-            var dirty = '<a href="foo:?a">INSECURE</a>\
-                         <a href="ftp://abc.de?a"">SECURE</a>\
-                         <a href="https://abc.de?a"">SECURE</a>\
-                         <a href="?a"">SECURE</a>\
-                         <svg><a href="ms-appx://some/app/test.html"><circle r=40 fill=red></a></svg>\
-                         <svg><a href="http://benign.com/"><circle r=40 fill=green></a></svg>\
-                         <svg><a href="#123"><circle r=40 fill=green></a></svg>\
-                         <form action="?form"><input type="submit" value="safe"></form>\
-                         <form action="bingweather:?lat=1&long=2"><input type="submit" value="unsafe"></form>\
-                         <img src="404" width="200" height="200" usemap="#test"><map name="test"><area href="skype://123456?call" shape="rect" coords="0,0,200,200"></area></map>\
-                         <img src="404" width="200" height="200" usemap="#test"><map name="test"><area href="http://test.com/" shape="rect" coords="0,0,200,200"></area></map>\
-                         <math href="http://test.com/">SECURE</math>\
-                         <math href="calculator:">INSECURE</math>\
-                         <math><mi target="xxx" href="http://test.com/">SECURE</mi></math>\
-                         <math><mi href="javascript:alert(1)">INSECURE</mi></math>\
-                         <math><mi target="xxx" href="aim:1111111?call">INSECURE</mi></math>\
-                         <svg xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="https://test.com/"><circle r=40 fill=green></a></svg>\
-                         <svg xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="telnet:1.1.1.1"><circle r=40 fill=red></a></svg>\
-                         <svg xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="?secure"><circle r=40 fill=green></a></svg>';
-
-            // allowed URI schemes
-            var allowlist = ['http', 'https', 'ftp'];
-
-            // build fitting regex
-            var regex = RegExp('^('+allowlist.join('|')+'):', 'im');
-
+            const dirty = `
+                <a href="foo:?a">INSECURE</a>
+                <a href="ftp://abc.de?a">SECURE</a>
+                <a href="https://abc.de?a">SECURE</a>
+                <a href="?a">SECURE</a>
+                <svg><a href="ms-appx://some/app/test.html"><circle r=40 fill=red></a></svg>
+                <svg><a href="http://benign.com/"><circle r=40 fill=green></a></svg>
+                <svg><a href="#123"><circle r=40 fill=green></a></svg>
+                <form action="?form"><input type="submit" value="safe"></form>
+                <form action="bingweather:?lat=1&long=2"><input type="submit" value="unsafe"></form>
+                <img src="404" width="200" height="200" usemap="#test">
+                <map name="test"><area href="skype://123456?call" shape="rect" coords="0,0,200,200"></area></map>
+                <img src="404" width="200" height="200" usemap="#test">
+                <map name="test"><area href="http://test.com/" shape="rect" coords="0,0,200,200"></area></map>
+                <math href="http://test.com/">SECURE</math>
+                <math href="calculator:">INSECURE</math>
+                <math><mi target="xxx" href="http://test.com/">SECURE</mi></math>
+                <math><mi href="javascript:alert(1)">INSECURE</mi></math>
+                <math><mi target="xxx" href="aim:1111111?call">INSECURE</mi></math>
+                <svg xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="https://test.com/"><circle r=40 fill=green></a></svg>
+                <svg xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="telnet:1.1.1.1"><circle r=40 fill=red></a></svg>
+                <svg xmlns:xlink="http://www.w3.org/1999/xlink"><a xlink:href="?secure"><circle r=40 fill=green></a></svg>
+            `;
+            
+            // Allowed URI schemes
+            const allowlist = ['http', 'https', 'ftp'];
+            
+            // Build fitting regex
+            const regex = RegExp(`^(${allowlist.join('|')}):`, 'im');
+            
             // Add a hook to enforce URI scheme allow-list
-            DOMPurify.addHook('afterSanitizeAttributes', function(node){
-
-                // build an anchor to map URLs to
-                var anchor = document.createElement('a');
-
-                // check all href attributes for validity
+            DOMPurify.addHook('afterSanitizeAttributes', node => {
+                // Build an anchor to map URLs to
+                const anchor = document.createElement('a');
+            
+                // Check all href attributes for validity
                 if (node.hasAttribute('href')) {
-                    anchor.href  = node.getAttribute('href');
+                    anchor.href = node.getAttribute('href');
                     if (anchor.protocol && !anchor.protocol.match(regex)) {
                         node.removeAttribute('href');
                     }
                 }
-                // check all action attributes for validity
+                // Check all action attributes for validity
                 if (node.hasAttribute('action')) {
-                    anchor.href  = node.getAttribute('action');
+                    anchor.href = node.getAttribute('action');
                     if (anchor.protocol && !anchor.protocol.match(regex)) {
                         node.removeAttribute('action');
                     }
                 }
-                // check all xlink:href attributes for validity
+                // Check all xlink:href attributes for validity
                 if (node.hasAttribute('xlink:href')) {
-                    anchor.href  = node.getAttribute('xlink:href');
+                    anchor.href = node.getAttribute('xlink:href');
                     if (anchor.protocol && !anchor.protocol.match(regex)) {
                         node.removeAttribute('xlink:href');
                     }
                 }
             });
-
+            
             // Clean HTML string and write into our DIV
-            var clean = DOMPurify.sanitize(dirty);
+            const clean = DOMPurify.sanitize(dirty);
             document.getElementById('sanitized').innerHTML = clean;
         </script>
     </body>
