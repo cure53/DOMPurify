@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.2.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.0/LICENSE */
+/*! @license DOMPurify 3.2.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.1/LICENSE */
 
 /**
  * Configuration to control DOMPurify behavior.
@@ -206,9 +206,9 @@ declare const _default: DOMPurify;
 
 interface DOMPurify {
     /**
-     * Creates a DOMPurify instance using the given window-like object.
+     * Creates a DOMPurify instance using the given window-like object. Defaults to `window`.
      */
-    (root: WindowLike): DOMPurify;
+    (root?: WindowLike): DOMPurify;
     /**
      * Version label, exposed for easier checks
      * if DOMPurify is up to date or not
@@ -396,4 +396,4 @@ type WindowLike = Pick<typeof globalThis, 'DocumentFragment' | 'HTMLTemplateElem
     trustedTypes?: typeof window.trustedTypes;
 };
 
-export { type Config, type Hook, type HookName, type RemovedAttribute, type RemovedElement, type UponSanitizeAttributeHook, type UponSanitizeAttributeHookEvent, type UponSanitizeElementHook, type UponSanitizeElementHookEvent, type WindowLike, _default as default };
+export { type Config, type DOMPurify, type Hook, type HookName, type RemovedAttribute, type RemovedElement, type UponSanitizeAttributeHook, type UponSanitizeAttributeHookEvent, type UponSanitizeElementHook, type UponSanitizeElementHookEvent, type WindowLike, _default as default };

@@ -1677,11 +1677,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
 export default createDOMPurify();
 
-interface DOMPurify {
+export interface DOMPurify {
   /**
-   * Creates a DOMPurify instance using the given window-like object.
+   * Creates a DOMPurify instance using the given window-like object. Defaults to `window`.
    */
-  (root: WindowLike): DOMPurify;
+  (root?: WindowLike): DOMPurify;
 
   /**
    * Version label, exposed for easier checks
