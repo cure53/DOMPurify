@@ -297,7 +297,21 @@ interface DOMPurify {
      * @param entryPoint entry point for the hook to add
      * @param hookFunction function to execute
      */
-    addHook(entryPoint: BasicHookName, hookFunction: Hook): void;
+    addHook(entryPoint: BasicHookName, hookFunction: NodeHook): void;
+    /**
+     * Adds a DOMPurify hook.
+     *
+     * @param entryPoint entry point for the hook to add
+     * @param hookFunction function to execute
+     */
+    addHook(entryPoint: ElementHookName, hookFunction: ElementHook): void;
+    /**
+     * Adds a DOMPurify hook.
+     *
+     * @param entryPoint entry point for the hook to add
+     * @param hookFunction function to execute
+     */
+    addHook(entryPoint: DocumentFragmentHookName, hookFunction: DocumentFragmentHook): void;
     /**
      * Adds a DOMPurify hook.
      *
@@ -319,7 +333,23 @@ interface DOMPurify {
      * @param entryPoint entry point for the hook to remove
      * @returns removed(popped) hook
      */
-    removeHook(entryPoint: BasicHookName): Hook | undefined;
+    removeHook(entryPoint: BasicHookName): NodeHook | undefined;
+    /**
+     * Remove a DOMPurify hook at a given entryPoint
+     * (pops it from the stack of hooks if more are present)
+     *
+     * @param entryPoint entry point for the hook to remove
+     * @returns removed(popped) hook
+     */
+    removeHook(entryPoint: ElementHookName): ElementHook | undefined;
+    /**
+     * Remove a DOMPurify hook at a given entryPoint
+     * (pops it from the stack of hooks if more are present)
+     *
+     * @param entryPoint entry point for the hook to remove
+     * @returns removed(popped) hook
+     */
+    removeHook(entryPoint: DocumentFragmentHookName): DocumentFragmentHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
      * (pops it from the stack of hooks if more are present)
@@ -369,13 +399,17 @@ interface RemovedAttribute {
      */
     from: Node;
 }
-type BasicHookName = 'beforeSanitizeElements' | 'afterSanitizeElements' | 'beforeSanitizeAttributes' | 'afterSanitizeAttributes' | 'beforeSanitizeShadowDOM' | 'uponSanitizeShadowNode' | 'afterSanitizeShadowDOM';
+type BasicHookName = 'beforeSanitizeElements' | 'afterSanitizeElements' | 'uponSanitizeShadowNode';
+type ElementHookName = 'beforeSanitizeAttributes' | 'afterSanitizeAttributes';
+type DocumentFragmentHookName = 'beforeSanitizeShadowDOM' | 'afterSanitizeShadowDOM';
 type UponSanitizeElementHookName = 'uponSanitizeElement';
 type UponSanitizeAttributeHookName = 'uponSanitizeAttribute';
-type HookName = BasicHookName | UponSanitizeElementHookName | UponSanitizeAttributeHookName;
-type Hook = (this: DOMPurify, currentNode: Node, hookEvent: null, config: Config) => void;
+type HookName = BasicHookName | ElementHookName | DocumentFragmentHookName | UponSanitizeElementHookName | UponSanitizeAttributeHookName;
+type NodeHook = (this: DOMPurify, currentNode: Node, hookEvent: null, config: Config) => void;
+type ElementHook = (this: DOMPurify, currentNode: Element, hookEvent: null, config: Config) => void;
+type DocumentFragmentHook = (this: DOMPurify, currentNode: DocumentFragment, hookEvent: null, config: Config) => void;
 type UponSanitizeElementHook = (this: DOMPurify, currentNode: Node, hookEvent: UponSanitizeElementHookEvent, config: Config) => void;
-type UponSanitizeAttributeHook = (this: DOMPurify, currentNode: Node, hookEvent: UponSanitizeAttributeHookEvent, config: Config) => void;
+type UponSanitizeAttributeHook = (this: DOMPurify, currentNode: Element, hookEvent: UponSanitizeAttributeHookEvent, config: Config) => void;
 interface UponSanitizeElementHookEvent {
     tagName: string;
     allowedTags: Record<string, boolean>;
@@ -396,7 +430,7 @@ type WindowLike = Pick<typeof globalThis, 'DocumentFragment' | 'HTMLTemplateElem
     trustedTypes?: typeof window.trustedTypes;
 };
 
-export { type Config, type DOMPurify, type Hook, type HookName, type RemovedAttribute, type RemovedElement, type UponSanitizeAttributeHook, type UponSanitizeAttributeHookEvent, type UponSanitizeElementHook, type UponSanitizeElementHookEvent, type WindowLike };
+export { type Config, type DOMPurify, type DocumentFragmentHook, type ElementHook, type HookName, type NodeHook, type RemovedAttribute, type RemovedElement, type UponSanitizeAttributeHook, type UponSanitizeAttributeHookEvent, type UponSanitizeElementHook, type UponSanitizeElementHookEvent, type WindowLike };
 
 // @ts-ignore
 export = _default;
