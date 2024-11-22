@@ -99,6 +99,20 @@ const _createTrustedTypesPolicy = function (
   }
 };
 
+const _createHooksMap = function (): HooksMap {
+  return {
+    afterSanitizeAttributes: [],
+    afterSanitizeElements: [],
+    afterSanitizeShadowDOM: [],
+    beforeSanitizeAttributes: [],
+    beforeSanitizeElements: [],
+    beforeSanitizeShadowDOM: [],
+    uponSanitizeAttribute: [],
+    uponSanitizeElement: [],
+    uponSanitizeShadowNode: [],
+  };
+};
+
 function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const DOMPurify: DOMPurify = (root: WindowLike) => createDOMPurify(root);
 
@@ -167,7 +181,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   } = document;
   const { importNode } = originalDocument;
 
-  let hooks = {};
+  let hooks = _createHooksMap();
 
   /**
    * Expose whether this browser supports running the full DOMPurify.
@@ -982,45 +996,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return typeof Node === 'function' && value instanceof Node;
   };
 
-  // The following overloads of `_executeHook` add type-safety to the callers,
-  // ensuring that the caller provides the correct `data` parameter.
-
-  /**
-   * _executeHook
-   * Execute user configurable hooks
-   *
-   * @param entryPoint Name of the hook's entry point
-   * @param currentNode node to work on with the hook
-   * @param data additional hook parameters
-   */
-  function _executeHook(
-    entryPoint: BasicHookName,
-    currentNode: Node,
-    data: null
-  ): void;
-
-  function _executeHook(
-    entryPoint: UponSanitizeElementHookName,
-    currentNode: Node,
-    data: UponSanitizeElementHookEvent
-  ): void;
-
-  function _executeHook(
-    entryPoint: UponSanitizeAttributeHookName,
-    currentNode: Node,
-    data: UponSanitizeAttributeHookEvent
-  ): void;
-
-  function _executeHook(
-    entryPoint: HookName,
-    currentNode: Node,
-    data: UponSanitizeAttributeHookEvent | UponSanitizeElementHookEvent | null
-  ): void {
-    if (!hooks[entryPoint]) {
-      return;
-    }
-
-    arrayForEach(hooks[entryPoint], (hook) => {
+  function _executeHooks<
+    T extends
+      | NodeHook
+      | ElementHook
+      | DocumentFragmentHook
+      | UponSanitizeElementHook
+      | UponSanitizeAttributeHook
+  >(hooks: T[], currentNode: Parameters<T>[0], data: Parameters<T>[1]): void {
+    arrayForEach(hooks, (hook) => {
       hook.call(DOMPurify, currentNode, data, CONFIG);
     });
   }
@@ -1038,7 +1022,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     let content = null;
 
     /* Execute a hook if present */
-    _executeHook('beforeSanitizeElements', currentNode, null);
+    _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
 
     /* Check if element is clobbered or can clobber */
     if (_isClobbered(currentNode)) {
@@ -1050,7 +1034,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     const tagName = transformCaseFunc(currentNode.nodeName);
 
     /* Execute a hook if present */
-    _executeHook('uponSanitizeElement', currentNode, {
+    _executeHooks(hooks.uponSanitizeElement, currentNode, {
       tagName,
       allowedTags: ALLOWED_TAGS,
     });
@@ -1154,7 +1138,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Execute a hook if present */
-    _executeHook('afterSanitizeElements', currentNode, null);
+    _executeHooks(hooks.afterSanitizeElements, currentNode, null);
 
     return false;
   };
@@ -1284,7 +1268,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    */
   const _sanitizeAttributes = function (currentNode: Element): void {
     /* Execute a hook if present */
-    _executeHook('beforeSanitizeAttributes', currentNode, null);
+    _executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
 
     const { attributes } = currentNode;
 
@@ -1315,7 +1299,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       hookEvent.attrValue = value;
       hookEvent.keepAttr = true;
       hookEvent.forceKeepAttr = undefined; // Allows developers to see this is a property they can set
-      _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
+      _executeHooks(hooks.uponSanitizeAttribute, currentNode, hookEvent);
       value = hookEvent.attrValue;
 
       /* Full DOM Clobbering protection via namespace isolation,
@@ -1412,7 +1396,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Execute a hook if present */
-    _executeHook('afterSanitizeAttributes', currentNode, null);
+    _executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
   };
 
   /**
@@ -1425,11 +1409,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     const shadowIterator = _createNodeIterator(fragment);
 
     /* Execute a hook if present */
-    _executeHook('beforeSanitizeShadowDOM', fragment, null);
+    _executeHooks(hooks.beforeSanitizeShadowDOM, fragment, null);
 
     while ((shadowNode = shadowIterator.nextNode())) {
       /* Execute a hook if present */
-      _executeHook('uponSanitizeShadowNode', shadowNode, null);
+      _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
 
       /* Sanitize tags and elements */
       if (_sanitizeElements(shadowNode)) {
@@ -1446,7 +1430,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Execute a hook if present */
-    _executeHook('afterSanitizeShadowDOM', fragment, null);
+    _executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
   };
 
   // eslint-disable-next-line complexity
@@ -1652,24 +1636,19 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return;
     }
 
-    hooks[entryPoint] = hooks[entryPoint] || [];
     arrayPush(hooks[entryPoint], hookFunction);
   };
 
   DOMPurify.removeHook = function (entryPoint) {
-    if (hooks[entryPoint]) {
-      return arrayPop(hooks[entryPoint]);
-    }
+    return arrayPop(hooks[entryPoint]);
   };
 
   DOMPurify.removeHooks = function (entryPoint) {
-    if (hooks[entryPoint]) {
-      hooks[entryPoint] = [];
-    }
+    hooks[entryPoint] = [];
   };
 
   DOMPurify.removeAllHooks = function () {
-    hooks = {};
+    hooks = _createHooksMap();
   };
 
   return DOMPurify;
@@ -1780,7 +1759,26 @@ export interface DOMPurify {
    * @param entryPoint entry point for the hook to add
    * @param hookFunction function to execute
    */
-  addHook(entryPoint: BasicHookName, hookFunction: Hook): void;
+  addHook(entryPoint: BasicHookName, hookFunction: NodeHook): void;
+
+  /**
+   * Adds a DOMPurify hook.
+   *
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
+   */
+  addHook(entryPoint: ElementHookName, hookFunction: ElementHook): void;
+
+  /**
+   * Adds a DOMPurify hook.
+   *
+   * @param entryPoint entry point for the hook to add
+   * @param hookFunction function to execute
+   */
+  addHook(
+    entryPoint: DocumentFragmentHookName,
+    hookFunction: DocumentFragmentHook
+  ): void;
 
   /**
    * Adds a DOMPurify hook.
@@ -1811,7 +1809,27 @@ export interface DOMPurify {
    * @param entryPoint entry point for the hook to remove
    * @returns removed(popped) hook
    */
-  removeHook(entryPoint: BasicHookName): Hook | undefined;
+  removeHook(entryPoint: BasicHookName): NodeHook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @returns removed(popped) hook
+   */
+  removeHook(entryPoint: ElementHookName): ElementHook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if more are present)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @returns removed(popped) hook
+   */
+  removeHook(
+    entryPoint: DocumentFragmentHookName
+  ): DocumentFragmentHook | undefined;
 
   /**
    * Remove a DOMPurify hook at a given entryPoint
@@ -1876,23 +1894,50 @@ export interface RemovedAttribute {
 type BasicHookName =
   | 'beforeSanitizeElements'
   | 'afterSanitizeElements'
-  | 'beforeSanitizeAttributes'
-  | 'afterSanitizeAttributes'
+  | 'uponSanitizeShadowNode';
+type ElementHookName = 'beforeSanitizeAttributes' | 'afterSanitizeAttributes';
+type DocumentFragmentHookName =
   | 'beforeSanitizeShadowDOM'
-  | 'uponSanitizeShadowNode'
   | 'afterSanitizeShadowDOM';
-
 type UponSanitizeElementHookName = 'uponSanitizeElement';
 type UponSanitizeAttributeHookName = 'uponSanitizeAttribute';
 
+interface HooksMap {
+  beforeSanitizeElements: NodeHook[];
+  afterSanitizeElements: NodeHook[];
+  beforeSanitizeShadowDOM: DocumentFragmentHook[];
+  uponSanitizeShadowNode: NodeHook[];
+  afterSanitizeShadowDOM: DocumentFragmentHook[];
+  beforeSanitizeAttributes: ElementHook[];
+  afterSanitizeAttributes: ElementHook[];
+  uponSanitizeElement: UponSanitizeElementHook[];
+  uponSanitizeAttribute: UponSanitizeAttributeHook[];
+}
+
 export type HookName =
   | BasicHookName
+  | ElementHookName
+  | DocumentFragmentHookName
   | UponSanitizeElementHookName
   | UponSanitizeAttributeHookName;
 
-export type Hook = (
+export type NodeHook = (
   this: DOMPurify,
   currentNode: Node,
+  hookEvent: null,
+  config: Config
+) => void;
+
+export type ElementHook = (
+  this: DOMPurify,
+  currentNode: Element,
+  hookEvent: null,
+  config: Config
+) => void;
+
+export type DocumentFragmentHook = (
+  this: DOMPurify,
+  currentNode: DocumentFragment,
   hookEvent: null,
   config: Config
 ) => void;
@@ -1906,7 +1951,7 @@ export type UponSanitizeElementHook = (
 
 export type UponSanitizeAttributeHook = (
   this: DOMPurify,
-  currentNode: Node,
+  currentNode: Element,
   hookEvent: UponSanitizeAttributeHookEvent,
   config: Config
 ) => void;
