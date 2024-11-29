@@ -783,8 +783,8 @@
         });
       }
       element.removeAttribute(name);
-      // We void attribute values for unremovable "is"" attributes
-      if (name === 'is' && !ALLOWED_ATTR[name]) {
+      // We void attribute values for unremovable "is" attributes
+      if (name === 'is') {
         if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
           try {
             _forceRemove(element);
