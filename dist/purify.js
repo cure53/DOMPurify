@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.2.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.1/LICENSE */
+/*! @license DOMPurify 3.2.2 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.2/LICENSE */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -285,10 +285,23 @@
       return null;
     }
   };
+  const _createHooksMap = function _createHooksMap() {
+    return {
+      afterSanitizeAttributes: [],
+      afterSanitizeElements: [],
+      afterSanitizeShadowDOM: [],
+      beforeSanitizeAttributes: [],
+      beforeSanitizeElements: [],
+      beforeSanitizeShadowDOM: [],
+      uponSanitizeAttribute: [],
+      uponSanitizeElement: [],
+      uponSanitizeShadowNode: []
+    };
+  };
   function createDOMPurify() {
     let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
     const DOMPurify = root => createDOMPurify(root);
-    DOMPurify.version = '3.2.1';
+    DOMPurify.version = '3.2.2';
     DOMPurify.removed = [];
     if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document) {
       // Not running in a browser, provide a factory function
@@ -341,7 +354,7 @@
     const {
       importNode
     } = originalDocument;
-    let hooks = {};
+    let hooks = _createHooksMap();
     /**
      * Expose whether this browser supports running the full DOMPurify.
      */
@@ -770,8 +783,8 @@
         });
       }
       element.removeAttribute(name);
-      // We void attribute values for unremovable "is"" attributes
-      if (name === 'is' && !ALLOWED_ATTR[name]) {
+      // We void attribute values for unremovable "is" attributes
+      if (name === 'is') {
         if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
           try {
             _forceRemove(element);
@@ -862,11 +875,8 @@
     const _isNode = function _isNode(value) {
       return typeof Node === 'function' && value instanceof Node;
     };
-    function _executeHook(entryPoint, currentNode, data) {
-      if (!hooks[entryPoint]) {
-        return;
-      }
-      arrayForEach(hooks[entryPoint], hook => {
+    function _executeHooks(hooks, currentNode, data) {
+      arrayForEach(hooks, hook => {
         hook.call(DOMPurify, currentNode, data, CONFIG);
       });
     }
@@ -882,7 +892,7 @@
     const _sanitizeElements = function _sanitizeElements(currentNode) {
       let content = null;
       /* Execute a hook if present */
-      _executeHook('beforeSanitizeElements', currentNode, null);
+      _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
       /* Check if element is clobbered or can clobber */
       if (_isClobbered(currentNode)) {
         _forceRemove(currentNode);
@@ -891,7 +901,7 @@
       /* Now let's check the element's type and name */
       const tagName = transformCaseFunc(currentNode.nodeName);
       /* Execute a hook if present */
-      _executeHook('uponSanitizeElement', currentNode, {
+      _executeHooks(hooks.uponSanitizeElement, currentNode, {
         tagName,
         allowedTags: ALLOWED_TAGS
       });
@@ -962,7 +972,7 @@
         }
       }
       /* Execute a hook if present */
-      _executeHook('afterSanitizeElements', currentNode, null);
+      _executeHooks(hooks.afterSanitizeElements, currentNode, null);
       return false;
     };
     /**
@@ -1023,7 +1033,7 @@
      */
     const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
       /* Execute a hook if present */
-      _executeHook('beforeSanitizeAttributes', currentNode, null);
+      _executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
       const {
         attributes
       } = currentNode;
@@ -1054,7 +1064,7 @@
         hookEvent.attrValue = value;
         hookEvent.keepAttr = true;
         hookEvent.forceKeepAttr = undefined; // Allows developers to see this is a property they can set
-        _executeHook('uponSanitizeAttribute', currentNode, hookEvent);
+        _executeHooks(hooks.uponSanitizeAttribute, currentNode, hookEvent);
         value = hookEvent.attrValue;
         /* Full DOM Clobbering protection via namespace isolation,
          * Prefix id and name attributes with `user-content-`
@@ -1129,7 +1139,7 @@
         } catch (_) {}
       }
       /* Execute a hook if present */
-      _executeHook('afterSanitizeAttributes', currentNode, null);
+      _executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
     };
     /**
      * _sanitizeShadowDOM
@@ -1140,10 +1150,10 @@
       let shadowNode = null;
       const shadowIterator = _createNodeIterator(fragment);
       /* Execute a hook if present */
-      _executeHook('beforeSanitizeShadowDOM', fragment, null);
+      _executeHooks(hooks.beforeSanitizeShadowDOM, fragment, null);
       while (shadowNode = shadowIterator.nextNode()) {
         /* Execute a hook if present */
-        _executeHook('uponSanitizeShadowNode', shadowNode, null);
+        _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
         /* Sanitize tags and elements */
         if (_sanitizeElements(shadowNode)) {
           continue;
@@ -1156,7 +1166,7 @@
         _sanitizeAttributes(shadowNode);
       }
       /* Execute a hook if present */
-      _executeHook('afterSanitizeShadowDOM', fragment, null);
+      _executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
     };
     // eslint-disable-next-line complexity
     DOMPurify.sanitize = function (dirty) {
@@ -1314,21 +1324,16 @@
       if (typeof hookFunction !== 'function') {
         return;
       }
-      hooks[entryPoint] = hooks[entryPoint] || [];
       arrayPush(hooks[entryPoint], hookFunction);
     };
     DOMPurify.removeHook = function (entryPoint) {
-      if (hooks[entryPoint]) {
-        return arrayPop(hooks[entryPoint]);
-      }
+      return arrayPop(hooks[entryPoint]);
     };
     DOMPurify.removeHooks = function (entryPoint) {
-      if (hooks[entryPoint]) {
-        hooks[entryPoint] = [];
-      }
+      hooks[entryPoint] = [];
     };
     DOMPurify.removeAllHooks = function () {
-      hooks = {};
+      hooks = _createHooksMap();
     };
     return DOMPurify;
   }
