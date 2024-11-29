@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.2.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.1/LICENSE */
+/*! @license DOMPurify 3.2.2 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.2/LICENSE */
 
 'use strict';
 
@@ -297,7 +297,7 @@ const _createHooksMap = function _createHooksMap() {
 function createDOMPurify() {
   let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
   const DOMPurify = root => createDOMPurify(root);
-  DOMPurify.version = '3.2.1';
+  DOMPurify.version = '3.2.2';
   DOMPurify.removed = [];
   if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document) {
     // Not running in a browser, provide a factory function
@@ -779,8 +779,8 @@ function createDOMPurify() {
       });
     }
     element.removeAttribute(name);
-    // We void attribute values for unremovable "is"" attributes
-    if (name === 'is' && !ALLOWED_ATTR[name]) {
+    // We void attribute values for unremovable "is" attributes
+    if (name === 'is') {
       if (RETURN_DOM || RETURN_DOM_FRAGMENT) {
         try {
           _forceRemove(element);
