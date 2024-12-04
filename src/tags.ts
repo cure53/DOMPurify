@@ -120,7 +120,6 @@ export const html = freeze([
   'wbr',
 ] as const);
 
-// SVG
 export const svg = freeze([
   'svg',
   'a',
