@@ -1147,6 +1147,8 @@ function createDOMPurify() {
     while (shadowNode = shadowIterator.nextNode()) {
       /* Execute a hook if present */
       _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
+      /* Check attributes first */
+      _sanitizeAttributes(shadowNode);
       /* Sanitize tags and elements */
       if (_sanitizeElements(shadowNode)) {
         continue;
@@ -1155,8 +1157,6 @@ function createDOMPurify() {
       if (shadowNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(shadowNode.content);
       }
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(shadowNode);
     }
     /* Execute a hook if present */
     _executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
@@ -1244,6 +1244,8 @@ function createDOMPurify() {
     const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
     /* Now start iterating over the created document */
     while (currentNode = nodeIterator.nextNode()) {
+      /* Check attributes first */
+      _sanitizeAttributes(currentNode);
       /* Sanitize tags and elements */
       if (_sanitizeElements(currentNode)) {
         continue;
@@ -1252,8 +1254,6 @@ function createDOMPurify() {
       if (currentNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(currentNode.content);
       }
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(currentNode);
     }
     /* If we sanitized `dirty` in-place, return it. */
     if (IN_PLACE) {

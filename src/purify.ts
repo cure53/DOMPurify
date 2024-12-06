@@ -1415,6 +1415,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Execute a hook if present */
       _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
 
+      /* Check attributes first */
+      _sanitizeAttributes(shadowNode);
+
       /* Sanitize tags and elements */
       if (_sanitizeElements(shadowNode)) {
         continue;
@@ -1424,9 +1427,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       if (shadowNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(shadowNode.content);
       }
-
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(shadowNode);
     }
 
     /* Execute a hook if present */
@@ -1537,6 +1537,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Now start iterating over the created document */
     while ((currentNode = nodeIterator.nextNode())) {
+      /* Check attributes first */
+      _sanitizeAttributes(currentNode);
+
       /* Sanitize tags and elements */
       if (_sanitizeElements(currentNode)) {
         continue;
@@ -1546,9 +1549,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       if (currentNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(currentNode.content);
       }
-
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(currentNode);
     }
 
     /* If we sanitized `dirty` in-place, return it. */
