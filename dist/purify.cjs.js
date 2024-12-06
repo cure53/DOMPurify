@@ -220,7 +220,7 @@ var xml = freeze(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xli
 var MUSTACHE_EXPR = seal(/\{\{[\w\W]*|[\w\W]*\}\}/gm); // Specify template detection regex for SAFE_FOR_TEMPLATES mode
 var ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
 var TMPLIT_EXPR = seal(/\${[\w\W]*}/gm);
-var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]/); // eslint-disable-line no-useless-escape
+var DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/); // eslint-disable-line no-useless-escape
 var ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
 var IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
 );
@@ -1248,6 +1248,9 @@ function createDOMPurify() {
       /* Execute a hook if present */
       _executeHook('uponSanitizeShadowNode', shadowNode, null);
 
+      /* Check attributes first */
+      _sanitizeAttributes(shadowNode);
+
       /* Sanitize tags and elements */
       if (_sanitizeElements(shadowNode)) {
         continue;
@@ -1257,9 +1260,6 @@ function createDOMPurify() {
       if (shadowNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(shadowNode.content);
       }
-
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(shadowNode);
     }
 
     /* Execute a hook if present */
@@ -1380,6 +1380,9 @@ function createDOMPurify() {
         continue;
       }
 
+      /* Check attributes first */
+      _sanitizeAttributes(currentNode);
+
       /* Sanitize tags and elements */
       if (_sanitizeElements(currentNode)) {
         continue;
@@ -1389,9 +1392,6 @@ function createDOMPurify() {
       if (currentNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(currentNode.content);
       }
-
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(currentNode);
       oldNode = currentNode;
     }
     oldNode = null;

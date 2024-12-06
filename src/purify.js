@@ -1370,6 +1370,9 @@ function createDOMPurify(window = getGlobal()) {
       /* Execute a hook if present */
       _executeHook('uponSanitizeShadowNode', shadowNode, null);
 
+      /* Check attributes first */
+      _sanitizeAttributes(shadowNode);
+
       /* Sanitize tags and elements */
       if (_sanitizeElements(shadowNode)) {
         continue;
@@ -1379,9 +1382,6 @@ function createDOMPurify(window = getGlobal()) {
       if (shadowNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(shadowNode.content);
       }
-
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(shadowNode);
     }
 
     /* Execute a hook if present */
@@ -1515,6 +1515,9 @@ function createDOMPurify(window = getGlobal()) {
         continue;
       }
 
+      /* Check attributes first */
+      _sanitizeAttributes(currentNode);
+
       /* Sanitize tags and elements */
       if (_sanitizeElements(currentNode)) {
         continue;
@@ -1524,9 +1527,6 @@ function createDOMPurify(window = getGlobal()) {
       if (currentNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(currentNode.content);
       }
-
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(currentNode);
 
       oldNode = currentNode;
     }
