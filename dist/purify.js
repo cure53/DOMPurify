@@ -1037,7 +1037,7 @@
         attributes
       } = currentNode;
       /* Check if we have attributes; if not we might have a text node */
-      if (!attributes) {
+      if (!attributes || _isClobbered(currentNode)) {
         return;
       }
       const hookEvent = {
@@ -1153,12 +1153,10 @@
       while (shadowNode = shadowIterator.nextNode()) {
         /* Execute a hook if present */
         _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
-        /* Check attributes first */
-        _sanitizeAttributes(shadowNode);
         /* Sanitize tags and elements */
-        if (_sanitizeElements(shadowNode)) {
-          continue;
-        }
+        _sanitizeElements(shadowNode);
+        /* Check attributes next */
+        _sanitizeAttributes(shadowNode);
         /* Deep shadow DOM detected */
         if (shadowNode.content instanceof DocumentFragment) {
           _sanitizeShadowDOM(shadowNode.content);
@@ -1250,12 +1248,10 @@
       const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
       /* Now start iterating over the created document */
       while (currentNode = nodeIterator.nextNode()) {
-        /* Check attributes first */
-        _sanitizeAttributes(currentNode);
         /* Sanitize tags and elements */
-        if (_sanitizeElements(currentNode)) {
-          continue;
-        }
+        _sanitizeElements(currentNode);
+        /* Check attributes next */
+        _sanitizeAttributes(currentNode);
         /* Shadow DOM detected, sanitize it */
         if (currentNode.content instanceof DocumentFragment) {
           _sanitizeShadowDOM(currentNode.content);
