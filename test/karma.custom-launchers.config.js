@@ -50,12 +50,12 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Sonoma',
   },
-  bs_win81_ie_11: {
+  bs_win10_ie_11: {
     base: 'BrowserStack',
     browser: 'ie',
     browser_version: '11.0',
     os: 'Windows',
-    os_version: '8.1',
+    os_version: '10',
   },
   bs_win10_edge_17: {
     base: 'BrowserStack',
