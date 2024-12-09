@@ -2104,5 +2104,32 @@
       let clean = DOMPurify.sanitize(dirty, config);
       assert.contains(clean, expected);
     });
+    
+    QUnit.test('Test proper handling of attributes with RETURN_DOM', function (assert) {
+      const dirty  = '<body onload="alert(1)">&lt;a<!-- <f --></body>';
+      const config = { 
+        RETURN_DOM: true 
+      };
+      const expected = '<body>&lt;a</body>';
+      let clean = DOMPurify.sanitize(dirty, config);
+      
+      let iframe = document.createElement('iframe')
+      iframe.srcdoc = `<html><head></head>${clean.outerHTML}</html>`
+      document.body.appendChild(iframe); // alert test
+      assert.contains(clean.outerHTML, expected);
+    });
+    
+    QUnit.test('Test proper handling of data-attribiutes in XML modes', function (assert) {
+      const dirty  = '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg"><a xmlns:data-slonser="http://www.w3.org/1999/xlink" data-slonser:href="javascript:alert(1)"><text  x="20" y="35">Click me!</text></a></svg>';
+      const config = { 
+        PARSER_MEDIA_TYPE: 'application/xhtml+xml'
+      };
+      const expected = [
+        '<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"600\" width=\"800\"><a><text y=\"35\" x=\"20\">Click me!</text></a></svg>',
+        '<svg height=\"600\" width=\"800\" xmlns=\"http://www.w3.org/2000/svg\"><a><text y=\"35\" x=\"20\">Click me!</text></a></svg>'
+      ];
+      let clean = DOMPurify.sanitize(dirty, config);
+      assert.contains(clean, expected);
+    });
   };
 });
