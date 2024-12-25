@@ -36,7 +36,9 @@
         "types": "./dist/purify.cjs.d.ts",
         "default": "./dist/purify.cjs.js"
       }
-    }
+    },
+    "./purify.min.js": "./dist/purify.min.js",
+    "./purify.js": "./dist/purify.js"
   },
   "files": [
     "dist"
