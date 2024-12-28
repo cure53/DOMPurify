@@ -37,8 +37,10 @@ if (!construct) {
   };
 }
 const arrayForEach = unapply(Array.prototype.forEach);
+const arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
 const arrayPop = unapply(Array.prototype.pop);
 const arrayPush = unapply(Array.prototype.push);
+const arraySplice = unapply(Array.prototype.splice);
 const stringToLowerCase = unapply(String.prototype.toLowerCase);
 const stringToString = unapply(String.prototype.toString);
 const stringMatch = unapply(String.prototype.match);
@@ -1315,7 +1317,11 @@ function createDOMPurify() {
     }
     arrayPush(hooks[entryPoint], hookFunction);
   };
-  DOMPurify.removeHook = function (entryPoint) {
+  DOMPurify.removeHook = function (entryPoint, hookFunction) {
+    if (hookFunction !== undefined) {
+      const index = arrayLastIndexOf(hooks[entryPoint], hookFunction);
+      return index === -1 ? undefined : arraySplice(hooks[entryPoint], index, 1)[0];
+    }
     return arrayPop(hooks[entryPoint]);
   };
   DOMPurify.removeHooks = function (entryPoint) {

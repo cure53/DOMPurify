@@ -35,9 +35,11 @@ if (!construct) {
 
 const arrayForEach = unapply(Array.prototype.forEach);
 const arrayIndexOf = unapply(Array.prototype.indexOf);
+const arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
 const arrayPop = unapply(Array.prototype.pop);
 const arrayPush = unapply(Array.prototype.push);
 const arraySlice = unapply(Array.prototype.slice);
+const arraySplice = unapply(Array.prototype.splice);
 
 const stringToLowerCase = unapply(String.prototype.toLowerCase);
 const stringToString = unapply(String.prototype.toString);
@@ -201,9 +203,11 @@ export {
   // Array
   arrayForEach,
   arrayIndexOf,
+  arrayLastIndexOf,
   arrayPop,
   arrayPush,
   arraySlice,
+  arraySplice,
   // Object
   entries,
   freeze,

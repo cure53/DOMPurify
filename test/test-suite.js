@@ -2093,6 +2093,39 @@
       // cleanup hook
       DOMPurify.removeHook(entryPoint);
     });
+
+    QUnit.test('removeHook allows specifying the hook to remove', function (assert) {
+      const entryPoint = 'afterSanitizeAttributes';
+      const dirty = '<div class="original"></div>';
+      const expected = '<div class="original first third"></div>';
+
+      const firstHook = function (node) {
+        node.classList.add('first');
+      };
+      const secondHook = function (node) {
+        node.classList.add('second');
+      };
+      const thirdHook = function (node) {
+        node.classList.add('third');
+      };
+
+      DOMPurify.addHook(entryPoint, firstHook);
+      DOMPurify.addHook(entryPoint, secondHook);
+      DOMPurify.addHook(entryPoint, thirdHook);
+
+      // removes the specified hook
+      assert.strictEqual(DOMPurify.removeHook(entryPoint, secondHook), secondHook);
+
+      // can’t remove it again
+      assert.strictEqual(DOMPurify.removeHook(entryPoint, secondHook), undefined);
+
+      // removed hook isn’t used during sanitize
+      assert.strictEqual(DOMPurify.sanitize(dirty), expected);
+
+      // cleanup hooks
+      DOMPurify.removeHook(entryPoint, firstHook);
+      DOMPurify.removeHook(entryPoint, thirdHook);
+    });
     
     QUnit.test('Test proper removal of annotation-xml w. custom elements', function (assert) {
       const dirty  = '<svg><annotation-xml><foreignobject><style><!--</style><p id="--><img src=\'x\' onerror=\'alert(1)\'>">';
