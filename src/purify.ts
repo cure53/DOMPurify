@@ -125,7 +125,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   if (
     !window ||
     !window.document ||
-    window.document.nodeType !== NODE_TYPE.document
+    window.document.nodeType !== NODE_TYPE.document ||
+    !window.Element
   ) {
     // Not running in a browser, provide a factory function
     // so that you can pass your own Window

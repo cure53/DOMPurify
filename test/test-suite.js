@@ -870,6 +870,18 @@
         DOMPurify({ document: 'not really a document' }).sanitize,
         undefined
       );
+      assert.strictEqual(
+        typeof DOMPurify({ ...window, Element: undefined }).version,
+        'string'
+      );
+      assert.strictEqual(
+        DOMPurify({ ...window, Element: undefined }).isSupported,
+        false
+      );
+      assert.strictEqual(
+        DOMPurify({ ...window, Element: undefined }).sanitize,
+        undefined
+      );
       assert.strictEqual(typeof DOMPurify(window).version, 'string');
       assert.strictEqual(typeof DOMPurify(window).sanitize, 'function');
     });
