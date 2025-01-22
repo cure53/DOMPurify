@@ -859,15 +859,24 @@
       assert.strictEqual(DOMPurify({}).isSupported, false);
       assert.strictEqual(DOMPurify({}).sanitize, undefined);
       assert.strictEqual(
-        typeof DOMPurify({ document: 'not really a document' }).version,
+        typeof DOMPurify({
+          document: 'not really a document',
+          Element: window.Element,
+        }).version,
         'string'
       );
       assert.strictEqual(
-        DOMPurify({ document: 'not really a document' }).isSupported,
+        DOMPurify({
+          document: 'not really a document',
+          Element: window.Element,
+        }).isSupported,
         false
       );
       assert.strictEqual(
-        DOMPurify({ document: 'not really a document' }).sanitize,
+        DOMPurify({
+          document: 'not really a document',
+          Element: window.Element,
+        }).sanitize,
         undefined
       );
       assert.strictEqual(
@@ -881,6 +890,14 @@
       assert.strictEqual(
         DOMPurify({ document, Element: undefined }).sanitize,
         undefined
+      );
+      assert.strictEqual(
+        typeof DOMPurify({ document, Element: window.Element }).version,
+        'string'
+      );
+      assert.strictEqual(
+        typeof DOMPurify({ document, Element: window.Element }).sanitize,
+        'function'
       );
       assert.strictEqual(typeof DOMPurify(window).version, 'string');
       assert.strictEqual(typeof DOMPurify(window).sanitize, 'function');
