@@ -871,15 +871,15 @@
         undefined
       );
       assert.strictEqual(
-        typeof DOMPurify({ ...window, Element: undefined }).version,
+        typeof DOMPurify({ document, Element: undefined }).version,
         'string'
       );
       assert.strictEqual(
-        DOMPurify({ ...window, Element: undefined }).isSupported,
+        DOMPurify({ document, Element: undefined }).isSupported,
         false
       );
       assert.strictEqual(
-        DOMPurify({ ...window, Element: undefined }).sanitize,
+        DOMPurify({ document, Element: undefined }).sanitize,
         undefined
       );
       assert.strictEqual(typeof DOMPurify(window).version, 'string');
