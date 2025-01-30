@@ -10,8 +10,10 @@ import {
   entries,
   freeze,
   arrayForEach,
+  arrayLastIndexOf,
   arrayPop,
   arrayPush,
+  arraySplice,
   stringMatch,
   stringReplace,
   stringToLowerCase,
@@ -123,7 +125,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   if (
     !window ||
     !window.document ||
-    window.document.nodeType !== NODE_TYPE.document
+    window.document.nodeType !== NODE_TYPE.document ||
+    !window.Element
   ) {
     // Not running in a browser, provide a factory function
     // so that you can pass your own Window
@@ -1635,7 +1638,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     arrayPush(hooks[entryPoint], hookFunction);
   };
 
-  DOMPurify.removeHook = function (entryPoint) {
+  DOMPurify.removeHook = function (entryPoint, hookFunction) {
+    if (hookFunction !== undefined) {
+      const index = arrayLastIndexOf(hooks[entryPoint], hookFunction);
+
+      return index === -1
+        ? undefined
+        : arraySplice(hooks[entryPoint], index, 1)[0];
+    }
+
     return arrayPop(hooks[entryPoint]);
   };
 
@@ -1800,53 +1811,67 @@ export interface DOMPurify {
 
   /**
    * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
+   * (pops it from the stack of hooks if hook not specified)
    *
    * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
-   */
-  removeHook(entryPoint: BasicHookName): NodeHook | undefined;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
-   */
-  removeHook(entryPoint: ElementHookName): ElementHook | undefined;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
    */
   removeHook(
-    entryPoint: DocumentFragmentHookName
+    entryPoint: BasicHookName,
+    hookFunction?: NodeHook
+  ): NodeHook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if hook not specified)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
+   */
+  removeHook(
+    entryPoint: ElementHookName,
+    hookFunction?: ElementHook
+  ): ElementHook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if hook not specified)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
+   */
+  removeHook(
+    entryPoint: DocumentFragmentHookName,
+    hookFunction?: DocumentFragmentHook
   ): DocumentFragmentHook | undefined;
 
   /**
    * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
+   * (pops it from the stack of hooks if hook not specified)
    *
    * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
    */
   removeHook(
-    entryPoint: 'uponSanitizeElement'
+    entryPoint: 'uponSanitizeElement',
+    hookFunction?: UponSanitizeElementHook
   ): UponSanitizeElementHook | undefined;
 
   /**
    * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
+   * (pops it from the stack of hooks if hook not specified)
    *
    * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
    */
   removeHook(
-    entryPoint: 'uponSanitizeAttribute'
+    entryPoint: 'uponSanitizeAttribute',
+    hookFunction?: UponSanitizeAttributeHook
   ): UponSanitizeAttributeHook | undefined;
 
   /**

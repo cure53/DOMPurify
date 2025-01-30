@@ -1,5 +1,5 @@
 /// <reference types="trusted-types" />
-/*! @license DOMPurify 3.2.3 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.3/LICENSE */
+/*! @license DOMPurify 3.2.4 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.4/LICENSE */
 
 /**
  * Configuration to control DOMPurify behavior.
@@ -329,44 +329,49 @@ interface DOMPurify {
     addHook(entryPoint: 'uponSanitizeAttribute', hookFunction: UponSanitizeAttributeHook): void;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: BasicHookName): NodeHook | undefined;
+    removeHook(entryPoint: BasicHookName, hookFunction?: NodeHook): NodeHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: ElementHookName): ElementHook | undefined;
+    removeHook(entryPoint: ElementHookName, hookFunction?: ElementHook): ElementHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: DocumentFragmentHookName): DocumentFragmentHook | undefined;
+    removeHook(entryPoint: DocumentFragmentHookName, hookFunction?: DocumentFragmentHook): DocumentFragmentHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: 'uponSanitizeElement'): UponSanitizeElementHook | undefined;
+    removeHook(entryPoint: 'uponSanitizeElement', hookFunction?: UponSanitizeElementHook): UponSanitizeElementHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: 'uponSanitizeAttribute'): UponSanitizeAttributeHook | undefined;
+    removeHook(entryPoint: 'uponSanitizeAttribute', hookFunction?: UponSanitizeAttributeHook): UponSanitizeAttributeHook | undefined;
     /**
      * Removes all DOMPurify hooks at a given entryPoint
      *
