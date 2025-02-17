@@ -70,7 +70,7 @@ const customLaunchers = {
     base: 'BrowserStack',
     device: null,
     os: 'OS X',
-    browser_version: '18.2',
+    browser_version: '18.1',
     browser: 'safari',
     os_version: 'Sequoia',
   },
