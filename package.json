@@ -38,7 +38,9 @@
       }
     },
     "./purify.min.js": "./dist/purify.min.js",
-    "./purify.js": "./dist/purify.js"
+    "./purify.js": "./dist/purify.js",
+    "./dist/purify.min.js": "./dist/purify.min.js",
+    "./dist/purify.js": "./dist/purify.js"
   },
   "files": [
     "dist"
