@@ -53,6 +53,8 @@ function addTrustedTypesReference(types) {
   // We need to tell TypeScript that we use the type declarations from
   // `trusted-types` so that it ends up in our type declaration type).
   // Without this, the references to trusted-types in the type declaration
-  // file can cause compilation errors for certain configurations.
-  return `/// <reference types="trusted-types" />\n${types}`;
+  // file can cause compilation errors for certain configurations. We use
+  // the '/lib' entrypoint to avoid modifying global scope, see:
+  // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/trusted-types#library-usage
+  return `/// <reference types="trusted-types/lib" />\n${types}`;
 }
