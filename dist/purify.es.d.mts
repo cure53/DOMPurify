@@ -1,4 +1,4 @@
-/// <reference types="trusted-types" />
+/// <reference types="trusted-types/lib" />
 /*! @license DOMPurify 3.2.4 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.4/LICENSE */
 
 /**
