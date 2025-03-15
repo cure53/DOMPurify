@@ -48,10 +48,13 @@ async function verify(name, directory) {
 
   let diagnostics = await compile(path.join(directory, 'tsconfig.json'));
   let success = diagnostics.length === 0;
+  let report = `\x1b${success ? '[32m✔' : '[31mX'}\x1b[0m`;
 
-  process.stdout.write(
-    `\x1b[${line.length}D\x1b${success ? '[32m✔' : '[31mX'}\x1b[0m ${name}   \n`
-  );
+  if (process.stdout.isTTY) {
+    process.stdout.write(`\x1b[${line.length}D${report} ${name}   \n`);
+  } else {
+    process.stdout.write(` ${report}\n`);
+  }
 
   if (!success) {
     printDiagnostics(diagnostics);
