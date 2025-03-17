@@ -7,7 +7,6 @@ const path = require('node:path');
   // Note that this script is intended to run on the type declaration file that is
   // output by Rollup, and not the type declaration file generated from TypeScript.
   await fixCjsTypes(path.resolve(__dirname, '../dist/purify.cjs.d.ts'));
-  await fixEsmTypes(path.resolve(__dirname, '../dist/purify.es.d.mts'));
 })().catch((ex) => {
   console.error(ex);
   process.exitCode = 1;
@@ -37,24 +36,5 @@ async function fixCjsTypes(fileName) {
   // for certain configurations, so add a `@ts-ignore` comment before it.
   fixed += '\n// @ts-ignore\nexport = _default;\n';
 
-  await fs.writeFile(fileName, addTrustedTypesReference(fixed));
-}
-
-/**
- * Fixes the ESM type declarations file.
- * @param {string} fileName
- */
-async function fixEsmTypes(fileName) {
-  let types = await fs.readFile(fileName, { encoding: 'utf-8' });
-  await fs.writeFile(fileName, addTrustedTypesReference(types));
-}
-
-function addTrustedTypesReference(types) {
-  // We need to tell TypeScript that we use the type declarations from
-  // `trusted-types` so that it ends up in our type declaration type).
-  // Without this, the references to trusted-types in the type declaration
-  // file can cause compilation errors for certain configurations. We use
-  // the '/lib' entrypoint to avoid modifying global scope, see:
-  // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/trusted-types#library-usage
-  return `/// <reference types="trusted-types/lib" />\n${types}`;
+  await fs.writeFile(fileName, fixed);
 }
