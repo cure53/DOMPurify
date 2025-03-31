@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/indent */
 
+import type { TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib';
 import type { Config, UseProfilesConfig } from './config';
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
@@ -2006,5 +2007,4 @@ export type WindowLike = Pick<
 > & {
   document?: Document;
   MozNamedAttrMap?: typeof window.NamedNodeMap;
-  trustedTypes?: typeof window.trustedTypes;
-};
+} & Pick<TrustedTypesWindow, 'trustedTypes'>;
