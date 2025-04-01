@@ -63,7 +63,13 @@ const typeErrorCreate = unconstruct(TypeError);
 function unapply<T>(
   func: (thisArg: any, ...args: any[]) => T
 ): (thisArg: any, ...args: any[]) => T {
-  return (thisArg: any, ...args: any[]): T => apply(func, thisArg, args);
+  return (thisArg: any, ...args: any[]): T => {
+    if (thisArg instanceof RegExp) {
+      thisArg.lastIndex = 0;
+    }
+
+    return apply(func, thisArg, args);
+  };
 }
 
 /**
