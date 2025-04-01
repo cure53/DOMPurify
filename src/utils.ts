@@ -67,8 +67,9 @@ function unapply<T>(
     if (thisArg instanceof RegExp) {
       thisArg.lastIndex = 0;
     }
+
     return apply(func, thisArg, args);
-  }
+  };
 }
 
 /**
