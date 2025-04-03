@@ -19,7 +19,8 @@
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
     "test:karma": "cross-env NODE_ENV=test BABEL_ENV=rollup karma start test/karma.conf.js --log-level warn ",
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:karma -- --log-level error --reporters dots --single-run --shouldTestOnBrowserStack=\"${TEST_BROWSERSTACK}\" --shouldProbeOnly=\"${TEST_PROBE_ONLY}\"",
-    "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint &&  npm run test:jsdom && npm run test:karma -- --browsers Chrome"
+    "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint &&  npm run test:jsdom && npm run test:karma -- --browsers Chrome",
+    "verify-typescript": "node ./typescript/verify.js"
   },
   "main": "./dist/purify.cjs.js",
   "module": "./dist/purify.es.mjs",
@@ -38,7 +39,9 @@
       }
     },
     "./purify.min.js": "./dist/purify.min.js",
-    "./purify.js": "./dist/purify.js"
+    "./purify.js": "./dist/purify.js",
+    "./dist/purify.min.js": "./dist/purify.min.js",
+    "./dist/purify.js": "./dist/purify.js"
   },
   "files": [
     "dist"
@@ -138,7 +141,7 @@
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "directories": {
     "test": "test"
   },

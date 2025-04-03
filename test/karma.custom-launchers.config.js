@@ -66,6 +66,14 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Sonoma',
   },
+  bs_sequoia_safari_18: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'OS X',
+    browser_version: '18.1',
+    browser: 'safari',
+    os_version: 'Sequoia',
+  },
   bs_win10_edge_84: {
     base: 'BrowserStack',
     device: null,
@@ -114,7 +122,7 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: '10',
   },
-  bs_win10_firefox_120: {
+  bs_win11_firefox_120: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
@@ -122,11 +130,19 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: '11',
   },
-  bs_win10_firefox_125: {
+  bs_win11_firefox_125: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
     browser_version: '125.0',
+    browser: 'firefox',
+    os_version: '11',
+  },
+  bs_win11_firefox_134: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '134.0',
     browser: 'firefox',
     os_version: '11',
   },
@@ -178,7 +194,7 @@ const customLaunchers = {
     browser: 'chrome',
     os_version: '10',
   },
-  bs_win10_chrome_120: {
+  bs_win11_chrome_120: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
@@ -186,7 +202,7 @@ const customLaunchers = {
     browser: 'chrome',
     os_version: '11',
   },
-  bs_win10_chrome_124: {
+  bs_win11_chrome_124: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
@@ -194,6 +210,14 @@ const customLaunchers = {
     browser: 'chrome',
     os_version: '11',
   },
+  bs_win11_chrome_133: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '133.0',
+    browser: 'chrome',
+    os_version: '11',
+  },  
 };
 
 const getAllBrowsers = () => Object.keys(customLaunchers);

@@ -2193,5 +2193,15 @@
       let clean = DOMPurify.sanitize(dirty, config);
       assert.contains(clean, expected);
     });
+
+    QUnit.test('Expect the same results when using ALLOWED_URI_REGEXP with the g flag', function (assert) {
+      const dirty  = '<img src="blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a"><a epub:type="noteref" href="epub:EPUB/xhtml/#footnote"></a><img src="blob:http://localhost:5173/84c49be9-3352-4407" >';
+      const config = { 
+        ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/gi,
+      };
+      const expected = '<img src=\"blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a\"><a href=\"epub:EPUB/xhtml/#footnote\"></a><img src=\"blob:http://localhost:5173/84c49be9-3352-4407\">';
+      let clean = DOMPurify.sanitize(dirty, config);
+      assert.strictEqual(clean, expected);
+    });
   };
 });

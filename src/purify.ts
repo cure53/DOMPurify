@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/indent */
 
+import type { TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib';
 import type { Config, UseProfilesConfig } from './config';
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
@@ -1046,8 +1047,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (
       currentNode.hasChildNodes() &&
       !_isNode(currentNode.firstElementChild) &&
-      regExpTest(/<[/\w]/g, currentNode.innerHTML) &&
-      regExpTest(/<[/\w]/g, currentNode.textContent)
+      regExpTest(/<[/\w!]/g, currentNode.innerHTML) &&
+      regExpTest(/<[/\w!]/g, currentNode.textContent)
     ) {
       _forceRemove(currentNode);
       return true;
@@ -2006,5 +2007,4 @@ export type WindowLike = Pick<
 > & {
   document?: Document;
   MozNamedAttrMap?: typeof window.NamedNodeMap;
-  trustedTypes?: typeof window.trustedTypes;
-};
+} & Pick<TrustedTypesWindow, 'trustedTypes'>;

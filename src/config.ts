@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/indent */
 
+import type { TrustedTypePolicy } from 'trusted-types/lib';
+
 /**
  * Configuration to control DOMPurify behavior.
  */
