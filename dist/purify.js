@@ -1062,7 +1062,8 @@
           value: attrValue
         } = attr;
         const lcName = transformCaseFunc(name);
-        let value = name === 'value' ? attrValue : stringTrim(attrValue);
+        const initValue = attrValue;
+        let value = name === 'value' ? initValue : stringTrim(initValue);
         /* Execute a hook if present */
         hookEvent.attrName = lcName;
         hookEvent.attrValue = value;
@@ -1088,10 +1089,9 @@
         if (hookEvent.forceKeepAttr) {
           continue;
         }
-        /* Remove attribute */
-        _removeAttribute(name, currentNode);
         /* Did the hooks approve of the attribute? */
         if (!hookEvent.keepAttr) {
+          _removeAttribute(name, currentNode);
           continue;
         }
         /* Work around a security issue in jQuery 3.0 */
@@ -1108,6 +1108,7 @@
         /* Is `value` valid for this attribute? */
         const lcTag = transformCaseFunc(currentNode.nodeName);
         if (!_isValidAttribute(lcTag, lcName, value)) {
+          _removeAttribute(name, currentNode);
           continue;
         }
         /* Handle attributes that require Trusted Types */
@@ -1128,19 +1129,23 @@
           }
         }
         /* Handle invalid data-* attribute set by try-catching it */
-        try {
-          if (namespaceURI) {
-            currentNode.setAttributeNS(namespaceURI, name, value);
-          } else {
-            /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
-            currentNode.setAttribute(name, value);
+        if (value !== initValue) {
+          try {
+            if (namespaceURI) {
+              currentNode.setAttributeNS(namespaceURI, name, value);
+            } else {
+              /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+              currentNode.setAttribute(name, value);
+            }
+            if (_isClobbered(currentNode)) {
+              _forceRemove(currentNode);
+            } else {
+              arrayPop(DOMPurify.removed);
+            }
+          } catch (_) {
+            _removeAttribute(name, currentNode);
           }
-          if (_isClobbered(currentNode)) {
-            _forceRemove(currentNode);
-          } else {
-            arrayPop(DOMPurify.removed);
-          }
-        } catch (_) {}
+        }
       }
       /* Execute a hook if present */
       _executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
