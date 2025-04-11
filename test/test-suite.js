@@ -145,7 +145,7 @@
         DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
           ALLOW_SELF_CLOSE_IN_ATTR: true,
         }),
-        '<a class="foo <br/>" href="#">abc</a>'
+        '<a href="#" class="foo <br/>">abc</a>'
       );
     });
     QUnit.test('Config-Flag tests: ALLOW_DATA_ATTR', function (assert) {
@@ -451,7 +451,7 @@
         DOMPurify.sanitize('<img src="x" name="getElementById">', {
           SANITIZE_DOM: false,
         }),
-        '<img name="getElementById" src="x">'
+        '<img src="x" name="getElementById">'
       );
       assert.equal(
         DOMPurify.sanitize('<img src="x" name="getElementById">', {
@@ -764,8 +764,8 @@
                 allowCustomizedBuiltInElements: true,
               },
             }
-          ), // DOMPurify swaps the order of attributes here!
-          '<foo-bar forbidden="true" baz="foobar"></foo-bar><div is=""></div>'
+          ),
+          '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is=""></div>'
         );
         assert.equal(
           DOMPurify.sanitize(
@@ -1204,8 +1204,8 @@
           { ADD_URI_SAFE_ATTR: ['poster'] }
         );
         assert.contains(clean, [
-          '<div style="color: red" poster="x:y">Test</div>',
-          '<div style="color: red;" poster="x:y">Test</div>',
+          '<div poster="x:y" style="color: red">Test</div>',
+          '<div poster="x:y" style="color: red;">Test</div>',
         ]);
 
         clean = DOMPurify.sanitize(
@@ -1374,9 +1374,9 @@
         ),
         [
           '<svg><feblend in="SourceGraphic" mode="multiply"></feblend></svg>',
-          '<svg><feblend mode="multiply" in="SourceGraphic"></feblend></svg>',
-          '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
-          '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
+          '<svg><feblend in="SourceGraphic" mode="multiply"></feblend></svg>',
+          '<svg><feBlend in="SourceGraphic" mode="multiply"></feBlend></svg>',
+          '<svg><feBlend in="SourceGraphic" mode="multiply"></feBlend></svg>',
           '<svg xmlns="http://www.w3.org/2000/svg"><feBlend in="SourceGraphic" mode="multiply" /></svg>',
           '<svg xmlns="http://www.w3.org/2000/svg" />',
         ]
@@ -1671,7 +1671,7 @@
           config
         );
         assert.contains(clean, [
-          '<img y="<x" x="/><img src=x onerror=alert(1)>">', // jsdom
+          '<img x="/><img src=x onerror=alert(1)>" y="<x">', // jsdom
           '<img y="<x">',
           '<img y="&lt;x">',
           '<img y="<x">',
@@ -2187,8 +2187,8 @@
         PARSER_MEDIA_TYPE: 'application/xhtml+xml'
       };
       const expected = [
-        '<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"600\" width=\"800\"><a><text y=\"35\" x=\"20\">Click me!</text></a></svg>',
-        '<svg height=\"600\" width=\"800\" xmlns=\"http://www.w3.org/2000/svg\"><a><text y=\"35\" x=\"20\">Click me!</text></a></svg>'
+        '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"600\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>',
+        '<svg width=\"800\" height=\"600\" xmlns=\"http://www.w3.org/2000/svg\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>'
       ];
       let clean = DOMPurify.sanitize(dirty, config);
       assert.contains(clean, expected);
