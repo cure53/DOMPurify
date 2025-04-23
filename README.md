@@ -385,7 +385,7 @@ DOMPurify.addHook(
 
 We are currently using Github Actions in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://github.com/cure53/DOMPurify/actions
 
-You can further run local tests by executing `npm test`. The tests work fine with Node.js v0.6.2 and jsdom@8.5.0.
+You can further run local tests by executing `npm run test`.
 
 All relevant commits will be signed with the key `0x24BB6BF4` for additional security (since 8th of April 2016).
 
