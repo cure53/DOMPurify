@@ -22,10 +22,10 @@ DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with s
 
 It's easy. Just include DOMPurify on your website.
 
-### Using the unminified development version
+### Using the unminified version (source-map available)
 
 ```html
-<script type="text/javascript" src="src/purify.js"></script>
+<script type="text/javascript" src="dist/purify.js"></script>
 ```
 
 ### Using the minified and tested production version (source-map available)
