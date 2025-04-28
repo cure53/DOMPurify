@@ -303,7 +303,7 @@ const clean = DOMPurify.sanitize(dirty, {
     TRUSTED_TYPES_POLICY: trustedTypes.createPolicy({
         createHTML(s) { return s},
         createScriptURL(s) { return s},
-    }
+    })
 });
 ```
 ### Influence how we sanitize
