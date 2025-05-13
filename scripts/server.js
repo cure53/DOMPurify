@@ -23,7 +23,12 @@ http
     if (uri === '/test/') {
       uri = '/test/index.html';
     }
-    filename = path.join(process.cwd(), uri);
+    filename = fs.realpathSync(path.resolve(process.cwd(), uri));
+    if (!filename.startsWith(process.cwd())) {
+      res.writeHead(403, { 'Content-Type': 'text/plain' });
+      res.end('403 Forbidden\n');
+      return;
+    }
 
     domain.on('error', function () {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
