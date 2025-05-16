@@ -2,6 +2,13 @@
 
 [![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) ![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=minified) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/cure53/dompurify?color=%233C1) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
 
+---
+⚠️ **Note on Snyk Advisory [SNYK-JS-DOMPURIFY-10176060](https://security.snyk.io/vuln/SNYK-JS-DOMPURIFY-10176060):** ⚠️  
+
+**This advisory targets a test server script used only for local development, if at all. The issue is mischaracterized — it does not allow reading arbitrary files, only viewing files in a browser when the test server is manually started. DOMPurify users are not affected and can safely ignore this advisory.**
+
+---
+
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
 It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.2.5**.
