@@ -523,10 +523,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       : DEFAULT_FORBID_CONTENTS;
     FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS')
       ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
-      : {};
+      : clone({});
     FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR')
       ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
-      : {};
+      : clone({});
     USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES')
       ? cfg.USE_PROFILES
       : false;
@@ -1045,6 +1045,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Detect mXSS attempts abusing namespace confusion */
     if (
+      SAFE_FOR_XML &&
       currentNode.hasChildNodes() &&
       !_isNode(currentNode.firstElementChild) &&
       regExpTest(/<[/\w!]/g, currentNode.innerHTML) &&
