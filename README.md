@@ -4,7 +4,7 @@
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
-⚠️ **Please consider switching to the 3.x branch — we would love to stop having to support MSIE 😅 Thank you.** ⚠️
+⚠️ **Please consider switching to the 3.x branch — we'd love to stop having to support MSIE 😅 Thanks.** ⚠️
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
