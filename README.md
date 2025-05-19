@@ -1,12 +1,14 @@
 # DOMPurify
 
+⚠️ **Please consider switching to the 3.x branch — we would love to stop having to support MSIE 😅 Thank you.** ⚠️
+
 [![npm version](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Build and Test](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![minified size](https://badgen.net/bundlephobia/min/dompurify?color=green&label=minified)](https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js) [![gzip size](https://badgen.net/bundlephobia/minzip/dompurify?color=green&label=gzipped)](https://packagephobia.now.sh/result?p=dompurify) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
 
 [![NPM](https://nodei.co/npm/dompurify.png)](https://nodei.co/npm/dompurify/)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached **version 3.2.5**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached **version 3.2.6**.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Internet Explorer (10+), Edge, Firefox and Chrome - as well as almost anything else using Blink or WebKit). It doesn't break on MSIE6 or other legacy browsers. It either uses [a fall-back](#what-about-older-browsers-like-msie8) or simply does nothing.
 
