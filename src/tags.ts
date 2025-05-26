@@ -88,6 +88,7 @@ export const html = freeze([
   'ruby',
   's',
   'samp',
+  'search',
   'section',
   'select',
   'shadow',

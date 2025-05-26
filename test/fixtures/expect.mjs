@@ -914,5 +914,10 @@ export default [
       "title": "Tests against removal of templates inside select elements",
       "payload": "<select><template><img src=x onerror=alert(1)></template></select>",
       "expected": "<select><template><img src=\"x\"></template></select>"
+  }, {
+      "title":"Testing support for search",
+      "payload": "<header><h1>Movie website</h1><search><form action=\"./search/\"><label for=\"movie\">Find a Movie</label><input type=\"search\" id=\"movie\" name=\"q\" /><button type=\"submit\">Search</button></form></search></header>",
+      "expected": "<header><h1>Movie website</h1><search><form action=\"./search/\"><label for=\"movie\">Find a Movie</label><input type=\"search\" id=\"movie\" name=\"q\"><button type=\"submit\">Search</button></form></search></header>"
   }
 ];
+
