@@ -764,6 +764,10 @@ export default [
           "<img srcset=\"medium.jpg 1000w, large.jpg 2000w\" src=\"small.jpg\">"
       ]
   }, {
+    "title": "Testing support for inert",
+    "payload": "<div inert></div>",
+    "expected": "<div inert=\"\"></div>"
+  }, {
       "title": "Tests against mXSS behavior with SVG in Chrome 77 and alike 1/2",
       "payload": "<svg></p><textarea><title><style></textarea><img src=x onerror=alert(1)></style></title></svg>",
       "expected": [

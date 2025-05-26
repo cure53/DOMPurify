@@ -42,6 +42,7 @@ export const html = freeze([
   'headers',
   'height',
   'hidden',
+  'inert',
   'high',
   'href',
   'hreflang',
