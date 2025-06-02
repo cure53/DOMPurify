@@ -1081,6 +1081,11 @@ function createDOMPurify() {
         _removeAttribute(name, currentNode);
         continue;
       }
+      /* Make sure we cannot easily use animated hrefs, even if animations are allowed */
+      if (lcName === 'attributename' && stringMatch(value, 'href')) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
       /* Did the hooks approve of the attribute? */
       if (hookEvent.forceKeepAttr) {
         continue;
