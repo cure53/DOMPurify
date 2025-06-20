@@ -76,7 +76,7 @@ interface Config {
          * Regular expression or function to match to allowed attributes.
          * Default is null (disallow any attributes not on the allow list).
          */
-        attributeNameCheck?: RegExp | ((attributeName: string) => boolean) | null | undefined;
+        attributeNameCheck?: RegExp | ((attributeName: string, tagName?: string) => boolean) | null | undefined;
         /**
          * Allow custom elements derived from built-ins if they pass `tagNameCheck`. Default is false.
          */

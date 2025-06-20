@@ -1197,7 +1197,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
           ((CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp &&
             regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName)) ||
             (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function &&
-              CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)))) ||
+              CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName, lcTag)))) ||
         // Alternative, second condition checks if it's an `is`-attribute, AND
         // the value passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
         (lcName === 'is' &&

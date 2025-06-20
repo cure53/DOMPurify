@@ -91,7 +91,7 @@ export interface Config {
      */
     attributeNameCheck?:
       | RegExp
-      | ((attributeName: string) => boolean)
+      | ((attributeName: string, tagName?: string) => boolean)
       | null
       | undefined;
 
