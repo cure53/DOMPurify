@@ -819,6 +819,32 @@
         assert.ok(true);
       }
     );
+    QUnit.test(
+      'CUSTOM_ELEMENT_HANDLING attributeNameCheck with tagName parameter',
+      function (assert) {
+        assert.equal(
+          DOMPurify.sanitize(
+            '<element-one attribute-one="1" attribute-two="2"></element-one><element-two attribute-one="1" attribute-two="2"></element-two>',
+            {
+              CUSTOM_ELEMENT_HANDLING: {
+                tagNameCheck: (tagName) => tagName.match(/^element-(one|two)$/),
+                attributeNameCheck: (attr, tagName) => {
+                  if (tagName === 'element-one') {
+                    return ['attribute-one'].includes(attr);
+                  } else if (tagName === 'element-two') {
+                    return ['attribute-two'].includes(attr);
+                  } else {
+                    return false;
+                  }
+                },
+                allowCustomizedBuiltInElements: false,
+              },
+            }
+          ),
+          '<element-one attribute-one="1"></element-one><element-two attribute-two="2"></element-two>'
+        );
+      }
+    );
     QUnit.test('Test dirty being an array', function (assert) {
       assert.equal(
         DOMPurify.sanitize(['<a>123<b>456</b></a>']),
