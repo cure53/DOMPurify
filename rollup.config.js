@@ -21,6 +21,19 @@ const commonOutputConfig = {
   exports: 'default',
 };
 
+// 🔧 Plugin to strip named type exports from .d.ts for CommonJS
+const stripNamedTypeExports = () => ({
+  name: 'strip-named-type-exports',
+  transform(code, id) {
+    if (id.endsWith('.d.ts')) {
+      return {
+        code: code.replace(/^export\s+\{\s*type[\s\S]+?^\};\s*$/gm, ''),
+        map: null,
+      };
+    }
+  },
+});
+
 const config = [
   {
     input: 'src/purify.ts',
@@ -53,8 +66,6 @@ const config = [
         clean: true,
       }),
       babel({
-        // It is recommended to configure this option explicitly (even if with its default value) so an informed decision is taken on how those babel helpers are inserted into the code.
-        // Ref: https://github.com/rollup/plugins/tree/master/packages/babel#babelhelpers
         babelHelpers: 'bundled',
         exclude: ['**/node_modules/**'],
         extensions: [...DEFAULT_EXTENSIONS, '.ts'],
@@ -69,6 +80,8 @@ const config = [
       }),
     ],
   },
+
+  // ESM type declarations
   {
     input: './dist/types/purify.d.ts',
     output: [
@@ -80,6 +93,8 @@ const config = [
     ],
     plugins: [dts()],
   },
+
+  // CJS type declarations with named export stripping
   {
     input: './dist/types/purify.d.ts',
     output: [
@@ -89,7 +104,10 @@ const config = [
         banner: commonOutputConfig.banner,
       },
     ],
-    plugins: [dts()],
+    plugins: [
+      stripNamedTypeExports(),
+      dts(),
+    ],
   },
 ];
 
