@@ -456,3 +456,9 @@ Many people helped and help DOMPurify become what it is and need to be acknowled
 <a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://github.com/cure53/DOMPurify/assets/6709482/f70be7eb-8fc4-41ea-9653-9d359235328f"></a><br>
 
 And last but not least, thanks to [BrowserStack Open-Source Program](https://www.browserstack.com/open-source) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
+
+
+## Community
+
+In case you would like to understand the internal, contribute or get started, you could reach the community at:
+- [discord at: https://discord.gg/YmeQetHu](https://discord.gg/YmeQetHu)
