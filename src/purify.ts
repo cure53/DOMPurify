@@ -62,11 +62,13 @@ const getGlobal = function (): WindowLike {
  */
 const _createTrustedTypesPolicy = function (
   trustedTypes: TrustedTypePolicyFactory,
-  purifyHostElement: HTMLScriptElement
+  purifyHostElement: HTMLScriptElement,
+  config: Config
 ) {
   if (
     typeof trustedTypes !== 'object' ||
-    typeof trustedTypes.createPolicy !== 'function'
+    typeof trustedTypes.createPolicy !== 'function' ||
+    config.RETURN_TRUSTED_TYPE === false
   ) {
     return null;
   }
@@ -682,7 +684,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       if (trustedTypesPolicy === undefined) {
         trustedTypesPolicy = _createTrustedTypesPolicy(
           trustedTypes,
-          currentScript
+          currentScript,
+          cfg
         );
       }
 
