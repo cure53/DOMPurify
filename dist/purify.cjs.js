@@ -255,8 +255,8 @@ const getGlobal = function getGlobal() {
  * @return The policy created (or null, if Trusted Types
  * are not supported or creating the policy failed).
  */
-const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, purifyHostElement, config) {
-  if (typeof trustedTypes !== 'object' || typeof trustedTypes.createPolicy !== 'function' || config.RETURN_TRUSTED_TYPE === false) {
+const _createTrustedTypesPolicy = function _createTrustedTypesPolicy(trustedTypes, purifyHostElement) {
+  if (typeof trustedTypes !== 'object' || typeof trustedTypes.createPolicy !== 'function') {
     return null;
   }
   // Allow the callers to control the unique policy name
@@ -651,7 +651,7 @@ function createDOMPurify() {
     } else {
       // Uninitialized policy, attempt to initialize the internal dompurify policy.
       if (trustedTypesPolicy === undefined) {
-        trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript, cfg);
+        trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
       }
       // If creating the internal policy succeeded sign internal variables.
       if (trustedTypesPolicy !== null && typeof emptyHTML === 'string') {
