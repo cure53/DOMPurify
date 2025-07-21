@@ -278,23 +278,23 @@
           ),
           '<a>123</a><option></option>'
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><iframe></select><b><script>alert(1)</script>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><iframe></select><b><script>alert(1)</script>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
         assert.equal(
           DOMPurify.sanitize(
@@ -1132,7 +1132,7 @@
     QUnit.test('DOMPurify.removed should be correct', function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)</script>';
       DOMPurify.sanitize(dirty);
-      assert.equal(DOMPurify.removed.length, 1);
+      assert.equal(DOMPurify.removed.length, 2);
     });
 
     // Test 8 to check that DOMPurify.removed is correct if tags are clean

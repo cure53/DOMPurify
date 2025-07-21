@@ -12,7 +12,7 @@
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', 'https://cdn.rawgit.com/cure53/DOMPurify/main/test/fixtures/expect.mjs');
                 xhr.onload = function(){
-                    var data=JSON.parse(xhr.responseText.slice(15, -2));
+                    var data=JSON.parse(xhr.responseText.slice(15, -1));
                     x.value = '<!-- I am ready now, click one of the buttons! -->\r\n';
                     for(var i in data) {
                         x.value+=data[i].payload+"\r\n\r\n";

@@ -1061,6 +1061,19 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
+    /* Remove any kind of possibly harmful rawtext elements */
+    if (
+      SAFE_FOR_XML &&
+      currentNode.hasChildNodes() &&
+      regExpTest(
+        /<\/(style|script|xmp|iframe|noembed|noframes|plaintext|noscript)/gi,
+        currentNode.textContent
+      )
+    ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Remove any kind of possibly harmful comments */
     if (
       SAFE_FOR_XML &&
