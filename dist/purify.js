@@ -1086,7 +1086,7 @@
           value = SANITIZE_NAMED_PROPS_PREFIX + value;
         }
         /* Work around a security issue with comments inside attributes */
-        if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+        if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title|textarea)/i, value)) {
           _removeAttribute(name, currentNode);
           continue;
         }
