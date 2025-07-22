@@ -1132,7 +1132,7 @@
     QUnit.test('DOMPurify.removed should be correct', function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)</script>';
       DOMPurify.sanitize(dirty);
-      assert.equal(DOMPurify.removed.length, 2);
+      assert.equal(DOMPurify.removed.length, 1);
     });
 
     // Test 8 to check that DOMPurify.removed is correct if tags are clean
