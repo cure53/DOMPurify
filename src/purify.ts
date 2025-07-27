@@ -1000,15 +1000,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return typeof Node === 'function' && value instanceof Node;
   };
 
-  function _executeHooks<
-    T extends
-      | NodeHook
-      | ElementHook
-      | DocumentFragmentHook
-      | UponSanitizeElementHook
-      | UponSanitizeAttributeHook
-  >(hooks: T[], currentNode: Parameters<T>[0], data: Parameters<T>[1]): void {
-    arrayForEach(hooks, (hook) => {
+  function _executeHooks<T extends HookFunction>(
+    hooks: HookFunction[],
+    currentNode: Parameters<T>[0],
+    data: Parameters<T>[1]
+  ): void {
+    arrayForEach(hooks, (hook: T) => {
       hook.call(DOMPurify, currentNode, data, CONFIG);
     });
   }
@@ -1132,7 +1129,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Get the element's text content */
       content = currentNode.textContent;
 
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
         content = stringReplace(content, expr, ' ');
       });
 
@@ -1353,7 +1350,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
-        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
           value = stringReplace(value, expr, ' ');
         });
       }
@@ -1614,7 +1611,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
         serializedHTML = stringReplace(serializedHTML, expr, ' ');
       });
     }
@@ -1645,7 +1642,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return _isValidAttribute(lcTag, lcName, value);
   };
 
-  DOMPurify.addHook = function (entryPoint, hookFunction) {
+  DOMPurify.addHook = function (
+    entryPoint: keyof HooksMap,
+    hookFunction: HookFunction
+  ) {
     if (typeof hookFunction !== 'function') {
       return;
     }
@@ -1653,7 +1653,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     arrayPush(hooks[entryPoint], hookFunction);
   };
 
-  DOMPurify.removeHook = function (entryPoint, hookFunction) {
+  DOMPurify.removeHook = function (
+    entryPoint: keyof HooksMap,
+    hookFunction: HookFunction
+  ) {
     if (hookFunction !== undefined) {
       const index = arrayLastIndexOf(hooks[entryPoint], hookFunction);
 
@@ -1665,7 +1668,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return arrayPop(hooks[entryPoint]);
   };
 
-  DOMPurify.removeHooks = function (entryPoint) {
+  DOMPurify.removeHooks = function (entryPoint: keyof HooksMap) {
     hooks[entryPoint] = [];
   };
 
@@ -1949,6 +1952,10 @@ interface HooksMap {
   uponSanitizeElement: UponSanitizeElementHook[];
   uponSanitizeAttribute: UponSanitizeAttributeHook[];
 }
+
+type ArrayElement<T> = T extends Array<infer U> ? U : never;
+
+type HookFunction = ArrayElement<HooksMap[keyof HooksMap]>;
 
 export type HookName =
   | BasicHookName
