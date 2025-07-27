@@ -67,10 +67,10 @@ const typeErrorCreate = unconstruct(TypeError);
  * @param func - The function to be wrapped and called.
  * @returns A new function that calls the given function with a specified thisArg and arguments.
  */
-function unapply<T extends (...args: any[]) => any>(
-  func: T
-): (thisArg: any, ...args: any[]) => ReturnType<T> {
-  return (thisArg: any, ...args: any[]): ReturnType<T> => {
+function unapply<T>(
+  func: (thisArg: any, ...args: any[]) => T
+): (thisArg: any, ...args: any[]) => T {
+  return (thisArg: any, ...args: any[]): T => {
     if (thisArg instanceof RegExp) {
       thisArg.lastIndex = 0;
     }
@@ -102,9 +102,7 @@ function unconstruct<T extends new (...args: any[]) => any>(
 function addToSet(
   set: Record<string, any>,
   array: readonly any[],
-  transformCaseFunc: ReturnType<
-    typeof unapply<(...args: any[]) => string>
-  > = stringToLowerCase
+  transformCaseFunc: ReturnType<typeof unapply<string>> = stringToLowerCase
 ): Record<string, any> {
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
@@ -189,10 +187,10 @@ function clone<T extends Record<string, any>>(object: T): T {
  * @param prop - The property name for which to find the getter function.
  * @returns The getter function found in the prototype chain or a fallback function.
  */
-function lookupGetter<
-  T extends Record<string, any>,
-  R extends (...args: any[]) => any
->(object: T, prop: string): ReturnType<typeof unapply<R>> | (() => null) {
+function lookupGetter<T extends Record<string, any>>(
+  object: T,
+  prop: string
+): ReturnType<typeof unapply<any>> | (() => null) {
   while (object !== null) {
     const desc = getOwnPropertyDescriptor(object, prop);
 
@@ -202,7 +200,7 @@ function lookupGetter<
       }
 
       if (typeof desc.value === 'function') {
-        return unapply(desc.value as R);
+        return unapply(desc.value);
       }
     }
 
