@@ -69,7 +69,7 @@ const typeErrorCreate = unconstruct(TypeError);
  */
 function unapply<T extends (...args: any[]) => any>(
   func: T
-): (thisArg: ThisParameterType<T>, ...args: any[]) => ReturnType<T> {
+): (thisArg: any, ...args: any[]) => ReturnType<T> {
   return (thisArg: any, ...args: any[]): ReturnType<T> => {
     if (thisArg instanceof RegExp) {
       thisArg.lastIndex = 0;
@@ -189,10 +189,10 @@ function clone<T extends Record<string, any>>(object: T): T {
  * @param prop - The property name for which to find the getter function.
  * @returns The getter function found in the prototype chain or a fallback function.
  */
-function lookupGetter<T extends Record<string, any>>(
-  object: T,
-  prop: string
-): ReturnType<typeof unapply<any>> | (() => null) {
+function lookupGetter<
+  T extends Record<string, any>,
+  R extends (...args: any[]) => any
+>(object: T, prop: string): ReturnType<typeof unapply<R>> | (() => null) {
   while (object !== null) {
     const desc = getOwnPropertyDescriptor(object, prop);
 
@@ -202,7 +202,7 @@ function lookupGetter<T extends Record<string, any>>(
       }
 
       if (typeof desc.value === 'function') {
-        return unapply(desc.value);
+        return unapply(desc.value as R);
       }
     }
 
