@@ -10,25 +10,32 @@ let { freeze, seal, create } = Object; // eslint-disable-line import/no-mutable-
 let { apply, construct } = typeof Reflect !== 'undefined' && Reflect;
 
 if (!freeze) {
-  freeze = function (x) {
+  freeze = function <T>(x: T): T {
     return x;
   };
 }
 
 if (!seal) {
-  seal = function (x) {
+  seal = function <T>(x: T): T {
     return x;
   };
 }
 
 if (!apply) {
-  apply = function (fun, thisValue, args) {
+  apply = function <T extends (...args: any[]) => any>(
+    fun: T,
+    thisValue: ThisParameterType<T>,
+    ...args: any[]
+  ): ReturnType<T> {
     return fun.apply(thisValue, args);
   };
 }
 
 if (!construct) {
-  construct = function (Func, args) {
+  construct = function <T extends new (...args: any[]) => any>(
+    Func: T,
+    ...args: any[]
+  ): InstanceType<T> {
     return new Func(...args);
   };
 }
@@ -60,10 +67,10 @@ const typeErrorCreate = unconstruct(TypeError);
  * @param func - The function to be wrapped and called.
  * @returns A new function that calls the given function with a specified thisArg and arguments.
  */
-function unapply<T>(
-  func: (thisArg: any, ...args: any[]) => T
-): (thisArg: any, ...args: any[]) => T {
-  return (thisArg: any, ...args: any[]): T => {
+function unapply<T extends (...args: any[]) => any>(
+  func: T
+): (thisArg: ThisParameterType<T>, ...args: any[]) => ReturnType<T> {
+  return (thisArg: any, ...args: any[]): ReturnType<T> => {
     if (thisArg instanceof RegExp) {
       thisArg.lastIndex = 0;
     }
@@ -78,8 +85,10 @@ function unapply<T>(
  * @param func - The constructor function to be wrapped and called.
  * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
  */
-function unconstruct<T>(func: (...args: any[]) => T): (...args: any[]) => T {
-  return (...args: any[]): T => construct(func, args);
+function unconstruct<T extends new (...args: any[]) => any>(
+  func: T
+): (...args: any[]) => InstanceType<T> {
+  return (...args: any[]): InstanceType<T> => construct(func, args);
 }
 
 /**
@@ -93,7 +102,9 @@ function unconstruct<T>(func: (...args: any[]) => T): (...args: any[]) => T {
 function addToSet(
   set: Record<string, any>,
   array: readonly any[],
-  transformCaseFunc: ReturnType<typeof unapply<string>> = stringToLowerCase
+  transformCaseFunc: ReturnType<
+    typeof unapply<(...args: any[]) => string>
+  > = stringToLowerCase
 ): Record<string, any> {
   if (setPrototypeOf) {
     // Make 'in' and truthy checks like Boolean(set.constructor)
