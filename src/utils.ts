@@ -22,12 +22,12 @@ if (!seal) {
 }
 
 if (!apply) {
-  apply = function <T extends (...args: any[]) => any>(
-    fun: T,
-    thisValue: ThisParameterType<T>,
+  apply = function <T>(
+    func: (thisArg: any, ...args: any[]) => T,
+    thisArg: any,
     ...args: any[]
-  ): ReturnType<T> {
-    return fun.apply(thisValue, args);
+  ): T {
+    return func.apply(thisArg, args);
   };
 }
 

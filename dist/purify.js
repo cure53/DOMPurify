@@ -33,11 +33,11 @@
     };
   }
   if (!apply) {
-    apply = function apply(fun, thisValue) {
+    apply = function apply(func, thisArg) {
       for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
         args[_key - 2] = arguments[_key];
       }
-      return fun.apply(thisValue, args);
+      return func.apply(thisArg, args);
     };
   }
   if (!construct) {
