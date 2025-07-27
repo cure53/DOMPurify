@@ -85,12 +85,12 @@
    * @param func - The constructor function to be wrapped and called.
    * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
    */
-  function unconstruct(func) {
+  function unconstruct(Func) {
     return function () {
       for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
         args[_key4] = arguments[_key4];
       }
-      return construct(func, args);
+      return construct(Func, args);
     };
   }
   /**

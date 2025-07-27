@@ -83,9 +83,9 @@ function unapply<T>(
  * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
  */
 function unconstruct<T>(
-  func: new (...args: any[]) => T
+  Func: new (...args: any[]) => T
 ): (...args: any[]) => T {
-  return (...args: any[]): T => construct(func, args);
+  return (...args: any[]): T => construct(Func, args);
 }
 
 /**
