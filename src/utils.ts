@@ -32,10 +32,7 @@ if (!apply) {
 }
 
 if (!construct) {
-  construct = function <T extends new (...args: any[]) => any>(
-    Func: T,
-    ...args: any[]
-  ): InstanceType<T> {
+  construct = function <T>(Func: new (...args: any[]) => T, ...args: any[]): T {
     return new Func(...args);
   };
 }
@@ -85,10 +82,10 @@ function unapply<T>(
  * @param func - The constructor function to be wrapped and called.
  * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
  */
-function unconstruct<T extends new (...args: any[]) => any>(
-  func: T
-): (...args: any[]) => InstanceType<T> {
-  return (...args: any[]): InstanceType<T> => construct(func, args);
+function unconstruct<T>(
+  func: new (...args: any[]) => T
+): (...args: any[]) => T {
+  return (...args: any[]): T => construct(func, args);
 }
 
 /**
