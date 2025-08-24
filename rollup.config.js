@@ -6,7 +6,30 @@ import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 import { dts } from 'rollup-plugin-dts';
-import pkg from './package.json' with { type: 'json' };
+
+const supportsWithSyntax = process.versions.node.split('.')[0] >= 20;
+
+const pkg = await (async () => {
+  if (supportsWithSyntax) {
+    return (await import('./package.json', { with: { type: 'json' } })).default;
+  } else {
+    return (await import('./package.json', { assert: { type: 'json' } }))
+      .default;
+  }
+})();
+
+// 🔧 Plugin to strip named type exports from .d.ts for CommonJS
+const stripNamedTypeExports = () => ({
+  name: 'strip-named-type-exports',
+  transform(code, id) {
+    if (id.endsWith('.d.ts')) {
+      return {
+        code: code.replace(/^export\s+\{\s*type[\s\S]+?^\};\s*$/gm, ''),
+        map: null,
+      };
+    }
+  },
+});
 
 const env = process.env.NODE_ENV;
 const version = process.env.npm_package_version;
@@ -77,13 +100,19 @@ const config = [
         format: 'es',
         banner: commonOutputConfig.banner,
       },
+    ],
+    plugins: [dts()],
+  },
+  {
+    input: './dist/types/purify.d.ts',
+    output: [
       {
         file: pkg.main.replace(/\.js$/, '.d.ts'),
         format: 'cjs',
         banner: commonOutputConfig.banner,
       },
     ],
-    plugins: [dts()],
+    plugins: [stripNamedTypeExports(), dts()],
   },
 ];
 
