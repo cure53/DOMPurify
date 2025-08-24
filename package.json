@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "scripts": {
     "lint": "xo src/*.ts",
     "format": "npm run format:js && npm run format:md",
@@ -10,7 +11,7 @@
     "build": "run-s build:types build:rollup build:fix-types build:cleanup",
     "build:types": "tsc --outDir dist/types --declaration --emitDeclarationOnly",
     "build:rollup": "rollup -c",
-    "build:fix-types": "node ./scripts/fix-types.js",
+    "build:fix-types": "node ./scripts/fix-types.cjs",
     "build:umd": "rollup -c -f umd -o dist/purify.js",
     "build:umd:min": "rollup -c -f umd -o dist/purify.min.js -p terser",
     "build:es": "rollup -c -f es -o dist/purify.es.mjs",

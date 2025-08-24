@@ -6,7 +6,7 @@ import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 import { dts } from 'rollup-plugin-dts';
-import pkg from './package.json' assert { type: 'json' };
+import pkg from './package.json' with { type: 'json' };
 
 const env = process.env.NODE_ENV;
 const version = process.env.npm_package_version;
