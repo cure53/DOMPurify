@@ -1,12 +1,18 @@
 // @ts-check
 
-const fs = require('node:fs/promises');
-const path = require('node:path');
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 (async () => {
   // Note that this script is intended to run on the type declaration file that is
   // output by Rollup, and not the type declaration file generated from TypeScript.
-  await fixCjsTypes(path.resolve(__dirname, '../dist/purify.cjs.d.ts'));
+  await fixCjsTypes(
+    path.resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      '../dist/purify.cjs.d.ts'
+    )
+  );
 })().catch((ex) => {
   console.error(ex);
   process.exitCode = 1;

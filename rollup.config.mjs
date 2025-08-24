@@ -7,7 +7,7 @@ import terser from '@rollup/plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
 import { dts } from 'rollup-plugin-dts';
 
-const supportsWithSyntax = process.versions.node.split('.')[0] >= 20;
+const supportsWithSyntax = Number(process.versions.node) >= 20;
 
 const pkg = await (async () => {
   if (supportsWithSyntax) {
