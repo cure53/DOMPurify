@@ -1,12 +1,12 @@
-const fs = require('fs');
-const { DEFAULT_EXTENSIONS } = require('@babel/core');
-const babel = require('@rollup/plugin-babel').babel;
-const nodeResolve = require('@rollup/plugin-node-resolve').nodeResolve;
-const replace = require('@rollup/plugin-replace');
-const terser = require('@rollup/plugin-terser');
-const typescript = require('rollup-plugin-typescript2');
-const { dts } = require('rollup-plugin-dts');
-const pkg = require('./package.json');
+import fs from 'fs';
+import { DEFAULT_EXTENSIONS } from '@babel/core';
+import { babel } from '@rollup/plugin-babel';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
+import terser from '@rollup/plugin-terser';
+import typescript from 'rollup-plugin-typescript2';
+import { dts } from 'rollup-plugin-dts';
+import pkg from './package.json' assert { type: 'json' };
 
 const env = process.env.NODE_ENV;
 const version = process.env.npm_package_version;
@@ -20,19 +20,6 @@ const commonOutputConfig = {
   banner: license,
   exports: 'default',
 };
-
-// 🔧 Plugin to strip named type exports from .d.ts for CommonJS
-const stripNamedTypeExports = () => ({
-  name: 'strip-named-type-exports',
-  transform(code, id) {
-    if (id.endsWith('.d.ts')) {
-      return {
-        code: code.replace(/^export\s+\{\s*type[\s\S]+?^\};\s*$/gm, ''),
-        map: null,
-      };
-    }
-  },
-});
 
 const config = [
   {
@@ -81,7 +68,7 @@ const config = [
     ],
   },
 
-  // ESM type declarations
+  // Type declarations for both ESM and CJS
   {
     input: './dist/types/purify.d.ts',
     output: [
@@ -90,25 +77,14 @@ const config = [
         format: 'es',
         banner: commonOutputConfig.banner,
       },
-    ],
-    plugins: [dts()],
-  },
-
-  // CJS type declarations with named export stripping
-  {
-    input: './dist/types/purify.d.ts',
-    output: [
       {
         file: pkg.main.replace(/\.js$/, '.d.ts'),
         format: 'cjs',
         banner: commonOutputConfig.banner,
       },
     ],
-    plugins: [
-      stripNamedTypeExports(),
-      dts(),
-    ],
+    plugins: [dts()],
   },
 ];
 
-module.exports = config;
+export default config;
