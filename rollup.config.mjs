@@ -91,7 +91,7 @@ const config = [
     ],
   },
 
-  // Type declarations for both ESM and CJS
+  // ESM type declarations
   {
     input: './dist/types/purify.d.ts',
     output: [
@@ -103,6 +103,8 @@ const config = [
     ],
     plugins: [dts()],
   },
+
+  // CJS type declarations with named export stripping
   {
     input: './dist/types/purify.d.ts',
     output: [
