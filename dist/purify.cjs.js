@@ -823,11 +823,6 @@ function createDOMPurify() {
       // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
       dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
     }
-    // Due to chrome bug with DOMParser and <meta> tags, scrub them first
-    for (let previousDirty; previousDirty !== dirty;) {
-      previousDirty = dirty;
-      dirty = dirty.replace(/<meta[^>]*>/gi, '');
-    }
     const dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
     /*
      * Use the DOMParser API by default, fallback later if needs be

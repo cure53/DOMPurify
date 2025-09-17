@@ -904,12 +904,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         '</body></html>';
     }
 
-    // Due to chrome bug with DOMParser and <meta> tags, scrub them first
-    for (let previousDirty; previousDirty !== dirty; ) {
-      previousDirty = dirty;
-      dirty = dirty.replace(/<meta[^>]*>/gi, '');
-    }
-
     const dirtyPayload = trustedTypesPolicy
       ? trustedTypesPolicy.createHTML(dirty)
       : dirty;
