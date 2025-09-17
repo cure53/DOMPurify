@@ -10,25 +10,29 @@ let { freeze, seal, create } = Object; // eslint-disable-line import/no-mutable-
 let { apply, construct } = typeof Reflect !== 'undefined' && Reflect;
 
 if (!freeze) {
-  freeze = function (x) {
+  freeze = function <T>(x: T): T {
     return x;
   };
 }
 
 if (!seal) {
-  seal = function (x) {
+  seal = function <T>(x: T): T {
     return x;
   };
 }
 
 if (!apply) {
-  apply = function (fun, thisValue, args) {
-    return fun.apply(thisValue, args);
+  apply = function <T>(
+    func: (thisArg: any, ...args: any[]) => T,
+    thisArg: any,
+    ...args: any[]
+  ): T {
+    return func.apply(thisArg, args);
   };
 }
 
 if (!construct) {
-  construct = function (Func, args) {
+  construct = function <T>(Func: new (...args: any[]) => T, ...args: any[]): T {
     return new Func(...args);
   };
 }
@@ -78,8 +82,10 @@ function unapply<T>(
  * @param func - The constructor function to be wrapped and called.
  * @returns A new function that constructs an instance of the given constructor function with the provided arguments.
  */
-function unconstruct<T>(func: (...args: any[]) => T): (...args: any[]) => T {
-  return (...args: any[]): T => construct(func, args);
+function unconstruct<T>(
+  Func: new (...args: any[]) => T
+): (...args: any[]) => T {
+  return (...args: any[]): T => construct(Func, args);
 }
 
 /**

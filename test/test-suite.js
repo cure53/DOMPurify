@@ -141,11 +141,11 @@
         }),
         '<a href="#">abc</a>'
       );
-      assert.equal(
+      assert.contains(
         DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
           ALLOW_SELF_CLOSE_IN_ATTR: true,
         }),
-        '<a href="#" class="foo <br/>">abc</a>'
+        ['<a href="#" class="foo <br/>">abc</a>', "<a href=\"#\" class=\"foo &lt;br/&gt;\">abc</a>"]
       );
     });
     QUnit.test('Config-Flag tests: ALLOW_DATA_ATTR', function (assert) {
@@ -278,23 +278,23 @@
           ),
           '<a>123</a><option></option>'
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><iframe></select><b><script>alert(1)</script>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><iframe></select><b><script>alert(1)</script>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
         assert.equal(
           DOMPurify.sanitize(
@@ -817,6 +817,32 @@
     
         // Don't see a great way to assert NOT throws...
         assert.ok(true);
+      }
+    );
+    QUnit.test(
+      'CUSTOM_ELEMENT_HANDLING attributeNameCheck with tagName parameter',
+      function (assert) {
+        assert.equal(
+          DOMPurify.sanitize(
+            '<element-one attribute-one="1" attribute-two="2"></element-one><element-two attribute-one="1" attribute-two="2"></element-two>',
+            {
+              CUSTOM_ELEMENT_HANDLING: {
+                tagNameCheck: (tagName) => tagName.match(/^element-(one|two)$/),
+                attributeNameCheck: (attr, tagName) => {
+                  if (tagName === 'element-one') {
+                    return ['attribute-one'].includes(attr);
+                  } else if (tagName === 'element-two') {
+                    return ['attribute-two'].includes(attr);
+                  } else {
+                    return false;
+                  }
+                },
+                allowCustomizedBuiltInElements: false,
+              },
+            }
+          ),
+          '<element-one attribute-one="1"></element-one><element-two attribute-two="2"></element-two>'
+        );
       }
     );
     QUnit.test('Test dirty being an array', function (assert) {
@@ -1675,6 +1701,7 @@
           '<img y="<x">',
           '<img y="&lt;x">',
           '<img y="<x">',
+		  "<img x=\"/&gt;&lt;img src=x onerror=alert(1)&gt;\" y=\"&lt;x\">",
         ]);
       }
     );

@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.2.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.6/LICENSE */
+/*! @license DOMPurify 3.2.7 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.7/LICENSE */
 
 import { TrustedTypePolicy, TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib';
 
@@ -76,7 +76,7 @@ interface Config {
          * Regular expression or function to match to allowed attributes.
          * Default is null (disallow any attributes not on the allow list).
          */
-        attributeNameCheck?: RegExp | ((attributeName: string) => boolean) | null | undefined;
+        attributeNameCheck?: RegExp | ((attributeName: string, tagName?: string) => boolean) | null | undefined;
         /**
          * Allow custom elements derived from built-ins if they pass `tagNameCheck`. Default is false.
          */
