@@ -1,6 +1,6 @@
 # DOMPurify
 
-[![npm](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Tests](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) ![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=minified) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents) [![Build Status](https://app.cloudback.it/badge/cure53/DOMPurify)](https://cloudback.it)
+[![npm](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Tests](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) ![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=gzipped) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents) [![Build Status](https://app.cloudback.it/badge/cure53/DOMPurify)](https://cloudback.it)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
