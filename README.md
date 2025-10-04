@@ -215,6 +215,21 @@ const clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 // extend the existing array of allowed attributes and add my-attr to allow-list
 const clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 
+// use a function to control which attributes are allowed for specific tags
+const clean = DOMPurify.sanitize(
+    '<one attribute-one="1" attribute-two="2"></one><two attribute-one="1" attribute-two="2"></two>',
+    {
+        ADD_TAGS: ['one', 'two'],
+        ADD_ATTR: (attributeName, tagName) => {
+            const allowedAttributes = {
+                'one': ['attribute-one'],
+                'two': ['attribute-two']
+            };
+            return allowedAttributes[tagName]?.includes(attributeName) || false;
+        }
+    }
+); // <one attribute-one="1"></one><two attribute-two="2"></two>
+
 // prohibit ARIA attributes, leave other safe HTML as is (default is true)
 const clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
 

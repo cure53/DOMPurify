@@ -268,6 +268,18 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
   let FORBID_ATTR = null;
 
+  /* Config object to store ADD_ATTR function (when used as a function) */
+  const EXTRA_ELEMENT_HANDLING = Object.seal(
+    create(null, {
+      attributeCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null,
+      },
+    })
+  );
+
   /* Decide if ARIA attributes are okay */
   let ALLOW_ARIA_ATTR = true;
 
@@ -624,11 +636,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     if (cfg.ADD_ATTR) {
-      if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
-        ALLOWED_ATTR = clone(ALLOWED_ATTR);
-      }
+      if (typeof cfg.ADD_ATTR === 'function') {
+        EXTRA_ELEMENT_HANDLING.attributeCheck = cfg.ADD_ATTR;
+      } else {
+        if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
+          ALLOWED_ATTR = clone(ALLOWED_ATTR);
+        }
 
-      addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
+        addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
+      }
     }
 
     if (cfg.ADD_URI_SAFE_ATTR) {
@@ -1179,6 +1195,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     ) {
       // This attribute is safe
     } else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) {
+      // This attribute is safe
+      /* Check if ADD_ATTR function allows this attribute */
+    } else if (
+      EXTRA_ELEMENT_HANDLING.attributeCheck instanceof Function &&
+      EXTRA_ELEMENT_HANDLING.attributeCheck(lcName, lcTag)
+    ) {
       // This attribute is safe
       /* Otherwise, check the name is permitted */
     } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
