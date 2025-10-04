@@ -175,8 +175,8 @@ const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
 
 
 // change how e.g. comments containing risky HTML characters are treated.
-// be very careful, this setting should only be set to `false` if you really only handle 
-// HTML and nothing else, no SVG, MathML or the like. 
+// be very careful, this setting should only be set to `false` if you really only handle
+// HTML and nothing else, no SVG, MathML or the like.
 // Otherwise, changing from `true` to `false` will lead to XSS in this or some other way.
 const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_XML: false});
 ```
@@ -215,17 +215,20 @@ const clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
 // extend the existing array of allowed attributes and add my-attr to allow-list
 const clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
 
-// use a function to control which attributes are allowed for specific tags
+// use functions to control which additional tags and attributes are allowed
+const allowlist = {
+    'one': ['attribute-one'],
+    'two': ['attribute-two']
+};
 const clean = DOMPurify.sanitize(
     '<one attribute-one="1" attribute-two="2"></one><two attribute-one="1" attribute-two="2"></two>',
     {
-        ADD_TAGS: ['one', 'two'],
+        ADD_TAGS: (tagName) => {
+            return Object.keys(allowlist).includes(tagName);
+        },
         ADD_ATTR: (attributeName, tagName) => {
-            const allowedAttributes = {
-                'one': ['attribute-one'],
-                'two': ['attribute-two']
-            };
-            return allowedAttributes[tagName]?.includes(attributeName) || false;
+
+            return allowlist[tagName]?.includes(attributeName) || false;
         }
     }
 ); // <one attribute-one="1"></one><two attribute-two="2"></two>

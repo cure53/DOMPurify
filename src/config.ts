@@ -23,8 +23,10 @@ export interface Config {
 
   /**
    * Extend the existing array of allowed tags.
+   * Can be an array of tag names, or a function that receives
+   * the tag name to determine if the tag is allowed.
    */
-  ADD_TAGS?: string[] | undefined;
+  ADD_TAGS?: string[] | ((tagName: string) => boolean) | undefined;
 
   /**
    * Extend the existing array of elements that are safe for URI-like values (be careful, XSS risk).

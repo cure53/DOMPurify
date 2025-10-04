@@ -250,6 +250,44 @@
         '<my-component my-attr="foo">abc</my-component>'
       );
     });
+    QUnit.test('Config-Flag tests: ADD_TAGS as function', function (assert) {
+      // ADD_TAGS as function for selective tag validation
+      assert.equal(
+        DOMPurify.sanitize(
+          '<apple>content</apple><banana>content</banana><cherry>content</cherry>',
+          {
+            ADD_TAGS: (tagName) => {
+              return ['apple', 'banana'].includes(tagName);
+            },
+            KEEP_CONTENT: false,
+          }
+        ),
+        '<apple>content</apple><banana>content</banana>'
+      );
+      // ADD_TAGS function should reject tags when function returns false
+      assert.equal(
+        DOMPurify.sanitize('<allowed>yes</allowed><forbidden>no</forbidden>', {
+          ADD_TAGS: (tagName) => {
+            return tagName === 'allowed';
+          },
+          KEEP_CONTENT: false,
+        }),
+        '<allowed>yes</allowed>'
+      );
+      // ADD_TAGS function with pattern matching
+      assert.equal(
+        DOMPurify.sanitize(
+          '<item1>one</item1><item2>two</item2><other>three</other>',
+          {
+            ADD_TAGS: (tagName) => {
+              return tagName.startsWith('item');
+            },
+            KEEP_CONTENT: false,
+          }
+        ),
+        '<item1>one</item1><item2>two</item2>'
+      );
+    });
     QUnit.test('Config-Flag tests: ADD_ATTR as function', function (assert) {
       // ADD_ATTR as function with tag-specific attribute validation
       assert.equal(
