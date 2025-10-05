@@ -8,16 +8,20 @@ import { TrustedTypePolicy, TrustedHTML, TrustedTypesWindow } from 'trusted-type
 interface Config {
     /**
      * Extend the existing array of allowed attributes.
+     * Can be an array of attribute names, or a function that receives
+     * the attribute name and tag name to determine if the attribute is allowed.
      */
-    ADD_ATTR?: string[] | undefined;
+    ADD_ATTR?: string[] | ((attributeName: string, tagName: string) => boolean) | undefined;
     /**
      * Extend the existing array of elements that can use Data URIs.
      */
     ADD_DATA_URI_TAGS?: string[] | undefined;
     /**
      * Extend the existing array of allowed tags.
+     * Can be an array of tag names, or a function that receives
+     * the tag name to determine if the tag is allowed.
      */
-    ADD_TAGS?: string[] | undefined;
+    ADD_TAGS?: string[] | ((tagName: string) => boolean) | undefined;
     /**
      * Extend the existing array of elements that are safe for URI-like values (be careful, XSS risk).
      */
