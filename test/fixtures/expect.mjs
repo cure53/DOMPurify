@@ -919,5 +919,9 @@ export default [
       "title":"Testing support for search",
       "payload": "<header><h1>Movie website</h1><search><form action=\"./search/\"><label for=\"movie\">Find a Movie</label><input type=\"search\" id=\"movie\" name=\"q\" /><button type=\"submit\">Search</button></form></search></header>",
       "expected": "<header><h1>Movie website</h1><search><form action=\"./search/\"><label for=\"movie\">Find a Movie</label><input type=\"search\" id=\"movie\" name=\"q\"><button type=\"submit\">Search</button></form></search></header>"
+  }, {
+    "title": "Does not remove the SVG 'mask-type' attribute",
+    "payload": "<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><mask id=\"a\" mask-type=\"alpha\"><rect width=\"100%\" height=\"100%\" fill=\"rgb(10% 10% 10% / 0.4)\"></rect><circle cx=\"50\" cy=\"50\" r=\"35\" fill=\"rgb(90% 90% 90% / 0.6)\"></circle></mask><rect width=\"45\" height=\"45\" fill=\"red\" mask=\"url(#a)\"></rect></svg>",
+    "expected": "<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><mask id=\"a\" mask-type=\"alpha\"><rect width=\"100%\" height=\"100%\" fill=\"rgb(10% 10% 10% / 0.4)\"></rect><circle cx=\"50\" cy=\"50\" r=\"35\" fill=\"rgb(90% 90% 90% / 0.6)\"></circle></mask><rect width=\"45\" height=\"45\" fill=\"red\" mask=\"url(#a)\"></rect></svg>"
   }
 ];
