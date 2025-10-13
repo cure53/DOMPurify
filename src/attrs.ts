@@ -214,6 +214,7 @@ export const svg = freeze([
   'maskunits',
   'max',
   'mask',
+  'mask-type',
   'media',
   'method',
   'mode',

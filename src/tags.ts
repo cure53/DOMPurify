@@ -159,7 +159,6 @@ export const svg = freeze([
   'polyline',
   'radialgradient',
   'rect',
-  'slot',
   'stop',
   'style',
   'switch',
