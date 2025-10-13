@@ -1,5 +1,6 @@
-/// <reference types="trusted-types" />
-/*! @license DOMPurify 3.2.2 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.2/LICENSE */
+/*! @license DOMPurify 3.3.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.3.0/LICENSE */
+
+import { TrustedTypePolicy, TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib';
 
 /**
  * Configuration to control DOMPurify behavior.
@@ -7,16 +8,20 @@
 interface Config {
     /**
      * Extend the existing array of allowed attributes.
+     * Can be an array of attribute names, or a function that receives
+     * the attribute name and tag name to determine if the attribute is allowed.
      */
-    ADD_ATTR?: string[] | undefined;
+    ADD_ATTR?: string[] | ((attributeName: string, tagName: string) => boolean) | undefined;
     /**
      * Extend the existing array of elements that can use Data URIs.
      */
     ADD_DATA_URI_TAGS?: string[] | undefined;
     /**
      * Extend the existing array of allowed tags.
+     * Can be an array of tag names, or a function that receives
+     * the tag name to determine if the tag is allowed.
      */
-    ADD_TAGS?: string[] | undefined;
+    ADD_TAGS?: string[] | ((tagName: string) => boolean) | undefined;
     /**
      * Extend the existing array of elements that are safe for URI-like values (be careful, XSS risk).
      */
@@ -75,7 +80,7 @@ interface Config {
          * Regular expression or function to match to allowed attributes.
          * Default is null (disallow any attributes not on the allow list).
          */
-        attributeNameCheck?: RegExp | ((attributeName: string) => boolean) | null | undefined;
+        attributeNameCheck?: RegExp | ((attributeName: string, tagName?: string) => boolean) | null | undefined;
         /**
          * Allow custom elements derived from built-ins if they pass `tagNameCheck`. Default is false.
          */
@@ -329,44 +334,49 @@ interface DOMPurify {
     addHook(entryPoint: 'uponSanitizeAttribute', hookFunction: UponSanitizeAttributeHook): void;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: BasicHookName): NodeHook | undefined;
+    removeHook(entryPoint: BasicHookName, hookFunction?: NodeHook): NodeHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: ElementHookName): ElementHook | undefined;
+    removeHook(entryPoint: ElementHookName, hookFunction?: ElementHook): ElementHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: DocumentFragmentHookName): DocumentFragmentHook | undefined;
+    removeHook(entryPoint: DocumentFragmentHookName, hookFunction?: DocumentFragmentHook): DocumentFragmentHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: 'uponSanitizeElement'): UponSanitizeElementHook | undefined;
+    removeHook(entryPoint: 'uponSanitizeElement', hookFunction?: UponSanitizeElementHook): UponSanitizeElementHook | undefined;
     /**
      * Remove a DOMPurify hook at a given entryPoint
-     * (pops it from the stack of hooks if more are present)
+     * (pops it from the stack of hooks if hook not specified)
      *
      * @param entryPoint entry point for the hook to remove
-     * @returns removed(popped) hook
+     * @param hookFunction optional specific hook to remove
+     * @returns removed hook
      */
-    removeHook(entryPoint: 'uponSanitizeAttribute'): UponSanitizeAttributeHook | undefined;
+    removeHook(entryPoint: 'uponSanitizeAttribute', hookFunction?: UponSanitizeAttributeHook): UponSanitizeAttributeHook | undefined;
     /**
      * Removes all DOMPurify hooks at a given entryPoint
      *
@@ -428,7 +438,6 @@ interface UponSanitizeAttributeHookEvent {
 type WindowLike = Pick<typeof globalThis, 'DocumentFragment' | 'HTMLTemplateElement' | 'Node' | 'Element' | 'NodeFilter' | 'NamedNodeMap' | 'HTMLFormElement' | 'DOMParser'> & {
     document?: Document;
     MozNamedAttrMap?: typeof window.NamedNodeMap;
-    trustedTypes?: typeof window.trustedTypes;
-};
+} & Pick<TrustedTypesWindow, 'trustedTypes'>;
 
 export { type Config, type DOMPurify, type DocumentFragmentHook, type ElementHook, type HookName, type NodeHook, type RemovedAttribute, type RemovedElement, type UponSanitizeAttributeHook, type UponSanitizeAttributeHookEvent, type UponSanitizeElementHook, type UponSanitizeElementHookEvent, type WindowLike, _default as default };

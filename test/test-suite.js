@@ -141,11 +141,11 @@
         }),
         '<a href="#">abc</a>'
       );
-      assert.equal(
+      assert.contains(
         DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
           ALLOW_SELF_CLOSE_IN_ATTR: true,
         }),
-        '<a class="foo <br/>" href="#">abc</a>'
+        ['<a href="#" class="foo <br/>">abc</a>', "<a href=\"#\" class=\"foo &lt;br/&gt;\">abc</a>"]
       );
     });
     QUnit.test('Config-Flag tests: ALLOW_DATA_ATTR', function (assert) {
@@ -250,6 +250,87 @@
         '<my-component my-attr="foo">abc</my-component>'
       );
     });
+    QUnit.test('Config-Flag tests: ADD_TAGS as function', function (assert) {
+      // ADD_TAGS as function for selective tag validation
+      assert.equal(
+        DOMPurify.sanitize(
+          '<apple>content</apple><banana>content</banana><cherry>content</cherry>',
+          {
+            ADD_TAGS: (tagName) => {
+              return ['apple', 'banana'].includes(tagName);
+            },
+            KEEP_CONTENT: false,
+          }
+        ),
+        '<apple>content</apple><banana>content</banana>'
+      );
+      // ADD_TAGS function should reject tags when function returns false
+      assert.equal(
+        DOMPurify.sanitize('<allowed>yes</allowed><forbidden>no</forbidden>', {
+          ADD_TAGS: (tagName) => {
+            return tagName === 'allowed';
+          },
+          KEEP_CONTENT: false,
+        }),
+        '<allowed>yes</allowed>'
+      );
+      // ADD_TAGS function with pattern matching
+      assert.equal(
+        DOMPurify.sanitize(
+          '<item1>one</item1><item2>two</item2><other>three</other>',
+          {
+            ADD_TAGS: (tagName) => {
+              return tagName.startsWith('item');
+            },
+            KEEP_CONTENT: false,
+          }
+        ),
+        '<item1>one</item1><item2>two</item2>'
+      );
+    });
+    QUnit.test('Config-Flag tests: ADD_ATTR as function', function (assert) {
+      // ADD_ATTR as function with tag-specific attribute validation
+      assert.equal(
+        DOMPurify.sanitize(
+          '<one attribute-one="1" attribute-two="2"></one><two attribute-one="1" attribute-two="2"></two>',
+          {
+            ADD_TAGS: ['one', 'two'],
+            ADD_ATTR: (attributeName, tagName) => {
+              const allowedAttributes = {
+                one: ['attribute-one'],
+                two: ['attribute-two'],
+              };
+              return (
+                allowedAttributes[tagName]?.includes(attributeName) || false
+              );
+            },
+          }
+        ),
+        '<one attribute-one="1"></one><two attribute-two="2"></two>'
+      );
+      // ADD_ATTR function should work with built-in tags too
+      assert.equal(
+        DOMPurify.sanitize('<div custom-attr="test">content</div>', {
+          ADD_ATTR: (attributeName, tagName) => {
+            return tagName === 'div' && attributeName === 'custom-attr';
+          },
+        }),
+        '<div custom-attr="test">content</div>'
+      );
+      // ADD_ATTR function should reject attributes when function returns false
+      assert.equal(
+        DOMPurify.sanitize(
+          '<one attribute-one="1" forbidden="bad"></one>',
+          {
+            ADD_TAGS: ['one'],
+            ADD_ATTR: (attributeName, tagName) => {
+              return tagName === 'one' && attributeName === 'attribute-one';
+            },
+          }
+        ),
+        '<one attribute-one="1"></one>'
+      );
+    });
     QUnit.test(
       'Config-Flag tests: FORBID_CONTENTS + FORBID_TAGS',
       function (assert) {
@@ -278,23 +359,23 @@
           ),
           '<a>123</a><option></option>'
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><style></option></select><b><img src=xx: onerror=alert(1)></style></option>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><iframe></select><b><script>alert(1)</script>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
-        assert.equal(
+        assert.contains(
           DOMPurify.sanitize(
             '<option><iframe></select><b><script>alert(1)</script>'
           ),
-          '<option></option>'
+          ['<option></option>', '']
         );
         assert.equal(
           DOMPurify.sanitize(
@@ -451,7 +532,7 @@
         DOMPurify.sanitize('<img src="x" name="getElementById">', {
           SANITIZE_DOM: false,
         }),
-        '<img name="getElementById" src="x">'
+        '<img src="x" name="getElementById">'
       );
       assert.equal(
         DOMPurify.sanitize('<img src="x" name="getElementById">', {
@@ -764,8 +845,8 @@
                 allowCustomizedBuiltInElements: true,
               },
             }
-          ), // DOMPurify swaps the order of attributes here!
-          '<foo-bar forbidden="true" baz="foobar"></foo-bar><div is=""></div>'
+          ),
+          '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is=""></div>'
         );
         assert.equal(
           DOMPurify.sanitize(
@@ -819,6 +900,32 @@
         assert.ok(true);
       }
     );
+    QUnit.test(
+      'CUSTOM_ELEMENT_HANDLING attributeNameCheck with tagName parameter',
+      function (assert) {
+        assert.equal(
+          DOMPurify.sanitize(
+            '<element-one attribute-one="1" attribute-two="2"></element-one><element-two attribute-one="1" attribute-two="2"></element-two>',
+            {
+              CUSTOM_ELEMENT_HANDLING: {
+                tagNameCheck: (tagName) => tagName.match(/^element-(one|two)$/),
+                attributeNameCheck: (attr, tagName) => {
+                  if (tagName === 'element-one') {
+                    return ['attribute-one'].includes(attr);
+                  } else if (tagName === 'element-two') {
+                    return ['attribute-two'].includes(attr);
+                  } else {
+                    return false;
+                  }
+                },
+                allowCustomizedBuiltInElements: false,
+              },
+            }
+          ),
+          '<element-one attribute-one="1"></element-one><element-two attribute-two="2"></element-two>'
+        );
+      }
+    );
     QUnit.test('Test dirty being an array', function (assert) {
       assert.equal(
         DOMPurify.sanitize(['<a>123<b>456</b></a>']),
@@ -859,16 +966,45 @@
       assert.strictEqual(DOMPurify({}).isSupported, false);
       assert.strictEqual(DOMPurify({}).sanitize, undefined);
       assert.strictEqual(
-        typeof DOMPurify({ document: 'not really a document' }).version,
+        typeof DOMPurify({
+          document: 'not really a document',
+          Element: window.Element,
+        }).version,
         'string'
       );
       assert.strictEqual(
-        DOMPurify({ document: 'not really a document' }).isSupported,
+        DOMPurify({
+          document: 'not really a document',
+          Element: window.Element,
+        }).isSupported,
         false
       );
       assert.strictEqual(
-        DOMPurify({ document: 'not really a document' }).sanitize,
+        DOMPurify({
+          document: 'not really a document',
+          Element: window.Element,
+        }).sanitize,
         undefined
+      );
+      assert.strictEqual(
+        typeof DOMPurify({ document, Element: undefined }).version,
+        'string'
+      );
+      assert.strictEqual(
+        DOMPurify({ document, Element: undefined }).isSupported,
+        false
+      );
+      assert.strictEqual(
+        DOMPurify({ document, Element: undefined }).sanitize,
+        undefined
+      );
+      assert.strictEqual(
+        typeof DOMPurify({ document, Element: window.Element }).version,
+        'string'
+      );
+      assert.strictEqual(
+        typeof DOMPurify({ document, Element: window.Element }).sanitize,
+        'function'
       );
       assert.strictEqual(typeof DOMPurify(window).version, 'string');
       assert.strictEqual(typeof DOMPurify(window).sanitize, 'function');
@@ -1175,8 +1311,8 @@
           { ADD_URI_SAFE_ATTR: ['poster'] }
         );
         assert.contains(clean, [
-          '<div style="color: red" poster="x:y">Test</div>',
-          '<div style="color: red;" poster="x:y">Test</div>',
+          '<div poster="x:y" style="color: red">Test</div>',
+          '<div poster="x:y" style="color: red;">Test</div>',
         ]);
 
         clean = DOMPurify.sanitize(
@@ -1345,9 +1481,9 @@
         ),
         [
           '<svg><feblend in="SourceGraphic" mode="multiply"></feblend></svg>',
-          '<svg><feblend mode="multiply" in="SourceGraphic"></feblend></svg>',
-          '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
-          '<svg><feBlend mode="multiply" in="SourceGraphic"></feBlend></svg>',
+          '<svg><feblend in="SourceGraphic" mode="multiply"></feblend></svg>',
+          '<svg><feBlend in="SourceGraphic" mode="multiply"></feBlend></svg>',
+          '<svg><feBlend in="SourceGraphic" mode="multiply"></feBlend></svg>',
           '<svg xmlns="http://www.w3.org/2000/svg"><feBlend in="SourceGraphic" mode="multiply" /></svg>',
           '<svg xmlns="http://www.w3.org/2000/svg" />',
         ]
@@ -1642,10 +1778,11 @@
           config
         );
         assert.contains(clean, [
-          '<img y="<x" x="/><img src=x onerror=alert(1)>">', // jsdom
+          '<img x="/><img src=x onerror=alert(1)>" y="<x">', // jsdom
           '<img y="<x">',
           '<img y="&lt;x">',
           '<img y="<x">',
+		  "<img x=\"/&gt;&lt;img src=x onerror=alert(1)&gt;\" y=\"&lt;x\">",
         ]);
       }
     );
@@ -2093,6 +2230,39 @@
       // cleanup hook
       DOMPurify.removeHook(entryPoint);
     });
+
+    QUnit.test('removeHook allows specifying the hook to remove', function (assert) {
+      const entryPoint = 'afterSanitizeAttributes';
+      const dirty = '<div class="original"></div>';
+      const expected = '<div class="original first third"></div>';
+
+      const firstHook = function (node) {
+        node.classList.add('first');
+      };
+      const secondHook = function (node) {
+        node.classList.add('second');
+      };
+      const thirdHook = function (node) {
+        node.classList.add('third');
+      };
+
+      DOMPurify.addHook(entryPoint, firstHook);
+      DOMPurify.addHook(entryPoint, secondHook);
+      DOMPurify.addHook(entryPoint, thirdHook);
+
+      // removes the specified hook
+      assert.strictEqual(DOMPurify.removeHook(entryPoint, secondHook), secondHook);
+
+      // can’t remove it again
+      assert.strictEqual(DOMPurify.removeHook(entryPoint, secondHook), undefined);
+
+      // removed hook isn’t used during sanitize
+      assert.strictEqual(DOMPurify.sanitize(dirty), expected);
+
+      // cleanup hooks
+      DOMPurify.removeHook(entryPoint, firstHook);
+      DOMPurify.removeHook(entryPoint, thirdHook);
+    });
     
     QUnit.test('Test proper removal of annotation-xml w. custom elements', function (assert) {
       const dirty  = '<svg><annotation-xml><foreignobject><style><!--</style><p id="--><img src=\'x\' onerror=\'alert(1)\'>">';
@@ -2103,6 +2273,43 @@
       const expected = '<svg></svg>';
       let clean = DOMPurify.sanitize(dirty, config);
       assert.contains(clean, expected);
+    });
+    
+    QUnit.test('Test proper handling of attributes with RETURN_DOM', function (assert) {
+      const dirty  = '<body onload="alert(1)">&lt;a<!-- <f --></body>';
+      const config = { 
+        RETURN_DOM: true 
+      };
+      const expected = '<body>&lt;a</body>';
+      let clean = DOMPurify.sanitize(dirty, config);
+      
+      let iframe = document.createElement('iframe')
+      iframe.srcdoc = `<html><head></head>${clean.outerHTML}</html>`
+      document.body.appendChild(iframe); // alert test
+      assert.contains(clean.outerHTML, expected);
+    });
+    
+    QUnit.test('Test proper handling of data-attribiutes in XML modes', function (assert) {
+      const dirty  = '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg"><a xmlns:data-slonser="http://www.w3.org/1999/xlink" data-slonser:href="javascript:alert(1)"><text  x="20" y="35">Click me!</text></a></svg>';
+      const config = { 
+        PARSER_MEDIA_TYPE: 'application/xhtml+xml'
+      };
+      const expected = [
+        '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"600\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>',
+        '<svg width=\"800\" height=\"600\" xmlns=\"http://www.w3.org/2000/svg\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>'
+      ];
+      let clean = DOMPurify.sanitize(dirty, config);
+      assert.contains(clean, expected);
+    });
+
+    QUnit.test('Expect the same results when using ALLOWED_URI_REGEXP with the g flag', function (assert) {
+      const dirty  = '<img src="blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a"><a epub:type="noteref" href="epub:EPUB/xhtml/#footnote"></a><img src="blob:http://localhost:5173/84c49be9-3352-4407" >';
+      const config = { 
+        ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/gi,
+      };
+      const expected = '<img src=\"blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a\"><a href=\"epub:EPUB/xhtml/#footnote\"></a><img src=\"blob:http://localhost:5173/84c49be9-3352-4407\">';
+      let clean = DOMPurify.sanitize(dirty, config);
+      assert.strictEqual(clean, expected);
     });
   };
 });

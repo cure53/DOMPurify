@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/indent */
 
+import type { TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib';
 import type { Config, UseProfilesConfig } from './config';
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
@@ -10,8 +11,10 @@ import {
   entries,
   freeze,
   arrayForEach,
+  arrayLastIndexOf,
   arrayPop,
   arrayPush,
+  arraySplice,
   stringMatch,
   stringReplace,
   stringToLowerCase,
@@ -123,7 +126,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   if (
     !window ||
     !window.document ||
-    window.document.nodeType !== NODE_TYPE.document
+    window.document.nodeType !== NODE_TYPE.document ||
+    !window.Element
   ) {
     // Not running in a browser, provide a factory function
     // so that you can pass your own Window
@@ -263,6 +267,24 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
   /* Explicitly forbidden attributes (overrides ALLOWED_ATTR/ADD_ATTR) */
   let FORBID_ATTR = null;
+
+  /* Config object to store ADD_TAGS/ADD_ATTR functions (when used as functions) */
+  const EXTRA_ELEMENT_HANDLING = Object.seal(
+    create(null, {
+      tagCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null,
+      },
+      attributeCheck: {
+        writable: true,
+        configurable: false,
+        enumerable: true,
+        value: null,
+      },
+    })
+  );
 
   /* Decide if ARIA attributes are okay */
   let ALLOW_ARIA_ATTR = true;
@@ -519,10 +541,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       : DEFAULT_FORBID_CONTENTS;
     FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS')
       ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
-      : {};
+      : clone({});
     FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR')
       ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
-      : {};
+      : clone({});
     USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES')
       ? cfg.USE_PROFILES
       : false;
@@ -612,19 +634,27 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Merge configuration parameters */
     if (cfg.ADD_TAGS) {
-      if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
-        ALLOWED_TAGS = clone(ALLOWED_TAGS);
-      }
+      if (typeof cfg.ADD_TAGS === 'function') {
+        EXTRA_ELEMENT_HANDLING.tagCheck = cfg.ADD_TAGS;
+      } else {
+        if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
+          ALLOWED_TAGS = clone(ALLOWED_TAGS);
+        }
 
-      addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
+        addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
+      }
     }
 
     if (cfg.ADD_ATTR) {
-      if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
-        ALLOWED_ATTR = clone(ALLOWED_ATTR);
-      }
+      if (typeof cfg.ADD_ATTR === 'function') {
+        EXTRA_ELEMENT_HANDLING.attributeCheck = cfg.ADD_ATTR;
+      } else {
+        if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
+          ALLOWED_ATTR = clone(ALLOWED_ATTR);
+        }
 
-      addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
+        addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
+      }
     }
 
     if (cfg.ADD_URI_SAFE_ATTR) {
@@ -996,15 +1026,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return typeof Node === 'function' && value instanceof Node;
   };
 
-  function _executeHooks<
-    T extends
-      | NodeHook
-      | ElementHook
-      | DocumentFragmentHook
-      | UponSanitizeElementHook
-      | UponSanitizeAttributeHook
-  >(hooks: T[], currentNode: Parameters<T>[0], data: Parameters<T>[1]): void {
-    arrayForEach(hooks, (hook) => {
+  function _executeHooks<T extends HookFunction>(
+    hooks: HookFunction[],
+    currentNode: Parameters<T>[0],
+    data: Parameters<T>[1]
+  ): void {
+    arrayForEach(hooks, (hook: T) => {
       hook.call(DOMPurify, currentNode, data, CONFIG);
     });
   }
@@ -1041,10 +1068,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Detect mXSS attempts abusing namespace confusion */
     if (
+      SAFE_FOR_XML &&
       currentNode.hasChildNodes() &&
       !_isNode(currentNode.firstElementChild) &&
-      regExpTest(/<[/\w]/g, currentNode.innerHTML) &&
-      regExpTest(/<[/\w]/g, currentNode.textContent)
+      regExpTest(/<[/\w!]/g, currentNode.innerHTML) &&
+      regExpTest(/<[/\w!]/g, currentNode.textContent)
     ) {
       _forceRemove(currentNode);
       return true;
@@ -1067,7 +1095,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Remove element if anything forbids its presence */
-    if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+    if (
+      !(
+        EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
+        EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
+      ) &&
+      (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName])
+    ) {
       /* Check if we have a custom element to handle */
       if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
         if (
@@ -1127,7 +1161,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Get the element's text content */
       content = currentNode.textContent;
 
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
         content = stringReplace(content, expr, ' ');
       });
 
@@ -1178,6 +1212,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       // This attribute is safe
     } else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) {
       // This attribute is safe
+      /* Check if ADD_ATTR function allows this attribute */
+    } else if (
+      EXTRA_ELEMENT_HANDLING.attributeCheck instanceof Function &&
+      EXTRA_ELEMENT_HANDLING.attributeCheck(lcName, lcTag)
+    ) {
+      // This attribute is safe
       /* Otherwise, check the name is permitted */
     } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
       if (
@@ -1192,7 +1232,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
           ((CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof RegExp &&
             regExpTest(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName)) ||
             (CUSTOM_ELEMENT_HANDLING.attributeNameCheck instanceof Function &&
-              CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName)))) ||
+              CUSTOM_ELEMENT_HANDLING.attributeNameCheck(lcName, lcTag)))) ||
         // Alternative, second condition checks if it's an `is`-attribute, AND
         // the value passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
         (lcName === 'is' &&
@@ -1273,7 +1313,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     const { attributes } = currentNode;
 
     /* Check if we have attributes; if not we might have a text node */
-    if (!attributes) {
+    if (!attributes || _isClobbered(currentNode)) {
       return;
     }
 
@@ -1292,7 +1332,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       const { name, namespaceURI, value: attrValue } = attr;
       const lcName = transformCaseFunc(name);
 
-      let value = name === 'value' ? attrValue : stringTrim(attrValue);
+      const initValue = attrValue;
+      let value = name === 'value' ? initValue : stringTrim(initValue);
 
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
@@ -1314,7 +1355,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       /* Work around a security issue with comments inside attributes */
-      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title)/i, value)) {
+      if (
+        SAFE_FOR_XML &&
+        regExpTest(/((--!?|])>)|<\/(style|title|textarea)/i, value)
+      ) {
+        _removeAttribute(name, currentNode);
+        continue;
+      }
+
+      /* Make sure we cannot easily use animated hrefs, even if animations are allowed */
+      if (lcName === 'attributename' && stringMatch(value, 'href')) {
         _removeAttribute(name, currentNode);
         continue;
       }
@@ -1324,11 +1374,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         continue;
       }
 
-      /* Remove attribute */
-      _removeAttribute(name, currentNode);
-
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
+        _removeAttribute(name, currentNode);
         continue;
       }
 
@@ -1340,7 +1388,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
-        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
           value = stringReplace(value, expr, ' ');
         });
       }
@@ -1348,6 +1396,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Is `value` valid for this attribute? */
       const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
+        _removeAttribute(name, currentNode);
         continue;
       }
 
@@ -1379,20 +1428,24 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       /* Handle invalid data-* attribute set by try-catching it */
-      try {
-        if (namespaceURI) {
-          currentNode.setAttributeNS(namespaceURI, name, value);
-        } else {
-          /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
-          currentNode.setAttribute(name, value);
-        }
+      if (value !== initValue) {
+        try {
+          if (namespaceURI) {
+            currentNode.setAttributeNS(namespaceURI, name, value);
+          } else {
+            /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+            currentNode.setAttribute(name, value);
+          }
 
-        if (_isClobbered(currentNode)) {
-          _forceRemove(currentNode);
-        } else {
-          arrayPop(DOMPurify.removed);
+          if (_isClobbered(currentNode)) {
+            _forceRemove(currentNode);
+          } else {
+            arrayPop(DOMPurify.removed);
+          }
+        } catch (_) {
+          _removeAttribute(name, currentNode);
         }
-      } catch (_) {}
+      }
     }
 
     /* Execute a hook if present */
@@ -1416,17 +1469,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
 
       /* Sanitize tags and elements */
-      if (_sanitizeElements(shadowNode)) {
-        continue;
-      }
+      _sanitizeElements(shadowNode);
+
+      /* Check attributes next */
+      _sanitizeAttributes(shadowNode);
 
       /* Deep shadow DOM detected */
       if (shadowNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(shadowNode.content);
       }
-
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(shadowNode);
     }
 
     /* Execute a hook if present */
@@ -1538,17 +1589,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Now start iterating over the created document */
     while ((currentNode = nodeIterator.nextNode())) {
       /* Sanitize tags and elements */
-      if (_sanitizeElements(currentNode)) {
-        continue;
-      }
+      _sanitizeElements(currentNode);
+
+      /* Check attributes next */
+      _sanitizeAttributes(currentNode);
 
       /* Shadow DOM detected, sanitize it */
       if (currentNode.content instanceof DocumentFragment) {
         _sanitizeShadowDOM(currentNode.content);
       }
-
-      /* Check attributes, sanitize if necessary */
-      _sanitizeAttributes(currentNode);
     }
 
     /* If we sanitized `dirty` in-place, return it. */
@@ -1600,7 +1649,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr) => {
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
         serializedHTML = stringReplace(serializedHTML, expr, ' ');
       });
     }
@@ -1631,7 +1680,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return _isValidAttribute(lcTag, lcName, value);
   };
 
-  DOMPurify.addHook = function (entryPoint, hookFunction) {
+  DOMPurify.addHook = function (
+    entryPoint: keyof HooksMap,
+    hookFunction: HookFunction
+  ) {
     if (typeof hookFunction !== 'function') {
       return;
     }
@@ -1639,11 +1691,22 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     arrayPush(hooks[entryPoint], hookFunction);
   };
 
-  DOMPurify.removeHook = function (entryPoint) {
+  DOMPurify.removeHook = function (
+    entryPoint: keyof HooksMap,
+    hookFunction: HookFunction
+  ) {
+    if (hookFunction !== undefined) {
+      const index = arrayLastIndexOf(hooks[entryPoint], hookFunction);
+
+      return index === -1
+        ? undefined
+        : arraySplice(hooks[entryPoint], index, 1)[0];
+    }
+
     return arrayPop(hooks[entryPoint]);
   };
 
-  DOMPurify.removeHooks = function (entryPoint) {
+  DOMPurify.removeHooks = function (entryPoint: keyof HooksMap) {
     hooks[entryPoint] = [];
   };
 
@@ -1804,53 +1867,67 @@ export interface DOMPurify {
 
   /**
    * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
+   * (pops it from the stack of hooks if hook not specified)
    *
    * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
-   */
-  removeHook(entryPoint: BasicHookName): NodeHook | undefined;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
-   */
-  removeHook(entryPoint: ElementHookName): ElementHook | undefined;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
    */
   removeHook(
-    entryPoint: DocumentFragmentHookName
+    entryPoint: BasicHookName,
+    hookFunction?: NodeHook
+  ): NodeHook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if hook not specified)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
+   */
+  removeHook(
+    entryPoint: ElementHookName,
+    hookFunction?: ElementHook
+  ): ElementHook | undefined;
+
+  /**
+   * Remove a DOMPurify hook at a given entryPoint
+   * (pops it from the stack of hooks if hook not specified)
+   *
+   * @param entryPoint entry point for the hook to remove
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
+   */
+  removeHook(
+    entryPoint: DocumentFragmentHookName,
+    hookFunction?: DocumentFragmentHook
   ): DocumentFragmentHook | undefined;
 
   /**
    * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
+   * (pops it from the stack of hooks if hook not specified)
    *
    * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
    */
   removeHook(
-    entryPoint: 'uponSanitizeElement'
+    entryPoint: 'uponSanitizeElement',
+    hookFunction?: UponSanitizeElementHook
   ): UponSanitizeElementHook | undefined;
 
   /**
    * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if more are present)
+   * (pops it from the stack of hooks if hook not specified)
    *
    * @param entryPoint entry point for the hook to remove
-   * @returns removed(popped) hook
+   * @param hookFunction optional specific hook to remove
+   * @returns removed hook
    */
   removeHook(
-    entryPoint: 'uponSanitizeAttribute'
+    entryPoint: 'uponSanitizeAttribute',
+    hookFunction?: UponSanitizeAttributeHook
   ): UponSanitizeAttributeHook | undefined;
 
   /**
@@ -1913,6 +1990,10 @@ interface HooksMap {
   uponSanitizeElement: UponSanitizeElementHook[];
   uponSanitizeAttribute: UponSanitizeAttributeHook[];
 }
+
+type ArrayElement<T> = T extends Array<infer U> ? U : never;
+
+type HookFunction = ArrayElement<HooksMap[keyof HooksMap]>;
 
 export type HookName =
   | BasicHookName
@@ -1985,5 +2066,4 @@ export type WindowLike = Pick<
 > & {
   document?: Document;
   MozNamedAttrMap?: typeof window.NamedNodeMap;
-  trustedTypes?: typeof window.trustedTypes;
-};
+} & Pick<TrustedTypesWindow, 'trustedTypes'>;

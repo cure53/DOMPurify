@@ -88,9 +88,11 @@ export const html = freeze([
   'ruby',
   's',
   'samp',
+  'search',
   'section',
   'select',
   'shadow',
+  'slot',
   'small',
   'source',
   'spacer',
@@ -120,7 +122,6 @@ export const html = freeze([
   'wbr',
 ] as const);
 
-// SVG
 export const svg = freeze([
   'svg',
   'a',
@@ -135,6 +136,8 @@ export const svg = freeze([
   'defs',
   'desc',
   'ellipse',
+  'enterkeyhint',
+  'exportparts',
   'filter',
   'font',
   'g',
@@ -142,12 +145,14 @@ export const svg = freeze([
   'glyphref',
   'hkern',
   'image',
+  'inputmode',
   'line',
   'lineargradient',
   'marker',
   'mask',
   'metadata',
   'mpath',
+  'part',
   'path',
   'pattern',
   'polygon',
