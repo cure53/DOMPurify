@@ -95,6 +95,10 @@ interface Config {
      */
     FORBID_CONTENTS?: string[] | undefined;
     /**
+     * Extend the existing or default array of forbidden content elements.
+     */
+    ADD_FORBID_CONTENTS?: string[] | undefined;
+    /**
      * Add elements to block-list.
      */
     FORBID_TAGS?: string[] | undefined;

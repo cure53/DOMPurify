@@ -345,6 +345,34 @@
       }
     );
     QUnit.test(
+      'Config-Flag tests: FORBID_CONTENTS + ADD_FORBID_CONTENTS + FORBID_TAGS',
+      function (assert) {
+        assert.equal(
+          DOMPurify.sanitize(
+            '<div><b>preserve me</b></div><p><b>no not preserve me</b></p><a><i>also no preserve me</i></a>',
+            {
+              FORBID_CONTENTS: ['p'],
+              ADD_FORBID_CONTENTS: ['a'],
+              FORBID_TAGS: ['div', 'p', 'a'],
+            }
+          ),
+          '<b>preserve me</b>'
+        );
+      }
+    );
+    QUnit.test(
+      'Config-Flag tests: DEFAULT_FORBID_CONTENTS + ADD_FORBID_CONTENTS',
+      function (assert) {
+        assert.equal(
+          DOMPurify.sanitize(
+            '<script>var a = 1;</script><p><b>no not preserve me</b></p><a><i>preserve me</i></a>',
+            { ADD_FORBID_CONTENTS: ['p'], FORBID_TAGS: ['script', 'p', 'a'] }
+          ),
+          '<i>preserve me</i>'
+        );
+      }
+    );
+    QUnit.test(
       'Config-Flag tests: SAFE_FOR_JQUERY (now inactive, secure by default)',
       function (assert) {
         assert.equal(
