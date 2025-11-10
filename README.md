@@ -368,6 +368,9 @@ const clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 // remove all <a> elements under <p> elements that are removed
 const clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
 
+// extend the default FORBID_CONTENTS list to also remove <a> elements under <p> elements
+const clean = DOMPurify.sanitize(dirty, {ADD_FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
+
 // change the parser type so sanitized data is treated as XML and not as HTML, which is the default
 const clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
 ```

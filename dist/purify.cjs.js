@@ -653,6 +653,12 @@ function createDOMPurify() {
       }
       addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
     }
+    if (cfg.ADD_FORBID_CONTENTS) {
+      if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
+        FORBID_CONTENTS = clone(FORBID_CONTENTS);
+      }
+      addToSet(FORBID_CONTENTS, cfg.ADD_FORBID_CONTENTS, transformCaseFunc);
+    }
     /* Add #text in case KEEP_CONTENT is set to true */
     if (KEEP_CONTENT) {
       ALLOWED_TAGS['#text'] = true;
