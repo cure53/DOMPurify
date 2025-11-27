@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/indent */
 
-import type { TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib';
+import type {
+  TrustedHTML,
+  TrustedTypesWindow,
+} from 'trusted-types/lib/index.js';
 import type { Config, UseProfilesConfig } from './config';
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
