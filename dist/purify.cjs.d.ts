@@ -1,6 +1,6 @@
-/*! @license DOMPurify 3.3.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.3.0/LICENSE */
+/*! @license DOMPurify 3.3.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.3.1/LICENSE */
 
-import { TrustedTypePolicy, TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib';
+import { TrustedTypePolicy, TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib/index.js';
 
 /**
  * Configuration to control DOMPurify behavior.
@@ -94,6 +94,10 @@ interface Config {
      * Add child elements to be removed when their parent is removed.
      */
     FORBID_CONTENTS?: string[] | undefined;
+    /**
+     * Extend the existing or default array of forbidden content elements.
+     */
+    ADD_FORBID_CONTENTS?: string[] | undefined;
     /**
      * Add elements to block-list.
      */

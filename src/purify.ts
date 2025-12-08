@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/indent */
 
-import type { TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib';
+import type {
+  TrustedHTML,
+  TrustedTypesWindow,
+} from 'trusted-types/lib/index.js';
 import type { Config, UseProfilesConfig } from './config';
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
@@ -667,6 +670,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
+    }
+
+    if (cfg.ADD_FORBID_CONTENTS) {
+      if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
+        FORBID_CONTENTS = clone(FORBID_CONTENTS);
+      }
+
+      addToSet(FORBID_CONTENTS, cfg.ADD_FORBID_CONTENTS, transformCaseFunc);
     }
 
     /* Add #text in case KEEP_CONTENT is set to true */

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/indent */
 
-import type { TrustedTypePolicy } from 'trusted-types/lib';
+import type { TrustedTypePolicy } from 'trusted-types/lib/index.js';
 
 /**
  * Configuration to control DOMPurify behavior.
@@ -117,6 +117,11 @@ export interface Config {
    * Add child elements to be removed when their parent is removed.
    */
   FORBID_CONTENTS?: string[] | undefined;
+
+  /**
+   * Extend the existing or default array of forbidden content elements.
+   */
+  ADD_FORBID_CONTENTS?: string[] | undefined;
 
   /**
    * Add elements to block-list.

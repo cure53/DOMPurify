@@ -4,7 +4,7 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.3.0**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.3.1**.
 
 DOMPurify is written in JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
@@ -367,6 +367,9 @@ const clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
 
 // remove all <a> elements under <p> elements that are removed
 const clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
+
+// extend the default FORBID_CONTENTS list to also remove <a> elements under <p> elements
+const clean = DOMPurify.sanitize(dirty, {ADD_FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
 
 // change the parser type so sanitized data is treated as XML and not as HTML, which is the default
 const clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});

@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.3.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.3.0/LICENSE */
+/*! @license DOMPurify 3.3.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.3.1/LICENSE */
 
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -311,7 +311,7 @@
   function createDOMPurify() {
     let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
     const DOMPurify = root => createDOMPurify(root);
-    DOMPurify.version = '3.3.0';
+    DOMPurify.version = '3.3.1';
     DOMPurify.removed = [];
     if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
       // Not running in a browser, provide a factory function
@@ -656,6 +656,12 @@
           FORBID_CONTENTS = clone(FORBID_CONTENTS);
         }
         addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
+      }
+      if (cfg.ADD_FORBID_CONTENTS) {
+        if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
+          FORBID_CONTENTS = clone(FORBID_CONTENTS);
+        }
+        addToSet(FORBID_CONTENTS, cfg.ADD_FORBID_CONTENTS, transformCaseFunc);
       }
       /* Add #text in case KEEP_CONTENT is set to true */
       if (KEEP_CONTENT) {
