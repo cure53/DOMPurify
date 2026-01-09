@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/indent */
+
 import type {
   TrustedHTML,
   TrustedTypesWindow,

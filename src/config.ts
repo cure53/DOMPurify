@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/indent */
+
 import type { TrustedTypePolicy } from 'trusted-types/lib/index.js';
 
 /**
