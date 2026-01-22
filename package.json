@@ -123,7 +123,6 @@
     "karma-firefox-launcher": "^2.1.2",
     "karma-qunit": "^4.1.2",
     "karma-rollup-preprocessor": "^7.0.8",
-    "lodash.sample": "^4.2.1",
     "minimist": "^1.2.6",
     "pre-commit": "^1.2.2",
     "prettier": "^2.5.1",

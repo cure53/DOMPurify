@@ -1,4 +1,3 @@
-const sample = require('lodash.sample');
 const argv = require('minimist')(process.argv.slice(2));
 
 const customLaunchers = {
@@ -221,7 +220,11 @@ const customLaunchers = {
 };
 
 const getAllBrowsers = () => Object.keys(customLaunchers);
-const getRandomBrowser = () => sample(getAllBrowsers());
+const getRandomBrowser = () => {
+  const browsers = getAllBrowsers();
+  const randomIndex = Math.floor(Math.random() * browsers.length);
+  return browsers[randomIndex];
+};
 
 /**
  * Environment variables are passed into the script and the depth of testing
