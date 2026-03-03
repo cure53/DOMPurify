@@ -1382,7 +1382,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Work around a security issue with comments inside attributes */
       if (
         SAFE_FOR_XML &&
-        regExpTest(/((--!?|])>)|<\/(style|title|textarea)/i, value)
+        regExpTest(
+          /((--!?|])>)|<\/(style|title|xmp|textarea|noscript|iframe|noembed|noframes)/i,
+          value
+        )
       ) {
         _removeAttribute(name, currentNode);
         continue;
