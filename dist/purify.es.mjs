@@ -1121,7 +1121,7 @@ function createDOMPurify() {
         value = SANITIZE_NAMED_PROPS_PREFIX + value;
       }
       /* Work around a security issue with comments inside attributes */
-      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|title|xmp|textarea|noscript|iframe|noembed|noframes)/i, value)) {
+      if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i, value)) {
         _removeAttribute(name, currentNode);
         continue;
       }

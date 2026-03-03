@@ -1383,7 +1383,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       if (
         SAFE_FOR_XML &&
         regExpTest(
-          /((--!?|])>)|<\/(style|title|xmp|textarea|noscript|iframe|noembed|noframes)/i,
+          /((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i,
           value
         )
       ) {
