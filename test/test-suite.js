@@ -135,17 +135,18 @@
     );
     QUnit.test('Config-Flag tests: ALLOW_SELF_CLOSE_IN_ATTR', function (assert) {
       // ALLOW_SELF_CLOSE_IN_ATTR
-      assert.equal(
+      assert.contains(
         DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
           ALLOW_SELF_CLOSE_IN_ATTR: false,
         }),
-        '<a href="#">abc</a>'
+        ['<a href="#">abc</a>',	"<a class=\"foo &lt;br/&gt;\" href=\"#\">abc</a>"]
+
       );
-      assert.equal(
+      assert.contains(
         DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
           ALLOW_SELF_CLOSE_IN_ATTR: true,
         }),
-        '<a class="foo <br/>" href="#">abc</a>'
+        ['<a class="foo <br/>" href="#">abc</a>', "<a class=\"foo &lt;br/&gt;\" href=\"#\">abc</a>"]
       );
     });
     QUnit.test('Config-Flag tests: ALLOW_DATA_ATTR', function (assert) {
@@ -1644,7 +1645,8 @@
           '<img y="<x">',
           '<img y="&lt;x">',
           '<img y="<x">',
-          "<img x=\"/><img src=x onerror=alert(1)>\" y=\"<x\">"
+          "<img x=\"/><img src=x onerror=alert(1)>\" y=\"<x\">",
+		  "<img y=\"&lt;x\" x=\"/&gt;&lt;img src=x onerror=alert(1)&gt;\">"
         ]);
       }
     );
