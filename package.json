@@ -7,7 +7,7 @@
     "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist/**",
     "dev": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
-    "build": "run-s build:types build:rollup build:fix-types build:cleanup",
+    "build": "npm run build:types && npm run build:rollup && npm run build:fix-types && npm run build:cleanup",
     "build:types": "tsc --outDir dist/types --declaration --emitDeclarationOnly",
     "build:rollup": "rollup -c",
     "build:fix-types": "node ./scripts/fix-types.js",
@@ -97,6 +97,9 @@
       "VERSION"
     ]
   },
+  "engines": {
+    "node": ">=20"
+  },
   "optionalDependencies": {
     "@types/trusted-types": "^2.0.7"
   },
@@ -120,15 +123,13 @@
     "karma-firefox-launcher": "^2.1.2",
     "karma-qunit": "^4.1.2",
     "karma-rollup-preprocessor": "^7.0.8",
-    "lodash.sample": "^4.2.1",
     "minimist": "^1.2.6",
-    "npm-run-all": "^4.1.5",
     "pre-commit": "^1.2.2",
     "prettier": "^2.5.1",
     "qunit": "^2.4.1",
     "qunit-tap": "^1.5.0",
     "rimraf": "^3.0.2",
-    "rollup": "^3.29.5",
+    "rollup": "^3.30.0",
     "rollup-plugin-dts": "^6.1.1",
     "rollup-plugin-includepaths": "^0.2.4",
     "rollup-plugin-typescript2": "^0.36.0",
@@ -141,7 +142,7 @@
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "directories": {
     "test": "test"
   },

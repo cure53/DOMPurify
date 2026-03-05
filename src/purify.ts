@@ -610,7 +610,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Parse profile info */
     if (USE_PROFILES) {
       ALLOWED_TAGS = addToSet({}, TAGS.text);
-      ALLOWED_ATTR = [];
+      ALLOWED_ATTR = create(null);
       if (USE_PROFILES.html === true) {
         addToSet(ALLOWED_TAGS, TAGS.html);
         addToSet(ALLOWED_ATTR, ATTRS.html);
@@ -633,6 +633,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         addToSet(ALLOWED_ATTR, ATTRS.mathMl);
         addToSet(ALLOWED_ATTR, ATTRS.xml);
       }
+    }
+
+    /* Prevent function-based ADD_ATTR / ADD_TAGS from leaking across calls */
+    if (!objectHasOwnProperty(cfg, 'ADD_TAGS')) {
+      EXTRA_ELEMENT_HANDLING.tagCheck = null;
+    }
+
+    if (!objectHasOwnProperty(cfg, 'ADD_ATTR')) {
+      EXTRA_ELEMENT_HANDLING.attributeCheck = null;
     }
 
     /* Merge configuration parameters */
@@ -1202,6 +1211,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     lcName: string,
     value: string
   ): boolean {
+    /* FORBID_ATTR must always win, even if ADD_ATTR predicate would allow it */
+    if (FORBID_ATTR[lcName]) {
+      return false;
+    }
+
     /* Make sure attribute cannot clobber */
     if (
       SANITIZE_DOM &&
@@ -1368,7 +1382,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Work around a security issue with comments inside attributes */
       if (
         SAFE_FOR_XML &&
-        regExpTest(/((--!?|])>)|<\/(style|title|textarea)/i, value)
+        regExpTest(
+          /((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i,
+          value
+        )
       ) {
         _removeAttribute(name, currentNode);
         continue;

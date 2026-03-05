@@ -18,7 +18,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 19.x, 20.x, 21.x, 22.x, 23.x]
+        node-version: [20.x, 22.x, 24.x, 25.x]
 
     steps:
       - name: Checkout
@@ -39,7 +39,7 @@ jobs:
         with:
           run: npm run test:ci
         env:
-          TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '22') }}
+          TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '24') }}
           TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/2.x' }}
           BS_USERNAME: ${{ secrets.BS_USERNAME }}
           BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
