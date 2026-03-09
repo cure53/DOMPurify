@@ -97,8 +97,12 @@
       "VERSION"
     ]
   },
-  "engines": {
-    "node": ">=20"
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=20",
+      "onFail": "warn"
+    }
   },
   "optionalDependencies": {
     "@types/trusted-types": "^2.0.7"
