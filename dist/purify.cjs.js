@@ -1202,7 +1202,7 @@ function createDOMPurify() {
    *
    * @param fragment to iterate over recursively
    */
-  const _sanitizeShadowDOM = function _sanitizeShadowDOM(fragment) {
+  const _sanitizeShadowDOM2 = function _sanitizeShadowDOM(fragment) {
     let shadowNode = null;
     const shadowIterator = _createNodeIterator(fragment);
     /* Execute a hook if present */
@@ -1216,7 +1216,7 @@ function createDOMPurify() {
       _sanitizeAttributes(shadowNode);
       /* Deep shadow DOM detected */
       if (shadowNode.content instanceof DocumentFragment) {
-        _sanitizeShadowDOM(shadowNode.content);
+        _sanitizeShadowDOM2(shadowNode.content);
       }
     }
     /* Execute a hook if present */
@@ -1311,7 +1311,7 @@ function createDOMPurify() {
       _sanitizeAttributes(currentNode);
       /* Shadow DOM detected, sanitize it */
       if (currentNode.content instanceof DocumentFragment) {
-        _sanitizeShadowDOM(currentNode.content);
+        _sanitizeShadowDOM2(currentNode.content);
       }
     }
     /* If we sanitized `dirty` in-place, return it. */
