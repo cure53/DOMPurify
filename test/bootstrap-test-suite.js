@@ -65,7 +65,7 @@
       }
 
       if (!myLibrary) {
-          var url = (typeof window !== 'undefined' && window.location && window.location.host) ? '../dist/purify.js' : 'http://localhost:8080/dist/purify.js';
+          var url = (typeof window !== 'undefined' && window.location && window.location.host) ? '../dist/purify.js' : '/dist/purify.js';
           try {
               myLibrary = await fetch(url).then(function(r) { return r.text(); });
           } catch (e) {}

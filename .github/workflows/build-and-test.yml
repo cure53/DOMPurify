@@ -34,6 +34,8 @@ jobs:
         run: npm run build
       - name: Lint
         run: npm run lint
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
       - name: Test
         uses: GabrielBB/xvfb-action@v1.7
         with:
