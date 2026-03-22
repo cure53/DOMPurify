@@ -1,13 +1,14 @@
-(function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined'
-    ? (module.exports = factory())
-    : typeof define === 'function' && define.amd
-    ? define(factory)
-    : ((global =
-        typeof globalThis !== 'undefined' ? globalThis : global || self),
-      (global.testSuite = factory()));
-})(this, function () {
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define([], factory);
+  } else if (typeof exports === 'object') {
+    module.exports = factory();
+  } else {
+    root.testSuite = factory();
+  }
+}(this, function () {
   return function testSuite(
+    test,
     DOMPurify,
     window,
     sanitizationTestCases,
@@ -17,7 +18,7 @@
     var jQuery = window.jQuery;
 
     sanitizationTestCases.forEach((testCase) => {
-      QUnit.test(`Sanitization test[${testCase.title}]`, (assert) => {
+      test(`Sanitization test[${testCase.title}]`, (assert) => {
         assert.contains(
           DOMPurify.sanitize(testCase.payload),
           testCase.expected,
@@ -28,7 +29,7 @@
 
     // XSS tests: Native DOM methods (alert() should not be called)
     xssTestCases.forEach((testCase) => {
-      QUnit.test(`XSS test: native[${testCase.title}]`, (assert) => {
+      test(`XSS test: native[${testCase.title}]`, async (assert) => {
         document.getElementById('qunit-fixture').innerHTML = DOMPurify.sanitize(
           testCase.payload
         );
@@ -44,7 +45,7 @@
     });
     // XSS tests: jQuery (alert() should not be called)
     xssTestCases.forEach((testCase) => {
-      QUnit.test(`XSS test: jQuery[${testCase.title}]`, (assert) => {
+      test(`XSS test: jQuery[${testCase.title}]`, async (assert) => {
         jQuery('#qunit-fixture').html(DOMPurify.sanitize(testCase.payload));
         const done = assert.async();
         setTimeout(() => {
@@ -58,9 +59,9 @@
     });
     // document.write tests to handle FF's strange behavior
     xssTestCases.forEach((testCase) => {
-      QUnit.test(
+      test(
         `XSS test: document.write() into iframe[${testCase.title}]`,
-        (assert) => {
+        async (assert) => {
           const done = assert.async();
           const iframe = document.createElement('iframe');
           iframe.src = 'about:blank';
@@ -84,7 +85,7 @@
     });
 
     // Config-Flag Tests
-    QUnit.test(
+    test(
       'Config-Flag tests: KEEP_CONTENT + ALLOWED_TAGS / ALLOWED_ATTR',
       function (assert) {
         // KEEP_CONTENT + ALLOWED_TAGS / ALLOWED_ATTR
@@ -133,7 +134,7 @@
         );
       }
     );
-    QUnit.test('Config-Flag tests: ALLOW_SELF_CLOSE_IN_ATTR', function (assert) {
+    test('Config-Flag tests: ALLOW_SELF_CLOSE_IN_ATTR', function (assert) {
       // ALLOW_SELF_CLOSE_IN_ATTR
       assert.equal(
         DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
@@ -148,7 +149,7 @@
         ['<a href="#" class="foo <br/>">abc</a>', "<a href=\"#\" class=\"foo &lt;br/&gt;\">abc</a>"]
       );
     });
-    QUnit.test('Config-Flag tests: ALLOW_DATA_ATTR', function (assert) {
+    test('Config-Flag tests: ALLOW_DATA_ATTR', function (assert) {
       // ALLOW_DATA_ATTR
       assert.equal(
         DOMPurify.sanitize('<a href="#" data-abc"="foo">abc</a>', {
@@ -225,7 +226,7 @@
         '<a href="#">abc</a>'
       );
     });
-    QUnit.test('Config-Flag tests: ADD_TAGS', function (assert) {
+    test('Config-Flag tests: ADD_TAGS', function (assert) {
       // ADD_TAGS
       assert.equal(
         DOMPurify.sanitize('<my-component>abc</my-component>', {
@@ -234,7 +235,7 @@
         '<my-component>abc</my-component>'
       );
     });
-    QUnit.test('Config-Flag tests: ADD_TAGS + ADD_ATTR', function (assert) {
+    test('Config-Flag tests: ADD_TAGS + ADD_ATTR', function (assert) {
       // ADD_TAGS + ADD_ATTR
       assert.equal(
         DOMPurify.sanitize('<my-component my-attr="foo">abc</my-component>', {
@@ -250,7 +251,7 @@
         '<my-component my-attr="foo">abc</my-component>'
       );
     });
-    QUnit.test('Config-Flag tests: ADD_TAGS as function', function (assert) {
+    test('Config-Flag tests: ADD_TAGS as function', function (assert) {
       // ADD_TAGS as function for selective tag validation
       assert.equal(
         DOMPurify.sanitize(
@@ -288,7 +289,7 @@
         '<item1>one</item1><item2>two</item2>'
       );
     });
-    QUnit.test('Config-Flag tests: ADD_ATTR as function', function (assert) {
+    test('Config-Flag tests: ADD_ATTR as function', function (assert) {
       // ADD_ATTR as function with tag-specific attribute validation
       assert.equal(
         DOMPurify.sanitize(
@@ -331,7 +332,7 @@
         '<one attribute-one="1"></one>'
       );
     });
-    QUnit.test(
+    test(
       'Config-Flag tests: FORBID_CONTENTS + FORBID_TAGS',
       function (assert) {
         // FORBID_CONTENTS + FORBID_TAGS
@@ -344,7 +345,7 @@
         );
       }
     );
-    QUnit.test(
+    test(
       'Config-Flag tests: FORBID_CONTENTS + ADD_FORBID_CONTENTS + FORBID_TAGS',
       function (assert) {
         assert.equal(
@@ -360,7 +361,7 @@
         );
       }
     );
-    QUnit.test(
+    test(
       'Config-Flag tests: DEFAULT_FORBID_CONTENTS + ADD_FORBID_CONTENTS',
       function (assert) {
         assert.equal(
@@ -372,7 +373,7 @@
         );
       }
     );
-    QUnit.test(
+    test(
       'Config-Flag tests: SAFE_FOR_JQUERY (now inactive, secure by default)',
       function (assert) {
         assert.equal(
@@ -407,13 +408,13 @@
         );
         assert.equal(
           DOMPurify.sanitize(
-            '<b><style><style/><img src=xx: onerror=alert(1)>'
+            '<b><style><style/><img src=x onerror=alert(1)>'
           ),
           '<b></b>'
         );
         assert.equal(
           DOMPurify.sanitize(
-            '<b><style><style/><img src=xx: onerror=alert(1)>'
+            '<b><style><style/><img src=x onerror=alert(1)>'
           ),
           '<b></b>'
         );
@@ -432,7 +433,7 @@
         );
       }
     );
-    QUnit.test('Config-Flag tests: SAFE_FOR_TEMPLATES', function (assert) {
+    test('Config-Flag tests: SAFE_FOR_TEMPLATES', function (assert) {
       //SAFE_FOR_TEMPLATES
       assert.equal(
         DOMPurify.sanitize(
@@ -542,7 +543,7 @@
         ' '
       );
     });
-    QUnit.test('Config-Flag tests: SANITIZE_DOM', function (assert) {
+    test('Config-Flag tests: SANITIZE_DOM', function (assert) {
       // SANITIZE_DOM
       assert.equal(
         DOMPurify.sanitize('<img src="x" name="implementation">', {
@@ -589,7 +590,7 @@
         ['', '<form><input name="attributes"></form>', '<form><input></form>']
       );
     });
-    QUnit.test('Config-Flag tests: SANITIZE_NAMED_PROPS', function (assert) {
+    test('Config-Flag tests: SANITIZE_NAMED_PROPS', function (assert) {
       // SANITIZE_NAMED_PROPS
       assert.equal(
         DOMPurify.sanitize('<a id="x"></a>', {
@@ -610,7 +611,7 @@
         '<a id="user-content-x"></a><a id="user-content-x"></a>'
       );
     });
-    QUnit.test('Config-Flag tests: WHOLE_DOCUMENT', function (assert) {
+    test('Config-Flag tests: WHOLE_DOCUMENT', function (assert) {
       //WHOLE_DOCUMENT
       assert.equal(DOMPurify.sanitize('123', { WHOLE_DOCUMENT: false }), '123');
       assert.equal(
@@ -655,7 +656,7 @@
         '<!DOCTYPE html>\n<html><head></head><body>123</body></html>'
       );
     });
-    QUnit.test('Config-Flag tests: RETURN_DOM', function (assert) {
+    test('Config-Flag tests: RETURN_DOM', function (assert) {
       //RETURN_DOM
       assert.equal(
         DOMPurify.sanitize('<a>123<b>456</b></a>', { RETURN_DOM: true })
@@ -687,7 +688,7 @@
         '<body>123</body>'
       );
     });
-    QUnit.test('Config-Flag tests: shadowroot', function (assert) {
+    test('Config-Flag tests: shadowroot', function (assert) {
       assert.notEqual(
         DOMPurify.sanitize('123', {
           RETURN_DOM: true,
@@ -715,7 +716,7 @@
         document
       );
     });
-    QUnit.test('Config-Flag tests: RETURN_DOM_FRAGMENT', function (assert) {
+    test('Config-Flag tests: RETURN_DOM_FRAGMENT', function (assert) {
       //RETURN_DOM_FRAGMENT
       // attempt clobbering
       var fragment = DOMPurify.sanitize(
@@ -736,7 +737,7 @@
       assert.notEqual(fragment.ownerDocument, document);
       assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
     });
-    QUnit.test('Config-Flag tests: RETURN_DOM_FRAGMENT', function (assert) {
+    test('Config-Flag tests: RETURN_DOM_FRAGMENT', function (assert) {
       var xss = `<body><div><template shadowroot=open><img src=x onerror=alert(3)></template></div></body>`;
       var dom_body = DOMPurify.sanitize(xss, { RETURN_DOM: true });
       assert.equal(
@@ -744,7 +745,7 @@
         '<body><div><template><img src="x"></template></div></body>'
       );
     });
-    QUnit.test('Config-Flag tests: IN_PLACE', function (assert) {
+    test('Config-Flag tests: IN_PLACE', function (assert) {
       //IN_PLACE
       var dirty = document.createElement('a');
       dirty.setAttribute('href', 'javascript:alert(1)');
@@ -752,7 +753,7 @@
       assert.equal(dirty, clean); // should return the input node
       assert.equal(dirty.href, ''); // should still sanitize
     });
-    QUnit.test(
+    test(
       'Config-Flag tests: IN_PLACE insecure root-nodes',
       function (assert) {
         //IN_PLACE with insecure root node (script)
@@ -763,7 +764,7 @@
         });
       }
     );
-    QUnit.test(
+    test(
       'Config-Flag tests: IN_PLACE insecure root-nodes',
       function (assert) {
         //IN_PLACE with insecure root node (iframe)
@@ -774,7 +775,7 @@
         });
       }
     );
-    QUnit.test('Config-Flag tests: FORBID_TAGS', function (assert) {
+    test('Config-Flag tests: FORBID_TAGS', function (assert) {
       //FORBID_TAGS
       assert.equal(
         DOMPurify.sanitize('<a>123<b>456</b></a>', { FORBID_TAGS: ['b'] }),
@@ -804,7 +805,7 @@
         '<a>123456</a>'
       );
     });
-    QUnit.test('Config-Flag tests: FORBID_ATTR', function (assert) {
+    test('Config-Flag tests: FORBID_ATTR', function (assert) {
       //FORBID_ATTR
       assert.equal(
         DOMPurify.sanitize('<a x="1">123<b>456</b></a>', {
@@ -833,7 +834,7 @@
         '<a>123<b>456</b></a>789'
       );
     });
-    QUnit.test(
+    test(
       'Config-Param tests: CUSTOM_ELEMENT_HANDLING',
       function (assert) {
         //CUSTOM_ELEMENT_HANDLING
@@ -913,7 +914,7 @@
         );
       }
     );
-    QUnit.test(
+    test(
       'CUSTOM_ELEMENT_HANDLING config values of null do not throw a TypeError.',
       function (assert) {
         DOMPurify.sanitize('', {
@@ -928,7 +929,7 @@
         assert.ok(true);
       }
     );
-    QUnit.test(
+    test(
       'CUSTOM_ELEMENT_HANDLING attributeNameCheck with tagName parameter',
       function (assert) {
         assert.equal(
@@ -954,7 +955,7 @@
         );
       }
     );
-    QUnit.test('Test dirty being an array', function (assert) {
+    test('Test dirty being an array', function (assert) {
       assert.equal(
         DOMPurify.sanitize(['<a>123<b>456</b></a>']),
         '<a>123<b>456</b></a>'
@@ -965,7 +966,7 @@
       );
     });
     // cross-check that document.write into iframe works properly
-    QUnit.test('XSS test: document.write() into iframe', function (assert) {
+    test('XSS test: document.write() into iframe', function (assert) {
       const done = assert.async();
       window.xssed = false;
       var iframe = document.createElement('iframe');
@@ -982,11 +983,11 @@
       document.body.appendChild(iframe);
     });
     // Check for isSupported property
-    QUnit.test('DOMPurify property tests', function (assert) {
+    test('DOMPurify property tests', function (assert) {
       assert.equal(typeof DOMPurify.isSupported, 'boolean');
     });
     // Test with a custom window object
-    QUnit.test('DOMPurify custom window tests', function (assert) {
+    test('DOMPurify custom window tests', function (assert) {
       assert.strictEqual(typeof DOMPurify(null).version, 'string');
       assert.strictEqual(DOMPurify(null).isSupported, false);
       assert.strictEqual(DOMPurify(null).sanitize, undefined);
@@ -1038,7 +1039,7 @@
       assert.strictEqual(typeof DOMPurify(window).sanitize, 'function');
     });
     // Test to prevent security issues with pre-clobbered DOM
-    QUnit.test(
+    test(
       'sanitize() should not throw if the original document is clobbered _after_ DOMPurify has been instantiated',
       function (assert) {
         var evilNode = document.createElement('div');
@@ -1065,7 +1066,7 @@
       }
     );
     // Tests to ensure that a configuration can be set and cleared
-    QUnit.test(
+    test(
       'ensure that a persistent configuration can be set and cleared',
       function (assert) {
         var dirty = '<foobar>abc</foobar>';
@@ -1077,7 +1078,7 @@
       }
     );
     // Test to ensure that a hook can add allowed tags / attributes on the fly
-    QUnit.test(
+    test(
       'ensure that a hook can add allowed tags / attributes on the fly',
       function (assert) {
         DOMPurify.addHook('uponSanitizeElement', function (node, data) {
@@ -1110,7 +1111,7 @@
     // Test to ensure that if input[type=file] is badlisted and flagged as an
     // attribute not to keep via hookEvent.keepAttr, it should be removed despite
     // it being an issue of being able to programmatically add it back in Safari.
-    QUnit.test(
+    test(
       'ensure that input[type=file] is removed via hookEvent keepAttr',
       function (assert) {
         DOMPurify.addHook('uponSanitizeAttribute', function (node, data) {
@@ -1132,7 +1133,7 @@
         DOMPurify.removeHooks('uponSanitizeAttribute');
       }
     );
-    QUnit.test(
+    test(
       'sanitize() should allow unknown protocols when ALLOW_UNKNOWN_PROTOCOLS is true',
       function (assert) {
         var dirty =
@@ -1144,7 +1145,7 @@
       }
     );
 
-    QUnit.test(
+    test(
       'sanitize() should not allow javascript when ALLOW_UNKNOWN_PROTOCOLS is true',
       function (assert) {
         var dirty =
@@ -1157,7 +1158,7 @@
       }
     );
 
-    QUnit.test(
+    test(
       'Regression-Test to make sure #166 stays fixed',
       function (assert) {
         var dirty = '<p onFoo="123">HELLO</p>';
@@ -1170,7 +1171,7 @@
     );
 
     // Test 1 to check if the element count in DOMPurify.removed is correct
-    QUnit.test(
+    test(
       'DOMPurify.removed should contain one element',
       function (assert) {
         var dirty =
@@ -1181,7 +1182,7 @@
     );
 
     // Test 2 to check if the element count in DOMPurify.removed is correct
-    QUnit.test(
+    test(
       'DOMPurify.removed should contain two elements',
       function (assert) {
         var dirty =
@@ -1192,14 +1193,14 @@
     );
 
     // Test 3 to check if the element count in DOMPurify.removed is correct
-    QUnit.test('DOMPurify.removed should be correct', function (assert) {
+    test('DOMPurify.removed should be correct', function (assert) {
       var dirty = '<img src=x onerror="alert(1)">';
       DOMPurify.sanitize(dirty);
       assert.equal(DOMPurify.removed.length, 1);
     });
 
     // Test 4 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode
-    QUnit.test(
+    test(
       'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode',
       function (assert) {
         var dirty = '<a>123{{456}}</a>';
@@ -1212,7 +1213,7 @@
     );
 
     // Test 5 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode
-    QUnit.test(
+    test(
       'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode',
       function (assert) {
         var dirty = '<a>123{{456}}<b>456{{789}}</b></a>';
@@ -1225,7 +1226,7 @@
     );
 
     // Test 6 to check that DOMPurify.removed is correct in SAFE_FOR_TEMLATES mode
-    QUnit.test(
+    test(
       'DOMPurify.removed should be correct in SAFE_FOR_TEMPLATES mode',
       function (assert) {
         var dirty = '<img src=1 width="{{123}}">';
@@ -1238,14 +1239,14 @@
     );
 
     // Test 7 to check that DOMPurify.removed is correct
-    QUnit.test('DOMPurify.removed should be correct', function (assert) {
+      test('DOMPurify.removed should be correct', function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)</script>';
       DOMPurify.sanitize(dirty);
       assert.equal(DOMPurify.removed.length, 1);
     });
 
     // Test 8 to check that DOMPurify.removed is correct if tags are clean
-    QUnit.test(
+    test(
       'DOMPurify.removed should not contain elements if tags are permitted',
       function (assert) {
         var dirty = '<a>123</a>';
@@ -1255,7 +1256,7 @@
     );
 
     // Test 9 to check that DOMPurify.removed is correct if the tags and attributes are clean
-    QUnit.test(
+    test(
       'DOMPurify.removed should not contain elements if all tags and attrs are permitted',
       function (assert) {
         var dirty = '<img src=x>';
@@ -1265,7 +1266,7 @@
     );
 
     // Test 10 to check that DOMPurify.removed does not have false positive elements in SAFE_FOR_TEMLATES mode
-    QUnit.test(
+    test(
       'DOMPurify.removed should not contain elements for valid data in SAFE_FOR_TEMLATES mode',
       function (assert) {
         var dirty = '1';
@@ -1278,7 +1279,7 @@
     );
 
     // Test 11 to check that DOMPurify.removed does not have false positive elements
-    QUnit.test(
+    test(
       'DOMPurify.removed should not contain elements for valid data',
       function (assert) {
         var dirty = '1';
@@ -1289,14 +1290,14 @@
       }
     );
     // Tests to make sure that the node scanning feature delivers accurate results on all browsers
-    QUnit.test(
+    test(
       'DOMPurify should deliver accurate results when sanitizing nodes 1',
       function (assert) {
         var clean = DOMPurify.sanitize(document.createElement('td'));
         assert.equal(clean, '<td></td>');
       }
     );
-    QUnit.test(
+    test(
       'DOMPurify should deliver accurate results when sanitizing nodes 2',
       function (assert) {
         var clean = DOMPurify.sanitize(document.createElement('td'), {
@@ -1306,7 +1307,7 @@
       }
     );
     // Test to make sure that URI_safe attributes can be configured too
-    QUnit.test(
+    test(
       'DOMPurify should allow to define URI safe attributes',
       function (assert) {
         var clean = DOMPurify.sanitize('<b typeof="bla:h">123</b>', {
@@ -1317,7 +1318,7 @@
       }
     );
     // Test to make sure that URI_safe attributes don't persist, see #327
-    QUnit.test(
+    test(
       'DOMPurify should not persist URI safe attributes',
       function (assert) {
         var clean = DOMPurify.sanitize('<b typeof="bla:h">123</b>', {
@@ -1331,7 +1332,7 @@
       }
     );
     // Test to make sure that URI_safe attributes don't overwrite default, see #366
-    QUnit.test(
+    test(
       'DOMPurify should not overwrite default URI safe attributes',
       function (assert) {
         var clean = DOMPurify.sanitize(
@@ -1353,7 +1354,7 @@
       }
     );
     // Tests to make sure that FORCE_BODY pushes elements to document.body (#199)
-    QUnit.test(
+    test(
       'FORCE_BODY needs to push some elements to document.body',
       function (assert) {
         var clean = DOMPurify.sanitize('<style>123</style>', {
@@ -1362,7 +1363,7 @@
         assert.equal(clean, '<style>123</style>');
       }
     );
-    QUnit.test(
+    test(
       'FORCE_BODY needs to push some elements to document.body',
       function (assert) {
         var clean = DOMPurify.sanitize('<script>123</script>', {
@@ -1372,21 +1373,21 @@
         assert.equal(clean, '<script>123</script>');
       }
     );
-    QUnit.test(
+    test(
       'FORCE_BODY needs to push some elements to document.body',
       function (assert) {
         var clean = DOMPurify.sanitize(' AAAAA', { FORCE_BODY: true });
         assert.equal(clean, ' AAAAA');
       }
     );
-    QUnit.test(
+    test(
       'Lack of FORCE_BODY still preserves leading whitespace',
       function (assert) {
         var clean = DOMPurify.sanitize(' <b>AAAAA</b>', { FORCE_BODY: false });
         assert.equal(clean, ' <b>AAAAA</b>');
       }
     );
-    QUnit.test(
+    test(
       'Lack of FORCE_BODY needs to push some elements to document.head',
       function (assert) {
         var clean = DOMPurify.sanitize('<style>123</style>', {
@@ -1396,7 +1397,7 @@
       }
     );
     // Test to make sure that ALLOW_ARIA_ATTR is working as expected (#198)
-    QUnit.test('Config-Flag tests: ALLOW_ARIA_ATTR', function (assert) {
+    test('Config-Flag tests: ALLOW_ARIA_ATTR', function (assert) {
       assert.contains(
         DOMPurify.sanitize('<a aria-abc="foo" href="#">abc</a>', {
           ALLOW_ARIA_ATTR: true,
@@ -1425,7 +1426,7 @@
         '<a href="#">abc</a>'
       );
     });
-    QUnit.test('Config-Flag tests: USE_PROFILES', function (assert) {
+    test('Config-Flag tests: USE_PROFILES', function (assert) {
       assert.equal(
         DOMPurify.sanitize('<h1>HELLO</h1>', { USE_PROFILES: { html: false } }),
         'HELLO'
@@ -1568,7 +1569,7 @@
         ]
       );
     });
-    QUnit.test('Config-Flag tests: ALLOWED_URI_REGEXP', function (assert) {
+    test('Config-Flag tests: ALLOWED_URI_REGEXP', function (assert) {
       var tests = [
         {
           test: '<img src="https://i.imgur.com/hkfpOUu.gifv">',
@@ -1588,14 +1589,14 @@
           expected: '<a>demo</a>',
         },
       ];
-      tests.forEach(function (test) {
-        var str = DOMPurify.sanitize(test.test, {
+      tests.forEach(function (testCase) {
+        var str = DOMPurify.sanitize(testCase.test, {
           ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
         });
-        assert.equal(str, test.expected);
+        assert.equal(str, testCase.expected);
       });
     });
-    QUnit.test('Ensure ALLOWED_URI_REGEXP is not cached', function(assert) {
+    test('Ensure ALLOWED_URI_REGEXP is not cached', function(assert) {
       const 
         dirty = '<img src="https://different.com">',
         expected = '<img src="https://different.com">';
@@ -1610,7 +1611,7 @@
       // ensure that the previous regexp does not affect future sanitize calls
       assert.equal(DOMPurify.sanitize(dirty), expected);
     });
-    QUnit.test(
+    test(
       'Avoid freeze when using tables and ALLOW_TAGS',
       function (assert) {
         var clean = DOMPurify.sanitize('<table><tr><td></td></tr></table>', {
@@ -1619,7 +1620,7 @@
         assert.equal(clean, '<table><tbody><tr><td></td></tr></tbody></table>');
       }
     );
-    QUnit.test(
+    test(
       'Avoid XSS with ALLOW_TAGS permitting noembed, noscript',
       function (assert) {
         var clean = DOMPurify.sanitize(
@@ -1636,7 +1637,7 @@
         ]);
       }
     );
-    QUnit.test(
+    test(
       'Avoid mXSS in Chrome 77 and above using SVG',
       function (assert) {
         var clean = DOMPurify.sanitize('<svg></p><style><g title="</style>');
@@ -1651,7 +1652,7 @@
         ]);
       }
     );
-    QUnit.test(
+    test(
       'Avoid mXSS in Chrome 77 and above using HTML',
       function (assert) {
         var clean = DOMPurify.sanitize('<svg></p><title><a href="</title>qqq');
@@ -1667,7 +1668,7 @@
         ]);
       }
     );
-    QUnit.test(
+    test(
       'Test for correct return value when RETURN_TRUSTED_TYPE is true',
       function (assert) {
         var clean = DOMPurify.sanitize('<b>hello goodbye</b>', {
@@ -1677,7 +1678,7 @@
         assert.contains(type, ['TrustedHTML', 'string', 'object']);
       }
     );
-    QUnit.test(
+    test(
       'Test for correct return value when RETURN_TRUSTED_TYPE is false',
       function (assert) {
         var clean = DOMPurify.sanitize('<b>hello goodbye</b>', {
@@ -1687,7 +1688,7 @@
         assert.equal(type, 'string');
       }
     );
-    QUnit.test(
+    test(
       'Test for correct return value when RETURN_TRUSTED_TYPE is not set',
       function (assert) {
         var clean = DOMPurify.sanitize('<b>hello goodbye</b>');
@@ -1695,7 +1696,7 @@
         assert.equal(type, 'string');
       }
     );
-    QUnit.test(
+    test(
       'Test for DoS coming from table sanitization 1/2 See #365',
       function (assert) {
         var config = { FORBID_TAGS: ['tbody'] };
@@ -1709,14 +1710,14 @@
         );
       }
     );
-    QUnit.test(
+    test(
       'Test for DoS coming from table sanitization 2/2 See #365',
       function (assert) {
         var config = {
           ALLOWED_TAGS: [
             'b',
-            'strong',
-            'i',
+          'strong',
+          'i',
             'italic',
             'div',
             'p',
@@ -1751,7 +1752,7 @@
         );
       }
     );
-    QUnit.test(
+    test(
       'Test for less aggressive mXSS handling, See #369',
       function (assert) {
         var config = {
@@ -1767,7 +1768,7 @@
         ]);
       }
     );
-    QUnit.test(
+    test(
       'Test against mXSS using text integration points and removal 1/2',
       function (assert) {
         var config = {
@@ -1784,7 +1785,7 @@
         ]);
       }
     );
-    QUnit.test(
+    test(
       'Test against mXSS using text integration points and removal 2/2',
       function (assert) {
         var config = {
@@ -1797,7 +1798,7 @@
         assert.contains(clean, ['x']);
       }
     );
-    QUnit.test(
+    test(
       'Test against insecure behavior in jQUery v3.0 and newer 1/2',
       function (assert) {
         var config = {};
@@ -1814,7 +1815,7 @@
         ]);
       }
     );
-    QUnit.test(
+    test(
       'Test against insecure behavior in jQUery v3.0 and newer 2/2',
       function (assert) {
         var config = {};
@@ -1830,7 +1831,7 @@
         ]);
       }
     );
-    QUnit.test(
+    test(
       'Test against data URIs in anchors without proper config flag',
       function (assert) {
         var clean = DOMPurify.sanitize(
@@ -1839,7 +1840,7 @@
         assert.equal(clean, '<a>icon.gif</a>');
       }
     );
-    QUnit.test(
+    test(
       'Test against data URIs in anchors using proper config flag',
       function (assert) {
         var clean = DOMPurify.sanitize(
@@ -1851,7 +1852,7 @@
         assert.equal(clean, '<a href="data:image/gif;base64,123">icon.gif</a>');
       }
     );
-    QUnit.test(
+    test(
       'Test against Unicode tag names and proper removal',
       function (assert) {
         var clean = DOMPurify.sanitize('<svg><blocKquote>foo</blocKquote>');
@@ -1868,7 +1869,7 @@
         ]);
       }
     );
-    QUnit.test('Test if namespaces are properly enforced', function (assert) {
+    test('Test if namespaces are properly enforced', function (assert) {
       var tests = [
         {
           test:
@@ -1921,12 +1922,12 @@
           ],
         },
       ];
-      tests.forEach(function (test) {
-        var clean = DOMPurify.sanitize(test.test);
-        assert.contains(clean, test.expected);
+      tests.forEach(function (testCase) {
+        var clean = DOMPurify.sanitize(testCase.test);
+        assert.contains(clean, testCase.expected);
       });
     });
-    QUnit.test('Config-Flag tests: NAMESPACE', function (assert) {
+    test('Config-Flag tests: NAMESPACE', function (assert) {
       var tests = [
         {
           test: '<polyline points="0 0"></polyline>',
@@ -1965,12 +1966,12 @@
           expected: [''],
         },
       ];
-      tests.forEach(function (test) {
-        var clean = DOMPurify.sanitize(test.test, test.config);
-        assert.contains(clean, test.expected);
+      tests.forEach(function (testCase) {
+        var clean = DOMPurify.sanitize(testCase.test, testCase.config);
+        assert.contains(clean, testCase.expected);
       });
     });
-    QUnit.test('Config-Flag tests: ALLOWED_NAMESPACES', function (assert) {
+    test('Config-Flag tests: ALLOWED_NAMESPACES', function (assert) {
       const tests = [
         // Test when ALLOWED_NAMESPACES is not set, result is empty for XML with custom namespace
         {
@@ -2057,11 +2058,11 @@
             '<library xmlns="http://www.ibm.com/library"><bk:name xmlns:bk="urn:loc.gov:books">Library 1</bk:name></library>',
         },
       ];
-      tests.forEach(function (test) {
-        assert.contains(DOMPurify.sanitize(test.test, test.config), test.expected);
+      tests.forEach(function (testCase) {
+        assert.contains(DOMPurify.sanitize(testCase.test, testCase.config), testCase.expected);
       });
     });
-    QUnit.test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
+    test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
       const tests = [
         {
           test: '<A href="#">invalid</A><a TITLE="title" href="#">valid</a>',
@@ -2111,17 +2112,17 @@
           },
         },
       ];
-      tests.forEach(function (test) {
-        Object.keys(test.expected).forEach(function (type) {
-          var config = test.config || {};
+      tests.forEach(function (testCase) {
+        Object.keys(testCase.expected).forEach(function (type) {
+          var config = testCase.config || {};
           config.PARSER_MEDIA_TYPE = type;
-          var clean = DOMPurify.sanitize(test.test, config);
-          assert.contains(clean, test.expected[type]);
+          var clean = DOMPurify.sanitize(testCase.test, config);
+          assert.contains(clean, testCase.expected[type]);
         });
       });
     });
 
-    QUnit.test(
+    test(
       'Config-Flag tests: PARSER_MEDIA_TYPE + ALLOWED_TAGS/ALLOWED_ATTR',
       function (assert) {
         assert.contains(
@@ -2142,7 +2143,7 @@
       }
     );
 
-    QUnit.test('Test invalid xml', function (assert) {
+    test('Test invalid xml', function (assert) {
       var tests = [
         {
           test: '',
@@ -2185,13 +2186,13 @@
           expected: ['', '<!-->'],
         },
       ];
-      tests.forEach(function (test) {
-        var clean = DOMPurify.sanitize(test.test, test.config);
-        assert.contains(clean, test.expected);
+      tests.forEach(function (testCase) {
+        var clean = DOMPurify.sanitize(testCase.test, testCase.config);
+        assert.contains(clean, testCase.expected);
       });
     });
 
-    QUnit.test(
+    test(
       'Test namespace default to html after other namespace been used',
       function (assert) {
         var tests = [
@@ -2206,14 +2207,14 @@
             expected: ['<br>'],
           },
         ];
-        tests.forEach(function (test) {
-          var clean = DOMPurify.sanitize(test.test, test.config);
-          assert.contains(clean, test.expected);
+        tests.forEach(function (testCase) {
+          var clean = DOMPurify.sanitize(testCase.test, testCase.config);
+          assert.contains(clean, testCase.expected);
         });
       }
     );
 
-    QUnit.test('Test non-html input after empty input', function (assert) {
+    test('Test non-html input after empty input', function (assert) {
       var tests = [
         {
           test: '',
@@ -2231,13 +2232,13 @@
           ],
         },
       ];
-      tests.forEach(function (test) {
-        var clean = DOMPurify.sanitize(test.test, test.config);
-        assert.contains(clean, test.expected);
+      tests.forEach(function (testCase) {
+        var clean = DOMPurify.sanitize(testCase.test, testCase.config);
+        assert.contains(clean, testCase.expected);
       });
     });
 
-    QUnit.test('removeHook returns hook function', function (assert) {
+    test('removeHook returns hook function', function (assert) {
       const entryPoint = 'afterSanitizeAttributes';
       const dirty = '<div class="hello"></div>';
       const expected = '<div class="world"></div>';
@@ -2259,7 +2260,7 @@
       DOMPurify.removeHook(entryPoint);
     });
 
-    QUnit.test('removeHook allows specifying the hook to remove', function (assert) {
+    test('removeHook allows specifying the hook to remove', function (assert) {
       const entryPoint = 'afterSanitizeAttributes';
       const dirty = '<div class="original"></div>';
       const expected = '<div class="original first third"></div>';
@@ -2292,7 +2293,7 @@
       DOMPurify.removeHook(entryPoint, thirdHook);
     });
     
-    QUnit.test('Test proper removal of annotation-xml w. custom elements', function (assert) {
+    test('Test proper removal of annotation-xml w. custom elements', function (assert) {
       const dirty  = '<svg><annotation-xml><foreignobject><style><!--</style><p id="--><img src=\'x\' onerror=\'alert(1)\'>">';
       const config = { 
         CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /.*/ },
@@ -2303,7 +2304,7 @@
       assert.contains(clean, expected);
     });
     
-    QUnit.test('Test proper handling of attributes with RETURN_DOM', function (assert) {
+    test('Test proper handling of attributes with RETURN_DOM', function (assert) {
       const dirty  = '<body onload="alert(1)">&lt;a<!-- <f --></body>';
       const config = { 
         RETURN_DOM: true 
@@ -2317,7 +2318,7 @@
       assert.contains(clean.outerHTML, expected);
     });
     
-    QUnit.test('Test proper handling of data-attribiutes in XML modes', function (assert) {
+    test('Test proper handling of data-attribiutes in XML modes', function (assert) {
       const dirty  = '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg"><a xmlns:data-slonser="http://www.w3.org/1999/xlink" data-slonser:href="javascript:alert(1)"><text  x="20" y="35">Click me!</text></a></svg>';
       const config = { 
         PARSER_MEDIA_TYPE: 'application/xhtml+xml'
@@ -2330,7 +2331,7 @@
       assert.contains(clean, expected);
     });
 
-    QUnit.test('Expect the same results when using ALLOWED_URI_REGEXP with the g flag', function (assert) {
+    test('Expect the same results when using ALLOWED_URI_REGEXP with the g flag', function (assert) {
       const dirty  = '<img src="blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a"><a epub:type="noteref" href="epub:EPUB/xhtml/#footnote"></a><img src="blob:http://localhost:5173/84c49be9-3352-4407" >';
       const config = { 
         ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/gi,
@@ -2340,4 +2341,4 @@
       assert.strictEqual(clean, expected);
     });
   };
-});
+}));

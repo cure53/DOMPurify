@@ -1,4 +1,13 @@
-const argv = require('minimist')(process.argv.slice(2));
+const argv = (function() {
+  const args = {};
+  process.argv.slice(2).forEach(arg => {
+    if (arg.startsWith('--')) {
+      const parts = arg.slice(2).split('=');
+      args[parts[0]] = parts[1] || true;
+    }
+  });
+  return args;
+})();
 
 const customLaunchers = {
   bs_sierra_safari_10: {
@@ -73,13 +82,29 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Sequoia',
   },
-  bs_win10_edge_84: {
+  bs_sequoia_safari_latest: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'OS X',
+    browser_version: 'latest',
+    browser: 'safari',
+    os_version: 'Sequoia',
+  },
+  bs_win10_edge_latest: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
-    browser_version: '84.0',
+    browser_version: 'latest',
     browser: 'edge',
     os_version: '10',
+  },
+  bs_win11_edge_latest: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: 'latest',
+    browser: 'edge',
+    os_version: '11',
   },
   bs_win10_firefox_70: {
     base: 'BrowserStack',
@@ -142,6 +167,22 @@ const customLaunchers = {
     device: null,
     os: 'Windows',
     browser_version: '134.0',
+    browser: 'firefox',
+    os_version: '11',
+  },
+  bs_win10_firefox_latest: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: 'latest',
+    browser: 'firefox',
+    os_version: '10',
+  },
+  bs_win11_firefox_latest: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: 'latest',
     browser: 'firefox',
     os_version: '11',
   },
@@ -216,7 +257,23 @@ const customLaunchers = {
     browser_version: '133.0',
     browser: 'chrome',
     os_version: '11',
-  },  
+  },
+  bs_win10_chrome_latest: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: 'latest',
+    browser: 'chrome',
+    os_version: '10',
+  },
+  bs_win11_chrome_latest: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: 'latest',
+    browser: 'chrome',
+    os_version: '11',
+  },
 };
 
 const getAllBrowsers = () => Object.keys(customLaunchers);
@@ -238,7 +295,7 @@ const getRandomBrowser = () => {
 const shouldProbeOnly = argv.shouldProbeOnly === 'true';
 const shouldTestOnBrowserStack = argv.shouldTestOnBrowserStack === 'true';
 const defaultBrowsers = ['Firefox'];
-const argvBrowsers = Array.isArray(argv.browsers)
+const argvBrowsers = (typeof argv.browsers === 'string')
   ? argv.browsers.split(' ')
   : defaultBrowsers;
 const browsers = shouldTestOnBrowserStack

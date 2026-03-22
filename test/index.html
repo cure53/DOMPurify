@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>DOMPurify Test Suite</title>
+</head>
+<body>
+    <div id="qunit-fixture"></div>
+    <div id="results">Running tests...</div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../dist/purify.js"></script>
+    <script src="./fixtures/expect.js"></script>
+    <script src="./test-suite.js"></script>
+    <script src="./bootstrap-test-suite.js"></script>
+
+    <script>
+        window.testResults = [];
+        window.testsFinished = false;
+        window.xssed = false;
+        window.alert = function() { window.xssed = true; };
+
+        let pendingTests = 0;
+
+        function test(name, fn) {
+            pendingTests++;
+            const assert = {
+                equal: (a, b, m) => {
+                    let pass = (Array.isArray(b) ? b.indexOf(a) !== -1 : a == b);
+                    window.testResults.push({ name, pass, message: m, actual: a, expected: b });
+                },
+                notEqual: (a, b, m) => {
+                    const pass = (a != b);
+                    window.testResults.push({ name, pass, message: m, actual: a, expected: b });
+                },
+                strictEqual: (a, b, m) => {
+                    const pass = (a === b);
+                    window.testResults.push({ name, pass, message: m, actual: a, expected: b });
+                },
+                ok: (v, m) => {
+                    const pass = !!v;
+                    window.testResults.push({ name, pass, message: m });
+                },
+                throws: (f, m) => {
+                    try {
+                        f();
+                        window.testResults.push({ name, pass: false, message: m || 'Expected function to throw' });
+                    } catch (e) {
+                        window.testResults.push({ name, pass: true, message: m });
+                    }
+                },
+                contains: (actual, expected, message) => {
+                    let pass = Array.isArray(expected) ? expected.indexOf(actual) !== -1 : actual === expected;
+                    window.testResults.push({ name, pass, message: message, actual: actual, expected: expected });
+                },
+                async: () => {
+                    let doneCalled = false;
+                    pendingTests++;
+                    return () => {
+                        if (doneCalled) return;
+                        doneCalled = true;
+                        pendingTests--;
+                        checkFinished();
+                    };
+                },
+                expect: () => {}
+            };
+
+            try {
+                const result = fn(assert);
+                if (result && typeof result.then === 'function') {
+                    result.then(() => {
+                        pendingTests--;
+                        checkFinished();
+                    }).catch((e) => {
+                        window.testResults.push({ name, pass: false, message: e.message });
+                        pendingTests--;
+                        checkFinished();
+                    });
+                } else {
+                    pendingTests--;
+                    checkFinished();
+                }
+            } catch (e) {
+                window.testResults.push({ name, pass: false, message: e.message });
+                pendingTests--;
+                checkFinished();
+            }
+        }
+
+        function checkFinished() {
+            if (pendingTests === 0) {
+                setTimeout(() => {
+                    if (pendingTests === 0) {
+                        window.testsFinished = true;
+                        const total = window.testResults.length;
+                        const failed = window.testResults.filter(r => !r.pass);
+                        document.getElementById('results').innerText = 'Finished: ' + total + ' tests, ' + failed.length + ' failures';
+                    }
+                }, 100);
+            }
+        }
+
+        const xssTests = Array.isArray(window.expectations) ? window.expectations.filter(e => /alert/.test(e.payload)) : [];
+
+        setTimeout(() => {
+            if (window.bootstrapTestSuite && window.testSuite && window.DOMPurify && window.expectations) {
+                window.bootstrapTestSuite(null, test, null, window.jQuery);
+                window.testSuite(test, window.DOMPurify, window, window.expectations, xssTests);
+            } else {
+                 document.getElementById('results').innerText = 'Error: Dependencies not loaded correctly';
+                 window.testsFinished = true;
+            }
+            checkFinished();
+        }, 500);
+    </script>
+</body>
+</html>

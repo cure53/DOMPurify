@@ -10,7 +10,7 @@ DOMPurify runs as JavaScript and works in all modern browsers (Safari (10+), Ope
 
 **Note that [DOMPurify v2.5.9](https://github.com/cure53/DOMPurify/releases/tag/2.5.9) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
 
-Our automated tests cover [28 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v20.x, v22.x, 24.x and v25.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
+Our automated tests cover [33 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v20.x, v22.x, 24.x and v25.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom) using the built-in `node:test` runner. Older Node versions are known to work as well, but hey... no guarantees.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
@@ -428,7 +428,7 @@ DOMPurify.addHook(
 
 We are currently using Github Actions in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://github.com/cure53/DOMPurify/actions
 
-You can further run local tests by executing `npm run test`.
+You can further run local tests by executing `npm run test`. This will run tests in Node.js (via `node:test`) and in modern browsers (via Playwright).
 
 All relevant commits will be signed with the key `0x24BB6BF4` for additional security (since 8th of April 2016).
 
@@ -445,8 +445,9 @@ We use ESLint as a pre-commit hook to ensure code consistency. Moreover, to ease
 These are our npm scripts:
 
 - `npm run dev` to start building while watching sources for changes
-- `npm run test` to run our test suite via jsdom and karma
-  - `test:jsdom` to only run tests through jsdom
+- `npm run test` to run our test suite via Node.js, Playwright and karma
+  - `test:node` to only run tests through Node.js and jsdom
+  - `test:browser` to only run tests through Playwright (Chromium, Firefox, WebKit)
   - `test:karma` to only run tests through karma
 - `npm run lint` to lint the sources using ESLint (via xo)
 - `npm run format` to format our sources using prettier to ease to pass ESLint
