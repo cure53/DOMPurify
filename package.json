@@ -16,7 +16,7 @@
     "build:es": "rollup -c -f es -o dist/purify.es.mjs",
     "build:cjs": "rollup -c -f cjs -o dist/purify.cjs.js",
     "build:cleanup": "rimraf dist/types",
-    "generate:expect": "node -e \"const fs = require('fs'); const content = fs.readFileSync('test/fixtures/expect.mjs', 'utf8'); fs.writeFileSync('test/fixtures/expect.js', 'window.expectations = ' + content.slice(15, -1).trim());\"",
+    "generate:expect": "node -e \"const fs = require('fs'); const content = fs.readFileSync('test/fixtures/expect.mjs', 'utf8'); fs.writeFileSync('test/fixtures/expect.js', 'window.expectations = ' + content.replace(/export default\\s+/, '').trim());\"",
     "test:node": "npm run generate:expect && cross-env NODE_ENV=test node test/node-runner.mjs",
     "test:browser": "npx playwright test",
     "test:jsdom": "npm run test:node",

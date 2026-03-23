@@ -15,31 +15,31 @@
       return this.s;
     };
 
-    async function loadDOMPurify(
+    function loadDOMPurify(
       assert,
       addScriptAttribute,
       setup,
       beforeOnLoad,
       onload
     ) {
-      const testDone = assert.async();
-      let win;
-      let cleanup;
+      var testDone = assert.async();
+      var win;
+      var cleanup;
 
       if (JSDOM) {
-          const { window } = new JSDOM('<head></head>', {
+          var dom = new JSDOM('<head></head>', {
             runScripts: 'dangerously',
             resources: 'usable'
           });
-          win = window;
-          cleanup = () => {};
+          win = dom.window;
+          cleanup = function() {};
       } else {
           // Real browser environment - use an iframe
-          const iframe = document.createElement('iframe');
+          var iframe = document.createElement('iframe');
           iframe.style.display = 'none';
           document.body.appendChild(iframe);
           win = iframe.contentWindow;
-          cleanup = () => {
+          cleanup = function() {
               document.body.removeChild(iframe);
           };
       }
@@ -64,56 +64,59 @@
           }
       }
 
+      function executeScript(libraryCode) {
+          var scriptEl = win.document.createElement('script');
+          if (addScriptAttribute)
+            scriptEl.setAttribute('data-tt-policy-suffix', 'suffix');
+
+          scriptEl.textContent = libraryCode;
+          win.document.body.appendChild(scriptEl);
+
+          // Give it a tick to execute if needed
+          if (!win.DOMPurify) {
+              win.eval(libraryCode);
+          }
+
+          assert.ok(win.DOMPurify && win.DOMPurify.sanitize, 'DOMPurify is loaded');
+
+          if (beforeOnLoad) {
+            beforeOnLoad(win);
+          }
+
+          if (onload) {
+            onload(win);
+          }
+
+          cleanup();
+          testDone();
+      }
+
       if (!myLibrary) {
           var url = (typeof window !== 'undefined' && window.location && window.location.host) ? '../dist/purify.js' : '/dist/purify.js';
-          try {
-              myLibrary = await fetch(url).then(function(r) { return r.text(); });
-          } catch (e) {}
+          fetch(url).then(function(r) { return r.text(); }).then(function(code) {
+              executeScript(code);
+          }).catch(function(e) {
+              // Fallback or error
+              testDone();
+          });
+      } else {
+          executeScript(myLibrary);
       }
-
-      const scriptEl = win.document.createElement('script');
-      if (addScriptAttribute)
-        scriptEl.setAttribute('data-tt-policy-suffix', 'suffix');
-
-      scriptEl.textContent = myLibrary;
-      win.document.body.appendChild(scriptEl);
-
-      // Give it a tick to execute
-      if (!win.DOMPurify) {
-          await new Promise(function(resolve) { setTimeout(resolve, 0); });
-      }
-
-      if (!win.DOMPurify) {
-          win.eval(myLibrary);
-      }
-
-      assert.ok(win.DOMPurify && win.DOMPurify.sanitize, 'DOMPurify is loaded');
-
-      if (beforeOnLoad) {
-        beforeOnLoad(win);
-      }
-
-      if (onload) {
-        onload(win);
-      }
-
-      cleanup();
-      testDone();
     }
 
-    async function loadDOMPurifyWithSanityCheck(
+    function loadDOMPurifyWithSanityCheck(
       assert,
       addScriptAttribute,
       setup,
       onload
     ) {
-      const beforeOnLoadSanityCheck = function (window) {
+      var beforeOnLoadSanityCheck = function (window) {
         assert.equal(
           window.DOMPurify.sanitize('<img src=x onerror=alert(1)>'),
           '<img src="x">'
         );
       };
-      await loadDOMPurify(
+      loadDOMPurify(
         assert,
         addScriptAttribute,
         setup,
@@ -124,8 +127,8 @@
 
     test(
       'sanity check: works in a non-Trusted Type environment',
-      async function (assert) {
-        await loadDOMPurifyWithSanityCheck(
+      function (assert) {
+        loadDOMPurifyWithSanityCheck(
           assert,
           false,
           function setup(window) {
@@ -136,7 +139,7 @@
             }
           },
           function onload(window) {
-            const output = window.DOMPurify.sanitize('<img>');
+            var output = window.DOMPurify.sanitize('<img>');
             assert.ok(typeof output === 'string');
           }
         );
@@ -145,10 +148,10 @@
 
     test(
       'sanity check: works in a Trusted Type environment',
-      async function (assert) {
-        let policyCreated;
+      function (assert) {
+        var policyCreated;
 
-        await loadDOMPurifyWithSanityCheck(
+        loadDOMPurifyWithSanityCheck(
           assert,
           false,
           function setup(window) {
@@ -168,12 +171,14 @@
                     configurable: true,
                     writable: true
                 });
-            } catch (e) {}
+            } catch (e) {
+                window.trustedTypes = tt;
+            }
           },
           function onload(window) {
             if (policyCreated) {
                 assert.equal(policyCreated, 'dompurify');
-                const output = window.DOMPurify.sanitize('<img>', {
+                var output = window.DOMPurify.sanitize('<img>', {
                   RETURN_TRUSTED_TYPE: true,
                 });
                 assert.equal(output, '<img>');
@@ -188,10 +193,10 @@
 
     test(
       'sanity check: supports configuring the policy suffix via an attribute',
-      async function (assert) {
-        let policyCreated;
+      function (assert) {
+        var policyCreated;
 
-        await loadDOMPurifyWithSanityCheck(
+        loadDOMPurifyWithSanityCheck(
           assert,
           true,
           function setup(window) {
@@ -207,7 +212,9 @@
                     configurable: true,
                     writable: true
                 });
-            } catch (e) {}
+            } catch (e) {
+                window.trustedTypes = tt;
+            }
           },
           function onload(window) {
             if (policyCreated) {
@@ -220,9 +227,9 @@
       }
     );
 
-    test('supports TRUSTED_TYPES_POLICY via sanitize()', async function (assert) {
-      await loadDOMPurify(assert, false, undefined, undefined, function onload(window) {
-        let validationError;
+    test('supports TRUSTED_TYPES_POLICY via sanitize()', function (assert) {
+      loadDOMPurify(assert, false, undefined, undefined, function onload(window) {
+        var validationError;
         try {
           window.DOMPurify.sanitize('<img>', {
             TRUSTED_TYPES_POLICY: {
@@ -255,7 +262,7 @@
           'TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.'
         );
 
-        let suppliedPolicyCallCount = 0;
+        var suppliedPolicyCallCount = 0;
         window.DOMPurify.sanitize('<img>', {
           TRUSTED_TYPES_POLICY: {
             createHTML: function(s) {
@@ -273,17 +280,17 @@
 
     test(
       'supports TRUSTED_TYPES_POLICY via setConfig() on a new instance',
-      async function (assert) {
-        await loadDOMPurify(
+      function (assert) {
+        loadDOMPurify(
           assert,
           false,
           undefined,
           undefined,
           function onload(window) {
-            let purify = window.DOMPurify();
+            var purify = window.DOMPurify();
             assert.notEqual(purify, window.DOMPurify);
 
-            let suppliedPolicyCallCount = 0;
+            var suppliedPolicyCallCount = 0;
             purify.setConfig({
               TRUSTED_TYPES_POLICY: {
                 createHTML: function(s) {
@@ -305,9 +312,9 @@
 
     test(
       'internal TrustedTypes policy is not created when TRUSTED_TYPES_POLICY option is provided',
-      async function (assert) {
-        const createdPolicies = [];
-        await loadDOMPurify(
+      function (assert) {
+        var createdPolicies = [];
+        loadDOMPurify(
           assert,
           false,
           function setup(window) {
@@ -330,7 +337,9 @@
                     configurable: true,
                     writable: true
                 });
-            } catch (e) {}
+            } catch (e) {
+                window.trustedTypes = tt;
+            }
           },
           undefined,
           function onload(window) {
@@ -339,7 +348,7 @@
 
             if (ttAvailable) {
                 assert.equal(createdPolicies.length, 0);
-                const testPolicy = window.trustedTypes.createPolicy('test', {
+                var testPolicy = window.trustedTypes.createPolicy('test', {
                   createHTML: function(s) {
                     return s;
                   },

@@ -81,15 +81,15 @@ export default [
   }, {
       "title": "DOM clobbering: getElementById",
       "payload": "<img src=x name=getElementById>",
-      "expected": ["", "<img src=\"x\">"]
+      "expected": "<img src=\"x\">"
   }, {
       "title": "DOM clobbering: location",
       "payload": "<a href=\"#some-code-here\" id=\"location\">invisible",
-      "expected": ["", "<a href=\"#some-code-here\">invisible</a>"]
+      "expected": "<a href=\"#some-code-here\">invisible</a>"
   }, {
       "title": "onclick, onsubmit, onfocus; DOM clobbering: parentNode",
       "payload": "<div onclick=alert(0)><form onsubmit=alert(1)><input onfocus=alert(2) name=parentNode>123</form></div>",
-      "expected": ["", "<div><form><input>123</form></div>"]
+      "expected": "<div><form><input>123</form></div>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: nodeName",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeName>123</form>",
@@ -97,11 +97,11 @@ export default [
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: nodeType",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=nodeType>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: children",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=children>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: attributes",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=attributes>123</form>",
@@ -113,7 +113,7 @@ export default [
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: removeAttributeNode",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=removeAttributeNode>123</form>",
-      "expected": ["", "<form><input>123</form>"]
+      "expected": "<form><input>123</form>"
   }, {
       "title": "onsubmit, onfocus; DOM clobbering: setAttribute",
       "payload": "<form onsubmit=alert(1)><input onfocus=alert(2) name=setAttribute>123</form>",
@@ -189,7 +189,7 @@ export default [
   }, {
       "title": "DOM clobbering attack using name=body",
       "payload": "<image name=body><image name=adoptNode>@mmrupp<image name=firstElementChild><svg onload=alert(1)>",
-      "expected": ["", "<img><img>@mmrupp<img><svg></svg>"]
+      "expected": "<img><img>@mmrupp<img><svg></svg>"
   }, {
       "title": "Special escapes in protocol handler for XSS in Blink",
       "payload": "<a href=\"\u0001java\u0003script:alert(1)\">@shafigullin<a>",
@@ -197,11 +197,11 @@ export default [
   }, {
       "title": "DOM clobbering attack using activeElement",
       "payload": "<image name=activeElement><svg onload=alert(1)>",
-      "expected": ["", "<img><svg></svg>"]
+      "expected": "<img><svg></svg>"
   }, {
       "title": "DOM clobbering attack using name=body and injecting SVG + keygen",
       "payload": "<image name=body><img src=x><svg onload=alert(1); autofocus>, <keygen onfocus=alert(1); autofocus>",
-      "expected": ["", "<img><img src=\"x\"><svg>, </svg>"]
+      "expected": "<img><img src=\"x\"><svg>, </svg>"
   }, {
       "title": "Bypass using multiple unknown attributes",
       "payload": "<div onmouseout=\"javascript:alert(/superevr/)\" x=yscript: n>@superevr</div>",
@@ -751,11 +751,11 @@ export default [
   }, {
       "title": "DOM clobbering: submit",
       "payload": "<input name=submit>123",
-      "expected": ["", "<input>123"]
+      "expected": "<input>123"
   }, {
       "title": "DOM clobbering: acceptCharset",
       "payload": "<input name=acceptCharset>123",
-      "expected": ["", "<input>123"]
+      "expected": "<input>123"
   }, {
       "title": "DOM clobbering: hasChildNodes",
       "payload": "<form><input name=hasChildNodes>",

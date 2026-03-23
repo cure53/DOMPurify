@@ -17,24 +17,24 @@
     var document = window.document;
     var jQuery = window.jQuery;
 
-    sanitizationTestCases.forEach((testCase) => {
-      test(`Sanitization test[${testCase.title}]`, (assert) => {
+    sanitizationTestCases.forEach(function(testCase) {
+      test('Sanitization test[' + testCase.title + ']', function(assert) {
         assert.contains(
           DOMPurify.sanitize(testCase.payload),
           testCase.expected,
-          `Payload: ${testCase.payload}`
+          'Payload: ' + testCase.payload
         );
       });
     });
 
     // XSS tests: Native DOM methods (alert() should not be called)
-    xssTestCases.forEach((testCase) => {
-      test(`XSS test: native[${testCase.title}]`, async (assert) => {
+    xssTestCases.forEach(function(testCase) {
+      test('XSS test: native[' + testCase.title + ']', function(assert) {
         document.getElementById('qunit-fixture').innerHTML = DOMPurify.sanitize(
           testCase.payload
         );
-        const done = assert.async();
-        setTimeout(() => {
+        var done = assert.async();
+        setTimeout(function() {
           assert.notEqual(window.xssed, true, 'alert() was called');
           // Teardown
           document.getElementById('qunit-fixture').innerHTML = '';
@@ -44,11 +44,11 @@
       });
     });
     // XSS tests: jQuery (alert() should not be called)
-    xssTestCases.forEach((testCase) => {
-      test(`XSS test: jQuery[${testCase.title}]`, async (assert) => {
+    xssTestCases.forEach(function(testCase) {
+      test('XSS test: jQuery[' + testCase.title + ']', function(assert) {
         jQuery('#qunit-fixture').html(DOMPurify.sanitize(testCase.payload));
-        const done = assert.async();
-        setTimeout(() => {
+        var done = assert.async();
+        setTimeout(function() {
           assert.notEqual(window.xssed, true, 'alert() was called');
           // Teardown
           jQuery('#qunit-fixture').empty();
@@ -58,12 +58,12 @@
       });
     });
     // document.write tests to handle FF's strange behavior
-    xssTestCases.forEach((testCase) => {
+    xssTestCases.forEach(function(testCase) {
       test(
-        `XSS test: document.write() into iframe[${testCase.title}]`,
-        async (assert) => {
-          const done = assert.async();
-          const iframe = document.createElement('iframe');
+        'XSS test: document.write() into iframe[' + testCase.title + ']',
+        function(assert) {
+          var done = assert.async();
+          var iframe = document.createElement('iframe');
           iframe.src = 'about:blank';
           iframe.onload = function () {
             iframe.contentDocument.write(
@@ -257,8 +257,8 @@
         DOMPurify.sanitize(
           '<apple>content</apple><banana>content</banana><cherry>content</cherry>',
           {
-            ADD_TAGS: (tagName) => {
-              return ['apple', 'banana'].includes(tagName);
+            ADD_TAGS: function(tagName) {
+              return ['apple', 'banana'].indexOf(tagName) !== -1;
             },
             KEEP_CONTENT: false,
           }
@@ -268,7 +268,7 @@
       // ADD_TAGS function should reject tags when function returns false
       assert.equal(
         DOMPurify.sanitize('<allowed>yes</allowed><forbidden>no</forbidden>', {
-          ADD_TAGS: (tagName) => {
+          ADD_TAGS: function(tagName) {
             return tagName === 'allowed';
           },
           KEEP_CONTENT: false,
@@ -280,8 +280,8 @@
         DOMPurify.sanitize(
           '<item1>one</item1><item2>two</item2><other>three</other>',
           {
-            ADD_TAGS: (tagName) => {
-              return tagName.startsWith('item');
+            ADD_TAGS: function(tagName) {
+              return tagName.indexOf('item') === 0;
             },
             KEEP_CONTENT: false,
           }
@@ -296,13 +296,13 @@
           '<one attribute-one="1" attribute-two="2"></one><two attribute-one="1" attribute-two="2"></two>',
           {
             ADD_TAGS: ['one', 'two'],
-            ADD_ATTR: (attributeName, tagName) => {
-              const allowedAttributes = {
+            ADD_ATTR: function(attributeName, tagName) {
+              var allowedAttributes = {
                 one: ['attribute-one'],
                 two: ['attribute-two'],
               };
               return (
-                allowedAttributes[tagName]?.includes(attributeName) || false
+                (allowedAttributes[tagName] && allowedAttributes[tagName].indexOf(attributeName) !== -1) || false
               );
             },
           }
@@ -312,7 +312,7 @@
       // ADD_ATTR function should work with built-in tags too
       assert.equal(
         DOMPurify.sanitize('<div custom-attr="test">content</div>', {
-          ADD_ATTR: (attributeName, tagName) => {
+          ADD_ATTR: function(attributeName, tagName) {
             return tagName === 'div' && attributeName === 'custom-attr';
           },
         }),
@@ -324,7 +324,7 @@
           '<one attribute-one="1" forbidden="bad"></one>',
           {
             ADD_TAGS: ['one'],
-            ADD_ATTR: (attributeName, tagName) => {
+            ADD_ATTR: function(attributeName, tagName) {
               return tagName === 'one' && attributeName === 'attribute-one';
             },
           }
@@ -738,7 +738,7 @@
       assert.equal(fragment.firstChild && fragment.firstChild.nodeValue, 'foo');
     });
     test('Config-Flag tests: RETURN_DOM_FRAGMENT', function (assert) {
-      var xss = `<body><div><template shadowroot=open><img src=x onerror=alert(3)></template></div></body>`;
+      var xss = '<body><div><template shadowroot=open><img src=x onerror=alert(3)></template></div></body>';
       var dom_body = DOMPurify.sanitize(xss, { RETURN_DOM: true });
       assert.equal(
         dom_body.outerHTML,
@@ -882,8 +882,8 @@
             '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
             {
               CUSTOM_ELEMENT_HANDLING: {
-                tagNameCheck: (tagName) => tagName.match(/^foo-/),
-                attributeNameCheck: (attr) => attr.match(/baz/),
+                tagNameCheck: function(tagName) { return tagName.match(/^foo-/); },
+                attributeNameCheck: function(attr) { return attr.match(/baz/); },
                 allowCustomizedBuiltInElements: true,
               },
             }
@@ -895,8 +895,8 @@
             '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
             {
               CUSTOM_ELEMENT_HANDLING: {
-                tagNameCheck: (tagName) => tagName.match(/-bar$/),
-                attributeNameCheck: (attr) => attr.match(/baz/),
+                tagNameCheck: function(tagName) { return tagName.match(/-bar$/); },
+                attributeNameCheck: function(attr) { return attr.match(/baz/); },
                 allowCustomizedBuiltInElements: true,
               },
             }
@@ -937,12 +937,12 @@
             '<element-one attribute-one="1" attribute-two="2"></element-one><element-two attribute-one="1" attribute-two="2"></element-two>',
             {
               CUSTOM_ELEMENT_HANDLING: {
-                tagNameCheck: (tagName) => tagName.match(/^element-(one|two)$/),
-                attributeNameCheck: (attr, tagName) => {
+                tagNameCheck: function(tagName) { return tagName.match(/^element-(one|two)$/); },
+                attributeNameCheck: function(attr, tagName) {
                   if (tagName === 'element-one') {
-                    return ['attribute-one'].includes(attr);
+                    return ['attribute-one'].indexOf(attr) !== -1;
                   } else if (tagName === 'element-two') {
-                    return ['attribute-two'].includes(attr);
+                    return ['attribute-two'].indexOf(attr) !== -1;
                   } else {
                     return false;
                   }
@@ -967,7 +967,7 @@
     });
     // cross-check that document.write into iframe works properly
     test('XSS test: document.write() into iframe', function (assert) {
-      const done = assert.async();
+      var done = assert.async();
       window.xssed = false;
       var iframe = document.createElement('iframe');
       iframe.src = 'about:blank';
@@ -1016,23 +1016,23 @@
         undefined
       );
       assert.strictEqual(
-        typeof DOMPurify({ document, Element: undefined }).version,
+        typeof DOMPurify({ document: document, Element: undefined }).version,
         'string'
       );
       assert.strictEqual(
-        DOMPurify({ document, Element: undefined }).isSupported,
+        DOMPurify({ document: document, Element: undefined }).isSupported,
         false
       );
       assert.strictEqual(
-        DOMPurify({ document, Element: undefined }).sanitize,
+        DOMPurify({ document: document, Element: undefined }).sanitize,
         undefined
       );
       assert.strictEqual(
-        typeof DOMPurify({ document, Element: window.Element }).version,
+        typeof DOMPurify({ document: document, Element: window.Element }).version,
         'string'
       );
       assert.strictEqual(
-        typeof DOMPurify({ document, Element: window.Element }).sanitize,
+        typeof DOMPurify({ document: document, Element: window.Element }).sanitize,
         'function'
       );
       assert.strictEqual(typeof DOMPurify(window).version, 'string');
@@ -1128,7 +1128,7 @@
         if (window.name == 'nodejs') {
           assert.equal(DOMPurify.sanitize(dirty), modified);
         } else {
-          assert.expect(0);
+          assert.ok(true);
         }
         DOMPurify.removeHooks('uponSanitizeAttribute');
       }
@@ -1239,7 +1239,7 @@
     );
 
     // Test 7 to check that DOMPurify.removed is correct
-      test('DOMPurify.removed should be correct', function (assert) {
+    test('DOMPurify.removed should be correct', function (assert) {
       var dirty = '<option><iframe></select><b><script>alert(1)</script>';
       DOMPurify.sanitize(dirty);
       assert.equal(DOMPurify.removed.length, 1);
@@ -1597,7 +1597,7 @@
       });
     });
     test('Ensure ALLOWED_URI_REGEXP is not cached', function(assert) {
-      const 
+      var
         dirty = '<img src="https://different.com">',
         expected = '<img src="https://different.com">';
 
@@ -1716,8 +1716,8 @@
         var config = {
           ALLOWED_TAGS: [
             'b',
-          'strong',
-          'i',
+            'strong',
+            'i',
             'italic',
             'div',
             'p',
@@ -1972,7 +1972,7 @@
       });
     });
     test('Config-Flag tests: ALLOWED_NAMESPACES', function (assert) {
-      const tests = [
+      var tests = [
         // Test when ALLOWED_NAMESPACES is not set, result is empty for XML with custom namespace
         {
           test:
@@ -2063,7 +2063,7 @@
       });
     });
     test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
-      const tests = [
+      var tests = [
         {
           test: '<A href="#">invalid</A><a TITLE="title" href="#">valid</a>',
           expected: {
@@ -2239,9 +2239,9 @@
     });
 
     test('removeHook returns hook function', function (assert) {
-      const entryPoint = 'afterSanitizeAttributes';
-      const dirty = '<div class="hello"></div>';
-      const expected = '<div class="world"></div>';
+      var entryPoint = 'afterSanitizeAttributes';
+      var dirty = '<div class="hello"></div>';
+      var expected = '<div class="world"></div>';
 
       DOMPurify.addHook(entryPoint, function (node) {
         return node.setAttribute('class', 'world');
@@ -2249,7 +2249,7 @@
       assert.equal(DOMPurify.sanitize(dirty), expected);
 
       // remove hook and keep it
-      const hookFunction = DOMPurify.removeHook(entryPoint);
+      var hookFunction = DOMPurify.removeHook(entryPoint);
       assert.equal(DOMPurify.sanitize(dirty), dirty);
 
       // set the same hook
@@ -2261,17 +2261,17 @@
     });
 
     test('removeHook allows specifying the hook to remove', function (assert) {
-      const entryPoint = 'afterSanitizeAttributes';
-      const dirty = '<div class="original"></div>';
-      const expected = '<div class="original first third"></div>';
+      var entryPoint = 'afterSanitizeAttributes';
+      var dirty = '<div class="original"></div>';
+      var expected = '<div class="original first third"></div>';
 
-      const firstHook = function (node) {
+      var firstHook = function (node) {
         node.classList.add('first');
       };
-      const secondHook = function (node) {
+      var secondHook = function (node) {
         node.classList.add('second');
       };
-      const thirdHook = function (node) {
+      var thirdHook = function (node) {
         node.classList.add('third');
       };
 
@@ -2294,50 +2294,50 @@
     });
     
     test('Test proper removal of annotation-xml w. custom elements', function (assert) {
-      const dirty  = '<svg><annotation-xml><foreignobject><style><!--</style><p id="--><img src=\'x\' onerror=\'alert(1)\'>">';
-      const config = { 
+      var dirty  = '<svg><annotation-xml><foreignobject><style><!--</style><p id="--><img src=\'x\' onerror=\'alert(1)\'>">';
+      var config = {
         CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /.*/ },
         FORBID_CONTENTS: [""] 
       };
-      const expected = '<svg></svg>';
-      let clean = DOMPurify.sanitize(dirty, config);
+      var expected = '<svg></svg>';
+      var clean = DOMPurify.sanitize(dirty, config);
       assert.contains(clean, expected);
     });
     
     test('Test proper handling of attributes with RETURN_DOM', function (assert) {
-      const dirty  = '<body onload="alert(1)">&lt;a<!-- <f --></body>';
-      const config = { 
+      var dirty  = '<body onload="alert(1)">&lt;a<!-- <f --></body>';
+      var config = {
         RETURN_DOM: true 
       };
-      const expected = '<body>&lt;a</body>';
-      let clean = DOMPurify.sanitize(dirty, config);
+      var expected = '<body>&lt;a</body>';
+      var clean = DOMPurify.sanitize(dirty, config);
       
-      let iframe = document.createElement('iframe')
-      iframe.srcdoc = `<html><head></head>${clean.outerHTML}</html>`
+      var iframe = document.createElement('iframe')
+      iframe.srcdoc = '<html><head></head>' + clean.outerHTML + '</html>';
       document.body.appendChild(iframe); // alert test
       assert.contains(clean.outerHTML, expected);
     });
     
     test('Test proper handling of data-attribiutes in XML modes', function (assert) {
-      const dirty  = '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg"><a xmlns:data-slonser="http://www.w3.org/1999/xlink" data-slonser:href="javascript:alert(1)"><text  x="20" y="35">Click me!</text></a></svg>';
-      const config = { 
+      var dirty  = '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg"><a xmlns:data-slonser="http://www.w3.org/1999/xlink" data-slonser:href="javascript:alert(1)"><text  x="20" y="35">Click me!</text></a></svg>';
+      var config = {
         PARSER_MEDIA_TYPE: 'application/xhtml+xml'
       };
-      const expected = [
+      var expected = [
         '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"600\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>',
         '<svg width=\"800\" height=\"600\" xmlns=\"http://www.w3.org/2000/svg\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>'
       ];
-      let clean = DOMPurify.sanitize(dirty, config);
+      var clean = DOMPurify.sanitize(dirty, config);
       assert.contains(clean, expected);
     });
 
     test('Expect the same results when using ALLOWED_URI_REGEXP with the g flag', function (assert) {
-      const dirty  = '<img src="blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a"><a epub:type="noteref" href="epub:EPUB/xhtml/#footnote"></a><img src="blob:http://localhost:5173/84c49be9-3352-4407" >';
-      const config = { 
+      var dirty  = '<img src="blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a"><a epub:type="noteref" href="epub:EPUB/xhtml/#footnote"></a><img src="blob:http://localhost:5173/84c49be9-3352-4407" >';
+      var config = {
         ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/gi,
       };
-      const expected = '<img src=\"blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a\"><a href=\"epub:EPUB/xhtml/#footnote\"></a><img src=\"blob:http://localhost:5173/84c49be9-3352-4407\">';
-      let clean = DOMPurify.sanitize(dirty, config);
+      var expected = '<img src=\"blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a\"><a href=\"epub:EPUB/xhtml/#footnote\"></a><img src=\"blob:http://localhost:5173/84c49be9-3352-4407\">';
+      var clean = DOMPurify.sanitize(dirty, config);
       assert.strictEqual(clean, expected);
     });
   };

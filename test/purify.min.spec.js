@@ -1,8 +1,9 @@
-import DOMPurify from 'purify.min';
-import testSuite from './test-suite.js';
+import 'purify.min';
+import './test-suite';
+import './bootstrap-test-suite';
 import tests from './fixtures/expect.mjs';
 
-const xssTests = tests.filter(function (element) {
+var xssTests = tests.filter(function (element) {
   if (/alert/.test(element.payload)) {
     return element;
   }
@@ -10,4 +11,5 @@ const xssTests = tests.filter(function (element) {
 
 QUnit.module('DOMPurify dist');
 
+bootstrapTestSuite(null, QUnit.test, null, window.jQuery);
 testSuite(QUnit.test, DOMPurify, window, tests, xssTests);
