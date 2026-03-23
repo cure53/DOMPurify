@@ -295,12 +295,13 @@ const getRandomBrowser = () => {
 const shouldProbeOnly = argv.shouldProbeOnly === 'true';
 const shouldTestOnBrowserStack = argv.shouldTestOnBrowserStack === 'true';
 const defaultBrowsers = ['Firefox'];
+const bsDefaultBrowsers = ['bs_win10_firefox_latest'];
 const argvBrowsers = (typeof argv.browsers === 'string')
   ? argv.browsers.split(' ')
   : defaultBrowsers;
 const browsers = shouldTestOnBrowserStack
   ? shouldProbeOnly
-    ? defaultBrowsers
+    ? bsDefaultBrowsers
     : getAllBrowsers()
   : argvBrowsers;
 

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('DOMPurify Test Suite', async ({ page }) => {
     // Navigate to the test page.
-    await page.goto(`/test/index.html`, { waitUntil: 'domcontentloaded' });
+    await page.goto('/test/index.html', { waitUntil: 'domcontentloaded' });
 
     // Wait for the tests to finish
     await page.waitForFunction(() => window.testsFinished === true, {

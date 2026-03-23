@@ -18,6 +18,7 @@ if (Array.isArray(rollupConfig.output)) {
   rollupConfig.output = rollupConfig.output[0];
 }
 
+// Rollup 3+ compatibility and avoiding export errors for specs
 rollupConfig.output.format = 'umd';
 rollupConfig.output.exports = 'auto';
 

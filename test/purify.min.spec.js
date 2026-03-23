@@ -1,5 +1,5 @@
-import 'purify.min';
-import './test-suite';
+import DOMPurify from 'purify.min';
+import testSuite from './test-suite.js';
 import tests from './fixtures/expect.mjs';
 
 const xssTests = tests.filter(function (element) {
@@ -10,4 +10,4 @@ const xssTests = tests.filter(function (element) {
 
 QUnit.module('DOMPurify dist');
 
-testSuite(DOMPurify, window, tests, xssTests);
+testSuite(QUnit.test, DOMPurify, window, tests, xssTests);
