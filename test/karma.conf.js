@@ -13,6 +13,11 @@ rollupConfig.plugins.push(
   })
 );
 
+// Karma-Rollup-Preprocessor expects a single output object
+if (Array.isArray(rollupConfig.output)) {
+  rollupConfig.output = rollupConfig.output[0];
+}
+
 rollupConfig.output.format = 'umd';
 
 module.exports = function (config) {
@@ -23,12 +28,14 @@ module.exports = function (config) {
     files: [
       'node_modules/jquery/dist/jquery.js',
       'test/config/setup.js',
-      'test/**/*.spec.js',
+      'test/purify.spec.js',
+      'test/purify.min.spec.js',
     ],
 
     preprocessors: {
       'src/*.ts': ['rollup'],
-      'test/**/*.spec.js': ['rollup'],
+      'test/purify.spec.js': ['rollup'],
+      'test/purify.min.spec.js': ['rollup'],
     },
 
     reporters: ['progress'],
