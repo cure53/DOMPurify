@@ -19,6 +19,7 @@ if (Array.isArray(rollupConfig.output)) {
 }
 
 rollupConfig.output.format = 'umd';
+rollupConfig.output.exports = 'auto';
 
 module.exports = function (config) {
   config.set({
