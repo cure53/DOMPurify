@@ -73,6 +73,7 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Sequoia',
   },
+
   bs_win10_edge_84: {
     base: 'BrowserStack',
     device: null,
@@ -81,6 +82,39 @@ const customLaunchers = {
     browser: 'edge',
     os_version: '10',
   },
+  bs_win11_edge_120: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '120.0',
+    browser: 'edge',
+    os_version: '11',
+  },
+  bs_win11_edge_124: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '124.0',
+    browser: 'edge',
+    os_version: '11',
+  },
+  bs_win11_edge_133: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '133.0',
+    browser: 'edge',
+    os_version: '11',
+  },
+  bs_win11_edge_137: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '137.0',
+    browser: 'edge',
+    os_version: '11',
+  },
+
   bs_win10_firefox_70: {
     base: 'BrowserStack',
     device: null,
@@ -145,6 +179,23 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: '11',
   },
+  bs_win11_firefox_138: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '138.0',
+    browser: 'firefox',
+    os_version: '11',
+  },
+  bs_win11_firefox_139: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '139.0',
+    browser: 'firefox',
+    os_version: '11',
+  },
+
   bs_win10_chrome_60: {
     base: 'BrowserStack',
     device: null,
@@ -216,7 +267,23 @@ const customLaunchers = {
     browser_version: '133.0',
     browser: 'chrome',
     os_version: '11',
-  },  
+  },
+  bs_win11_chrome_136: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '136.0',
+    browser: 'chrome',
+    os_version: '11',
+  },
+  bs_win11_chrome_137: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'Windows',
+    browser_version: '137.0',
+    browser: 'chrome',
+    os_version: '11',
+  },
 };
 
 const getAllBrowsers = () => Object.keys(customLaunchers);
