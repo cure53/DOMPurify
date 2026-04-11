@@ -1,0 +1,45 @@
+# OSV-Scanner configuration for DOMPurify
+#
+# Scope: this suppresses currently present advisories from the package-lock
+# that are pulled in through development / test / CI tooling, not the shipped
+# DOMPurify runtime artifact itself.
+
+[[IgnoredVulns]]
+id = "GHSA-f886-m6hf-6m8v"
+ignoreUntil = 2029-12-31
+reason = "Current package-lock includes brace-expansion 1.1.12 via development tooling only; not part of the distributed runtime artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-grv7-fg5c-xmjg"
+ignoreUntil = 2029-12-31
+reason = "Current package-lock includes braces 3.0.2 under development tooling only; not part of the distributed runtime artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-3xgq-45jj-v275"
+ignoreUntil = 2029-12-31
+reason = "Current package-lock includes cross-spawn 5.1.0 via pre-commit/developer tooling only; not part of the distributed runtime artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-952p-6rrq-rcjv"
+ignoreUntil = 2029-12-31
+reason = "Current package-lock includes micromatch 4.0.5 under development tooling only; not part of the distributed runtime artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-3v7f-55p6-f55p"
+ignoreUntil = 2029-12-31
+reason = "Current package-lock includes vulnerable picomatch versions via development tooling only; not part of the distributed runtime artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-c2c7-rcm5-vvqj"
+ignoreUntil = 2029-12-31
+reason = "Current package-lock includes vulnerable picomatch versions via development tooling only; not part of the distributed runtime artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-c2qf-rxjj-qqgw"
+ignoreUntil = 2029-12-31
+reason = "Current package-lock includes semver 7.5.0 via development tooling only; not part of the distributed runtime artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-677m-j7p3-52f9"
+ignoreUntil = 2029-12-31
+reason = "Current package-lock includes socket.io-parser 4.2.5 via development tooling only; not part of the distributed runtime artifact."
