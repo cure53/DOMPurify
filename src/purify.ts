@@ -1116,11 +1116,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Remove element if anything forbids its presence */
     if (
-      !(
+      FORBID_TAGS[tagName] ||
+      (!(
         EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
         EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
       ) &&
-      (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName])
+        !ALLOWED_TAGS[tagName])
     ) {
       /* Check if we have a custom element to handle */
       if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
