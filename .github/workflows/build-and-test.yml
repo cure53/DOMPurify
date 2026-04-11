@@ -1,9 +1,5 @@
 name: Build and Test
 
-# The event triggers are configured as following:
-# - on `main` -> trigger the workflow on every push
-# - on any pull request -> trigger the workflow
-# This is to avoid running the workflow twice on pull requests.
 on:
   push:
     branches:
@@ -12,7 +8,7 @@ on:
       - 2.x
   pull_request:
 
-permissions:  # added using https://github.com/step-security/secure-repo
+permissions:
   contents: read
 
 jobs:
@@ -31,25 +27,29 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: npm
+
       - name: Install Dependencies
         run: npm ci
+
       - name: Build
         run: npm run build
+
       - name: Lint
         run: npm run lint
+
       - name: Test
-        uses: GabrielBB/xvfb-action@b706e4e27b14669b486812790492dc50ca16b465 # v1.7
-        with:
-          run: npm run test:ci
+        run: xvfb-run -a npm run test:ci
         env:
           TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '25') }}
           TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/2.x' }}
           BS_USERNAME: ${{ secrets.BS_USERNAME }}
           BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
+
       - name: Verify TypeScript
         run: npm run verify-typescript
