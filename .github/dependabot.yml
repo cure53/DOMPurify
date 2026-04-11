@@ -4,3 +4,28 @@ updates:
   directory: "/"
   schedule:
       interval: "weekly"
+
+- package-ecosystem: npm
+  directory: /
+  schedule:
+    interval: daily
+
+- package-ecosystem: npm
+  directory: /typescript/esm-with-no-types
+  schedule:
+    interval: daily
+
+- package-ecosystem: npm
+  directory: /typescript/esm-with-specific-types
+  schedule:
+    interval: daily
+
+- package-ecosystem: npm
+  directory: /typescript/esm
+  schedule:
+    interval: daily
+
+- package-ecosystem: npm
+  directory: /typescript
+  schedule:
+    interval: daily
