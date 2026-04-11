@@ -116,7 +116,7 @@
     "@rollup/plugin-terser": "^1.0.0",
     "@types/estree": "^1.0.0",
     "@types/node": "^16.18.120",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jquery": "^3.6.0",
