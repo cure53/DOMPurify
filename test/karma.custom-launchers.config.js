@@ -1,22 +1,6 @@
 const argv = require('minimist')(process.argv.slice(2));
 
 const customLaunchers = {
-  bs_sierra_safari_10: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: '10.0',
-    browser: 'safari',
-    os_version: 'Sierra',
-  },
-  bs_sierra_safari_11: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: '11.1',
-    browser: 'safari',
-    os_version: 'High Sierra',
-  },
   bs_mojave_safari_12: {
     base: 'BrowserStack',
     device: null,
@@ -97,15 +81,6 @@ const customLaunchers = {
     browser: 'safari',
     os_version: 'Tahoe',
   },
-
-  bs_win10_edge_84: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '84.0',
-    browser: 'edge',
-    os_version: '10',
-  },
   bs_win11_edge_120: {
     base: 'BrowserStack',
     device: null,
@@ -153,39 +128,6 @@ const customLaunchers = {
     browser_version: 'latest',
     browser: 'edge',
     os_version: '11',
-  },
-
-  bs_win10_firefox_70: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '70.0',
-    browser: 'firefox',
-    os_version: '10',
-  },
-  bs_win10_firefox_80: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '80.0',
-    browser: 'firefox',
-    os_version: '10',
-  },
-  bs_win10_firefox_89: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '89.0',
-    browser: 'firefox',
-    os_version: '10',
-  },
-  bs_win10_firefox_94: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '94.0',
-    browser: 'firefox',
-    os_version: '10',
   },
   bs_win10_firefox_108: {
     base: 'BrowserStack',
@@ -242,47 +184,6 @@ const customLaunchers = {
     browser_version: 'latest',
     browser: 'firefox',
     os_version: '11',
-  },
-
-  bs_win10_chrome_60: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '60.0',
-    browser: 'chrome',
-    os_version: '10',
-  },
-  bs_win10_chrome_70: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '70.0',
-    browser: 'chrome',
-    os_version: '10',
-  },
-  bs_win10_chrome_85: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '85.0',
-    browser: 'chrome',
-    os_version: '10',
-  },
-  bs_win10_chrome_91: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '91.0',
-    browser: 'chrome',
-    os_version: '10',
-  },
-  bs_win10_chrome_96: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '96.0',
-    browser: 'chrome',
-    os_version: '10',
   },
   bs_win10_chrome_108: {
     base: 'BrowserStack',
