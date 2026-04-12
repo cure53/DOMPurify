@@ -1318,6 +1318,14 @@ function createDOMPurify() {
     }
     /* Return sanitized string or DOM */
     if (RETURN_DOM) {
+      if (SAFE_FOR_TEMPLATES) {
+        body.normalize();
+        let html = body.innerHTML;
+        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+          html = stringReplace(html, expr, ' ');
+        });
+        body.innerHTML = html;
+      }
       if (RETURN_DOM_FRAGMENT) {
         returnNode = createDocumentFragment.call(body.ownerDocument);
         while (body.firstChild) {
