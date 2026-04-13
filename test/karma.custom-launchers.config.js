@@ -1,22 +1,6 @@
 const argv = require('minimist')(process.argv.slice(2));
 
 const customLaunchers = {
-  bs_sonoma_safari_latest_minus_2: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: 'latest - 2',
-    browser: 'safari',
-    os_version: 'Sonoma',
-  },
-  bs_sequoia_safari_latest_minus_1: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: 'latest - 1',
-    browser: 'safari',
-    os_version: 'Sequoia',
-  },
   bs_tahoe_safari_latest: {
     base: 'BrowserStack',
     device: null,
@@ -24,22 +8,6 @@ const customLaunchers = {
     browser_version: 'latest',
     browser: 'safari',
     os_version: 'Tahoe',
-  },
-  bs_win11_edge_latest_minus_2: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: 'latest - 2',
-    browser: 'edge',
-    os_version: '11',
-  },
-  bs_win11_edge_latest_minus_1: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: 'latest - 1',
-    browser: 'edge',
-    os_version: '11',
   },
   bs_win11_edge_latest: {
     base: 'BrowserStack',
@@ -49,44 +17,12 @@ const customLaunchers = {
     browser: 'edge',
     os_version: '11',
   },
-  bs_win11_firefox_latest_minus_2: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: 'latest - 2',
-    browser: 'firefox',
-    os_version: '11',
-  },
-  bs_win11_firefox_latest_minus_1: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: 'latest - 1',
-    browser: 'firefox',
-    os_version: '11',
-  },
   bs_win11_firefox_latest: {
     base: 'BrowserStack',
     device: null,
     os: 'Windows',
     browser_version: 'latest',
     browser: 'firefox',
-    os_version: '11',
-  },
-  bs_win11_chrome_latest_minus_2: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: 'latest - 2',
-    browser: 'chrome',
-    os_version: '11',
-  },
-  bs_win11_chrome_latest_minus_1: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: 'latest - 1',
-    browser: 'chrome',
     os_version: '11',
   },
   bs_win11_chrome_latest: {
