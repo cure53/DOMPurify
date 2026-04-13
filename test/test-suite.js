@@ -332,6 +332,62 @@
       );
     });
     QUnit.test(
+      'Config-Flag tests: ADD_TAGS function should not leak into subsequent array calls',
+      function (assert) {
+        // Step 1: Call with ADD_TAGS as a permissive function
+        DOMPurify.sanitize('<b>x</b>', {
+          ADD_TAGS: function () {
+            return true;
+          },
+        });
+        // Step 2: Call with ADD_TAGS as an array – should NOT allow iframe/object/embed
+        var out = DOMPurify.sanitize(
+          '<iframe src="https://evil.com"></iframe><object data="https://evil.com"></object><embed src="https://evil.com">',
+          { ADD_TAGS: ['custom-tag'] }
+        );
+        assert.ok(
+          !/<(iframe|object|embed)/i.test(out),
+          'ADD_TAGS function must not leak permissiveness into subsequent array-based calls: ' + out
+        );
+        // Step 3: Call with no ADD_TAGS – should also be clean
+        var out2 = DOMPurify.sanitize(
+          '<iframe src="https://evil.com"></iframe>'
+        );
+        assert.ok(
+          !/<iframe/i.test(out2),
+          'Default call after function-based ADD_TAGS must block iframe: ' + out2
+        );
+      }
+    );
+    QUnit.test(
+      'Config-Flag tests: ADD_ATTR function should not leak into subsequent array calls',
+      function (assert) {
+        // Step 1: Call with ADD_ATTR as a permissive function
+        DOMPurify.sanitize('<b>x</b>', {
+          ADD_ATTR: function () {
+            return true;
+          },
+        });
+        // Step 2: Call with ADD_ATTR as an array – should NOT allow javascript: URIs
+        var out = DOMPurify.sanitize(
+          '<a href="javascript:alert(1)">click</a>',
+          { ADD_ATTR: ['class'] }
+        );
+        assert.ok(
+          out.indexOf('javascript:') === -1,
+          'ADD_ATTR function must not leak permissiveness into subsequent array-based calls: ' + out
+        );
+        // Step 3: Call with no ADD_ATTR – should also be clean
+        var out2 = DOMPurify.sanitize(
+          '<a href="javascript:alert(1)">click</a>'
+        );
+        assert.ok(
+          out2.indexOf('javascript:') === -1,
+          'Default call after function-based ADD_ATTR must block javascript: URIs: ' + out2
+        );
+      }
+    );
+    QUnit.test(
       'Config-Flag tests: FORBID_CONTENTS + FORBID_TAGS',
       function (assert) {
         // FORBID_CONTENTS + FORBID_TAGS
