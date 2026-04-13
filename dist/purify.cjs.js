@@ -623,13 +623,10 @@ function createDOMPurify() {
         addToSet(ALLOWED_ATTR, xml);
       }
     }
-    /* Prevent function-based ADD_ATTR / ADD_TAGS from leaking across calls */
-    if (!objectHasOwnProperty(cfg, 'ADD_TAGS')) {
-      EXTRA_ELEMENT_HANDLING.tagCheck = null;
-    }
-    if (!objectHasOwnProperty(cfg, 'ADD_ATTR')) {
-      EXTRA_ELEMENT_HANDLING.attributeCheck = null;
-    }
+    /* Always reset function-based ADD_TAGS / ADD_ATTR checks to prevent
+     * leaking across calls when switching from function to array config */
+    EXTRA_ELEMENT_HANDLING.tagCheck = null;
+    EXTRA_ELEMENT_HANDLING.attributeCheck = null;
     /* Merge configuration parameters */
     if (cfg.ADD_TAGS) {
       if (typeof cfg.ADD_TAGS === 'function') {

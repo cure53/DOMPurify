@@ -1,38 +1,6 @@
 const argv = require('minimist')(process.argv.slice(2));
 
 const customLaunchers = {
-  bs_mojave_safari_12: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: '12.1',
-    browser: 'safari',
-    os_version: 'Mojave',
-  },
-  bs_catalina_safari_13: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: '13.1',
-    browser: 'safari',
-    os_version: 'Catalina',
-  },
-  bs_bigsur_safari_14: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: '14.1',
-    browser: 'safari',
-    os_version: 'Big Sur',
-  },
-  bs_monterey_safari_15: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'OS X',
-    browser_version: '15.6',
-    browser: 'safari',
-    os_version: 'Monterey',
-  },
   bs_ventura_safari_16: {
     base: 'BrowserStack',
     device: null,
@@ -129,14 +97,6 @@ const customLaunchers = {
     browser: 'edge',
     os_version: '11',
   },
-  bs_win10_firefox_108: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '108.0',
-    browser: 'firefox',
-    os_version: '10',
-  },
   bs_win11_firefox_120: {
     base: 'BrowserStack',
     device: null,
@@ -184,14 +144,6 @@ const customLaunchers = {
     browser_version: 'latest',
     browser: 'firefox',
     os_version: '11',
-  },
-  bs_win10_chrome_108: {
-    base: 'BrowserStack',
-    device: null,
-    os: 'Windows',
-    browser_version: '108.0',
-    browser: 'chrome',
-    os_version: '10',
   },
   bs_win11_chrome_120: {
     base: 'BrowserStack',
