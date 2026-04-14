@@ -12,7 +12,7 @@ DOMPurify runs as JavaScript and works in all modern browsers (Safari (10+), Ope
 
 **Note that [DOMPurify v2.5.9](https://github.com/cure53/DOMPurify/releases/tag/2.5.9) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
 
-Our automated tests cover [12 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L3). We also cover Node.js v20.x, v22.x, 24.x and v25.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
+Our automated tests cover [15 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L3). We also cover Node.js v20.x, v22.x, 24.x and v25.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
@@ -442,19 +442,30 @@ We support `npm` officially. GitHub Actions workflow is configured to install de
 
 #### Scripts
 
-We use ESLint as a pre-commit hook to ensure code consistency. Moreover, to ease formatting we use [prettier](https://github.com/prettier/prettier) while building the `/dist` assets happens through `rollup`.
+We use ESLint via `xo` as part of our pre-commit workflow to help ensure code consistency. In addition, we use [Prettier](https://github.com/prettier/prettier) for source and Markdown formatting, and `/dist` assets are built through `rollup`.
 
 These are our npm scripts:
 
-- `npm run dev` to start building while watching sources for changes
-- `npm run test` to run our test suite via jsdom and karma
-  - `test:jsdom` to only run tests through jsdom
-  - `test:karma` to only run tests through karma
-- `npm run lint` to lint the sources using ESLint (via xo)
-- `npm run format` to format our sources using prettier to ease to pass ESLint
-- `npm run build` to build our distribution assets minified and unminified as a UMD module
-  - `npm run build:umd` to only build an unminified UMD module
-  - `npm run build:umd:min` to only build a minified UMD module
+- `npm run dev` to build the unminified UMD bundle while watching sources for changes
+- `npm run test` to lint the sources, run tests through jsdom, and run Karma tests in Chrome
+  - `npm run test:jsdom` to only run tests through jsdom
+  - `npm run test:karma` to only run tests through Karma
+  - `npm run test:ci` to run the CI test flow for jsdom and Karma/BrowserStack
+- `npm run lint` to lint the sources using ESLint via xo
+- `npm run format` to format JavaScript/TypeScript and Markdown sources with Prettier
+  - `npm run format:js` to only format JavaScript/TypeScript sources
+  - `npm run format:md` to only format Markdown files
+- `npm run build` to build type declarations and distribution bundles, then fix and clean up generated types
+  - `npm run build:types` to only emit TypeScript declaration files
+  - `npm run build:rollup` to build all Rollup bundles
+  - `npm run build:umd` to only build an unminified UMD bundle
+  - `npm run build:umd:min` to only build a minified UMD bundle
+  - `npm run build:es` to only build the ES module bundle
+  - `npm run build:cjs` to only build the CommonJS bundle
+  - `npm run build:fix-types` to post-process generated type files
+  - `npm run build:cleanup` to clean up temporary generated type output
+- `npm run verify-typescript` to run the TypeScript verification script
+- `npm run commit-amend-build` to run the maintainer helper script for amending build output
 
 Note: all run scripts triggered via `npm run <script>`.
 
@@ -462,7 +473,7 @@ There are more npm scripts but they are mainly to integrate with CI or are meant
 
 ## Security Mailing List
 
-We maintain a mailing list that notifies whenever a security-critical release of DOMPurify was published. This means, if someone found a bypass and we fixed it with a release (which always happens when a bypass was found) a mail will go out to that list. This usually happens within minutes or few hours after learning about a bypass. The list can be subscribed to here:
+We maintain a mailing list that notifies whenever a **security-critical** release of DOMPurify was published. This means, if someone found a bypass and we fixed it with a release (which always happens when a bypass was found) a mail will go out to that list. This usually happens within minutes or few hours after learning about a bypass. The list can be subscribed to here:
 
 [https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security](https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security)
 
@@ -470,9 +481,9 @@ Feature releases will not be announced to this list.
 
 ## Who contributed?
 
-Many people helped and help DOMPurify become what it is and need to be acknowledged here!
+Many people have helped DOMPurify become what it is today, and they deserve to be acknowledged!
 
-[Cybozu 💛💸](https://github.com/cybozu), [hata6502 💸](https://github.com/hata6502), [intra-mart-dh 💸](https://github.com/intra-mart-dh), [nelstrom ❤️](https://github.com/nelstrom), [hash_kitten ❤️](https://twitter.com/hash_kitten), [kevin_mizu ❤️](https://twitter.com/kevin_mizu), [icesfont ❤️](https://github.com/icesfont), [reduckted ❤️](https://github.com/reduckted), [dcramer 💸](https://github.com/dcramer), [JGraph 💸](https://github.com/jgraph), [baekilda 💸](https://github.com/baekilda), [Healthchecks 💸](https://github.com/healthchecks), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [CynegeticIO](https://github.com/CynegeticIO), [ssi02014 ❤️](https://github.com/ssi02014), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy](https://twitter.com/lowdefy), [granlem](https://twitter.com/MaximeVeit), [oreoshake](https://github.com/oreoshake), [tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [SoheilKhodayari](https://github.com/SoheilKhodayari), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit), [davecardwell](https://github.com/davecardwell) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
+[kodareef5](https://github.com/kodareef5), [DavidOliver](https://github.com/DavidOliver), [1Jesper1](https://github.com/1Jesper1), [bencalif](https://github.com/bencalif), [trace37labs](https://github.com/trace37labs), [eddieran](https://github.com/eddieran), [christos-eth](https://github.com/christos-eth), [researchatfluidattacks](https://github.com/researchatfluidattacks), [frevadiscor](https://github.com/frevadiscor), [Cybozu 💛💸](https://github.com/cybozu), [hata6502 💸](https://github.com/hata6502), [intra-mart-dh 💸](https://github.com/intra-mart-dh), [nelstrom ❤️](https://github.com/nelstrom), [hash_kitten ❤️](https://twitter.com/hash_kitten), [kevin_mizu ❤️](https://twitter.com/kevin_mizu), [icesfont ❤️](https://github.com/icesfont), [reduckted ❤️](https://github.com/reduckted), [dcramer 💸](https://github.com/dcramer), [JGraph 💸](https://github.com/jgraph), [baekilda 💸](https://github.com/baekilda), [Healthchecks 💸](https://github.com/healthchecks), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [CynegeticIO](https://github.com/CynegeticIO), [ssi02014 ❤️](https://github.com/ssi02014), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy](https://twitter.com/lowdefy), [granlem](https://twitter.com/MaximeVeit), [oreoshake](https://github.com/oreoshake), [tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [SoheilKhodayari](https://github.com/SoheilKhodayari), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit), [davecardwell](https://github.com/davecardwell) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
 
 ## Testing powered by
 
