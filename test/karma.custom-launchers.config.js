@@ -1,6 +1,28 @@
 const argv = require('minimist')(process.argv.slice(2));
 
 const customLaunchers = {
+  bs_iphone_16_safari: {
+	base: 'BrowserStack',
+	device: 'iPhone 16',
+	real_mobile: true,
+	browser: 'safari',
+	os_version: '18',
+  },
+  bs_s23_chrome: {
+	base: 'BrowserStack',
+	device: 'Samsung Galaxy S23 Ultra',
+	real_mobile: true,
+	browser: 'chrome',
+	os_version: '13.0',
+  },
+  bs_sequoia_safari_latest: {
+	base: 'BrowserStack',
+	device: null,
+	os: 'OS X',
+	browser: 'safari',
+	browser_version: 'latest',
+    os_version: 'Sequoia',
+  },	
   bs_tahoe_safari_latest: {
     base: 'BrowserStack',
     device: null,
