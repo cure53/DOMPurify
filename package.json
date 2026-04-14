@@ -117,7 +117,7 @@
     "@types/estree": "^1.0.0",
     "@types/node": "^16.18.120",
     "cross-env": "^10.1.0",
-    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^4.0.0",
     "jquery": "^3.6.0",
     "jsdom": "^29.0.2",
