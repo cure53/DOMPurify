@@ -240,20 +240,11 @@
   // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
   const NODE_TYPE = {
     element: 1,
-    attribute: 2,
     text: 3,
-    cdataSection: 4,
-    entityReference: 5,
-    // Deprecated
-    entityNode: 6,
     // Deprecated
     progressingInstruction: 7,
     comment: 8,
-    document: 9,
-    documentType: 10,
-    documentFragment: 11,
-    notation: 12 // Deprecated
-  };
+    document: 9};
   const getGlobal = function getGlobal() {
     return typeof window === 'undefined' ? null : window;
   };
@@ -587,7 +578,7 @@
       NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
       MATHML_TEXT_INTEGRATION_POINTS = cfg.MATHML_TEXT_INTEGRATION_POINTS || MATHML_TEXT_INTEGRATION_POINTS;
       HTML_INTEGRATION_POINTS = cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
-      CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
+      CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || create(null);
       if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
         CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
       }
@@ -950,6 +941,11 @@
       });
       /* Detect mXSS attempts abusing namespace confusion */
       if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
+        _forceRemove(currentNode);
+        return true;
+      }
+      /* Remove risky CSS construction leading to mXSS */
+      if (SAFE_FOR_XML && currentNode.namespaceURI === HTML_NAMESPACE && tagName === 'style' && _isNode(currentNode.firstElementChild)) {
         _forceRemove(currentNode);
         return true;
       }

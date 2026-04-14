@@ -573,7 +573,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     HTML_INTEGRATION_POINTS =
       cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
 
-    CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
+    CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || create(null);
     if (
       cfg.CUSTOM_ELEMENT_HANDLING &&
       isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)
@@ -1089,6 +1089,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       !_isNode(currentNode.firstElementChild) &&
       regExpTest(/<[/\w!]/g, currentNode.innerHTML) &&
       regExpTest(/<[/\w!]/g, currentNode.textContent)
+    ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove risky CSS construction leading to mXSS */
+    if (
+      SAFE_FOR_XML &&
+      currentNode.namespaceURI === HTML_NAMESPACE &&
+      tagName === 'style' &&
+      _isNode(currentNode.firstElementChild)
     ) {
       _forceRemove(currentNode);
       return true;
