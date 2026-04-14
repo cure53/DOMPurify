@@ -133,7 +133,7 @@
     "qunit": "^2.4.1",
     "qunit-tap": "^1.5.0",
     "rimraf": "^3.0.2",
-    "rollup": "^3.30.0",
+    "rollup": "^4.60.1",
     "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-includepaths": "^0.2.4",
     "rollup-plugin-typescript2": "^0.36.0",
