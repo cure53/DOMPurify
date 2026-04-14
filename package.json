@@ -116,7 +116,7 @@
     "@rollup/plugin-replace": "^6.0.1",
     "@rollup/plugin-terser": "^1.0.0",
     "@types/estree": "^1.0.0",
-    "@types/node": "^16.18.120",
+    "@types/node": "^25.6.0",
     "cross-env": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^4.0.0",
