@@ -1,22 +1,24 @@
 # DOMPurify
 
-[![npm](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Tests](https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) ![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=gzip) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents) [![Cloudback](https://app.cloudback.it/badge/cure53/DOMPurify)](https://cloudback.it)
+[![npm](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Tests](https://github.com/cure53/DOMPurify/workflows/Build%20&%20Test/badge.svg) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents) [![License](https://img.shields.io/badge/license-MPL--2.0%20OR%20Apache--2.0-blue.svg)](https://github.com/cure53/DOMPurify/blob/main/LICENSE)
+
+![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=gzip) [![Cloudback](https://app.cloudback.it/badge/cure53/DOMPurify)](https://cloudback.it) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12162/badge)](https://www.bestpractices.dev/projects/12162) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cure53/DOMPurify/badge)](https://scorecard.dev/viewer/?uri=github.com/cure53/DOMPurify)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.3.3**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.4.0**.
 
 DOMPurify runs as JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
 **Note that [DOMPurify v2.5.9](https://github.com/cure53/DOMPurify/releases/tag/2.5.9) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
 
-Our automated tests cover [28 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L5) right now, more to come. We also cover Node.js v20.x, v22.x, 24.x and v25.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
+Our automated tests cover [12 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L3). We also cover Node.js v20.x, v22.x, 24.x and v25.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
 
 ## What does it do?
 
-DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with string full of dirty HTML and it will return a string (unless configured otherwise) with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
+DOMPurify sanitizes HTML and prevents XSS attacks. You can feed DOMPurify with e.g. a string full of dirty HTML and it will return a string (unless configured otherwise) with clean HTML. DOMPurify will strip out everything that contains dangerous HTML and thereby prevent XSS attacks and other nastiness. It's also damn bloody fast. We use the technologies the browser provides and turn them into an XSS filter. The faster your browser, the faster DOMPurify will be.
 
 ## How do I use it?
 

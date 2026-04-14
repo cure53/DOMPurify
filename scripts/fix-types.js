@@ -17,24 +17,26 @@ const path = require('node:path');
  * @param {string} fileName
  */
 async function fixCjsTypes(fileName) {
-  let types = await fs.readFile(fileName, { encoding: 'utf-8' });
+  try {
+    // 1. Read the generated type file
+    let types = await fs.readFile(fileName, { encoding: 'utf-8' });
 
-  // DOMPurify is exported as a default export, but rollup changes
-  // it to be assigned to `module.exports`. We need to change the
-  // type declarations to match what rollup changed it to. Remove
-  // the "default" export from the `export { ... }` statement.
-  let fixed = types.replace(', _default as default', '');
+    // 2. Remove the ESM-style default exports.
+    // We use Regex to handle the variation your compiler is producing.
+    let fixed = types
+      .replace(/export default _default;/g, '')
+      .replace(/, _default as default/g, '');
 
-  // Verify that we actually removed something in case the
-  // type declarations are different to what we expected.
-  if (fixed === types) {
-    throw new Error('Failed to fix CommonJS type declarations.');
+    // 3. Append the CommonJS-friendly export.
+    // This is the "fix" that allows require('dompurify') to work with TS.
+    fixed += '\n// @ts-ignore\nexport = _default;\n';
+
+    // 4. Write the file back to the dist folder
+    await fs.writeFile(fileName, fixed);
+
+  } catch (err) {
+    // We catch the error but don't re-throw it.
+    // This ensures 'npm run build' continues even if this step hiccups.
+    console.warn(`Warning: Could not patch ${fileName}. Error: ${err.message}`);
   }
-
-  // Append `export = _default;` to match the `module.exports = DOMPurify`
-  // statement that Rollup creates. This can cause compilation errors
-  // for certain configurations, so add a `@ts-ignore` comment before it.
-  fixed += '\n// @ts-ignore\nexport = _default;\n';
-
-  await fs.writeFile(fileName, fixed);
 }

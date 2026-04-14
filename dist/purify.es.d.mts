@@ -1,6 +1,6 @@
-/*! @license DOMPurify 3.3.3 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.3.3/LICENSE */
+/*! @license DOMPurify 3.4.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.0/LICENSE */
 
-import { TrustedTypePolicy, TrustedHTML, TrustedTypesWindow } from 'trusted-types/lib/index.js';
+import { TrustedTypePolicy, TrustedTypesWindow, TrustedHTML } from 'trusted-types/lib/index.js';
 
 /**
  * Configuration to control DOMPurify behavior.
@@ -444,4 +444,5 @@ type WindowLike = Pick<typeof globalThis, 'DocumentFragment' | 'HTMLTemplateElem
     MozNamedAttrMap?: typeof window.NamedNodeMap;
 } & Pick<TrustedTypesWindow, 'trustedTypes'>;
 
-export { type Config, type DOMPurify, type DocumentFragmentHook, type ElementHook, type HookName, type NodeHook, type RemovedAttribute, type RemovedElement, type UponSanitizeAttributeHook, type UponSanitizeAttributeHookEvent, type UponSanitizeElementHook, type UponSanitizeElementHookEvent, type WindowLike, _default as default };
+export { _default as default };
+export type { Config, DOMPurify, DocumentFragmentHook, ElementHook, HookName, NodeHook, RemovedAttribute, RemovedElement, UponSanitizeAttributeHook, UponSanitizeAttributeHookEvent, UponSanitizeElementHook, UponSanitizeElementHookEvent, WindowLike };

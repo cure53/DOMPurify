@@ -573,7 +573,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     HTML_INTEGRATION_POINTS =
       cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
 
-    CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || {};
+    CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || create(null);
     if (
       cfg.CUSTOM_ELEMENT_HANDLING &&
       isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)
@@ -635,14 +635,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     }
 
-    /* Prevent function-based ADD_ATTR / ADD_TAGS from leaking across calls */
-    if (!objectHasOwnProperty(cfg, 'ADD_TAGS')) {
-      EXTRA_ELEMENT_HANDLING.tagCheck = null;
-    }
-
-    if (!objectHasOwnProperty(cfg, 'ADD_ATTR')) {
-      EXTRA_ELEMENT_HANDLING.attributeCheck = null;
-    }
+    /* Always reset function-based ADD_TAGS / ADD_ATTR checks to prevent
+     * leaking across calls when switching from function to array config */
+    EXTRA_ELEMENT_HANDLING.tagCheck = null;
+    EXTRA_ELEMENT_HANDLING.attributeCheck = null;
 
     /* Merge configuration parameters */
     if (cfg.ADD_TAGS) {
@@ -1098,6 +1094,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
+    /* Remove risky CSS construction leading to mXSS */
+    if (
+      SAFE_FOR_XML &&
+      currentNode.namespaceURI === HTML_NAMESPACE &&
+      tagName === 'style' &&
+      _isNode(currentNode.firstElementChild)
+    ) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
     /* Remove any occurrence of processing instructions */
     if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
       _forceRemove(currentNode);
@@ -1116,11 +1123,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Remove element if anything forbids its presence */
     if (
-      !(
+      FORBID_TAGS[tagName] ||
+      (!(
         EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
         EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
       ) &&
-      (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName])
+        !ALLOWED_TAGS[tagName])
     ) {
       /* Check if we have a custom element to handle */
       if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
@@ -1635,6 +1643,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Return sanitized string or DOM */
     if (RETURN_DOM) {
+      if (SAFE_FOR_TEMPLATES) {
+        body.normalize();
+        let html = body.innerHTML;
+        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
+          html = stringReplace(html, expr, ' ');
+        });
+        body.innerHTML = html;
+      }
+
       if (RETURN_DOM_FRAGMENT) {
         returnNode = createDocumentFragment.call(body.ownerDocument);
 
