@@ -47,10 +47,12 @@ module.exports = function (config) {
     customLaunchers,
     browsers,
 
-    browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 1,
-    browserNoActivityTimeout: 30000,
-    captureTimeout: 360000,
+	browserDisconnectTimeout: 20000,
+	browserDisconnectTolerance: 3,
+	browserNoActivityTimeout: 180000,
+	captureTimeout: 360000,
+	concurrency: 2,
+	autoWatch: false,
 
     plugins: [
       'karma-chrome-launcher',
