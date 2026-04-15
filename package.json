@@ -140,7 +140,7 @@
     "rollup-plugin-includepaths": "^0.2.4",
     "rollup-plugin-typescript2": "^0.37.0",
     "tslib": "^2.7.0",
-    "typescript": "^5.6.3",
+    "typescript": "^6.0.2",
     "xo": "^0.54.1"
   },
   "resolutions": {
