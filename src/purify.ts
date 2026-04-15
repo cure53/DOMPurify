@@ -14,6 +14,7 @@ import {
   entries,
   freeze,
   arrayForEach,
+  arrayIsArray,
   arrayLastIndexOf,
   arrayPop,
   arrayPush,
@@ -25,10 +26,12 @@ import {
   stringIndexOf,
   stringTrim,
   regExpTest,
+  isRegex,
   typeErrorCreate,
   lookupGetter,
   create,
   objectHasOwnProperty,
+  stringifyValue,
 } from './utils.js';
 
 export type { Config } from './config';
@@ -516,38 +519,52 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         : stringToLowerCase;
 
     /* Set configuration parameters */
-    ALLOWED_TAGS = objectHasOwnProperty(cfg, 'ALLOWED_TAGS')
-      ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
-      : DEFAULT_ALLOWED_TAGS;
-    ALLOWED_ATTR = objectHasOwnProperty(cfg, 'ALLOWED_ATTR')
-      ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
-      : DEFAULT_ALLOWED_ATTR;
-    ALLOWED_NAMESPACES = objectHasOwnProperty(cfg, 'ALLOWED_NAMESPACES')
-      ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString)
-      : DEFAULT_ALLOWED_NAMESPACES;
-    URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR')
-      ? addToSet(
-          clone(DEFAULT_URI_SAFE_ATTRIBUTES),
-          cfg.ADD_URI_SAFE_ATTR,
-          transformCaseFunc
-        )
-      : DEFAULT_URI_SAFE_ATTRIBUTES;
-    DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS')
-      ? addToSet(
-          clone(DEFAULT_DATA_URI_TAGS),
-          cfg.ADD_DATA_URI_TAGS,
-          transformCaseFunc
-        )
-      : DEFAULT_DATA_URI_TAGS;
-    FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS')
-      ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
-      : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS')
-      ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
-      : clone({});
-    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR')
-      ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
-      : clone({});
+    ALLOWED_TAGS =
+      objectHasOwnProperty(cfg, 'ALLOWED_TAGS') &&
+      arrayIsArray(cfg.ALLOWED_TAGS)
+        ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
+        : DEFAULT_ALLOWED_TAGS;
+    ALLOWED_ATTR =
+      objectHasOwnProperty(cfg, 'ALLOWED_ATTR') &&
+      arrayIsArray(cfg.ALLOWED_ATTR)
+        ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
+        : DEFAULT_ALLOWED_ATTR;
+    ALLOWED_NAMESPACES =
+      objectHasOwnProperty(cfg, 'ALLOWED_NAMESPACES') &&
+      arrayIsArray(cfg.ALLOWED_NAMESPACES)
+        ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString)
+        : DEFAULT_ALLOWED_NAMESPACES;
+    URI_SAFE_ATTRIBUTES =
+      objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') &&
+      arrayIsArray(cfg.ADD_URI_SAFE_ATTR)
+        ? addToSet(
+            clone(DEFAULT_URI_SAFE_ATTRIBUTES),
+            cfg.ADD_URI_SAFE_ATTR,
+            transformCaseFunc
+          )
+        : DEFAULT_URI_SAFE_ATTRIBUTES;
+    DATA_URI_TAGS =
+      objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS') &&
+      arrayIsArray(cfg.ADD_DATA_URI_TAGS)
+        ? addToSet(
+            clone(DEFAULT_DATA_URI_TAGS),
+            cfg.ADD_DATA_URI_TAGS,
+            transformCaseFunc
+          )
+        : DEFAULT_DATA_URI_TAGS;
+    FORBID_CONTENTS =
+      objectHasOwnProperty(cfg, 'FORBID_CONTENTS') &&
+      arrayIsArray(cfg.FORBID_CONTENTS)
+        ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
+        : DEFAULT_FORBID_CONTENTS;
+    FORBID_TAGS =
+      objectHasOwnProperty(cfg, 'FORBID_TAGS') && arrayIsArray(cfg.FORBID_TAGS)
+        ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
+        : clone({});
+    FORBID_ATTR =
+      objectHasOwnProperty(cfg, 'FORBID_ATTR') && arrayIsArray(cfg.FORBID_ATTR)
+        ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
+        : clone({});
     USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES')
       ? cfg.USE_PROFILES
       : false;
@@ -566,7 +583,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false; // Default false
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
-    IS_ALLOWED_URI = cfg.ALLOWED_URI_REGEXP || EXPRESSIONS.IS_ALLOWED_URI;
+    IS_ALLOWED_URI = isRegex(cfg.ALLOWED_URI_REGEXP)
+      ? cfg.ALLOWED_URI_REGEXP
+      : EXPRESSIONS.IS_ALLOWED_URI;
     NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
     MATHML_TEXT_INTEGRATION_POINTS =
       cfg.MATHML_TEXT_INTEGRATION_POINTS || MATHML_TEXT_INTEGRATION_POINTS;
@@ -641,10 +660,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     EXTRA_ELEMENT_HANDLING.attributeCheck = null;
 
     /* Merge configuration parameters */
-    if (cfg.ADD_TAGS) {
+    if (objectHasOwnProperty(cfg, 'ADD_TAGS')) {
       if (typeof cfg.ADD_TAGS === 'function') {
         EXTRA_ELEMENT_HANDLING.tagCheck = cfg.ADD_TAGS;
-      } else {
+      } else if (arrayIsArray(cfg.ADD_TAGS)) {
         if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
           ALLOWED_TAGS = clone(ALLOWED_TAGS);
         }
@@ -653,10 +672,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     }
 
-    if (cfg.ADD_ATTR) {
+    if (objectHasOwnProperty(cfg, 'ADD_ATTR')) {
       if (typeof cfg.ADD_ATTR === 'function') {
         EXTRA_ELEMENT_HANDLING.attributeCheck = cfg.ADD_ATTR;
-      } else {
+      } else if (arrayIsArray(cfg.ADD_ATTR)) {
         if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
           ALLOWED_ATTR = clone(ALLOWED_ATTR);
         }
@@ -665,11 +684,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     }
 
-    if (cfg.ADD_URI_SAFE_ATTR) {
+    if (
+      objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') &&
+      arrayIsArray(cfg.ADD_URI_SAFE_ATTR)
+    ) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
     }
 
-    if (cfg.FORBID_CONTENTS) {
+    if (
+      objectHasOwnProperty(cfg, 'FORBID_CONTENTS') &&
+      arrayIsArray(cfg.FORBID_CONTENTS)
+    ) {
       if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
         FORBID_CONTENTS = clone(FORBID_CONTENTS);
       }
@@ -677,7 +702,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
     }
 
-    if (cfg.ADD_FORBID_CONTENTS) {
+    if (
+      objectHasOwnProperty(cfg, 'ADD_FORBID_CONTENTS') &&
+      arrayIsArray(cfg.ADD_FORBID_CONTENTS)
+    ) {
       if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
         FORBID_CONTENTS = clone(FORBID_CONTENTS);
       }
@@ -1536,13 +1564,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Stringify, in case dirty is an object */
     if (typeof dirty !== 'string' && !_isNode(dirty)) {
-      if (typeof dirty.toString === 'function') {
-        dirty = dirty.toString();
-        if (typeof dirty !== 'string') {
-          throw typeErrorCreate('dirty is not a string, aborting');
-        }
-      } else {
-        throw typeErrorCreate('toString is not a function');
+      dirty = stringifyValue(dirty);
+
+      if (typeof dirty !== 'string') {
+        throw typeErrorCreate('dirty is not a string, aborting');
       }
     }
 
