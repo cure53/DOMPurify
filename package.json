@@ -121,7 +121,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^4.0.0",
     "fast-check": "^4.6.0",
-    "jquery": "^3.6.0",
+    "jquery": "^4.0.0",
     "jsdom": "^29.0.2",
     "karma": "^6.3.17",
     "karma-browserstack-launcher": "^1.5.1",
