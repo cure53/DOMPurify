@@ -984,6 +984,74 @@
         assert.ok(true);
       }
     );
+	
+    QUnit.test(
+      'Config-Param tests: CUSTOM_ELEMENT_HANDLING should ignore inherited top-level config',
+      function (assert) {
+        var proto = {};
+        Object.defineProperty(proto, 'CUSTOM_ELEMENT_HANDLING', {
+          get: function () {
+            throw new Error('must not read inherited CUSTOM_ELEMENT_HANDLING');
+          },
+        });
+        var config = Object.create(proto);
+
+        assert.equal(
+          DOMPurify.sanitize('<foo-bar>abc</foo-bar>', config),
+          'abc'
+        );
+      }
+    );
+
+    QUnit.test(
+      'Config-Param tests: CUSTOM_ELEMENT_HANDLING should ignore inherited nested config',
+      function (assert) {
+        var inheritedHandling = Object.create({
+          tagNameCheck: /-/u,
+        });
+
+        assert.equal(
+          DOMPurify.sanitize('<foo-bar>abc</foo-bar>', {
+            CUSTOM_ELEMENT_HANDLING: inheritedHandling,
+          }),
+          'abc'
+        );
+      }
+    );
+
+    QUnit.test(
+      'Config-Param tests: CUSTOM_ELEMENT_HANDLING should ignore inherited nested getters',
+      function (assert) {
+        var proto = {};
+        Object.defineProperty(proto, 'tagNameCheck', {
+          get: function () {
+            throw new Error('must not read inherited tagNameCheck');
+          },
+        });
+        var inheritedHandling = Object.create(proto);
+
+        assert.equal(
+          DOMPurify.sanitize('abc', {
+            CUSTOM_ELEMENT_HANDLING: inheritedHandling,
+          }),
+          'abc'
+        );
+      }
+    );
+
+    QUnit.test(
+      'Config-Param tests: CUSTOM_ELEMENT_HANDLING should not leak into subsequent default calls',
+      function (assert) {
+        DOMPurify.sanitize('<foo-bar>abc</foo-bar>', {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: /-/u,
+          },
+        });
+
+        assert.equal(DOMPurify.sanitize('<foo-bar>abc</foo-bar>'), 'abc');
+      }
+    );
+	
     QUnit.test(
       'CUSTOM_ELEMENT_HANDLING attributeNameCheck with tagName parameter',
       function (assert) {
@@ -1624,6 +1692,51 @@
         ]
       );
     });
+    QUnit.test(
+      'Config-Flag tests: USE_PROFILES should ignore inherited top-level config',
+      function (assert) {
+        var proto = {};
+        Object.defineProperty(proto, 'USE_PROFILES', {
+          get: function () {
+            throw new Error('must not read inherited USE_PROFILES');
+          },
+        });
+        var config = Object.create(proto);
+
+        assert.equal(
+          DOMPurify.sanitize('<h1>HELLO</h1>', config),
+          '<h1>HELLO</h1>'
+        );
+      }
+    );
+
+    QUnit.test(
+      'Config-Flag tests: USE_PROFILES should ignore inherited profile flags',
+      function (assert) {
+        var inheritedProfiles = Object.create({
+          html: true,
+        });
+
+        assert.equal(
+          DOMPurify.sanitize('<h1>HELLO</h1>', {
+            USE_PROFILES: inheritedProfiles,
+          }),
+          'HELLO'
+        );
+      }
+    );
+    QUnit.test(
+      'Config-Flag tests: USE_PROFILES should not leak into subsequent default calls',
+      function (assert) {
+        DOMPurify.sanitize('<h1>HELLO</h1>', {
+          USE_PROFILES: {
+            html: false,
+          },
+        });
+
+        assert.equal(DOMPurify.sanitize('<h1>HELLO</h1>'), '<h1>HELLO</h1>');
+      }
+    );	
     QUnit.test('Config-Flag tests: ALLOWED_URI_REGEXP', function (assert) {
       var tests = [
         {
@@ -2117,6 +2230,88 @@
         assert.contains(DOMPurify.sanitize(test.test, test.config), test.expected);
       });
     });
+    QUnit.test(
+      'Config-Flag tests: NAMESPACE should ignore inherited top-level config',
+      function (assert) {
+        var proto = {};
+        Object.defineProperty(proto, 'NAMESPACE', {
+          get: function () {
+            throw new Error('must not read inherited NAMESPACE');
+          },
+        });
+        var config = Object.create(proto);
+
+        assert.equal(
+          DOMPurify.sanitize('<polyline points="0 0"></polyline>', config),
+          ''
+        );
+      }
+    );
+
+    QUnit.test(
+      'Config-Flag tests: NAMESPACE should ignore non-string values',
+      function (assert) {
+        var hostileNamespace = {
+          toString: function () {
+            throw new Error('must not stringify NAMESPACE');
+          },
+        };
+
+        assert.equal(
+          DOMPurify.sanitize('<polyline points="0 0"></polyline>', {
+            NAMESPACE: hostileNamespace,
+          }),
+          ''
+        );
+
+        if (typeof Symbol === 'function') {
+          assert.equal(
+            DOMPurify.sanitize('<polyline points="0 0"></polyline>', {
+              NAMESPACE: Symbol('svg'),
+            }),
+            ''
+          );
+        } else {
+          assert.ok(true);
+        }
+      }
+    );
+
+    QUnit.test(
+      'Config-Flag tests: NAMESPACE should not leak into subsequent default calls',
+      function (assert) {
+        DOMPurify.sanitize('<polyline points="0 0"></polyline>', {
+          NAMESPACE: 'http://www.w3.org/2000/svg',
+        });
+
+        assert.equal(DOMPurify.sanitize('<polyline points="0 0"></polyline>'), '');
+      }
+    );
+
+    QUnit.test(
+      'Config-Flag tests: inherited integration-point config should be ignored',
+      function (assert) {
+        var htmlProto = {};
+        Object.defineProperty(htmlProto, 'HTML_INTEGRATION_POINTS', {
+          get: function () {
+            throw new Error('must not read inherited HTML_INTEGRATION_POINTS');
+          },
+        });
+
+        var mathProto = Object.create(htmlProto);
+        Object.defineProperty(mathProto, 'MATHML_TEXT_INTEGRATION_POINTS', {
+          get: function () {
+            throw new Error(
+              'must not read inherited MATHML_TEXT_INTEGRATION_POINTS'
+            );
+          },
+        });
+
+        var config = Object.create(mathProto);
+
+        assert.equal(DOMPurify.sanitize('HELLO', config), 'HELLO');
+      }
+    );	
     QUnit.test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
       const tests = [
         {
