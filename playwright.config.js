@@ -1,29 +1,17 @@
 /* Playwright configuration for DOMPurify browser tests.
- * Runs the QUnit suite in real browsers (chromium/firefox/webkit).
+ * Runs the QUnit suite in real browsers via Playwright's managed binaries.
  *
- * Local:
- *   npm run test:browser           # all three browsers
- *   npx playwright test --project=chromium
+ * Browser coverage:
+ *   npm test              -> chromium only (fast local dev / PR feedback)
+ *   npm run test:browser  -> chromium + firefox + webkit (full engine coverage)
  *
- * CI (non-BrowserStack):
- *   npm run test:browser           # same
- *
- * CI (BrowserStack):
- *   TODO (phase 2b) — drive via browserstack-node-sdk.
+ * The CI workflow's "browser-matrix" job runs test:browser on three OS runners
+ * (ubuntu, macOS, Windows) giving 9 browser/OS combinations in parallel.
  */
 
 const { defineConfig, devices } = require('@playwright/test');
 
 const isCI = Boolean(process.env.CI);
-const probeOnly = process.env.TEST_PROBE_ONLY === 'true';
-
-const localProjects = probeOnly
-  ? [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }]
-  : [
-      { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-      { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-      { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-    ];
 
 module.exports = defineConfig({
   testDir: './test',
@@ -45,5 +33,9 @@ module.exports = defineConfig({
     stdout: 'ignore',
     stderr: 'pipe',
   },
-  projects: localProjects,
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+  ],
 });
