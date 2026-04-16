@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![License](https://img.shields.io/badge/license-MPL--2.0%20OR%20Apache--2.0-blue.svg)](https://github.com/cure53/DOMPurify/blob/main/LICENSE) ![Tests](https://github.com/cure53/DOMPurify/workflows/Build%20&%20Test/badge.svg) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
 
-![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=gzip) [![Cloudback](https://app.cloudback.it/badge/cure53/DOMPurify)](https://cloudback.it) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12162/badge)](https://www.bestpractices.dev/projects/12162) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cure53/DOMPurify/badge)](https://scorecard.dev/viewer/?uri=github.com/cure53/DOMPurify)
+![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=gzip) [![Cloudback](https://app.cloudback.it/badge/cure53/DOMPurify)](https://cloudback.it) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12162/badge)](https://www.bestpractices.dev/projects/12162) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cure53/DOMPurify/badge)](https://scorecard.dev/viewer/?uri=github.com/cure53/DOMPurify) [![Socket Badge](https://badge.socket.dev/npm/package/dompurify/latest)](https://badge.socket.dev/npm/package/dompurify/latest)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
@@ -484,6 +484,7 @@ These are our npm scripts:
   - `npm run test:jsdom` to only run tests through jsdom
   - `npm run test:karma` to only run tests through Karma
   - `npm run test:ci` to run the CI test flow for jsdom and Karma/BrowserStack
+  - `npm run test:fuzz` to run a small fuzzer covering `sanitize()` and CONFIG
 - `npm run lint` to lint the sources using ESLint via xo
 - `npm run format` to format JavaScript/TypeScript and Markdown sources with Prettier
   - `npm run format:js` to only format JavaScript/TypeScript sources
