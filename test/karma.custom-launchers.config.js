@@ -2,13 +2,13 @@ const argv = require('minimist')(process.argv.slice(2));
 
 const customLaunchers = {
   bs_sequoia_safari_latest: {
-  	base: 'BrowserStack',
-	  device: null,
-	  os: 'OS X',
-	  browser: 'safari',
-	  browser_version: 'latest',
+    base: 'BrowserStack',
+    device: null,
+    os: 'OS X',
+    browser: 'safari',
+    browser_version: 'latest',
     os_version: 'Sequoia',
-  },	
+  },
   bs_tahoe_safari_latest: {
     base: 'BrowserStack',
     device: null,
@@ -81,14 +81,14 @@ const customLaunchers = {
     browser: 'firefox',
     os_version: '11',
   },
-bs_sequoia_firefox_latest: {
-  base: 'BrowserStack',
-  device: null,
-  os: 'OS X',
-  browser_version: 'latest',
-  browser: 'firefox',
-  os_version: 'Sequoia',
-},  
+  bs_sequoia_firefox_latest: {
+    base: 'BrowserStack',
+    device: null,
+    os: 'OS X',
+    browser_version: 'latest',
+    browser: 'firefox',
+    os_version: 'Sequoia',
+  },
   bs_win11_chrome_latest_minus_3: {
     base: 'BrowserStack',
     device: null,
