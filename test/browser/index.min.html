@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>DOMPurify QUnit — purify.min.js</title>
+    <link
+      rel="stylesheet"
+      href="/node_modules/qunit/qunit/qunit.css"
+    />
+  </head>
+  <body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+
+    <script src="/node_modules/qunit/qunit/qunit.js"></script>
+    <script>
+      QUnit.config.autostart = false;
+    </script>
+
+    <script src="/node_modules/jquery/dist/jquery.js"></script>
+
+    <!-- Minified DOMPurify build. -->
+    <script src="/dist/purify.min.js"></script>
+
+    <script src="/test/config/setup.js"></script>
+    <script src="/test/test-suite.js"></script>
+
+    <script>
+      window.__SUITE_NAME__ = 'DOMPurify dist';
+    </script>
+
+    <script type="module" src="/test/browser/entry.js"></script>
+  </body>
+</html>

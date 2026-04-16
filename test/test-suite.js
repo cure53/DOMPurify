@@ -2,10 +2,10 @@
   typeof exports === 'object' && typeof module !== 'undefined'
     ? (module.exports = factory())
     : typeof define === 'function' && define.amd
-    ? define(factory)
-    : ((global =
-        typeof globalThis !== 'undefined' ? globalThis : global || self),
-      (global.testSuite = factory()));
+      ? define(factory)
+      : ((global =
+          typeof globalThis !== 'undefined' ? globalThis : global || self),
+        (global.testSuite = factory()));
 })(this, function () {
   return function testSuite(
     DOMPurify,
@@ -133,21 +133,27 @@
         );
       }
     );
-    QUnit.test('Config-Flag tests: ALLOW_SELF_CLOSE_IN_ATTR', function (assert) {
-      // ALLOW_SELF_CLOSE_IN_ATTR
-      assert.equal(
-        DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
-          ALLOW_SELF_CLOSE_IN_ATTR: false,
-        }),
-        '<a href="#">abc</a>'
-      );
-      assert.contains(
-        DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
-          ALLOW_SELF_CLOSE_IN_ATTR: true,
-        }),
-        ['<a href="#" class="foo <br/>">abc</a>', "<a href=\"#\" class=\"foo &lt;br/&gt;\">abc</a>"]
-      );
-    });
+    QUnit.test(
+      'Config-Flag tests: ALLOW_SELF_CLOSE_IN_ATTR',
+      function (assert) {
+        // ALLOW_SELF_CLOSE_IN_ATTR
+        assert.equal(
+          DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
+            ALLOW_SELF_CLOSE_IN_ATTR: false,
+          }),
+          '<a href="#">abc</a>'
+        );
+        assert.contains(
+          DOMPurify.sanitize('<a href="#" class="foo <br/>">abc</a>', {
+            ALLOW_SELF_CLOSE_IN_ATTR: true,
+          }),
+          [
+            '<a href="#" class="foo <br/>">abc</a>',
+            '<a href="#" class="foo &lt;br/&gt;">abc</a>',
+          ]
+        );
+      }
+    );
     QUnit.test('Config-Flag tests: ALLOW_DATA_ATTR', function (assert) {
       // ALLOW_DATA_ATTR
       assert.equal(
@@ -319,15 +325,12 @@
       );
       // ADD_ATTR function should reject attributes when function returns false
       assert.equal(
-        DOMPurify.sanitize(
-          '<one attribute-one="1" forbidden="bad"></one>',
-          {
-            ADD_TAGS: ['one'],
-            ADD_ATTR: (attributeName, tagName) => {
-              return tagName === 'one' && attributeName === 'attribute-one';
-            },
-          }
-        ),
+        DOMPurify.sanitize('<one attribute-one="1" forbidden="bad"></one>', {
+          ADD_TAGS: ['one'],
+          ADD_ATTR: (attributeName, tagName) => {
+            return tagName === 'one' && attributeName === 'attribute-one';
+          },
+        }),
         '<one attribute-one="1"></one>'
       );
     });
@@ -347,7 +350,8 @@
         );
         assert.ok(
           !/<(iframe|object|embed)/i.test(out),
-          'ADD_TAGS function must not leak permissiveness into subsequent array-based calls: ' + out
+          'ADD_TAGS function must not leak permissiveness into subsequent array-based calls: ' +
+            out
         );
         // Step 3: Call with no ADD_TAGS – should also be clean
         var out2 = DOMPurify.sanitize(
@@ -355,7 +359,8 @@
         );
         assert.ok(
           !/<iframe/i.test(out2),
-          'Default call after function-based ADD_TAGS must block iframe: ' + out2
+          'Default call after function-based ADD_TAGS must block iframe: ' +
+            out2
         );
       }
     );
@@ -375,7 +380,8 @@
         );
         assert.ok(
           out.indexOf('javascript:') === -1,
-          'ADD_ATTR function must not leak permissiveness into subsequent array-based calls: ' + out
+          'ADD_ATTR function must not leak permissiveness into subsequent array-based calls: ' +
+            out
         );
         // Step 3: Call with no ADD_ATTR – should also be clean
         var out2 = DOMPurify.sanitize(
@@ -383,7 +389,8 @@
         );
         assert.ok(
           out2.indexOf('javascript:') === -1,
-          'Default call after function-based ADD_ATTR must block javascript: URIs: ' + out2
+          'Default call after function-based ADD_ATTR must block javascript: URIs: ' +
+            out2
         );
       }
     );
@@ -979,12 +986,12 @@
             allowCustomizedBuiltInElements: null,
           },
         });
-    
+
         // Don't see a great way to assert NOT throws...
         assert.ok(true);
       }
     );
-	
+
     QUnit.test(
       'Config-Param tests: CUSTOM_ELEMENT_HANDLING should ignore inherited top-level config',
       function (assert) {
@@ -1051,7 +1058,7 @@
         assert.equal(DOMPurify.sanitize('<foo-bar>abc</foo-bar>'), 'abc');
       }
     );
-	
+
     QUnit.test(
       'CUSTOM_ELEMENT_HANDLING attributeNameCheck with tagName parameter',
       function (assert) {
@@ -1736,7 +1743,7 @@
 
         assert.equal(DOMPurify.sanitize('<h1>HELLO</h1>'), '<h1>HELLO</h1>');
       }
-    );	
+    );
     QUnit.test('Config-Flag tests: ALLOWED_URI_REGEXP', function (assert) {
       var tests = [
         {
@@ -1748,8 +1755,7 @@
           expected: '<img src="http://i.imgur.com/WScAnHr.jpg">',
         },
         {
-          test:
-            '<img src="blob:https://localhost:3000/c4ea3ec6-9f22-4d08-af6f-d79e78a0a7a7">',
+          test: '<img src="blob:https://localhost:3000/c4ea3ec6-9f22-4d08-af6f-d79e78a0a7a7">',
           expected: '<img>',
         },
         {
@@ -1759,22 +1765,25 @@
       ];
       tests.forEach(function (test) {
         var str = DOMPurify.sanitize(test.test, {
-          ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+          ALLOWED_URI_REGEXP:
+            /^(?:(?:(?:f|ht)tps?):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
         });
         assert.equal(str, test.expected);
       });
     });
-    QUnit.test('Ensure ALLOWED_URI_REGEXP is not cached', function(assert) {
-      const 
-        dirty = '<img src="https://different.com">',
+    QUnit.test('Ensure ALLOWED_URI_REGEXP is not cached', function (assert) {
+      const dirty = '<img src="https://different.com">',
         expected = '<img src="https://different.com">';
 
       assert.equal(DOMPurify.sanitize(dirty), expected);
 
       // sanitize with a custom URI regexp
-      assert.equal(DOMPurify.sanitize('<img src="https://test.com">', {
-        ALLOWED_URI_REGEXP: /test\.com/i
-      }), '<img src="https://test.com">');
+      assert.equal(
+        DOMPurify.sanitize('<img src="https://test.com">', {
+          ALLOWED_URI_REGEXP: /test\.com/i,
+        }),
+        '<img src="https://test.com">'
+      );
 
       // ensure that the previous regexp does not affect future sanitize calls
       assert.equal(DOMPurify.sanitize(dirty), expected);
@@ -1979,7 +1988,7 @@
           '<img y="<x">',
           '<img y="&lt;x">',
           '<img y="<x">',
-		  "<img x=\"/&gt;&lt;img src=x onerror=alert(1)&gt;\" y=\"&lt;x\">",
+          '<img x="/&gt;&lt;img src=x onerror=alert(1)&gt;" y="&lt;x">',
         ]);
       }
     );
@@ -2040,8 +2049,7 @@
     QUnit.test('Test if namespaces are properly enforced', function (assert) {
       var tests = [
         {
-          test:
-            '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
+          test: '<svg><desc><canvas></canvas><textarea></textarea></desc></svg>',
           expected: [
             '<svg><desc></desc></svg>',
             '<svg xmlns="http://www.w3.org/2000/svg"><desc></desc></svg>',
@@ -2143,8 +2151,7 @@
       const tests = [
         // Test when ALLOWED_NAMESPACES is not set, result is empty for XML with custom namespace
         {
-          test:
-            '<library xmlns="http://www.ibm.com/library"><name>Library 1</name></library>',
+          test: '<library xmlns="http://www.ibm.com/library"><name>Library 1</name></library>',
           config: {
             ALLOWED_TAGS: ['#text', 'library', 'name'],
             KEEP_CONTENT: false,
@@ -2154,8 +2161,7 @@
         },
         // Test with one custom namespace at the root (ie. all sub-nodes will inherit that namespace)
         {
-          test:
-            '<library xmlns="http://www.ibm.com/library"><name>Library 1</name><dirty onload="alert()" /></library>',
+          test: '<library xmlns="http://www.ibm.com/library"><name>Library 1</name><dirty onload="alert()" /></library>',
           config: {
             ALLOWED_NAMESPACES: ['http://www.ibm.com/library'],
             ALLOWED_TAGS: ['#text', 'library', 'name'],
@@ -2167,10 +2173,12 @@
         },
         // Test with one custom namespace at sub-node (root will default to HTML_NAMESPACE and should be kept)
         {
-          test:
-            '<city><library xmlns="http://www.ibm.com/library"><name>Library 1</name><dirty onload="alert()" /></library></city>',
+          test: '<city><library xmlns="http://www.ibm.com/library"><name>Library 1</name><dirty onload="alert()" /></library></city>',
           config: {
-            ALLOWED_NAMESPACES: ['http://www.w3.org/1999/xhtml', 'http://www.ibm.com/library'],
+            ALLOWED_NAMESPACES: [
+              'http://www.w3.org/1999/xhtml',
+              'http://www.ibm.com/library',
+            ],
             ALLOWED_TAGS: ['#text', 'city', 'library', 'name'],
             KEEP_CONTENT: false,
             PARSER_MEDIA_TYPE: 'application/xhtml+xml',
@@ -2180,20 +2188,21 @@
         },
         // Test removal of namespaces not listed in ALLOWED_NAMESPACES when input has multiple namespaces
         {
-          test:
-            '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books"><bk:name>Library 1</bk:name><dirty onload="alert()" /></library>',
+          test: '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books"><bk:name>Library 1</bk:name><dirty onload="alert()" /></library>',
           config: {
             ALLOWED_NAMESPACES: ['http://www.ibm.com/library'],
             ALLOWED_TAGS: ['library', 'bk:name'],
             KEEP_CONTENT: false,
             PARSER_MEDIA_TYPE: 'application/xhtml+xml',
           },
-          expected: ['<library xmlns="http://www.ibm.com/library"/>', '<library xmlns="http://www.ibm.com/library" />']
+          expected: [
+            '<library xmlns="http://www.ibm.com/library"/>',
+            '<library xmlns="http://www.ibm.com/library" />',
+          ],
         },
         // Test with multiple custom namespaces and prefixes in input
         {
-          test:
-            '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"><bk:name>Library 1<m:properties>Other Properties</m:properties></bk:name><dirty onload="alert()" /></library>',
+          test: '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"><bk:name>Library 1<m:properties>Other Properties</m:properties></bk:name><dirty onload="alert()" /></library>',
           config: {
             ALLOWED_NAMESPACES: [
               'http://www.ibm.com/library',
@@ -2209,8 +2218,7 @@
         },
         // Test removal of elements mentioned in FORBID_TAGS even if their namespaces are allow-listed
         {
-          test:
-            '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"><bk:name>Library 1<m:properties>Other Properties</m:properties></bk:name><dirty onload="alert()" /></library>',
+          test: '<library xmlns="http://www.ibm.com/library" xmlns:bk="urn:loc.gov:books" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata"><bk:name>Library 1<m:properties>Other Properties</m:properties></bk:name><dirty onload="alert()" /></library>',
           config: {
             ADD_TAGS: ['library', 'bk:name'],
             ALLOWED_NAMESPACES: [
@@ -2227,7 +2235,10 @@
         },
       ];
       tests.forEach(function (test) {
-        assert.contains(DOMPurify.sanitize(test.test, test.config), test.expected);
+        assert.contains(
+          DOMPurify.sanitize(test.test, test.config),
+          test.expected
+        );
       });
     });
     QUnit.test(
@@ -2284,7 +2295,10 @@
           NAMESPACE: 'http://www.w3.org/2000/svg',
         });
 
-        assert.equal(DOMPurify.sanitize('<polyline points="0 0"></polyline>'), '');
+        assert.equal(
+          DOMPurify.sanitize('<polyline points="0 0"></polyline>'),
+          ''
+        );
       }
     );
 
@@ -2311,7 +2325,7 @@
 
         assert.equal(DOMPurify.sanitize('HELLO', config), 'HELLO');
       }
-    );	
+    );
     QUnit.test('Config-Flag tests: PARSER_MEDIA_TYPE', function (assert) {
       const tests = [
         {
@@ -2510,85 +2524,110 @@
       DOMPurify.removeHook(entryPoint);
     });
 
-    QUnit.test('removeHook allows specifying the hook to remove', function (assert) {
-      const entryPoint = 'afterSanitizeAttributes';
-      const dirty = '<div class="original"></div>';
-      const expected = '<div class="original first third"></div>';
+    QUnit.test(
+      'removeHook allows specifying the hook to remove',
+      function (assert) {
+        const entryPoint = 'afterSanitizeAttributes';
+        const dirty = '<div class="original"></div>';
+        const expected = '<div class="original first third"></div>';
 
-      const firstHook = function (node) {
-        node.classList.add('first');
-      };
-      const secondHook = function (node) {
-        node.classList.add('second');
-      };
-      const thirdHook = function (node) {
-        node.classList.add('third');
-      };
+        const firstHook = function (node) {
+          node.classList.add('first');
+        };
+        const secondHook = function (node) {
+          node.classList.add('second');
+        };
+        const thirdHook = function (node) {
+          node.classList.add('third');
+        };
 
-      DOMPurify.addHook(entryPoint, firstHook);
-      DOMPurify.addHook(entryPoint, secondHook);
-      DOMPurify.addHook(entryPoint, thirdHook);
+        DOMPurify.addHook(entryPoint, firstHook);
+        DOMPurify.addHook(entryPoint, secondHook);
+        DOMPurify.addHook(entryPoint, thirdHook);
 
-      // removes the specified hook
-      assert.strictEqual(DOMPurify.removeHook(entryPoint, secondHook), secondHook);
+        // removes the specified hook
+        assert.strictEqual(
+          DOMPurify.removeHook(entryPoint, secondHook),
+          secondHook
+        );
 
-      // can’t remove it again
-      assert.strictEqual(DOMPurify.removeHook(entryPoint, secondHook), undefined);
+        // can’t remove it again
+        assert.strictEqual(
+          DOMPurify.removeHook(entryPoint, secondHook),
+          undefined
+        );
 
-      // removed hook isn’t used during sanitize
-      assert.strictEqual(DOMPurify.sanitize(dirty), expected);
+        // removed hook isn’t used during sanitize
+        assert.strictEqual(DOMPurify.sanitize(dirty), expected);
 
-      // cleanup hooks
-      DOMPurify.removeHook(entryPoint, firstHook);
-      DOMPurify.removeHook(entryPoint, thirdHook);
-    });
-    
-    QUnit.test('Test proper removal of annotation-xml w. custom elements', function (assert) {
-      const dirty  = '<svg><annotation-xml><foreignobject><style><!--</style><p id="--><img src=\'x\' onerror=\'alert(1)\'>">';
-      const config = { 
-        CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /.*/ },
-        FORBID_CONTENTS: [""] 
-      };
-      const expected = '<svg></svg>';
-      let clean = DOMPurify.sanitize(dirty, config);
-      assert.contains(clean, expected);
-    });
-    
-    QUnit.test('Test proper handling of attributes with RETURN_DOM', function (assert) {
-      const dirty  = '<body onload="alert(1)">&lt;a<!-- <f --></body>';
-      const config = { 
-        RETURN_DOM: true 
-      };
-      const expected = '<body>&lt;a</body>';
-      let clean = DOMPurify.sanitize(dirty, config);
-      
-      let iframe = document.createElement('iframe')
-      iframe.srcdoc = `<html><head></head>${clean.outerHTML}</html>`
-      document.body.appendChild(iframe); // alert test
-      assert.contains(clean.outerHTML, expected);
-    });
-    
-    QUnit.test('Test proper handling of data-attribiutes in XML modes', function (assert) {
-      const dirty  = '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg"><a xmlns:data-slonser="http://www.w3.org/1999/xlink" data-slonser:href="javascript:alert(1)"><text  x="20" y="35">Click me!</text></a></svg>';
-      const config = { 
-        PARSER_MEDIA_TYPE: 'application/xhtml+xml'
-      };
-      const expected = [
-        '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"600\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>',
-        '<svg width=\"800\" height=\"600\" xmlns=\"http://www.w3.org/2000/svg\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>'
-      ];
-      let clean = DOMPurify.sanitize(dirty, config);
-      assert.contains(clean, expected);
-    });
+        // cleanup hooks
+        DOMPurify.removeHook(entryPoint, firstHook);
+        DOMPurify.removeHook(entryPoint, thirdHook);
+      }
+    );
 
-    QUnit.test('Expect the same results when using ALLOWED_URI_REGEXP with the g flag', function (assert) {
-      const dirty  = '<img src="blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a"><a epub:type="noteref" href="epub:EPUB/xhtml/#footnote"></a><img src="blob:http://localhost:5173/84c49be9-3352-4407" >';
-      const config = { 
-        ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/gi,
-      };
-      const expected = '<img src=\"blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a\"><a href=\"epub:EPUB/xhtml/#footnote\"></a><img src=\"blob:http://localhost:5173/84c49be9-3352-4407\">';
-      let clean = DOMPurify.sanitize(dirty, config);
-      assert.strictEqual(clean, expected);
-    });
+    QUnit.test(
+      'Test proper removal of annotation-xml w. custom elements',
+      function (assert) {
+        const dirty =
+          "<svg><annotation-xml><foreignobject><style><!--</style><p id=\"--><img src='x' onerror='alert(1)'>\">";
+        const config = {
+          CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /.*/ },
+          FORBID_CONTENTS: [''],
+        };
+        const expected = '<svg></svg>';
+        let clean = DOMPurify.sanitize(dirty, config);
+        assert.contains(clean, expected);
+      }
+    );
+
+    QUnit.test(
+      'Test proper handling of attributes with RETURN_DOM',
+      function (assert) {
+        const dirty = '<body onload="alert(1)">&lt;a<!-- <f --></body>';
+        const config = {
+          RETURN_DOM: true,
+        };
+        const expected = '<body>&lt;a</body>';
+        let clean = DOMPurify.sanitize(dirty, config);
+
+        let iframe = document.createElement('iframe');
+        iframe.srcdoc = `<html><head></head>${clean.outerHTML}</html>`;
+        document.body.appendChild(iframe); // alert test
+        assert.contains(clean.outerHTML, expected);
+      }
+    );
+
+    QUnit.test(
+      'Test proper handling of data-attribiutes in XML modes',
+      function (assert) {
+        const dirty =
+          '<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg"><a xmlns:data-slonser="http://www.w3.org/1999/xlink" data-slonser:href="javascript:alert(1)"><text  x="20" y="35">Click me!</text></a></svg>';
+        const config = {
+          PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+        };
+        const expected = [
+          '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"800\" height=\"600\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>',
+          '<svg width=\"800\" height=\"600\" xmlns=\"http://www.w3.org/2000/svg\"><a><text x=\"20\" y=\"35\">Click me!</text></a></svg>',
+        ];
+        let clean = DOMPurify.sanitize(dirty, config);
+        assert.contains(clean, expected);
+      }
+    );
+
+    QUnit.test(
+      'Expect the same results when using ALLOWED_URI_REGEXP with the g flag',
+      function (assert) {
+        const dirty =
+          '<img src="blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a"><a epub:type="noteref" href="epub:EPUB/xhtml/#footnote"></a><img src="blob:http://localhost:5173/84c49be9-3352-4407" >';
+        const config = {
+          ALLOWED_URI_REGEXP: /^(blob|https|epub|filepos|kindle)/gi,
+        };
+        const expected =
+          '<img src=\"blob:http://localhost:5173/84c49be9-3352-4407-b066-7b5b4d46c52a\"><a href=\"epub:EPUB/xhtml/#footnote\"></a><img src=\"blob:http://localhost:5173/84c49be9-3352-4407\">';
+        let clean = DOMPurify.sanitize(dirty, config);
+        assert.strictEqual(clean, expected);
+      }
+    );
   };
 });

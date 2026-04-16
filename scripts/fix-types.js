@@ -33,7 +33,6 @@ async function fixCjsTypes(fileName) {
 
     // 4. Write the file back to the dist folder
     await fs.writeFile(fileName, fixed);
-
   } catch (err) {
     // We catch the error but don't re-throw it.
     // This ensures 'npm run build' continues even if this step hiccups.
