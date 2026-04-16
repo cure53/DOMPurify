@@ -12,6 +12,8 @@ permissions:
   contents: read
 
 jobs:
+  # Fast feedback: lint, jsdom, chromium-only browser test across Node versions.
+  # Runs on every push and every PR.
   install:
     runs-on: ubuntu-latest
 
@@ -48,13 +50,6 @@ jobs:
 
       - name: Test
         run: npm run test:ci
-        env:
-          # Phase 2a: BrowserStack path is temporarily disabled while migrating
-          # off Karma. Phase 2b will reintroduce the 28-browser matrix via
-          # browserstack-node-sdk. Secrets are left wired for that follow-up.
-          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/2.x' }}
-          BS_USERNAME: ${{ secrets.BS_USERNAME }}
-          BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
 
       - name: Upload Playwright report
         if: failure()
@@ -66,3 +61,63 @@ jobs:
 
       - name: Verify TypeScript
         run: npm run verify-typescript
+
+  # Browser diversity: chromium + firefox + webkit across Ubuntu, macOS, and
+  # Windows. Catches OS-specific rendering quirks (e.g. macOS WebKit ≈ real
+  # Safari engine, Windows font shaping, Linux-specific parser paths).
+  #
+  # Only runs on release branches (main, 2.x, 3.x) to conserve runner minutes.
+  # PRs get chromium-only coverage from the "install" job above, which is
+  # sufficient for catching regressions.
+  browser-matrix:
+    if: github.event_name == 'push'
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js 25.x
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 25.x
+          cache: npm
+
+      - name: Install Dependencies
+        # npm install (not ci) because the lockfile is generated on Linux
+        # and lacks optional platform-specific packages for macOS/Windows
+        # (fsevents, @rollup/rollup-darwin-*, @rollup/rollup-win32-*).
+        # npm ci would reject the lockfile on those runners.
+        run: npm install
+
+      - name: Install Playwright Browsers (Linux)
+        if: runner.os == 'Linux'
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Install Playwright Browsers (macOS / Windows)
+        if: runner.os != 'Linux'
+        run: npx playwright install chromium firefox webkit
+
+      - name: Build
+        run: npm run build
+
+      - name: Run browser tests (all engines)
+        run: npm run test:browser
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.os }}
+          path: playwright-report/
+          retention-days: 7
