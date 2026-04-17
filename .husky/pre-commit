@@ -1,0 +1,3 @@
+npm run lint
+npm run build
+npm run commit-amend-build

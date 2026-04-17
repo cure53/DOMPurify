@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "prepare": "husky",
     "lint": "xo src/*.ts",
     "format": "npm run format:js && npm run format:md",
     "format:md": "prettier --write --parser markdown '**/*.md'",
@@ -47,11 +48,6 @@
   },
   "files": [
     "dist"
-  ],
-  "pre-commit": [
-    "lint",
-    "build",
-    "commit-amend-build"
   ],
   "xo": {
     "semicolon": true,
@@ -117,22 +113,22 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-replace": "^6.0.1",
     "@rollup/plugin-terser": "^1.0.0",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@types/estree": "^1.0.0",
     "@types/node": "^25.6.0",
     "cross-env": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.2.1",
     "fast-check": "^4.6.0",
+    "husky": "^9.1.0",
     "jquery": "^3.6.0",
     "jsdom": "^29.0.2",
-    "pre-commit": "^1.2.2",
     "prettier": "^3.3.3",
     "qunit": "^2.4.1",
     "qunit-tap": "^1.5.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.60.1",
     "rollup-plugin-dts": "^6.4.1",
-    "rollup-plugin-typescript2": "^0.37.0",
     "tslib": "^2.7.0",
     "typescript": "^5.6.3",
     "xo": "^0.54.1"
