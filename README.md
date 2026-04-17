@@ -482,7 +482,7 @@ These are our npm scripts:
 - `npm run dev` to build the unminified UMD bundle while watching sources for changes
 - `npm run test` to lint the sources, run tests through jsdom, and run Karma tests in Chrome
   - `npm run test:jsdom` to only run tests through jsdom
-  - `npm run test:karma` to only run tests through Karma
+  - `npm run test:browser` to only run tests through Playwright
   - `npm run test:ci` to run the CI test flow for jsdom and Karma/BrowserStack
   - `npm run test:fuzz` to run a small fuzzer covering `sanitize()` and CONFIG
 - `npm run lint` to lint the sources using ESLint via xo
