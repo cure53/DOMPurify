@@ -40,7 +40,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
 
       - name: Build
         run: npm run build
@@ -102,11 +102,11 @@ jobs:
 
       - name: Install Playwright Browsers (Linux)
         if: runner.os == 'Linux'
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
 
       - name: Install Playwright Browsers (macOS / Windows)
         if: runner.os != 'Linux'
-        run: npx playwright install chromium firefox webkit
+        run: ./node_modules/.bin/playwright install chromium firefox webkit
 
       - name: Build
         run: npm run build
