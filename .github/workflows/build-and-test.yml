@@ -94,11 +94,7 @@ jobs:
           cache: npm
 
       - name: Install Dependencies
-        # npm install (not ci) because the lockfile is generated on Linux
-        # and lacks optional platform-specific packages for macOS/Windows
-        # (fsevents, @rollup/rollup-darwin-*, @rollup/rollup-win32-*).
-        # npm ci would reject the lockfile on those runners.
-        run: npm install
+        run: npm ci
 
       - name: Install Playwright Browsers (Linux)
         if: runner.os == 'Linux'
