@@ -1209,7 +1209,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
           for (let i = childCount - 1; i >= 0; --i) {
             const childClone = cloneNode(childNodes[i], true);
-            childClone.__removalCount = (currentNode.__removalCount || 0) + 1;
             parentNode.insertBefore(childClone, getNextSibling(currentNode));
           }
         }
