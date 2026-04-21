@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.4.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.0/LICENSE */
+/*! @license DOMPurify 3.4.1 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.1/LICENSE */
 
 const {
   entries,
@@ -47,13 +47,19 @@ const arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
 const arrayPop = unapply(Array.prototype.pop);
 const arrayPush = unapply(Array.prototype.push);
 const arraySplice = unapply(Array.prototype.splice);
+const arrayIsArray = Array.isArray;
 const stringToLowerCase = unapply(String.prototype.toLowerCase);
 const stringToString = unapply(String.prototype.toString);
 const stringMatch = unapply(String.prototype.match);
 const stringReplace = unapply(String.prototype.replace);
 const stringIndexOf = unapply(String.prototype.indexOf);
 const stringTrim = unapply(String.prototype.trim);
+const numberToString = unapply(Number.prototype.toString);
+const booleanToString = unapply(Boolean.prototype.toString);
+const bigintToString = typeof BigInt === 'undefined' ? null : unapply(BigInt.prototype.toString);
+const symbolToString = typeof Symbol === 'undefined' ? null : unapply(Symbol.prototype.toString);
 const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
+const objectToString = unapply(Object.prototype.toString);
 const regExpTest = unapply(RegExp.prototype.test);
 const typeErrorCreate = unconstruct(TypeError);
 /**
@@ -103,6 +109,9 @@ function addToSet(set, array) {
     // Prevent prototype setters from intercepting set as a this value.
     setPrototypeOf(set, null);
   }
+  if (!arrayIsArray(array)) {
+    return set;
+  }
   let l = array.length;
   while (l--) {
     let element = array[l];
@@ -146,7 +155,7 @@ function clone(object) {
   for (const [property, value] of entries(object)) {
     const isPropertyExist = objectHasOwnProperty(object, property);
     if (isPropertyExist) {
-      if (Array.isArray(value)) {
+      if (arrayIsArray(value)) {
         newObject[property] = cleanArray(value);
       } else if (value && typeof value === 'object' && value.constructor === Object) {
         newObject[property] = clone(value);
@@ -156,6 +165,58 @@ function clone(object) {
     }
   }
   return newObject;
+}
+/**
+ * Convert non-node values into strings without depending on direct property access.
+ *
+ * @param value - The value to stringify.
+ * @returns A string representation of the provided value.
+ */
+function stringifyValue(value) {
+  switch (typeof value) {
+    case 'string':
+      {
+        return value;
+      }
+    case 'number':
+      {
+        return numberToString(value);
+      }
+    case 'boolean':
+      {
+        return booleanToString(value);
+      }
+    case 'bigint':
+      {
+        return bigintToString ? bigintToString(value) : '0';
+      }
+    case 'symbol':
+      {
+        return symbolToString ? symbolToString(value) : 'Symbol()';
+      }
+    case 'undefined':
+      {
+        return objectToString(value);
+      }
+    case 'function':
+    case 'object':
+      {
+        if (value === null) {
+          return objectToString(value);
+        }
+        const valueAsRecord = value;
+        const valueToString = lookupGetter(valueAsRecord, 'toString');
+        if (typeof valueToString === 'function') {
+          const stringified = valueToString(valueAsRecord);
+          return typeof stringified === 'string' ? stringified : objectToString(stringified);
+        }
+        return objectToString(value);
+      }
+    default:
+      {
+        return objectToString(value);
+      }
+  }
 }
 /**
  * This method automatically checks if the prop is function or getter and behaves accordingly.
@@ -182,6 +243,14 @@ function lookupGetter(object, prop) {
   }
   return fallbackValue;
 }
+function isRegex(value) {
+  try {
+    regExpTest(value, '');
+    return true;
+  } catch (_unused) {
+    return false;
+  }
+}
 
 const html$1 = freeze(['a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio', 'b', 'bdi', 'bdo', 'big', 'blink', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'content', 'data', 'datalist', 'dd', 'decorator', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl', 'dt', 'element', 'em', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr', 'html', 'i', 'img', 'input', 'ins', 'kbd', 'label', 'legend', 'li', 'main', 'map', 'mark', 'marquee', 'menu', 'menuitem', 'meter', 'nav', 'nobr', 'ol', 'optgroup', 'option', 'output', 'p', 'picture', 'pre', 'progress', 'q', 'rp', 'rt', 'ruby', 's', 'samp', 'search', 'section', 'select', 'shadow', 'slot', 'small', 'source', 'spacer', 'span', 'strike', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr']);
 const svg$1 = freeze(['svg', 'a', 'altglyph', 'altglyphdef', 'altglyphitem', 'animatecolor', 'animatemotion', 'animatetransform', 'circle', 'clippath', 'defs', 'desc', 'ellipse', 'enterkeyhint', 'exportparts', 'filter', 'font', 'g', 'glyph', 'glyphref', 'hkern', 'image', 'inputmode', 'line', 'lineargradient', 'marker', 'mask', 'metadata', 'mpath', 'part', 'path', 'pattern', 'polygon', 'polyline', 'radialgradient', 'rect', 'stop', 'style', 'switch', 'symbol', 'text', 'textpath', 'title', 'tref', 'tspan', 'view', 'vkern']);
@@ -197,7 +266,7 @@ const mathMl$1 = freeze(['math', 'menclose', 'merror', 'mfenced', 'mfrac', 'mgly
 const mathMlDisallowed = freeze(['maction', 'maligngroup', 'malignmark', 'mlongdiv', 'mscarries', 'mscarry', 'msgroup', 'mstack', 'msline', 'msrow', 'semantics', 'annotation', 'annotation-xml', 'mprescripts', 'none']);
 const text = freeze(['#text']);
 
-const html = freeze(['accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete', 'autopictureinpicture', 'autoplay', 'background', 'bgcolor', 'border', 'capture', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'controls', 'controlslist', 'coords', 'crossorigin', 'datetime', 'decoding', 'default', 'dir', 'disabled', 'disablepictureinpicture', 'disableremoteplayback', 'download', 'draggable', 'enctype', 'enterkeyhint', 'exportparts', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'inert', 'inputmode', 'integrity', 'ismap', 'kind', 'label', 'lang', 'list', 'loading', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'muted', 'name', 'nonce', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'part', 'pattern', 'placeholder', 'playsinline', 'popover', 'popovertarget', 'popovertargetaction', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'slot', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'translate', 'type', 'usemap', 'valign', 'value', 'width', 'wrap', 'xmlns', 'slot']);
+const html = freeze(['accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete', 'autopictureinpicture', 'autoplay', 'background', 'bgcolor', 'border', 'capture', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'controls', 'controlslist', 'coords', 'crossorigin', 'datetime', 'decoding', 'default', 'dir', 'disabled', 'disablepictureinpicture', 'disableremoteplayback', 'download', 'draggable', 'enctype', 'enterkeyhint', 'exportparts', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'inert', 'inputmode', 'integrity', 'ismap', 'kind', 'label', 'lang', 'list', 'loading', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'muted', 'name', 'nonce', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'part', 'pattern', 'placeholder', 'playsinline', 'popover', 'popovertarget', 'popovertargetaction', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'slot', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'translate', 'type', 'usemap', 'valign', 'value', 'width', 'wrap', 'xmlns']);
 const svg = freeze(['accent-height', 'accumulate', 'additive', 'alignment-baseline', 'amplitude', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clippathunits', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dur', 'edgemode', 'elevation', 'end', 'exponent', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'filterunits', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'intercept', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'mask-type', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'primitiveunits', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'slope', 'specularconstant', 'specularexponent', 'spreadmethod', 'startoffset', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'systemlanguage', 'tabindex', 'tablevalues', 'targetx', 'targety', 'transform', 'transform-origin', 'text-anchor', 'text-decoration', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'version', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan']);
 const mathMl = freeze(['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnalign', 'columnlines', 'columnspacing', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'encoding', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lquote', 'lspace', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns']);
 const xml = freeze(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink']);
@@ -217,17 +286,17 @@ const DOCTYPE_NAME = seal(/^html$/i);
 const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 
 var EXPRESSIONS = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  ARIA_ATTR: ARIA_ATTR,
-  ATTR_WHITESPACE: ATTR_WHITESPACE,
-  CUSTOM_ELEMENT: CUSTOM_ELEMENT,
-  DATA_ATTR: DATA_ATTR,
-  DOCTYPE_NAME: DOCTYPE_NAME,
-  ERB_EXPR: ERB_EXPR,
-  IS_ALLOWED_URI: IS_ALLOWED_URI,
-  IS_SCRIPT_OR_DATA: IS_SCRIPT_OR_DATA,
-  MUSTACHE_EXPR: MUSTACHE_EXPR,
-  TMPLIT_EXPR: TMPLIT_EXPR
+    __proto__: null,
+    ARIA_ATTR: ARIA_ATTR,
+    ATTR_WHITESPACE: ATTR_WHITESPACE,
+    CUSTOM_ELEMENT: CUSTOM_ELEMENT,
+    DATA_ATTR: DATA_ATTR,
+    DOCTYPE_NAME: DOCTYPE_NAME,
+    ERB_EXPR: ERB_EXPR,
+    IS_ALLOWED_URI: IS_ALLOWED_URI,
+    IS_SCRIPT_OR_DATA: IS_SCRIPT_OR_DATA,
+    MUSTACHE_EXPR: MUSTACHE_EXPR,
+    TMPLIT_EXPR: TMPLIT_EXPR
 });
 
 /* eslint-disable @typescript-eslint/indent */
@@ -296,7 +365,7 @@ const _createHooksMap = function _createHooksMap() {
 function createDOMPurify() {
   let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
   const DOMPurify = root => createDOMPurify(root);
-  DOMPurify.version = '3.4.0';
+  DOMPurify.version = '3.4.1';
   DOMPurify.removed = [];
   if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
     // Not running in a browser, provide a factory function
@@ -544,15 +613,15 @@ function createDOMPurify() {
     // HTML tags and attributes are not case-sensitive, converting to lowercase. Keeping XHTML as is.
     transformCaseFunc = PARSER_MEDIA_TYPE === 'application/xhtml+xml' ? stringToString : stringToLowerCase;
     /* Set configuration parameters */
-    ALLOWED_TAGS = objectHasOwnProperty(cfg, 'ALLOWED_TAGS') ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
-    ALLOWED_ATTR = objectHasOwnProperty(cfg, 'ALLOWED_ATTR') ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
-    ALLOWED_NAMESPACES = objectHasOwnProperty(cfg, 'ALLOWED_NAMESPACES') ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
-    URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR, transformCaseFunc) : DEFAULT_URI_SAFE_ATTRIBUTES;
-    DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS') ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS, transformCaseFunc) : DEFAULT_DATA_URI_TAGS;
-    FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS') ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS') ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : clone({});
-    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR') ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : clone({});
-    USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES') ? cfg.USE_PROFILES : false;
+    ALLOWED_TAGS = objectHasOwnProperty(cfg, 'ALLOWED_TAGS') && arrayIsArray(cfg.ALLOWED_TAGS) ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc) : DEFAULT_ALLOWED_TAGS;
+    ALLOWED_ATTR = objectHasOwnProperty(cfg, 'ALLOWED_ATTR') && arrayIsArray(cfg.ALLOWED_ATTR) ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc) : DEFAULT_ALLOWED_ATTR;
+    ALLOWED_NAMESPACES = objectHasOwnProperty(cfg, 'ALLOWED_NAMESPACES') && arrayIsArray(cfg.ALLOWED_NAMESPACES) ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString) : DEFAULT_ALLOWED_NAMESPACES;
+    URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') && arrayIsArray(cfg.ADD_URI_SAFE_ATTR) ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR, transformCaseFunc) : DEFAULT_URI_SAFE_ATTRIBUTES;
+    DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS') && arrayIsArray(cfg.ADD_DATA_URI_TAGS) ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS, transformCaseFunc) : DEFAULT_DATA_URI_TAGS;
+    FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS') && arrayIsArray(cfg.FORBID_CONTENTS) ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
+    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS') && arrayIsArray(cfg.FORBID_TAGS) ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : clone({});
+    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR') && arrayIsArray(cfg.FORBID_ATTR) ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : clone({});
+    USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES') ? cfg.USE_PROFILES && typeof cfg.USE_PROFILES === 'object' ? clone(cfg.USE_PROFILES) : cfg.USE_PROFILES : false;
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
     ALLOW_UNKNOWN_PROTOCOLS = cfg.ALLOW_UNKNOWN_PROTOCOLS || false; // Default false
@@ -568,19 +637,20 @@ function createDOMPurify() {
     SANITIZE_NAMED_PROPS = cfg.SANITIZE_NAMED_PROPS || false; // Default false
     KEEP_CONTENT = cfg.KEEP_CONTENT !== false; // Default true
     IN_PLACE = cfg.IN_PLACE || false; // Default false
-    IS_ALLOWED_URI$1 = cfg.ALLOWED_URI_REGEXP || IS_ALLOWED_URI;
-    NAMESPACE = cfg.NAMESPACE || HTML_NAMESPACE;
-    MATHML_TEXT_INTEGRATION_POINTS = cfg.MATHML_TEXT_INTEGRATION_POINTS || MATHML_TEXT_INTEGRATION_POINTS;
-    HTML_INTEGRATION_POINTS = cfg.HTML_INTEGRATION_POINTS || HTML_INTEGRATION_POINTS;
-    CUSTOM_ELEMENT_HANDLING = cfg.CUSTOM_ELEMENT_HANDLING || create(null);
-    if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck)) {
-      CUSTOM_ELEMENT_HANDLING.tagNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.tagNameCheck;
+    IS_ALLOWED_URI$1 = isRegex(cfg.ALLOWED_URI_REGEXP) ? cfg.ALLOWED_URI_REGEXP : IS_ALLOWED_URI; // Default regexp
+    NAMESPACE = typeof cfg.NAMESPACE === 'string' ? cfg.NAMESPACE : HTML_NAMESPACE; // Default HTML namespace
+    MATHML_TEXT_INTEGRATION_POINTS = objectHasOwnProperty(cfg, 'MATHML_TEXT_INTEGRATION_POINTS') && cfg.MATHML_TEXT_INTEGRATION_POINTS && typeof cfg.MATHML_TEXT_INTEGRATION_POINTS === 'object' ? clone(cfg.MATHML_TEXT_INTEGRATION_POINTS) : addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']); // Default built-in map
+    HTML_INTEGRATION_POINTS = objectHasOwnProperty(cfg, 'HTML_INTEGRATION_POINTS') && cfg.HTML_INTEGRATION_POINTS && typeof cfg.HTML_INTEGRATION_POINTS === 'object' ? clone(cfg.HTML_INTEGRATION_POINTS) : addToSet({}, ['annotation-xml']); // Default built-in map
+    const customElementHandling = objectHasOwnProperty(cfg, 'CUSTOM_ELEMENT_HANDLING') && cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING === 'object' ? clone(cfg.CUSTOM_ELEMENT_HANDLING) : create(null);
+    CUSTOM_ELEMENT_HANDLING = create(null);
+    if (objectHasOwnProperty(customElementHandling, 'tagNameCheck') && isRegexOrFunction(customElementHandling.tagNameCheck)) {
+      CUSTOM_ELEMENT_HANDLING.tagNameCheck = customElementHandling.tagNameCheck; // Default undefined
     }
-    if (cfg.CUSTOM_ELEMENT_HANDLING && isRegexOrFunction(cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck)) {
-      CUSTOM_ELEMENT_HANDLING.attributeNameCheck = cfg.CUSTOM_ELEMENT_HANDLING.attributeNameCheck;
+    if (objectHasOwnProperty(customElementHandling, 'attributeNameCheck') && isRegexOrFunction(customElementHandling.attributeNameCheck)) {
+      CUSTOM_ELEMENT_HANDLING.attributeNameCheck = customElementHandling.attributeNameCheck; // Default undefined
     }
-    if (cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements === 'boolean') {
-      CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = cfg.CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements;
+    if (objectHasOwnProperty(customElementHandling, 'allowCustomizedBuiltInElements') && typeof customElementHandling.allowCustomizedBuiltInElements === 'boolean') {
+      CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = customElementHandling.allowCustomizedBuiltInElements; // Default undefined
     }
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
@@ -617,36 +687,36 @@ function createDOMPurify() {
     EXTRA_ELEMENT_HANDLING.tagCheck = null;
     EXTRA_ELEMENT_HANDLING.attributeCheck = null;
     /* Merge configuration parameters */
-    if (cfg.ADD_TAGS) {
+    if (objectHasOwnProperty(cfg, 'ADD_TAGS')) {
       if (typeof cfg.ADD_TAGS === 'function') {
         EXTRA_ELEMENT_HANDLING.tagCheck = cfg.ADD_TAGS;
-      } else {
+      } else if (arrayIsArray(cfg.ADD_TAGS)) {
         if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
           ALLOWED_TAGS = clone(ALLOWED_TAGS);
         }
         addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
       }
     }
-    if (cfg.ADD_ATTR) {
+    if (objectHasOwnProperty(cfg, 'ADD_ATTR')) {
       if (typeof cfg.ADD_ATTR === 'function') {
         EXTRA_ELEMENT_HANDLING.attributeCheck = cfg.ADD_ATTR;
-      } else {
+      } else if (arrayIsArray(cfg.ADD_ATTR)) {
         if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
           ALLOWED_ATTR = clone(ALLOWED_ATTR);
         }
         addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
       }
     }
-    if (cfg.ADD_URI_SAFE_ATTR) {
+    if (objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') && arrayIsArray(cfg.ADD_URI_SAFE_ATTR)) {
       addToSet(URI_SAFE_ATTRIBUTES, cfg.ADD_URI_SAFE_ATTR, transformCaseFunc);
     }
-    if (cfg.FORBID_CONTENTS) {
+    if (objectHasOwnProperty(cfg, 'FORBID_CONTENTS') && arrayIsArray(cfg.FORBID_CONTENTS)) {
       if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
         FORBID_CONTENTS = clone(FORBID_CONTENTS);
       }
       addToSet(FORBID_CONTENTS, cfg.FORBID_CONTENTS, transformCaseFunc);
     }
-    if (cfg.ADD_FORBID_CONTENTS) {
+    if (objectHasOwnProperty(cfg, 'ADD_FORBID_CONTENTS') && arrayIsArray(cfg.ADD_FORBID_CONTENTS)) {
       if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
         FORBID_CONTENTS = clone(FORBID_CONTENTS);
       }
@@ -972,7 +1042,6 @@ function createDOMPurify() {
           const childCount = childNodes.length;
           for (let i = childCount - 1; i >= 0; --i) {
             const childClone = cloneNode(childNodes[i], true);
-            childClone.__removalCount = (currentNode.__removalCount || 0) + 1;
             parentNode.insertBefore(childClone, getNextSibling(currentNode));
           }
         }
@@ -1047,6 +1116,10 @@ function createDOMPurify() {
     } else ;
     return true;
   };
+  /* Names the HTML spec reserves from valid-custom-element-name; these must
+   * never be treated as basic custom elements even when a permissive
+   * CUSTOM_ELEMENT_HANDLING.tagNameCheck is configured. */
+  const RESERVED_CUSTOM_ELEMENT_NAMES = addToSet({}, ['annotation-xml', 'color-profile', 'font-face', 'font-face-format', 'font-face-name', 'font-face-src', 'font-face-uri', 'missing-glyph']);
   /**
    * _isBasicCustomElement
    * checks if at least one dash is included in tagName, and it's not the first char
@@ -1056,7 +1129,7 @@ function createDOMPurify() {
    * @returns Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
   const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
-    return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
+    return !RESERVED_CUSTOM_ELEMENT_NAMES[stringToLowerCase(tagName)] && regExpTest(CUSTOM_ELEMENT, tagName);
   };
   /**
    * _sanitizeAttributes
@@ -1107,12 +1180,14 @@ function createDOMPurify() {
       /* Full DOM Clobbering protection via namespace isolation,
        * Prefix id and name attributes with `user-content-`
        */
-      if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
+      if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name') && stringIndexOf(value, SANITIZE_NAMED_PROPS_PREFIX) !== 0) {
         // Remove the attribute with this value
         _removeAttribute(name, currentNode);
         // Prefix the value and later re-create the attribute with the sanitized value
         value = SANITIZE_NAMED_PROPS_PREFIX + value;
       }
+      // Else: already prefixed, leave the attribute alone — the prefix is
+      // itself the clobbering protection, and re-applying it is incorrect.
       /* Work around a security issue with comments inside attributes */
       if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i, value)) {
         _removeAttribute(name, currentNode);
@@ -1229,13 +1304,9 @@ function createDOMPurify() {
     }
     /* Stringify, in case dirty is an object */
     if (typeof dirty !== 'string' && !_isNode(dirty)) {
-      if (typeof dirty.toString === 'function') {
-        dirty = dirty.toString();
-        if (typeof dirty !== 'string') {
-          throw typeErrorCreate('dirty is not a string, aborting');
-        }
-      } else {
-        throw typeErrorCreate('toString is not a function');
+      dirty = stringifyValue(dirty);
+      if (typeof dirty !== 'string') {
+        throw typeErrorCreate('dirty is not a string, aborting');
       }
     }
     /* Return dirty HTML if DOMPurify cannot run */
@@ -1254,8 +1325,9 @@ function createDOMPurify() {
     }
     if (IN_PLACE) {
       /* Do some early pre-sanitization to avoid unsafe root nodes */
-      if (dirty.nodeName) {
-        const tagName = transformCaseFunc(dirty.nodeName);
+      const nn = dirty.nodeName;
+      if (typeof nn === 'string') {
+        const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
           throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
         }

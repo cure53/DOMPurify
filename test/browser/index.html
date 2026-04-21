@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>DOMPurify QUnit — purify.js</title>
+    <link
+      rel="stylesheet"
+      href="/node_modules/qunit/qunit/qunit.css"
+    />
+  </head>
+  <body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+
+    <!-- QUnit must load first. Disable auto-start so we can register tests
+         from the (deferred) module script below before kicking QUnit off. -->
+    <script src="/node_modules/qunit/qunit/qunit.js"></script>
+    <script>
+      QUnit.config.autostart = false;
+    </script>
+
+    <!-- jQuery is required by the `XSS test: jQuery[…]` block in test-suite.js
+         which verifies DOMPurify output is safe when passed through
+         jQuery.fn.html(). -->
+    <script src="/node_modules/jquery/dist/jquery.js"></script>
+
+    <!-- DOMPurify (UMD build). Sets window.DOMPurify. -->
+    <script src="/dist/purify.js"></script>
+
+    <!-- Installs window.alert XSS-detection hook and the custom QUnit
+         `contains` assertion used throughout the test suite. -->
+    <script src="/test/config/setup.js"></script>
+
+    <!-- UMD test suite. Sets window.testSuite. -->
+    <script src="/test/test-suite.js"></script>
+
+    <!-- Tells entry.js which QUnit module name to register under. -->
+    <script>
+      window.__SUITE_NAME__ = 'DOMPurify src';
+    </script>
+
+    <!-- Loads the ESM fixture file, wires up QUnit, then calls QUnit.start(). -->
+    <script type="module" src="/test/browser/entry.js"></script>
+  </body>
+</html>

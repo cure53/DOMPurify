@@ -286,7 +286,7 @@ const config = {
 };
 
 // Specify attributes to proxy
-const attributes = ['action', 'background', 'href', 'poster', 'src', 'srcset']
+const attributes = ['action', 'background', 'href', 'poster', 'src', 'srcset'];
 
 // specify the regex to detect external content
 const regex = /(url\("?)(?!data:)/gim;
