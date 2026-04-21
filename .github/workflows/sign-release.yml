@@ -2,6 +2,10 @@ name: Sign Release
 on:
   release:
     types: [published]
+
+permissions:
+  contents: read
+
 jobs:
   sign:
     runs-on: ubuntu-latest
