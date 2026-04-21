@@ -14,7 +14,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: sigstore/gh-action-sigstore-python@v3
+      - uses: sigstore/gh-action-sigstore-python@a5caf349bc536fbef3668a10ed7f5cd309a4b53d
         with:
           inputs: dist/purify.min.js dist/purify.js
       # uploads .sigstore.json bundles as release assets

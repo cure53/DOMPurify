@@ -9,8 +9,11 @@ permissions:
 jobs:
   provenance:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write    
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: actions/attest-build-provenance@v2
+      - uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2
         with:
           subject-path: 'dist/*'
