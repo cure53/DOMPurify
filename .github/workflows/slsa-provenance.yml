@@ -4,9 +4,7 @@ on:
     types: [published]
 
 permissions:
-  contents: write
-  id-token: write
-  attestations: write
+  contents: read
 
 jobs:
   provenance:
