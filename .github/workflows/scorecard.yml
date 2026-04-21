@@ -24,12 +24,10 @@ jobs:
     # `publish_results: true` only works when run from the default branch. conditional can be removed if disabled.
     if: github.event.repository.default_branch == github.ref_name || github.event_name == 'pull_request'
     permissions:
-      # Needed to upload the results to code-scanning dashboard.
       security-events: write
-      # Needed to publish results and get a badge (see publish_results below).
       id-token: write
-      contents: read
-      actions: read
+      # contents: read
+      # actions: read
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
