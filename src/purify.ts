@@ -1447,15 +1447,18 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Full DOM Clobbering protection via namespace isolation,
        * Prefix id and name attributes with `user-content-`
        */
-      if (SANITIZE_NAMED_PROPS && (lcName === 'id' || lcName === 'name')) {
+      if (
+        SANITIZE_NAMED_PROPS &&
+        (lcName === 'id' || lcName === 'name') &&
+        stringIndexOf(value, SANITIZE_NAMED_PROPS_PREFIX) !== 0
+      ) {
         // Remove the attribute with this value
         _removeAttribute(name, currentNode);
-
         // Prefix the value and later re-create the attribute with the sanitized value
-        if (stringIndexOf(value, SANITIZE_NAMED_PROPS_PREFIX) !== 0) {
-          value = SANITIZE_NAMED_PROPS_PREFIX + value;
-        }
+        value = SANITIZE_NAMED_PROPS_PREFIX + value;
       }
+      // Else: already prefixed, leave the attribute alone — the prefix is
+      // itself the clobbering protection, and re-applying it is incorrect.
 
       /* Work around a security issue with comments inside attributes */
       if (

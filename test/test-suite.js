@@ -2629,5 +2629,228 @@
         assert.strictEqual(clean, expected);
       }
     );
+	
+	QUnit.test(
+	  'Config-Param tests: CUSTOM_ELEMENT_HANDLING rejects all spec-reserved names',
+	  function (assert) {
+	    var permissive = {
+	      CUSTOM_ELEMENT_HANDLING: {
+	        tagNameCheck: /.+/,
+	        attributeNameCheck: /.+/,
+	        allowCustomizedBuiltInElements: true,
+	      },
+	    };
+	    var reservedNames = [
+	      'annotation-xml',
+	      'color-profile',
+	      'font-face',
+	      'font-face-src',
+	      'font-face-uri',
+	      'font-face-format',
+	      'font-face-name',
+	      'missing-glyph',
+	    ];
+	    reservedNames.forEach(function (name) {
+	      var dirty = '<' + name + ' onclick="alert(1)">x</' + name + '>';
+	      var clean = DOMPurify.sanitize(dirty, permissive);
+	      assert.notOk(
+	        /\son[a-z]+\s*=/i.test(clean),
+	        'no on-handler on <' + name + '>: ' + clean
+	      );
+	    });
+	  }
+	);
+
+	QUnit.test(
+	  'Config-Param tests: CUSTOM_ELEMENT_HANDLING reserved-name check is case-insensitive (HTML)',
+	  function (assert) {
+	    // Uppercase HTML input gets lowercased by the parser; the reserved-name
+	    // check must still apply after that lowercasing.
+	    var permissive = {
+	      CUSTOM_ELEMENT_HANDLING: {
+	        tagNameCheck: /.+/,
+	        attributeNameCheck: /.+/,
+	      },
+	    };
+	    var clean = DOMPurify.sanitize(
+	      '<FONT-FACE onclick="alert(1)">x</FONT-FACE>',
+	      permissive
+	    );
+	    assert.notOk(
+	      /\son[a-z]+\s*=/i.test(clean),
+	      'no on-handler on <FONT-FACE>: ' + clean
+	    );
+	  }
+	);
+
+	QUnit.test(
+	  'Config-Param tests: CUSTOM_ELEMENT_HANDLING reserved-name check is case-insensitive (XHTML)',
+	  function (assert) {
+	    // In application/xhtml+xml mode, tag names keep their case. The
+	    // reserved-name check must compare case-insensitively so <Annotation-XML>
+	    // etc. don't slip past the basic-custom-element exclusion.
+	    var cfg = {
+	      PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+	      CUSTOM_ELEMENT_HANDLING: {
+	        tagNameCheck: /.+/,
+	        attributeNameCheck: /.+/,
+	      },
+	    };
+	    var mixedCaseNames = [
+	      'Annotation-XML',
+	      'Color-Profile',
+	      'Font-Face',
+	      'Font-Face-Src',
+	      'Missing-Glyph',
+	    ];
+	    mixedCaseNames.forEach(function (name) {
+	      var dirty =
+	        '<root xmlns="http://www.w3.org/1999/xhtml"><' +
+	        name +
+	        ' onclick="alert(1)">x</' +
+	        name +
+	        '></root>';
+	      var clean = DOMPurify.sanitize(dirty, cfg);
+	      assert.notOk(
+	        /\son[a-z]+\s*=/i.test(clean),
+	        'no on-handler on <' + name + '> in XHTML mode: ' + clean
+	      );
+	    });
+	  }
+	);
+
+	QUnit.test(
+	  'Config-Flag tests: SANITIZE_NAMED_PROPS is idempotent',
+	  function (assert) {
+	    var cfg = { SANITIZE_NAMED_PROPS: true };
+	    var inputs = [
+	      '<div id="foo">hi</div>',
+	      '<a name="bar">hi</a>',
+	      '<div id="user-content-foo">hi</div>',
+	      '<a name="user-content-bar">hi</a>',
+	      '<div id="">hi</div>',
+	      '<form id="x"><input id="y"></form>',
+	    ];
+	    inputs.forEach(function (input) {
+	      var once = DOMPurify.sanitize(input, cfg);
+	      var twice = DOMPurify.sanitize(once, cfg);
+	      assert.equal(
+	        twice,
+	        once,
+	        'idempotent for input: ' + input + ' (once=' + once + ')'
+	      );
+	    });
+	  }
+	);
+
+	QUnit.test(
+	  'Config-Flag tests: SANITIZE_NAMED_PROPS does not double-prefix',
+	  function (assert) {
+	    var cfg = { SANITIZE_NAMED_PROPS: true };
+	    assert.equal(
+	      DOMPurify.sanitize('<div id="user-content-x">hi</div>', cfg),
+	      '<div id="user-content-x">hi</div>',
+	      'already-prefixed id left untouched'
+	    );
+	    assert.equal(
+	      DOMPurify.sanitize('<a name="user-content-x">hi</a>', cfg),
+	      '<a name="user-content-x">hi</a>',
+	      'already-prefixed name left untouched'
+	    );
+	  }
+	);
+
+	QUnit.test(
+	  'Config-Flag tests: IN_PLACE handles DOM-clobbered nodeName safely',
+	  function (assert) {
+	    // <input name=nodeName> in a form clobbers form.nodeName in most
+	    // browsers. The IN_PLACE path must handle this without producing a
+	    // sanitized output that still contains attacker-controlled handlers.
+	    var dirty = document.createElement('form');
+	    dirty.innerHTML =
+	      '<input name="nodeName" onclick="alert(1)">' +
+	      '<input name="attributes" onclick="alert(2)">';
+	    try {
+	      DOMPurify.sanitize(dirty, { IN_PLACE: true });
+	    } catch (e) {
+	      // Either throwing OR scrubbing is acceptable; only script execution
+	      // would be unacceptable.
+	    }
+	    assert.notOk(
+	      /\son[a-z]+\s*=/i.test(dirty.innerHTML),
+	      'no on-handler survived: ' + dirty.innerHTML
+	    );
+	  }
+	);
+
+	QUnit.test(
+	  'Config-Flag tests: SAFE_FOR_TEMPLATES greedy-scrub of stray close marker',
+	  function (assert) {
+	    var cfg = { SAFE_FOR_TEMPLATES: true };
+	    // After scrubbing {{}}, a lazy regex would leave }} behind, which
+	    // defeats IS_ALLOWED_URI because its [^a-z] alternation accepts any
+	    // non-letter leading character. The greedy regex instead scrubs the
+	    // entire value from {{ to end-of-string, leaving no usable URL.
+	    assert.equal(
+	      DOMPurify.sanitize(
+	        '<a href="{{}}javascript:alert(1)">x</a>',
+	        cfg
+	      ),
+	      '<a>x</a>',
+	      'href scrubbed entirely, no stray }} left to pass the URL check'
+	    );
+	    assert.equal(
+	      DOMPurify.sanitize('<a href="{{x">y</a>', cfg),
+	      '<a>y</a>',
+	      'unterminated {{ scrubs to end of attribute value'
+	    );
+	    assert.equal(
+	      DOMPurify.sanitize('<a href="x}}javascript:alert(1)">y</a>', cfg),
+	      '<a>y</a>',
+	      'leading content before }} scrubbed along with the close marker'
+	    );
+	  }
+	);
+
+	QUnit.test(
+	  'ensure attributes added in afterSanitizeAttributes hook are not revalidated',
+	  function (assert) {
+	    DOMPurify.addHook('afterSanitizeAttributes', function (node) {
+	      if (node.nodeName === 'A') {
+	        node.setAttribute('data-injected-by-hook', 'yes');
+	      }
+	    });
+	    assert.equal(
+	      DOMPurify.sanitize('<a href="#">x</a>'),
+	      '<a href="#" data-injected-by-hook="yes">x</a>',
+	      'hook-added attribute present in output (documented behavior)'
+	    );
+	    DOMPurify.removeHooks('afterSanitizeAttributes');
+	  }
+	);
+
+	QUnit.test(
+	  'ensure attributes added in uponSanitizeAttribute after current index are not revalidated',
+	  function (assert) {
+	    // Attributes are walked backwards using a snapshot of the length. A
+	    // hook that calls setAttribute() appends to the end of the list, past
+	    // the decreasing index, so the new attribute slips past validation.
+	    // This is intentional: hooks are the escape hatch for users who need
+	    // to force attribute values. Validation would defeat that use case.
+	    DOMPurify.addHook('uponSanitizeAttribute', function (node, hookEvent) {
+	      if (hookEvent.attrName === 'href') {
+	        try {
+	          node.setAttribute('data-injected-by-hook', 'yes');
+	        } catch (e) {}
+	      }
+	    });
+	    assert.equal(
+	      DOMPurify.sanitize('<a href="#">x</a>'),
+	      '<a href="#" data-injected-by-hook="yes">x</a>',
+	      'hook-added attribute present in output (documented behavior)'
+	    );
+	    DOMPurify.removeHooks('uponSanitizeAttribute');
+	  }
+	);
   };
 });
