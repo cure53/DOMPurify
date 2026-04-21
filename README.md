@@ -1,20 +1,23 @@
 # DOMPurify
 
-[![npm](https://badge.fury.io/js/dompurify.svg)](http://badge.fury.io/js/dompurify) ![Tests](https://github.com/cure53/DOMPurify/workflows/Build%20&%20Test/badge.svg) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents) [![License](https://img.shields.io/badge/license-MPL--2.0%20OR%20Apache--2.0-blue.svg)](https://github.com/cure53/DOMPurify/blob/main/LICENSE)
+[![npm](https://img.shields.io/npm/v/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![License](https://img.shields.io/badge/license-MPL--2.0%20OR%20Apache--2.0-blue.svg)](https://github.com/cure53/DOMPurify/blob/main/LICENSE) ![Tests](https://github.com/cure53/DOMPurify/workflows/Build%20&%20Test/badge.svg) [![Downloads](https://img.shields.io/npm/dm/dompurify.svg)](https://www.npmjs.com/package/dompurify) [![dependents](https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&label=dependents)](https://github.com/cure53/DOMPurify/network/dependents)
 
-![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=gzip) [![Cloudback](https://app.cloudback.it/badge/cure53/DOMPurify)](https://cloudback.it) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12162/badge)](https://www.bestpractices.dev/projects/12162) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cure53/DOMPurify/badge)](https://scorecard.dev/viewer/?uri=github.com/cure53/DOMPurify)
+![npm package minimized gzipped size (select exports)](https://img.shields.io/bundlejs/size/dompurify?color=%233C1&label=gzip) [![Cloudback](https://app.cloudback.it/badge/cure53/DOMPurify)](https://cloudback.it) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/12162/badge)](https://www.bestpractices.dev/projects/12162) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/cure53/DOMPurify/badge)](https://scorecard.dev/viewer/?uri=github.com/cure53/DOMPurify) [![Socket Badge](https://badge.socket.dev/npm/package/dompurify/latest)](https://badge.socket.dev/npm/package/dompurify/latest)
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.4.0**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.4.1**.
 
 DOMPurify runs as JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
 **Note that [DOMPurify v2.5.9](https://github.com/cure53/DOMPurify/releases/tag/2.5.9) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
 
-Our automated tests cover [12 different browsers](https://github.com/cure53/DOMPurify/blob/main/test/karma.custom-launchers.config.js#L3). We also cover Node.js v20.x, v22.x, 24.x and v25.x, running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
+
+Our automated tests cover 9 browser/OS combinations (Chromium, Firefox, and WebKit across Ubuntu, macOS, and Windows) on every push, plus Node.js v20, v22, v24, and v25 running DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really.
+
+The DOMPurify project inspired the creation of the [HTML Sanitizer API](https://wicg.github.io/sanitizer-api/#sanitizer), which is already shipping in [many browsers](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Sanitizer_API#browser_compatibility).
 
 ## What does it do?
 
@@ -157,7 +160,7 @@ When `DOMPurify.sanitize` is used in an environment where the Trusted Types API 
 Note that in order to create a policy in `trustedTypes` using DOMPurify, `RETURN_TRUSTED_TYPE: false` is required, as `createHTML` expects a normal string, not `TrustedHTML`. The example below shows this.
 
 ```js
-window.trustedTypes!.createPolicy('default', {
+window.trustedTypes.createPolicy('default', {
   createHTML: (to_escape) =>
     DOMPurify.sanitize(to_escape, { RETURN_TRUSTED_TYPE: false }),
 });
@@ -168,81 +171,91 @@ window.trustedTypes!.createPolicy('default', {
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/main/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this).
 
 ### General settings
+
 ```js
 // strip {{ ... }}, ${ ... } and <% ... %> to make output safe for template systems
 // be careful please, this mode is not recommended for production usage.
 // allowing template parsing in user-controlled HTML is not advised at all.
 // only use this mode if there is really no alternative.
-const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_TEMPLATES: true});
-
+const clean = DOMPurify.sanitize(dirty, { SAFE_FOR_TEMPLATES: true });
 
 // change how e.g. comments containing risky HTML characters are treated.
 // be very careful, this setting should only be set to `false` if you really only handle
 // HTML and nothing else, no SVG, MathML or the like.
 // Otherwise, changing from `true` to `false` will lead to XSS in this or some other way.
-const clean = DOMPurify.sanitize(dirty, {SAFE_FOR_XML: false});
+const clean = DOMPurify.sanitize(dirty, { SAFE_FOR_XML: false });
 ```
 
 ### Control our allow-lists and block-lists
+
 ```js
 // allow only <b> elements, very strict
-const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b']});
+const clean = DOMPurify.sanitize(dirty, { ALLOWED_TAGS: ['b'] });
 
 // allow only <b> and <q> with style attributes
-const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['b', 'q'], ALLOWED_ATTR: ['style']});
+const clean = DOMPurify.sanitize(dirty, {
+  ALLOWED_TAGS: ['b', 'q'],
+  ALLOWED_ATTR: ['style'],
+});
 
 // allow all safe HTML elements but neither SVG nor MathML
 // note that the USE_PROFILES setting will override the ALLOWED_TAGS setting
 // so don't use them together
-const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {html: true}});
+const clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 
 // allow all safe SVG elements and SVG Filters, no HTML or MathML
-const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {svg: true, svgFilters: true}});
+const clean = DOMPurify.sanitize(dirty, {
+  USE_PROFILES: { svg: true, svgFilters: true },
+});
 
 // allow all safe MathML elements and SVG, but no SVG Filters
-const clean = DOMPurify.sanitize(dirty, {USE_PROFILES: {mathMl: true, svg: true}});
+const clean = DOMPurify.sanitize(dirty, {
+  USE_PROFILES: { mathMl: true, svg: true },
+});
 
 // change the default namespace from HTML to something different
-const clean = DOMPurify.sanitize(dirty, {NAMESPACE: 'http://www.w3.org/2000/svg'});
+const clean = DOMPurify.sanitize(dirty, {
+  NAMESPACE: 'http://www.w3.org/2000/svg',
+});
 
 // leave all safe HTML as it is and add <style> elements to block-list
-const clean = DOMPurify.sanitize(dirty, {FORBID_TAGS: ['style']});
+const clean = DOMPurify.sanitize(dirty, { FORBID_TAGS: ['style'] });
 
 // leave all safe HTML as it is and add style attributes to block-list
-const clean = DOMPurify.sanitize(dirty, {FORBID_ATTR: ['style']});
+const clean = DOMPurify.sanitize(dirty, { FORBID_ATTR: ['style'] });
 
 // extend the existing array of allowed tags and add <my-tag> to allow-list
-const clean = DOMPurify.sanitize(dirty, {ADD_TAGS: ['my-tag']});
+const clean = DOMPurify.sanitize(dirty, { ADD_TAGS: ['my-tag'] });
 
 // extend the existing array of allowed attributes and add my-attr to allow-list
-const clean = DOMPurify.sanitize(dirty, {ADD_ATTR: ['my-attr']});
+const clean = DOMPurify.sanitize(dirty, { ADD_ATTR: ['my-attr'] });
 
 // use functions to control which additional tags and attributes are allowed
 const allowlist = {
-    'one': ['attribute-one'],
-    'two': ['attribute-two']
+  one: ['attribute-one'],
+  two: ['attribute-two'],
 };
 const clean = DOMPurify.sanitize(
-    '<one attribute-one="1" attribute-two="2"></one><two attribute-one="1" attribute-two="2"></two>',
-    {
-        ADD_TAGS: (tagName) => {
-            return Object.keys(allowlist).includes(tagName);
-        },
-        ADD_ATTR: (attributeName, tagName) => {
-
-            return allowlist[tagName]?.includes(attributeName) || false;
-        }
-    }
+  '<one attribute-one="1" attribute-two="2"></one><two attribute-one="1" attribute-two="2"></two>',
+  {
+    ADD_TAGS: (tagName) => {
+      return Object.keys(allowlist).includes(tagName);
+    },
+    ADD_ATTR: (attributeName, tagName) => {
+      return allowlist[tagName]?.includes(attributeName) || false;
+    },
+  }
 ); // <one attribute-one="1"></one><two attribute-two="2"></two>
 
 // prohibit ARIA attributes, leave other safe HTML as is (default is true)
-const clean = DOMPurify.sanitize(dirty, {ALLOW_ARIA_ATTR: false});
+const clean = DOMPurify.sanitize(dirty, { ALLOW_ARIA_ATTR: false });
 
 // prohibit HTML5 data attributes, leave other safe HTML as is (default is true)
-const clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
+const clean = DOMPurify.sanitize(dirty, { ALLOW_DATA_ATTR: false });
 ```
 
 ### Control behavior relating to Custom Elements
+
 ```js
 // DOMPurify allows to define rules for Custom Elements. When using the CUSTOM_ELEMENT_HANDLING
 // literal, it is possible to define exactly what elements you wish to allow (by default, none are allowed).
@@ -255,134 +268,157 @@ const clean = DOMPurify.sanitize(dirty, {ALLOW_DATA_ATTR: false});
 // The default values are very restrictive to prevent accidental XSS bypasses. Handle with great care!
 
 const clean = DOMPurify.sanitize(
-    '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
-    {
-        CUSTOM_ELEMENT_HANDLING: {
-            tagNameCheck: null, // no custom elements are allowed
-            attributeNameCheck: null, // default / standard attribute allow-list is used
-            allowCustomizedBuiltInElements: false, // no customized built-ins allowed
-        },
-    }
+  '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+  {
+    CUSTOM_ELEMENT_HANDLING: {
+      tagNameCheck: null, // no custom elements are allowed
+      attributeNameCheck: null, // default / standard attribute allow-list is used
+      allowCustomizedBuiltInElements: false, // no customized built-ins allowed
+    },
+  }
 ); // <div is=""></div>
 
 const clean = DOMPurify.sanitize(
-    '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
-    {
-        CUSTOM_ELEMENT_HANDLING: {
-            tagNameCheck: /^foo-/, // allow all tags starting with "foo-"
-            attributeNameCheck: /baz/, // allow all attributes containing "baz"
-            allowCustomizedBuiltInElements: true, // customized built-ins are allowed
-        },
-    }
+  '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+  {
+    CUSTOM_ELEMENT_HANDLING: {
+      tagNameCheck: /^foo-/, // allow all tags starting with "foo-"
+      attributeNameCheck: /baz/, // allow all attributes containing "baz"
+      allowCustomizedBuiltInElements: true, // customized built-ins are allowed
+    },
+  }
 ); // <foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>
 
 const clean = DOMPurify.sanitize(
-    '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
-    {
-        CUSTOM_ELEMENT_HANDLING: {
-            tagNameCheck: (tagName) => tagName.match(/^foo-/), // allow all tags starting with "foo-"
-            attributeNameCheck: (attr) => attr.match(/baz/), // allow all containing "baz"
-            allowCustomizedBuiltInElements: true, // allow customized built-ins
-        },
-    }
+  '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
+  {
+    CUSTOM_ELEMENT_HANDLING: {
+      tagNameCheck: (tagName) => tagName.match(/^foo-/), // allow all tags starting with "foo-"
+      attributeNameCheck: (attr) => attr.match(/baz/), // allow all containing "baz"
+      allowCustomizedBuiltInElements: true, // allow customized built-ins
+    },
+  }
 ); // <foo-bar baz="foobar"></foo-bar><div is="foo-baz"></div>
 
 // Example with attributeNameCheck receiving tagName as a second parameter
 const clean = DOMPurify.sanitize(
-    '<element-one attribute-one="1" attribute-two="2"></element-one><element-two attribute-one="1" attribute-two="2"></element-two>',
-    {
-        CUSTOM_ELEMENT_HANDLING: {
-            tagNameCheck: (tagName) => tagName.match(/^element-(one|two)$/),
-            attributeNameCheck: (attr, tagName) => {
-                if (tagName === 'element-one') {
-                    return ['attribute-one'].includes(attr);
-                } else if (tagName === 'element-two') {
-                    return ['attribute-two'].includes(attr);
-                } else {
-                    return false;
-                }
-            },
-            allowCustomizedBuiltInElements: false,
-        },
-    }
+  '<element-one attribute-one="1" attribute-two="2"></element-one><element-two attribute-one="1" attribute-two="2"></element-two>',
+  {
+    CUSTOM_ELEMENT_HANDLING: {
+      tagNameCheck: (tagName) => tagName.match(/^element-(one|two)$/),
+      attributeNameCheck: (attr, tagName) => {
+        if (tagName === 'element-one') {
+          return ['attribute-one'].includes(attr);
+        } else if (tagName === 'element-two') {
+          return ['attribute-two'].includes(attr);
+        } else {
+          return false;
+        }
+      },
+      allowCustomizedBuiltInElements: false,
+    },
+  }
 ); // <element-one attribute-one="1"></element-one><element-two attribute-two="2"></element-two>
 ```
+
 ### Control behavior relating to URI values
+
 ```js
 // extend the existing array of elements that can use Data URIs
-const clean = DOMPurify.sanitize(dirty, {ADD_DATA_URI_TAGS: ['a', 'area']});
+const clean = DOMPurify.sanitize(dirty, { ADD_DATA_URI_TAGS: ['a', 'area'] });
 
 // extend the existing array of elements that are safe for URI-like values (be careful, XSS risk)
-const clean = DOMPurify.sanitize(dirty, {ADD_URI_SAFE_ATTR: ['my-attr']});
-
+const clean = DOMPurify.sanitize(dirty, { ADD_URI_SAFE_ATTR: ['my-attr'] });
 ```
+
 ### Control permitted attribute values
+
 ```js
 // allow external protocol handlers in URL attributes (default is false, be careful, XSS risk)
-// by default only http, https, ftp, ftps, tel, mailto, callto, sms, cid and xmpp are allowed.
-const clean = DOMPurify.sanitize(dirty, {ALLOW_UNKNOWN_PROTOCOLS: true});
+// by default only http, https, ftp, ftps, tel, mailto, callto, sms, cid, xmpp and matrix are allowed.
+const clean = DOMPurify.sanitize(dirty, { ALLOW_UNKNOWN_PROTOCOLS: true });
 
-// allow specific protocols handlers in URL attributes via regex (default is false, be careful, XSS risk)
+// allow specific protocol handlers in URL attributes via regex (default is false, be careful, XSS risk)
 // by default only (protocol-)relative URLs, http, https, ftp, ftps, tel, mailto, callto, sms, cid, xmpp and matrix are allowed.
 // Default RegExp: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
-const clean = DOMPurify.sanitize(dirty, {ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i});
-
+const clean = DOMPurify.sanitize(dirty, {
+  ALLOWED_URI_REGEXP:
+    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+});
 ```
+
 ### Influence the return-type
+
 ```js
 // return a DOM HTMLBodyElement instead of an HTML string (default is false)
-const clean = DOMPurify.sanitize(dirty, {RETURN_DOM: true});
+const clean = DOMPurify.sanitize(dirty, { RETURN_DOM: true });
 
 // return a DOM DocumentFragment instead of an HTML string (default is false)
-const clean = DOMPurify.sanitize(dirty, {RETURN_DOM_FRAGMENT: true});
+const clean = DOMPurify.sanitize(dirty, { RETURN_DOM_FRAGMENT: true });
 
 // use the RETURN_TRUSTED_TYPE flag to turn on Trusted Types support if available
-const clean = DOMPurify.sanitize(dirty, {RETURN_TRUSTED_TYPE: true}); // will return a TrustedHTML object instead of a string if possible
+const clean = DOMPurify.sanitize(dirty, { RETURN_TRUSTED_TYPE: true }); // will return a TrustedHTML object instead of a string if possible
 
 // use a provided Trusted Types policy
 const clean = DOMPurify.sanitize(dirty, {
-    // supplied policy must define createHTML and createScriptURL
-    TRUSTED_TYPES_POLICY: trustedTypes.createPolicy({
-        createHTML(s) { return s},
-        createScriptURL(s) { return s},
-    })
+  // supplied policy must define createHTML and createScriptURL
+  TRUSTED_TYPES_POLICY: trustedTypes.createPolicy('dompurify', {
+    createHTML(s) {
+      return s;
+    },
+    createScriptURL(s) {
+      return s;
+    },
+  }),
 });
 ```
+
 ### Influence how we sanitize
+
 ```js
 // return entire document including <html> tags (default is false)
-const clean = DOMPurify.sanitize(dirty, {WHOLE_DOCUMENT: true});
+const clean = DOMPurify.sanitize(dirty, { WHOLE_DOCUMENT: true });
 
 // disable DOM Clobbering protection on output (default is true, handle with care, minor XSS risks here)
-const clean = DOMPurify.sanitize(dirty, {SANITIZE_DOM: false});
+const clean = DOMPurify.sanitize(dirty, { SANITIZE_DOM: false });
 
 // enforce strict DOM Clobbering protection via namespace isolation (default is false)
 // when enabled, isolates the namespace of named properties (i.e., `id` and `name` attributes)
 // from JS variables by prefixing them with the string `user-content-`
-const clean = DOMPurify.sanitize(dirty, {SANITIZE_NAMED_PROPS: true});
+const clean = DOMPurify.sanitize(dirty, { SANITIZE_NAMED_PROPS: true });
 
 // keep an element's content when the element is removed (default is true)
-const clean = DOMPurify.sanitize(dirty, {KEEP_CONTENT: false});
+const clean = DOMPurify.sanitize(dirty, { KEEP_CONTENT: false });
 
 // glue elements like style, script or others to document.body and prevent unintuitive browser behavior in several edge-cases (default is false)
-const clean = DOMPurify.sanitize(dirty, {FORCE_BODY: true});
+const clean = DOMPurify.sanitize(dirty, { FORCE_BODY: true });
 
 // remove all <a> elements under <p> elements that are removed
-const clean = DOMPurify.sanitize(dirty, {FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
+const clean = DOMPurify.sanitize(dirty, {
+  FORBID_CONTENTS: ['a'],
+  FORBID_TAGS: ['p'],
+});
 
 // extend the default FORBID_CONTENTS list to also remove <a> elements under <p> elements
-const clean = DOMPurify.sanitize(dirty, {ADD_FORBID_CONTENTS: ['a'], FORBID_TAGS: ['p']});
+const clean = DOMPurify.sanitize(dirty, {
+  ADD_FORBID_CONTENTS: ['a'],
+  FORBID_TAGS: ['p'],
+});
 
 // change the parser type so sanitized data is treated as XML and not as HTML, which is the default
-const clean = DOMPurify.sanitize(dirty, {PARSER_MEDIA_TYPE: 'application/xhtml+xml'});
+const clean = DOMPurify.sanitize(dirty, {
+  PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+});
 ```
+
 ### Influence where we sanitize
+
 ```js
 // use the IN_PLACE mode to sanitize a node "in place", which is much faster depending on how you use DOMPurify
 const dirty = document.createElement('a');
 dirty.setAttribute('href', 'javascript:alert(1)');
 
-const clean = DOMPurify.sanitize(dirty, {IN_PLACE: true}); // see https://github.com/cure53/DOMPurify/issues/288 for more info
+const clean = DOMPurify.sanitize(dirty, { IN_PLACE: true }); // see https://github.com/cure53/DOMPurify/issues/288 for more info
 ```
 
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
@@ -423,12 +459,12 @@ DOMPurify.addHook(
 ## Removed Configuration
 
 | Option          | Since | Note                     |
-|-----------------|-------|--------------------------|
+| --------------- | ----- | ------------------------ |
 | SAFE_FOR_JQUERY | 2.1.0 | No replacement required. |
 
 ## Continuous Integration
 
-We are currently using Github Actions in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://github.com/cure53/DOMPurify/actions
+We are currently using GitHub Actions in combination with BrowserStack. This gives us the possibility to confirm for each and every commit that all is going according to plan in all supported browsers. Check out the build logs here: https://github.com/cure53/DOMPurify/actions
 
 You can further run local tests by executing `npm run test`.
 
@@ -438,23 +474,35 @@ All relevant commits will be signed with the key `0x24BB6BF4` for additional sec
 
 #### Installation (`npm i`)
 
-We support `npm` officially. GitHub Actions workflow is configured to install dependencies using `npm`. When using deprecated version of `npm` we can not fully ensure the versions of installed dependencies which might lead to unanticipated problems.
+We support `npm` officially. GitHub Actions workflow is configured to install dependencies using `npm`. When using a deprecated version of `npm`, we cannot fully ensure the versions of installed dependencies, which might lead to unanticipated problems.
 
 #### Scripts
 
-We use ESLint as a pre-commit hook to ensure code consistency. Moreover, to ease formatting we use [prettier](https://github.com/prettier/prettier) while building the `/dist` assets happens through `rollup`.
+We use ESLint via `xo` as part of our pre-commit workflow to help ensure code consistency. In addition, we use [Prettier](https://github.com/prettier/prettier) for source and Markdown formatting, and `/dist` assets are built through `rollup`.
 
 These are our npm scripts:
 
-- `npm run dev` to start building while watching sources for changes
-- `npm run test` to run our test suite via jsdom and karma
-  - `test:jsdom` to only run tests through jsdom
-  - `test:karma` to only run tests through karma
-- `npm run lint` to lint the sources using ESLint (via xo)
-- `npm run format` to format our sources using prettier to ease to pass ESLint
-- `npm run build` to build our distribution assets minified and unminified as a UMD module
-  - `npm run build:umd` to only build an unminified UMD module
-  - `npm run build:umd:min` to only build a minified UMD module
+- `npm run dev` to build the unminified UMD bundle while watching sources for changes
+- `npm run test` to lint the sources, run tests through jsdom, and run Karma tests in Chrome
+  - `npm run test:jsdom` to only run tests through jsdom
+  - `npm run test:browser` to only run tests through Playwright
+  - `npm run test:ci` to run the CI test flow for jsdom and Karma/BrowserStack
+  - `npm run test:fuzz` to run a small fuzzer covering `sanitize()` and CONFIG
+- `npm run lint` to lint the sources using ESLint via xo
+- `npm run format` to format JavaScript/TypeScript and Markdown sources with Prettier
+  - `npm run format:js` to only format JavaScript/TypeScript sources
+  - `npm run format:md` to only format Markdown files
+- `npm run build` to build type declarations and distribution bundles, then fix and clean up generated types
+  - `npm run build:types` to only emit TypeScript declaration files
+  - `npm run build:rollup` to build all Rollup bundles
+  - `npm run build:umd` to only build an unminified UMD bundle
+  - `npm run build:umd:min` to only build a minified UMD bundle
+  - `npm run build:es` to only build the ES module bundle
+  - `npm run build:cjs` to only build the CommonJS bundle
+  - `npm run build:fix-types` to post-process generated type files
+  - `npm run build:cleanup` to clean up temporary generated type output
+- `npm run verify-typescript` to run the TypeScript verification script
+- `npm run commit-amend-build` to run the maintainer helper script for amending build output
 
 Note: all run scripts triggered via `npm run <script>`.
 
@@ -462,7 +510,7 @@ There are more npm scripts but they are mainly to integrate with CI or are meant
 
 ## Security Mailing List
 
-We maintain a mailing list that notifies whenever a security-critical release of DOMPurify was published. This means, if someone found a bypass and we fixed it with a release (which always happens when a bypass was found) a mail will go out to that list. This usually happens within minutes or few hours after learning about a bypass. The list can be subscribed to here:
+We maintain a mailing list that notifies whenever a **security-critical** release of DOMPurify was published. This means, if someone found a bypass and we fixed it with a release (which always happens when a bypass was found) a mail will go out to that list. This usually happens within minutes or a few hours after learning about a bypass. The list can be subscribed to here:
 
 [https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security](https://lists.ruhr-uni-bochum.de/mailman/listinfo/dompurify-security)
 
@@ -470,12 +518,6 @@ Feature releases will not be announced to this list.
 
 ## Who contributed?
 
-Many people helped and help DOMPurify become what it is and need to be acknowledged here!
+Many people have helped DOMPurify become what it is today, and they deserve to be acknowledged!
 
-[Cybozu 💛💸](https://github.com/cybozu), [hata6502 💸](https://github.com/hata6502), [intra-mart-dh 💸](https://github.com/intra-mart-dh), [nelstrom ❤️](https://github.com/nelstrom), [hash_kitten ❤️](https://twitter.com/hash_kitten), [kevin_mizu ❤️](https://twitter.com/kevin_mizu), [icesfont ❤️](https://github.com/icesfont), [reduckted ❤️](https://github.com/reduckted), [dcramer 💸](https://github.com/dcramer), [JGraph 💸](https://github.com/jgraph), [baekilda 💸](https://github.com/baekilda), [Healthchecks 💸](https://github.com/healthchecks), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [CynegeticIO](https://github.com/CynegeticIO), [ssi02014 ❤️](https://github.com/ssi02014), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy](https://twitter.com/lowdefy), [granlem](https://twitter.com/MaximeVeit), [oreoshake](https://github.com/oreoshake), [tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [SoheilKhodayari](https://github.com/SoheilKhodayari), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit), [davecardwell](https://github.com/davecardwell) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)
-
-## Testing powered by
-
-<a target="_blank" href="https://www.browserstack.com/"><img width="200" src="https://github.com/cure53/DOMPurify/assets/6709482/f70be7eb-8fc4-41ea-9653-9d359235328f"></a><br>
-
-And last but not least, thanks to [BrowserStack Open-Source Program](https://www.browserstack.com/open-source) for supporting this project with their services for free and delivering excellent, dedicated and very professional support on top of that.
+[kodareef5](https://github.com/kodareef5), [DavidOliver](https://github.com/DavidOliver), [1Jesper1](https://github.com/1Jesper1), [bencalif](https://github.com/bencalif), [trace37labs](https://github.com/trace37labs), [eddieran](https://github.com/eddieran), [christos-eth](https://github.com/christos-eth), [researchatfluidattacks](https://github.com/researchatfluidattacks), [frevadiscor](https://github.com/frevadiscor), [Rotzbua](https://github.com/Rotzbua), [binhpv](https://github.com/binhpv), [MariusRumpf](https://github.com/MariusRumpf), [prasadrajandran](https://github.com/prasadrajandran), [Cybozu 💛💸](https://github.com/cybozu), [hata6502 💸](https://github.com/hata6502), [openclaw 💸](https://github.com/openclaw), [intra-mart-dh 💸](https://github.com/intra-mart-dh), [nelstrom ❤️](https://github.com/nelstrom), [hash_kitten ❤️](https://twitter.com/hash_kitten), [kevin_mizu ❤️](https://twitter.com/kevin_mizu), [icesfont ❤️](https://github.com/icesfont), [reduckted ❤️](https://github.com/reduckted), [dcramer 💸](https://github.com/dcramer), [JGraph 💸](https://github.com/jgraph), [baekilda 💸](https://github.com/baekilda), [Healthchecks 💸](https://github.com/healthchecks), [Sentry 💸](https://github.com/getsentry), [jarrodldavis 💸](https://github.com/jarrodldavis), [CynegeticIO](https://github.com/CynegeticIO), [ssi02014 ❤️](https://github.com/ssi02014), [GrantGryczan](https://github.com/GrantGryczan), [Lowdefy](https://twitter.com/lowdefy), [granlem](https://twitter.com/MaximeVeit), [oreoshake](https://github.com/oreoshake), [tdeekens ❤️](https://github.com/tdeekens), [peernohell ❤️](https://github.com/peernohell), [is2ei](https://github.com/is2ei), [SoheilKhodayari](https://github.com/SoheilKhodayari), [franktopel](https://github.com/franktopel), [NateScarlet](https://github.com/NateScarlet), [neilj](https://github.com/neilj), [fhemberger](https://github.com/fhemberger), [Joris-van-der-Wel](https://github.com/Joris-van-der-Wel), [ydaniv](https://github.com/ydaniv), [terjanq](https://twitter.com/terjanq), [filedescriptor](https://github.com/filedescriptor), [ConradIrwin](https://github.com/ConradIrwin), [gibson042](https://github.com/gibson042), [choumx](https://github.com/choumx), [0xSobky](https://github.com/0xSobky), [styfle](https://github.com/styfle), [koto](https://github.com/koto), [tlau88](https://github.com/tlau88), [strugee](https://github.com/strugee), [oparoz](https://github.com/oparoz), [mathiasbynens](https://github.com/mathiasbynens), [edg2s](https://github.com/edg2s), [dnkolegov](https://github.com/dnkolegov), [dhardtke](https://github.com/dhardtke), [wirehead](https://github.com/wirehead), [thorn0](https://github.com/thorn0), [styu](https://github.com/styu), [mozfreddyb](https://github.com/mozfreddyb), [mikesamuel](https://github.com/mikesamuel), [jorangreef](https://github.com/jorangreef), [jimmyhchan](https://github.com/jimmyhchan), [jameydeorio](https://github.com/jameydeorio), [jameskraus](https://github.com/jameskraus), [hyderali](https://github.com/hyderali), [hansottowirtz](https://github.com/hansottowirtz), [hackvertor](https://github.com/hackvertor), [freddyb](https://github.com/freddyb), [flavorjones](https://github.com/flavorjones), [djfarrelly](https://github.com/djfarrelly), [devd](https://github.com/devd), [camerondunford](https://github.com/camerondunford), [buu700](https://github.com/buu700), [buildog](https://github.com/buildog), [alabiaga](https://github.com/alabiaga), [Vector919](https://github.com/Vector919), [Robbert](https://github.com/Robbert), [GreLI](https://github.com/GreLI), [FuzzySockets](https://github.com/FuzzySockets), [ArtemBernatskyy](https://github.com/ArtemBernatskyy), [@garethheyes](https://twitter.com/garethheyes), [@shafigullin](https://twitter.com/shafigullin), [@mmrupp](https://twitter.com/mmrupp), [@irsdl](https://twitter.com/irsdl),[ShikariSenpai](https://github.com/ShikariSenpai), [ansjdnakjdnajkd](https://github.com/ansjdnakjdnajkd), [@asutherland](https://twitter.com/asutherland), [@mathias](https://twitter.com/mathias), [@cgvwzq](https://twitter.com/cgvwzq), [@robbertatwork](https://twitter.com/robbertatwork), [@giutro](https://twitter.com/giutro), [@CmdEngineer\_](https://twitter.com/CmdEngineer_), [@avr4mit](https://twitter.com/avr4mit), [davecardwell](https://github.com/davecardwell) and especially [@securitymb ❤️](https://twitter.com/securitymb) & [@masatokinugawa ❤️](https://twitter.com/masatokinugawa)

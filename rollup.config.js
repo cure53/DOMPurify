@@ -4,7 +4,7 @@ const babel = require('@rollup/plugin-babel').babel;
 const nodeResolve = require('@rollup/plugin-node-resolve').nodeResolve;
 const replace = require('@rollup/plugin-replace');
 const terser = require('@rollup/plugin-terser');
-const typescript = require('rollup-plugin-typescript2');
+const typescript = require('@rollup/plugin-typescript');
 const { dts } = require('rollup-plugin-dts');
 const pkg = require('./package.json');
 
@@ -62,9 +62,7 @@ const config = [
       },
     ],
     plugins: [
-      typescript({
-        clean: true,
-      }),
+      typescript(),
       babel({
         babelHelpers: 'bundled',
         exclude: ['**/node_modules/**'],

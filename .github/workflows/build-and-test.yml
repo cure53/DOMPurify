@@ -12,6 +12,8 @@ permissions:
   contents: read
 
 jobs:
+  # Fast feedback: lint, jsdom, chromium-only browser test across Node versions.
+  # Runs on every push and every PR.
   install:
     runs-on: ubuntu-latest
 
@@ -21,7 +23,7 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
         with:
           egress-policy: audit
 
@@ -37,6 +39,9 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Install Playwright Browsers
+        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
+
       - name: Build
         run: npm run build
 
@@ -44,12 +49,71 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: xvfb-run -a npm run test:ci
-        env:
-          TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '25') }}
-          TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/2.x' }}
-          BS_USERNAME: ${{ secrets.BS_USERNAME }}
-          BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
+        run: npm run test:ci
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: playwright-report-node-${{ matrix.node-version }}
+          path: playwright-report/
+          retention-days: 7
 
       - name: Verify TypeScript
         run: npm run verify-typescript
+
+  # Browser diversity: chromium + firefox + webkit across Ubuntu, macOS, and
+  # Windows. Catches OS-specific rendering quirks (e.g. macOS WebKit ≈ real
+  # Safari engine, Windows font shaping, Linux-specific parser paths).
+  #
+  # Only runs on release branches (main, 2.x, 3.x) to conserve runner minutes.
+  # PRs get chromium-only coverage from the "install" job above, which is
+  # sufficient for catching regressions.
+  browser-matrix:
+    if: github.event_name == 'push'
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js 25.x
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: 25.x
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers (Linux)
+        if: runner.os == 'Linux'
+        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
+
+      - name: Install Playwright Browsers (macOS / Windows)
+        if: runner.os != 'Linux'
+        run: ./node_modules/.bin/playwright install chromium firefox webkit
+
+      - name: Build
+        run: npm run build
+
+      - name: Run browser tests (all engines)
+        run: npm run test:browser
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: playwright-report-${{ matrix.os }}
+          path: playwright-report/
+          retention-days: 7
