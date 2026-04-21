@@ -1873,6 +1873,7 @@
         assert.equal(type, 'string');
       }
     );
+
     QUnit.test(
       'Test for DoS coming from table sanitization 1/2 See #365',
       function (assert) {
@@ -2817,12 +2818,15 @@
             node.setAttribute('data-injected-by-hook', 'yes');
           }
         });
-        assert.equal(
-          DOMPurify.sanitize('<a href="#">x</a>'),
-          '<a href="#" data-injected-by-hook="yes">x</a>',
-          'hook-added attribute present in output (documented behavior)'
-        );
-        DOMPurify.removeHooks('afterSanitizeAttributes');
+        try {
+          assert.equal(
+            DOMPurify.sanitize('<a href="#">x</a>'),
+            '<a href="#" data-injected-by-hook="yes">x</a>',
+            'hook-added attribute present in output (documented behavior)'
+          );
+        } finally {
+          DOMPurify.removeHooks('afterSanitizeAttributes');
+        }
       }
     );
 
@@ -2841,12 +2845,15 @@
             } catch (e) {}
           }
         });
-        assert.equal(
-          DOMPurify.sanitize('<a href="#">x</a>'),
-          '<a href="#" data-injected-by-hook="yes">x</a>',
-          'hook-added attribute present in output (documented behavior)'
-        );
-        DOMPurify.removeHooks('uponSanitizeAttribute');
+        try {
+          assert.equal(
+            DOMPurify.sanitize('<a href="#">x</a>'),
+            '<a href="#" data-injected-by-hook="yes">x</a>',
+            'hook-added attribute present in output (documented behavior)'
+          );
+        } finally {
+          DOMPurify.removeHooks('uponSanitizeAttribute');
+        }
       }
     );
   };
