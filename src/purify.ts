@@ -1368,6 +1368,20 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return true;
   };
 
+  /* Names the HTML spec reserves from valid-custom-element-name; these must
+   * never be treated as basic custom elements even when a permissive
+   * CUSTOM_ELEMENT_HANDLING.tagNameCheck is configured. */
+  const RESERVED_CUSTOM_ELEMENT_NAMES = addToSet({}, [
+    'annotation-xml',
+    'color-profile',
+    'font-face',
+    'font-face-format',
+    'font-face-name',
+    'font-face-src',
+    'font-face-uri',
+    'missing-glyph',
+  ]);
+
   /**
    * _isBasicCustomElement
    * checks if at least one dash is included in tagName, and it's not the first char
@@ -1376,8 +1390,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param tagName name of the tag of the node to sanitize
    * @returns Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
-  const _isBasicCustomElement = function (tagName: string): RegExpMatchArray {
-    return tagName !== 'annotation-xml' && stringMatch(tagName, CUSTOM_ELEMENT);
+  const _isBasicCustomElement = function (tagName: string): boolean {
+    return (
+      !RESERVED_CUSTOM_ELEMENT_NAMES[stringToLowerCase(tagName)] &&
+      regExpTest(CUSTOM_ELEMENT, tagName)
+    );
   };
 
   /**
@@ -1435,7 +1452,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _removeAttribute(name, currentNode);
 
         // Prefix the value and later re-create the attribute with the sanitized value
-        value = SANITIZE_NAMED_PROPS_PREFIX + value;
+        if (stringIndexOf(value, SANITIZE_NAMED_PROPS_PREFIX) !== 0) {
+          value = SANITIZE_NAMED_PROPS_PREFIX + value;
+        }
       }
 
       /* Work around a security issue with comments inside attributes */
@@ -1614,8 +1633,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     if (IN_PLACE) {
       /* Do some early pre-sanitization to avoid unsafe root nodes */
-      if ((dirty as Node).nodeName) {
-        const tagName = transformCaseFunc((dirty as Node).nodeName);
+      const nn = (dirty as Node).nodeName;
+      if (typeof nn === 'string') {
+        const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
           throw typeErrorCreate(
             'root node is forbidden and cannot be sanitized in-place'

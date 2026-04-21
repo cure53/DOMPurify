@@ -203,7 +203,7 @@ interface UseProfilesConfig {
      */
     svg?: boolean | undefined;
     /**
-     * Allow all save SVG Filters.
+     * Allow all safe SVG Filters.
      */
     svgFilters?: boolean | undefined;
     /**
