@@ -1,0 +1,71 @@
+name: Build & Test
+
+# Companion workflow for build-and-test.yml.
+#
+# Background: GitHub's required-status-check system leaves PRs stuck in
+# "Waiting for status to be reported" when the workflow that would provide
+# the check is skipped via paths-ignore. GitHub's own documented workaround
+# is to define a twin workflow with the SAME workflow name and SAME job
+# names, gated on the INVERSE path filter, that does nothing but succeed.
+#
+# https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks#handling-skipped-but-required-checks
+#
+# RULES FOR EDITING THIS FILE:
+#
+#   1. The top-level `name:` must match build-and-test.yml exactly. GitHub
+#      identifies required checks by (workflow name, job name) tuple.
+#
+#   2. The `install` job's matrix and name must produce the SAME check
+#      names as build-and-test.yml: "install (20.x)", "install (22.x)",
+#      "install (24.x)", "install (25.x)".
+#
+#   3. The `paths` list below must be the INVERSE of the `paths-ignore`
+#      list in build-and-test.yml. If you exclude a path there, include it
+#      here (and vice versa). Mismatched lists = the real tests are
+#      skipped AND this passthrough doesn't fire = PR hangs.
+#
+#   4. Every job is a no-op that exits 0. Do NOT add real work here - this
+#      file exists purely to satisfy the required-check machinery.
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - 'demos/**'
+      - 'website/**'
+      - 'LICENSE'
+      - '.gitattributes'
+      - '.editorconfig'
+      - '.prettierignore'
+      - '.prettierrc'
+      - '.nvmrc'
+      - '.gitignore'
+      - '.husky/**'
+      - '.pre-commit-config.yaml'
+      - 'osv-scanner.toml'
+      - '.github/ISSUE_TEMPLATE.md'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/FUNDING.yml'
+      - '.github/dependabot.yml'
+      - '.github/workflows/codeql-analysis.yml'
+      - '.github/workflows/dependency-review.yml'
+      - '.github/workflows/fuzz.yml'
+      - '.github/workflows/scorecard.yml'
+      - '.github/workflows/sign-release.yml'
+      - '.github/workflows/slsa-provenance.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x, 24.x, 25.x]
+    steps:
+      - name: No-op (docs-only change, real tests skipped)
+        run: |
+          echo "Skipping build & test - change only touched documentation or"
+          echo "metadata files (see paths-ignore in build-and-test.yml)."
+          echo "Reporting success so the required status check doesn't hang."

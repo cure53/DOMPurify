@@ -23,5 +23,17 @@ jobs:
 
       - name: 'Checkout Repository'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: 'Dependency Review'
         uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          # Block PRs that introduce high/critical CVEs. Lower-severity findings
+          # still surface in the PR comment but don't block merge - consistent
+          # with the policy documented in osv-scanner.toml, which already
+          # suppresses dev-tooling CVEs that don't affect the distributed
+          # runtime.
+          fail-on-severity: high
+          # Only post the summary comment when something actually needs
+          # attention - cuts PR-comment noise on clean dependency bumps.
+          comment-summary-in-pr: on-failure

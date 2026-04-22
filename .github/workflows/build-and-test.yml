@@ -6,10 +6,70 @@ on:
       - main
       - 3.x
       - 2.x
+    # Skip on docs-only / metadata-only pushes. Keep this list in SYNC with
+    # build-and-test-skip.yml - that companion workflow reports success for
+    # the same required-check names when this one is skipped, otherwise PRs
+    # that only touch docs would hang forever on "Waiting for status to be
+    # reported" (GitHub's well-known paths-filter + required-check gotcha).
+    paths-ignore:
+      - '**/*.md'
+      - 'demos/**'
+      - 'website/**'
+      - 'LICENSE'
+      - '.gitattributes'
+      - '.editorconfig'
+      - '.prettierignore'
+      - '.prettierrc'
+      - '.nvmrc'
+      - '.gitignore'
+      - '.husky/**'
+      - '.pre-commit-config.yaml'
+      - 'osv-scanner.toml'
+      - '.github/ISSUE_TEMPLATE.md'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/FUNDING.yml'
+      - '.github/dependabot.yml'
+      - '.github/workflows/codeql-analysis.yml'
+      - '.github/workflows/dependency-review.yml'
+      - '.github/workflows/fuzz.yml'
+      - '.github/workflows/scorecard.yml'
+      - '.github/workflows/sign-release.yml'
+      - '.github/workflows/slsa-provenance.yml'
   pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'demos/**'
+      - 'website/**'
+      - 'LICENSE'
+      - '.gitattributes'
+      - '.editorconfig'
+      - '.prettierignore'
+      - '.prettierrc'
+      - '.nvmrc'
+      - '.gitignore'
+      - '.husky/**'
+      - '.pre-commit-config.yaml'
+      - 'osv-scanner.toml'
+      - '.github/ISSUE_TEMPLATE.md'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/FUNDING.yml'
+      - '.github/dependabot.yml'
+      - '.github/workflows/codeql-analysis.yml'
+      - '.github/workflows/dependency-review.yml'
+      - '.github/workflows/fuzz.yml'
+      - '.github/workflows/scorecard.yml'
+      - '.github/workflows/sign-release.yml'
+      - '.github/workflows/slsa-provenance.yml'
 
 permissions:
   contents: read
+
+# Cancel superseded runs on the same PR to save minutes on rapid pushes.
+# Pushes to protected branches are NOT cancelled - we want full CI history
+# for every merged commit.
+concurrency:
+  group: build-test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # Fast feedback: lint, jsdom, chromium-only browser test across Node versions.
@@ -29,6 +89,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
@@ -39,6 +101,10 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      # All three engines - test:ci runs the full browser matrix (no
+      # --project flag, unlike local `npm test`). DOMPurify's security
+      # posture depends on per-engine HTML parser behaviour being exercised,
+      # so this coverage is kept on every PR despite the download cost.
       - name: Install Playwright Browsers
         run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
 
@@ -53,7 +119,7 @@ jobs:
 
       - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-node-${{ matrix.node-version }}
           path: playwright-report/
@@ -86,6 +152,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js 25.x
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
@@ -112,7 +180,7 @@ jobs:
 
       - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-${{ matrix.os }}
           path: playwright-report/
