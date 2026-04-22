@@ -11,6 +11,13 @@ on:
 permissions:
   contents: read
 
+# Cancel superseded runs on the same PR to save minutes on rapid pushes.
+# Pushes to protected branches are NOT cancelled - we want full CI history
+# for every merged commit.
+concurrency:
+  group: build-test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Fast feedback: lint, jsdom, chromium-only browser test across Node versions.
   # Runs on every push and every PR.
@@ -29,6 +36,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
@@ -39,8 +48,12 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      # Chromium only in the "install" job - it's all that test:ci actually
+      # drives (npm run test -> test:browser -- --project=chromium). Firefox
+      # and Webkit get their workout in the "browser-matrix" job below on
+      # push to release branches. Cuts ~700-900MB of downloads per matrix leg.
       - name: Install Playwright Browsers
-        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
+        run: ./node_modules/.bin/playwright install --with-deps chromium
 
       - name: Build
         run: npm run build
@@ -53,7 +66,7 @@ jobs:
 
       - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-node-${{ matrix.node-version }}
           path: playwright-report/
@@ -86,6 +99,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js 25.x
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
@@ -112,7 +127,7 @@ jobs:
 
       - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-${{ matrix.os }}
           path: playwright-report/

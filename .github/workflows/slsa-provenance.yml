@@ -10,10 +10,17 @@ jobs:
   provenance:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      id-token: write    
+      contents: write     # to attach the attestation bundle to the release
+      id-token: write     # OIDC to mint the signing certificate from Fulcio
+      attestations: write # required by actions/attest-build-provenance v2.x to
+                          # write the attestation to the GH attestations API
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2
+      - uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # v2.2.3
         with:
           subject-path: 'dist/*'
