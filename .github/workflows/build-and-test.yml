@@ -6,7 +6,60 @@ on:
       - main
       - 3.x
       - 2.x
+    # Skip on docs-only / metadata-only pushes. Keep this list in SYNC with
+    # build-and-test-skip.yml - that companion workflow reports success for
+    # the same required-check names when this one is skipped, otherwise PRs
+    # that only touch docs would hang forever on "Waiting for status to be
+    # reported" (GitHub's well-known paths-filter + required-check gotcha).
+    paths-ignore:
+      - '**/*.md'
+      - 'demos/**'
+      - 'website/**'
+      - 'LICENSE'
+      - '.gitattributes'
+      - '.editorconfig'
+      - '.prettierignore'
+      - '.prettierrc'
+      - '.nvmrc'
+      - '.gitignore'
+      - '.husky/**'
+      - '.pre-commit-config.yaml'
+      - 'osv-scanner.toml'
+      - '.github/ISSUE_TEMPLATE.md'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/FUNDING.yml'
+      - '.github/dependabot.yml'
+      - '.github/workflows/codeql-analysis.yml'
+      - '.github/workflows/dependency-review.yml'
+      - '.github/workflows/fuzz.yml'
+      - '.github/workflows/scorecard.yml'
+      - '.github/workflows/sign-release.yml'
+      - '.github/workflows/slsa-provenance.yml'
   pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'demos/**'
+      - 'website/**'
+      - 'LICENSE'
+      - '.gitattributes'
+      - '.editorconfig'
+      - '.prettierignore'
+      - '.prettierrc'
+      - '.nvmrc'
+      - '.gitignore'
+      - '.husky/**'
+      - '.pre-commit-config.yaml'
+      - 'osv-scanner.toml'
+      - '.github/ISSUE_TEMPLATE.md'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/FUNDING.yml'
+      - '.github/dependabot.yml'
+      - '.github/workflows/codeql-analysis.yml'
+      - '.github/workflows/dependency-review.yml'
+      - '.github/workflows/fuzz.yml'
+      - '.github/workflows/scorecard.yml'
+      - '.github/workflows/sign-release.yml'
+      - '.github/workflows/slsa-provenance.yml'
 
 permissions:
   contents: read
@@ -48,12 +101,12 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # Chromium only in the "install" job - it's all that test:ci actually
-      # drives (npm run test -> test:browser -- --project=chromium). Firefox
-      # and Webkit get their workout in the "browser-matrix" job below on
-      # push to release branches. Cuts ~700-900MB of downloads per matrix leg.
+      # All three engines - test:ci runs the full browser matrix (no
+      # --project flag, unlike local `npm test`). DOMPurify's security
+      # posture depends on per-engine HTML parser behaviour being exercised,
+      # so this coverage is kept on every PR despite the download cost.
       - name: Install Playwright Browsers
-        run: ./node_modules/.bin/playwright install --with-deps chromium
+        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
 
       - name: Build
         run: npm run build
