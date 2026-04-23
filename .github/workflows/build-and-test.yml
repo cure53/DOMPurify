@@ -110,6 +110,17 @@ jobs:
 
       - name: Build
         run: npm run build
+        
+      - name: Verify dist/ matches src/
+        run: |
+          if ! git diff --quiet dist/; then
+            echo "::error::dist/ is out of sync with src/. The husky pre-commit hook should have rebuilt dist/ before commit. Did you commit without running 'npm install' first (which wires up the hook), or bypass hooks with --no-verify?"
+            echo "--- dist/ diff ---"
+            git diff --stat dist/
+            git diff dist/ | head -100
+            exit 1
+          fi
+          echo "dist/ matches src/ ✓"
 
       - name: Lint
         run: npm run lint
