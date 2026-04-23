@@ -2973,22 +2973,6 @@
       'Finding #2: attribute-breakout regex coverage (listing/plaintext)'
     );
 
-    /* The attribute-breakout regex at src/purify.ts:1467 strips attribute
-     * values that contain closing tags for rawtext-mode elements. Current
-     * list: style|script|title|xmp|textarea|noscript|iframe|noembed|noframes.
-     * Missing: listing|plaintext.
-     *
-     * These two tests check the ATTRIBUTE VALUE post-sanitize (via DOM
-     * lookup, not regex on serialized HTML — serialization entity-encodes
-     * the angle brackets, which hides the fact that the raw attribute
-     * value still contains the literal "</listing>" string).
-     *
-     * Pre-patch state: the attribute survives with the dangerous substring.
-     * Post-patch state: the attribute is stripped.
-     *
-     * To verify the patch: apply the one-line regex change, rerun these
-     * tests, both assertions should pass. */
-
     function attrValueAfterSanitize(input, attrName) {
       const clean = DOMPurify.sanitize(input);
       const probe = document.createElement('div');
@@ -3095,23 +3079,7 @@
      *     '<style>&lt;/style&gt;&lt;img src=x onerror=alert(1)&gt;<a></a></style>',
      *     { PARSER_MEDIA_TYPE: 'application/xhtml+xml', RETURN_DOM_FRAGMENT: true }
      *   );
-     *   const div = document.createElement('div');
-     *   div.appendChild(clean);
-     *   document.body.innerHTML = div.innerHTML;  // XSS fires (claimed)
-     *
-     * Attack shape: XHTML entity-decodes &lt; and &gt; inside <style>, so
-     * text content becomes literal "</style><img onerror=...>" plus a
-     * stray <a> child. When re-serialized to HTML and re-parsed, the
-     * <style> rawtext context is escaped.
-     *
-     * Defense path in src/purify.ts:1150-1158 — the <style>-with-element-
-     * child check — SHOULD fire, because the parsed XHTML style element
-     * has the <a> as an element child. If the check fails for any reason
-     * (namespace mismatch, case sensitivity, iteration order), the bypass
-     * is real.
-     *
-     * Test strategy: reproduce the full round-trip, then check the final
-     * parsed DOM for an <img onerror> node. Also run the XSS harness. */
+     */
 
     QUnit.test(
       'bypass: reparsed fragment contains no <img onerror> after round-trip',
