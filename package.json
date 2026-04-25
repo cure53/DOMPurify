@@ -47,7 +47,8 @@
     "./dist/purify.js": "./dist/purify.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "xo": {
     "semicolon": true,
