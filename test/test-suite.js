@@ -341,10 +341,11 @@
         'ADD_ATTR function: javascript: URI must be stripped from href'
       );
       // ADD_ATTR function must preserve safe URIs after URI validation
-      assert.ok(
+      assert.equal(
         DOMPurify.sanitize('<a href="https://example.com">x</a>', {
           ADD_ATTR: (attr) => attr === 'href',
-        }).indexOf('https://example.com') >= 0,
+        }),
+        '<a href="https://example.com">x</a>',
         'ADD_ATTR function: safe URI must be preserved in href'
       );
     });
