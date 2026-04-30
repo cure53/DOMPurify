@@ -2,10 +2,13 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [main, 2.x, 3.x]
+    branches: [main, 3.x, 2.x]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [main, 2.x, 3.x]
+    # Must match 'push' so PRs targeting release branches also get scanned.
+    # The ruleset requires CodeQL as a status check on main, 3.x, and 2.x;
+    # without these in pull_request, PRs to 3.x/2.x would wait forever for
+    # a required check that never fires.
+    branches: [main, 3.x, 2.x]
   schedule:
     - cron: '0 19 * * 4'
 
@@ -15,9 +18,9 @@ permissions:
 jobs:
   analyze:
     permissions:
-      actions: read  # for github/codeql-action/init to get workflow details
-      contents: read  # for actions/checkout to fetch code
-      security-events: write  # for github/codeql-action/autobuild to send a status report
+      actions: read          # for github/codeql-action/init to get workflow details
+      contents: read         # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/autobuild to send a status report
     name: Analyze
     runs-on: ubuntu-latest
 
@@ -32,21 +35,18 @@ jobs:
 
     steps:
     - name: Harden the runner (Audit all outbound calls)
-      uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+      uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
       with:
         egress-policy: audit
 
     - name: Checkout repository
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
-        # We must fetch at least the immediate parents so that if this is
-        # a pull request then we can checkout the head.
-        fetch-depth: 2
-
-    # If this run was triggered by a pull request event, then checkout
-    # the head of the pull request instead of the merge commit.
-    - run: git checkout HEAD^2
-      if: ${{ github.event_name == 'pull_request' }}
+        persist-credentials: false
+        # Default fetch-depth is fine. The old 'git checkout HEAD^2' dance
+        # from legacy CodeQL templates is no longer needed - modern
+        # codeql-action handles PR head checkout itself, and under this
+        # repo's linear-history ruleset PRs aren't two-parent merges anyway.
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL

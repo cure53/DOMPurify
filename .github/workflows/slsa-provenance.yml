@@ -1,0 +1,26 @@
+name: SLSA Provenance
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write     # to attach the attestation bundle to the release
+      id-token: write     # OIDC to mint the signing certificate from Fulcio
+      attestations: write # required by actions/attest-build-provenance v2.x to
+                          # write the attestation to the GH attestations API
+    steps:
+      - uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-path: 'dist/*'

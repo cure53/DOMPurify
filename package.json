@@ -47,7 +47,8 @@
     "./dist/purify.js": "./dist/purify.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "xo": {
     "semicolon": true,
@@ -122,7 +123,7 @@
     "fast-check": "^4.7.0",
     "husky": "^9.1.0",
     "jquery": "^3.6.0",
-    "jsdom": "^29.0.2",
+    "jsdom": "^29.1.0",
     "prettier": "^3.3.3",
     "qunit": "^2.4.1",
     "qunit-tap": "^1.5.0",
@@ -138,7 +139,7 @@
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "directories": {
     "test": "test"
   },
