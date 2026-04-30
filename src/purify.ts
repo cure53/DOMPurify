@@ -1284,6 +1284,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return false;
     }
 
+    const nameIsPermitted =
+      ALLOWED_ATTR[lcName] ||
+      (EXTRA_ELEMENT_HANDLING.attributeCheck instanceof Function &&
+        EXTRA_ELEMENT_HANDLING.attributeCheck(lcName, lcTag));
+
     /* Allow valid data-* attributes: At least one character after "-"
         (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
         XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
@@ -1296,14 +1301,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       // This attribute is safe
     } else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) {
       // This attribute is safe
-      /* Check if ADD_ATTR function allows this attribute */
-    } else if (
-      EXTRA_ELEMENT_HANDLING.attributeCheck instanceof Function &&
-      EXTRA_ELEMENT_HANDLING.attributeCheck(lcName, lcTag)
-    ) {
-      // This attribute is safe
       /* Otherwise, check the name is permitted */
-    } else if (!ALLOWED_ATTR[lcName] || FORBID_ATTR[lcName]) {
+    } else if (!nameIsPermitted || FORBID_ATTR[lcName]) {
       if (
         // First condition does a very basic check if a) it's basically a valid custom element tagname AND
         // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck

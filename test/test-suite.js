@@ -333,6 +333,21 @@
         }),
         '<one attribute-one="1"></one>'
       );
+      // ADD_ATTR function must not bypass URI validation: javascript: should be stripped
+      assert.ok(
+        DOMPurify.sanitize('<a href="javascript:alert(1)">x</a>', {
+          ADD_ATTR: (attr) => attr === 'href',
+        }).indexOf('javascript:') === -1,
+        'ADD_ATTR function: javascript: URI must be stripped from href'
+      );
+      // ADD_ATTR function must preserve safe URIs after URI validation
+      assert.equal(
+        DOMPurify.sanitize('<a href="https://example.com">x</a>', {
+          ADD_ATTR: (attr) => attr === 'href',
+        }),
+        '<a href="https://example.com">x</a>',
+        'ADD_ATTR function: safe URI must be preserved in href'
+      );
     });
     QUnit.test(
       'Config-Flag tests: ADD_TAGS function should not leak into subsequent array calls',
