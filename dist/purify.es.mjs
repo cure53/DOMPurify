@@ -1,21 +1,62 @@
 /*! @license DOMPurify 3.4.2 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.2/LICENSE */
 
-const {
-  entries,
-  setPrototypeOf,
-  isFrozen,
-  getPrototypeOf,
-  getOwnPropertyDescriptor
-} = Object;
-let {
-  freeze,
-  seal,
-  create
-} = Object; // eslint-disable-line import/no-mutable-exports
-let {
-  apply,
-  construct
-} = typeof Reflect !== 'undefined' && Reflect;
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
+}
+function _arrayWithHoles(r) {
+  if (Array.isArray(r)) return r;
+}
+function _iterableToArrayLimit(r, l) {
+  var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (null != t) {
+    var e,
+      n,
+      i,
+      u,
+      a = [],
+      f = true,
+      o = false;
+    try {
+      if (i = (t = t.call(r)).next, 0 === l) ; else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0);
+    } catch (r) {
+      o = true, n = r;
+    } finally {
+      try {
+        if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return;
+      } finally {
+        if (o) throw n;
+      }
+    }
+    return a;
+  }
+}
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+function _slicedToArray(r, e) {
+  return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest();
+}
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return _arrayLikeToArray(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+  }
+}
+
+const entries = Object.entries,
+  setPrototypeOf = Object.setPrototypeOf,
+  isFrozen = Object.isFrozen,
+  getPrototypeOf = Object.getPrototypeOf,
+  getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+let freeze = Object.freeze,
+  seal = Object.seal,
+  create = Object.create; // eslint-disable-line import/no-mutable-exports
+let _ref = typeof Reflect !== 'undefined' && Reflect,
+  apply = _ref.apply,
+  construct = _ref.construct;
 if (!freeze) {
   freeze = function freeze(x) {
     return x;
@@ -152,7 +193,10 @@ function cleanArray(array) {
  */
 function clone(object) {
   const newObject = create(null);
-  for (const [property, value] of entries(object)) {
+  for (const _ref2 of entries(object)) {
+    var _ref3 = _slicedToArray(_ref2, 2);
+    const property = _ref3[0];
+    const value = _ref3[1];
     const isPropertyExist = objectHasOwnProperty(object, property);
     if (isPropertyExist) {
       if (arrayIsArray(value)) {
@@ -285,20 +329,6 @@ const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205
 const DOCTYPE_NAME = seal(/^html$/i);
 const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 
-var EXPRESSIONS = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    ARIA_ATTR: ARIA_ATTR,
-    ATTR_WHITESPACE: ATTR_WHITESPACE,
-    CUSTOM_ELEMENT: CUSTOM_ELEMENT,
-    DATA_ATTR: DATA_ATTR,
-    DOCTYPE_NAME: DOCTYPE_NAME,
-    ERB_EXPR: ERB_EXPR,
-    IS_ALLOWED_URI: IS_ALLOWED_URI,
-    IS_SCRIPT_OR_DATA: IS_SCRIPT_OR_DATA,
-    MUSTACHE_EXPR: MUSTACHE_EXPR,
-    TMPLIT_EXPR: TMPLIT_EXPR
-});
-
 /* eslint-disable @typescript-eslint/indent */
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 const NODE_TYPE = {
@@ -373,22 +403,19 @@ function createDOMPurify() {
     DOMPurify.isSupported = false;
     return DOMPurify;
   }
-  let {
-    document
-  } = window;
+  let document = window.document;
   const originalDocument = document;
   const currentScript = originalDocument.currentScript;
-  const {
-    DocumentFragment,
-    HTMLTemplateElement,
-    Node,
-    Element,
-    NodeFilter,
-    NamedNodeMap = window.NamedNodeMap || window.MozNamedAttrMap,
-    HTMLFormElement,
-    DOMParser,
-    trustedTypes
-  } = window;
+  const DocumentFragment = window.DocumentFragment,
+    HTMLTemplateElement = window.HTMLTemplateElement,
+    Node = window.Node,
+    Element = window.Element,
+    NodeFilter = window.NodeFilter,
+    _window$NamedNodeMap = window.NamedNodeMap,
+    NamedNodeMap = _window$NamedNodeMap === void 0 ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
+    HTMLFormElement = window.HTMLFormElement,
+    DOMParser = window.DOMParser,
+    trustedTypes = window.trustedTypes;
   const ElementPrototype = Element.prototype;
   const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
   const remove = lookupGetter(ElementPrototype, 'remove');
@@ -409,33 +436,26 @@ function createDOMPurify() {
   }
   let trustedTypesPolicy;
   let emptyHTML = '';
-  const {
-    implementation,
-    createNodeIterator,
-    createDocumentFragment,
-    getElementsByTagName
-  } = document;
-  const {
-    importNode
-  } = originalDocument;
+  const _document = document,
+    implementation = _document.implementation,
+    createNodeIterator = _document.createNodeIterator,
+    createDocumentFragment = _document.createDocumentFragment,
+    getElementsByTagName = _document.getElementsByTagName;
+  const importNode = originalDocument.importNode;
   let hooks = _createHooksMap();
   /**
    * Expose whether this browser supports running the full DOMPurify.
    */
   DOMPurify.isSupported = typeof entries === 'function' && typeof getParentNode === 'function' && implementation && implementation.createHTMLDocument !== undefined;
-  const {
-    MUSTACHE_EXPR,
-    ERB_EXPR,
-    TMPLIT_EXPR,
-    DATA_ATTR,
-    ARIA_ATTR,
-    IS_SCRIPT_OR_DATA,
-    ATTR_WHITESPACE,
-    CUSTOM_ELEMENT
-  } = EXPRESSIONS;
-  let {
-    IS_ALLOWED_URI: IS_ALLOWED_URI$1
-  } = EXPRESSIONS;
+  const MUSTACHE_EXPR$1 = MUSTACHE_EXPR,
+    ERB_EXPR$1 = ERB_EXPR,
+    TMPLIT_EXPR$1 = TMPLIT_EXPR,
+    DATA_ATTR$1 = DATA_ATTR,
+    ARIA_ATTR$1 = ARIA_ATTR,
+    IS_SCRIPT_OR_DATA$1 = IS_SCRIPT_OR_DATA,
+    ATTR_WHITESPACE$1 = ATTR_WHITESPACE,
+    CUSTOM_ELEMENT$1 = CUSTOM_ELEMENT;
+  let IS_ALLOWED_URI$1 = IS_ALLOWED_URI;
   /**
    * We consider the elements and attributes below to be safe. Ideally
    * don't add any new ones but feel free to remove unwanted ones.
@@ -1063,7 +1083,7 @@ function createDOMPurify() {
     if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
       /* Get the element's text content */
       content = currentNode.textContent;
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+      arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
         content = stringReplace(content, expr, ' ');
       });
       if (currentNode.textContent !== content) {
@@ -1100,7 +1120,7 @@ function createDOMPurify() {
         (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
         XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
         We don't need to check the value; it's always URI safe. */
-    if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) ; else if (!nameIsPermitted || FORBID_ATTR[lcName]) {
+    if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR$1, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR$1, lcName)) ; else if (!nameIsPermitted || FORBID_ATTR[lcName]) {
       if (
       // First condition does a very basic check if a) it's basically a valid custom element tagname AND
       // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
@@ -1112,7 +1132,7 @@ function createDOMPurify() {
         return false;
       }
       /* Check value is safe. First, is attr inert? If so, is safe */
-    } else if (URI_SAFE_ATTRIBUTES[lcName]) ; else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE, ''))) ; else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]) ; else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA, stringReplace(value, ATTR_WHITESPACE, ''))) ; else if (value) {
+    } else if (URI_SAFE_ATTRIBUTES[lcName]) ; else if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE$1, ''))) ; else if ((lcName === 'src' || lcName === 'xlink:href' || lcName === 'href') && lcTag !== 'script' && stringIndexOf(value, 'data:') === 0 && DATA_URI_TAGS[lcTag]) ; else if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA$1, stringReplace(value, ATTR_WHITESPACE$1, ''))) ; else if (value) {
       return false;
     } else ;
     return true;
@@ -1130,7 +1150,7 @@ function createDOMPurify() {
    * @returns Returns true if the tag name meets the basic criteria for a custom element, otherwise false.
    */
   const _isBasicCustomElement = function _isBasicCustomElement(tagName) {
-    return !RESERVED_CUSTOM_ELEMENT_NAMES[stringToLowerCase(tagName)] && regExpTest(CUSTOM_ELEMENT, tagName);
+    return !RESERVED_CUSTOM_ELEMENT_NAMES[stringToLowerCase(tagName)] && regExpTest(CUSTOM_ELEMENT$1, tagName);
   };
   /**
    * _sanitizeAttributes
@@ -1145,9 +1165,7 @@ function createDOMPurify() {
   const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
     /* Execute a hook if present */
     _executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
-    const {
-      attributes
-    } = currentNode;
+    const attributes = currentNode.attributes;
     /* Check if we have attributes; if not we might have a text node */
     if (!attributes || _isClobbered(currentNode)) {
       return;
@@ -1163,11 +1181,9 @@ function createDOMPurify() {
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
       const attr = attributes[l];
-      const {
-        name,
-        namespaceURI,
-        value: attrValue
-      } = attr;
+      const name = attr.name,
+        namespaceURI = attr.namespaceURI,
+        attrValue = attr.value;
       const lcName = transformCaseFunc(name);
       const initValue = attrValue;
       let value = name === 'value' ? initValue : stringTrim(initValue);
@@ -1215,7 +1231,7 @@ function createDOMPurify() {
       }
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
-        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+        arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
           value = stringReplace(value, expr, ' ');
         });
       }
@@ -1387,7 +1403,7 @@ function createDOMPurify() {
       if (SAFE_FOR_TEMPLATES) {
         body.normalize();
         let html = body.innerHTML;
-        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+        arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
           html = stringReplace(html, expr, ' ');
         });
         body.innerHTML = html;
@@ -1420,7 +1436,7 @@ function createDOMPurify() {
     }
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], expr => {
+      arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
         serializedHTML = stringReplace(serializedHTML, expr, ' ');
       });
     }
