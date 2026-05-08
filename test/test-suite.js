@@ -852,6 +852,172 @@
         });
       }
     );
+    QUnit.test(
+      'Config-Flag tests: IN_PLACE sanitizes attached open shadow root',
+      function (assert) {
+        // A host element passed to DOMPurify with IN_PLACE may already
+        // carry an open shadow root. NodeIterator does not descend into
+        // shadow trees, so the sanitizer must recurse explicitly.
+        // NOTE: we intentionally avoid `src` on the <img> below — in
+        // real browsers, setting innerHTML with <img src=x> kicks off
+        // an image load that will fail and fire onerror, polluting the
+        // window.xssed flag that other tests depend on.
+        var host = document.createElement('div');
+        var shadow = host.attachShadow({ mode: 'open' });
+        shadow.innerHTML =
+          '<a id="poc" href="javascript:alert(1)">click</a>' +
+          '<img id="poc2" onerror="alert(2)">';
+        DOMPurify.sanitize(host, { IN_PLACE: true });
+        var a = host.shadowRoot.querySelector('#poc');
+        var img = host.shadowRoot.querySelector('#poc2');
+        assert.ok(a, 'link element preserved');
+        assert.equal(
+          a.getAttribute('href'),
+          null,
+          'javascript: href is stripped from shadow content'
+        );
+        assert.ok(img, 'img element preserved');
+        assert.equal(
+          img.getAttribute('onerror'),
+          null,
+          'onerror handler is stripped from shadow content'
+        );
+        // Defensive teardown — match the pattern used by the existing
+        // XSS test loop so we never leave xssed=true for the next test.
+        window.xssed = false;
+      }
+    );
+    QUnit.test(
+      'Config-Flag tests: IN_PLACE sanitizes nested shadow roots',
+      function (assert) {
+        // Shadow-inside-shadow: both levels must be sanitized.
+        var outer = document.createElement('section');
+        var outerShadow = outer.attachShadow({ mode: 'open' });
+        var inner = document.createElement('div');
+        outerShadow.appendChild(inner);
+        inner.attachShadow({ mode: 'open' }).innerHTML =
+          '<a id="nested" href="javascript:alert(1)">click</a>';
+        DOMPurify.sanitize(outer, { IN_PLACE: true });
+        var nested = outer.shadowRoot
+          .querySelector('div')
+          .shadowRoot.querySelector('#nested');
+        assert.ok(nested, 'nested link preserved');
+        assert.equal(
+          nested.getAttribute('href'),
+          null,
+          'javascript: href is stripped from nested shadow content'
+        );
+        window.xssed = false;
+      }
+    );
+    QUnit.test(
+      'Config-Flag tests: RETURN_DOM with DOM input sanitizes clonable shadow root',
+      function (assert) {
+        // Feature-detect clonable shadow root support. importNode() is
+        // expected to deep-clone the shadow root only when clonable is
+        // honored by the engine. jsdom currently ignores the option, so
+        // we skip the assertion there and rely on the browser pass.
+        var supportsClonable = false;
+        try {
+          var probeHost = document.createElement('div');
+          probeHost.attachShadow({ mode: 'open', clonable: true }).innerHTML =
+            '<span>x</span>';
+          var imported = document.importNode(probeHost, true);
+          supportsClonable = !!(
+            imported.shadowRoot && imported.shadowRoot.querySelector('span')
+          );
+        } catch (_) {}
+
+        if (!supportsClonable) {
+          assert.ok(
+            true,
+            'environment does not support clonable shadow roots; skipping'
+          );
+          return;
+        }
+
+        // Same caveat as the IN_PLACE test above: no `src` attribute on
+        // the img so setting innerHTML in a real browser does not start
+        // a load and fire onerror before sanitize() runs.
+        var host = document.createElement('div');
+        host.attachShadow({ mode: 'open', clonable: true }).innerHTML =
+          '<a id="poc" href="javascript:alert(1)">click</a>' +
+          '<img id="poc2" onerror="alert(2)">';
+
+        var clean = DOMPurify.sanitize(host, { RETURN_DOM: true });
+        var returnedHost = clean.firstElementChild;
+        assert.ok(
+          returnedHost.shadowRoot instanceof DocumentFragment,
+          'cloned shadow root present on returned host'
+        );
+        var a = returnedHost.shadowRoot.querySelector('#poc');
+        var img = returnedHost.shadowRoot.querySelector('#poc2');
+        if (a) {
+          assert.equal(
+            a.getAttribute('href'),
+            null,
+            'javascript: href is stripped in cloned shadow'
+          );
+        } else {
+          assert.ok(true, 'link removed entirely');
+        }
+        if (img) {
+          assert.equal(
+            img.getAttribute('onerror'),
+            null,
+            'onerror is stripped in cloned shadow'
+          );
+        } else {
+          assert.ok(true, 'img removed entirely');
+        }
+        window.xssed = false;
+      }
+    );
+    QUnit.test(
+      'Config-Flag tests: RETURN_DOM_FRAGMENT with DOM input sanitizes clonable shadow root',
+      function (assert) {
+        var supportsClonable = false;
+        try {
+          var probeHost = document.createElement('div');
+          probeHost.attachShadow({ mode: 'open', clonable: true }).innerHTML =
+            '<span>x</span>';
+          var imported = document.importNode(probeHost, true);
+          supportsClonable = !!(
+            imported.shadowRoot && imported.shadowRoot.querySelector('span')
+          );
+        } catch (_) {}
+
+        if (!supportsClonable) {
+          assert.ok(
+            true,
+            'environment does not support clonable shadow roots; skipping'
+          );
+          return;
+        }
+
+        var host = document.createElement('div');
+        host.attachShadow({ mode: 'open', clonable: true }).innerHTML =
+          '<a id="poc" href="javascript:alert(1)">click</a>';
+
+        var fragment = DOMPurify.sanitize(host, { RETURN_DOM_FRAGMENT: true });
+        var returnedHost = fragment.querySelector('div');
+        assert.ok(
+          returnedHost.shadowRoot instanceof DocumentFragment,
+          'cloned shadow root present on returned host'
+        );
+        var a = returnedHost.shadowRoot.querySelector('#poc');
+        if (a) {
+          assert.equal(
+            a.getAttribute('href'),
+            null,
+            'javascript: href is stripped in fragment shadow'
+          );
+        } else {
+          assert.ok(true, 'link removed entirely');
+        }
+        window.xssed = false;
+      }
+    );
     QUnit.test('Config-Flag tests: FORBID_TAGS', function (assert) {
       //FORBID_TAGS
       assert.equal(
@@ -2871,23 +3037,6 @@
         }
       }
     );
-
-    /* ====================================================================
-     * Claim-validation tests for the 5 findings in Dompurify_finding.md
-     * and the 8 DoS payloads in Dompurify_exceptions.md.
-     *
-     * Pass/fail semantics:
-     *   - PASS = claim does NOT reproduce (DOMPurify is safe or already fixed)
-     *   - FAIL = claim reproduces (real issue present, needs a patch)
-     *
-     * Drop this block into test/test-suite.js just before the closing
-     *     };
-     *   });
-     * at the end of the file. Then `npm test` (or npm run test:jsdom) will
-     * include it.
-     *
-     * If the browser and jsdom disagree, that itself is useful info.
-     * ==================================================================== */
 
     QUnit.module('Finding #1: _forceRemove DoS (Dompurify_exceptions.md)');
 
