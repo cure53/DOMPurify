@@ -1623,11 +1623,22 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       _sanitizeShadowDOM(sr);
     }
 
-    let child = root.firstChild;
-    while (child) {
-      const next = child.nextSibling;
+    // Snapshot children before recursing. Sanitization of one subtree
+    // (e.g. via an uponSanitizeShadowNode hook) may detach siblings,
+    // and naive nextSibling traversal would silently skip the rest of
+    // the list once a node is detached.
+    const childNodes = root.childNodes;
+    if (!childNodes) {
+      return;
+    }
+
+    const snapshot: Node[] = [];
+    arrayForEach(childNodes, (child) => {
+      arrayPush(snapshot, child);
+    });
+
+    for (const child of snapshot) {
       _sanitizeAttachedShadowRoots(child);
-      child = next;
     }
   };
 
