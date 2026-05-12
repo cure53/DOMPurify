@@ -105,13 +105,7 @@ jobs:
       # --project flag, unlike local `npm test`). DOMPurify's security
       # posture depends on per-engine HTML parser behaviour being exercised,
       # so this coverage is kept on every PR despite the download cost.
-      #
-      # Node 26 is excluded from Playwright steps until upstream support
-      # lands (microsoft/playwright#40724 — the browser install hangs
-      # after extracting the Chromium zip on Node 26). jsdom coverage on
-      # Node 26 is still exercised below to catch Node-major regressions.
       - name: Install Playwright Browsers
-        if: matrix.node-version != '26.x'
         run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
 
       - name: Build
@@ -132,16 +126,10 @@ jobs:
         run: npm run lint
 
       - name: Test
-        if: matrix.node-version != '26.x'
         run: npm run test:ci
 
-      # Node 26: jsdom only (see Playwright skip note above).
-      - name: Test (jsdom only, Node 26)
-        if: matrix.node-version == '26.x'
-        run: npm run test:jsdom
-
       - name: Upload Playwright report
-        if: failure() && matrix.node-version != '26.x'
+        if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-node-${{ matrix.node-version }}
