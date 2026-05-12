@@ -120,7 +120,7 @@
     "cross-env": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.2.1",
-    "fast-check": "^4.7.0",
+    "fast-check": "^4.8.0",
     "husky": "^9.1.0",
     "jquery": "^3.6.0",
     "jsdom": "^29.1.1",
