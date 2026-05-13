@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x, 25.x]
+        node-version: [20.x, 22.x, 24.x, 25.x, 26.x]
     steps:
       - name: No-op (docs-only change, real tests skipped)
         run: |
