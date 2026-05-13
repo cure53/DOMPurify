@@ -91,6 +91,7 @@ export const html = freeze([
   'search',
   'section',
   'select',
+  'selectedcontent',
   'shadow',
   'slot',
   'small',

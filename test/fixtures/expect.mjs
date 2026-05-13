@@ -934,5 +934,9 @@ export default [
     "title":"Testing support for popovertarget and popovertargetaction",
     "payload": "<button popovertargetaction=\"show\" popovertarget=\"popover\">Show Popover</button>",
     "expected": "<button popovertargetaction=\"show\" popovertarget=\"popover\">Show Popover</button>"
-  }
+  }, {
+    "title":"Testing support for selectedcontent",
+    "payload": "<selectedcontent></selectedcontent>",
+    "expected": "<selectedcontent></selectedcontent>"
+  },
 ];
