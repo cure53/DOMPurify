@@ -166,6 +166,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
   const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
   const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
+  const getNodeType =
+    Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -1128,13 +1130,32 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
-   * Checks whether the given object is a DOM node.
+   * Checks whether the given object is a DOM node, including nodes that
+   * originate from a different window/realm (e.g. an iframe's
+   * contentDocument). The previous `value instanceof Node` check was
+   * realm-bound: nodes from a different window failed it, causing
+   * sanitize() to silently stringify them and reset IN_PLACE to false,
+   * returning the original node unsanitized. See GHSA-4w3q-35jp-p934.
+   *
+   * Implementation: call the cached `nodeType` getter from Node.prototype
+   * directly on the value. This bypasses any clobbered instance property
+   * (e.g. a child element named "nodeType") and works across realms
+   * because the WebIDL `nodeType` getter reads an internal slot that
+   * every real Node has, regardless of which window minted it.
    *
    * @param value object to check whether it's a DOM node
-   * @return true is object is a DOM node
+   * @return true if value is a DOM node from any realm
    */
   const _isNode = function (value: unknown): value is Node {
-    return typeof Node === 'function' && value instanceof Node;
+    if (!getNodeType || typeof value !== 'object' || value === null) {
+      return false;
+    }
+
+    try {
+      return typeof getNodeType(value) === 'number';
+    } catch (_) {
+      return false;
+    }
   };
 
   function _executeHooks<T extends HookFunction>(

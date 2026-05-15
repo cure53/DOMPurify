@@ -3412,5 +3412,55 @@
         }, 100);
       }
     );
+    QUnit.test(
+      'IN_PLACE sanitizes cross-realm DOM nodes (GHSA-4w3q-35jp-p934)',
+      (assert) => {
+        const iframe = document.createElement('iframe');
+        document.body.appendChild(iframe);
+        const foreignDoc = iframe.contentDocument;
+
+        const dirty = foreignDoc.createElement('div');
+        dirty.innerHTML =
+          '<img src=x onerror=alert(1)><script>alert(2)<\/script>';
+
+        const result = DOMPurify.sanitize(dirty, { IN_PLACE: true });
+
+        assert.strictEqual(
+          result,
+          dirty,
+          'returns the same node, not a string'
+        );
+        assert.notOk(dirty.querySelector('script'), 'script removed');
+        assert.notOk(
+          dirty.querySelector('img').getAttribute('onerror'),
+          'onerror removed'
+        );
+
+        document.body.removeChild(iframe);
+      }
+    );
+
+    QUnit.test(
+      'string-input path still strings-stringifies non-node objects',
+      (assert) => {
+        assert.strictEqual(
+          DOMPurify.sanitize({
+            toString: () => '<b>hi</b><script>x<\/script>',
+          }),
+          '<b>hi</b>'
+        );
+      }
+    );
+
+    QUnit.test(
+      'plain objects with nodeType are not treated as nodes',
+      (assert) => {
+        // Regression guard: duck-typing must not accept spoofed objects.
+        const fake = { nodeType: 1, nodeName: 'DIV', ownerDocument: {} };
+        // Should be stringified, not iterated. No throw, returns sanitized string.
+        const result = DOMPurify.sanitize(fake);
+        assert.strictEqual(typeof result, 'string');
+      }
+    );
   };
 });
