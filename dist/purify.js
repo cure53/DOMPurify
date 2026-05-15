@@ -982,20 +982,37 @@
     };
     /**
      * Strip template-engine expressions ({{...}}, ${...}, <%...%>) from the
-     * serialized markup of an element subtree. Used as the final safety net for
+     * character data of an element subtree. Used as the final safety net for
      * SAFE_FOR_TEMPLATES on every DOM-returning code path so that expressions
      * which only form after text-node normalization (e.g. fragments split across
      * stripped elements) cannot survive into a template-evaluating framework.
      *
-     * @param node The root element whose innerHTML should be scrubbed.
+     * Walks text/comment/CDATA/processing-instruction nodes and mutates `.data`
+     * in place rather than round-tripping through innerHTML. This preserves
+     * descendant node references (important for IN_PLACE callers), avoids a
+     * serialize/reparse cycle, and reads literal character data — which means
+     * `<%...%>` in text content matches the ERB regex against its real bytes
+     * instead of the HTML-entity-escaped form innerHTML would produce.
+     *
+     * Attribute values are not visited here; SAFE_FOR_TEMPLATES handling for
+     * attributes is performed during the per-node `_sanitizeAttributes` pass.
+     *
+     * @param node The root element whose character data should be scrubbed.
      */
     const _scrubTemplateExpressions = function _scrubTemplateExpressions(node) {
       node.normalize();
-      let html = node.innerHTML;
-      arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
-        html = stringReplace(html, expr, ' ');
-      });
-      node.innerHTML = html;
+      const walker = createNodeIterator.call(node.ownerDocument || node, node,
+      // eslint-disable-next-line no-bitwise
+      NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_CDATA_SECTION | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
+      let currentNode = walker.nextNode();
+      while (currentNode) {
+        let data = currentNode.data;
+        arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
+          data = stringReplace(data, expr, ' ');
+        });
+        currentNode.data = data;
+        currentNode = walker.nextNode();
+      }
     };
     /**
      * _isClobbered

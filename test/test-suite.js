@@ -834,13 +834,15 @@
       'Config-Flag tests: SAFE_FOR_TEMPLATES strips boundary-spanning Mustache expressions in IN_PLACE mode',
       function (assert) {
         // Regression for the IN_PLACE counterpart of CVE-2026-41239.
-        // Per-text-node scrubbing alone misses {{...}} whose halves sit on
-        // either side of a stripped foreign element: each text node holds only
-        // a single '{' or '}', so MUSTACHE_EXPR (which requires '{{' or '}}')
-        // matches nothing. After sanitization removes the foreign element the
-        // surrounding text fragments are adjacent, and the serialized
-        // innerHTML — which is what a template-evaluating framework reads —
-        // shows '{{...}}' as a single interpolatable expression.
+        // Per-text-node scrubbing during the sanitizer walk misses {{...}}
+        // whose halves sit on either side of a stripped foreign element: at
+        // walk time each surrounding text node holds only a single '{' or '}',
+        // so MUSTACHE_EXPR (which requires '{{' or '}}') matches nothing.
+        // Once the foreign element is removed, the surrounding text nodes are
+        // adjacent; a normalize() call merges them into one node containing
+        // '{{...}}', which a template-evaluating framework would interpolate
+        // on mount. The final scrub pass runs normalize() and then walks the
+        // merged character data so the joined expression is caught.
         var dirty = document.createElement('div');
         dirty.innerHTML =
           '{<foo></foo>{constructor.constructor("alert(1)")()}<foo></foo>}';
@@ -863,8 +865,9 @@
       function (assert) {
         // Same bug class as above, for ES template literals: '$' and '{' land
         // in separate text nodes, so TMPLIT_EXPR (which requires the paired
-        // '${' sigil) does not match per node — but the serialized output
-        // contains '${...}'.
+        // '${' sigil) does not match per node. After normalize() merges the
+        // surrounding text fragments the final scrub walks the joined node
+        // and strips '${...}'.
         var dirty = document.createElement('div');
         dirty.innerHTML = '$<foo></foo>{<foo></foo>danger}';
         DOMPurify.sanitize(dirty, {
@@ -881,9 +884,9 @@
       'Config-Flag tests: SAFE_FOR_TEMPLATES pins RETURN_DOM_FRAGMENT scrub behavior',
       function (assert) {
         // RETURN_DOM_FRAGMENT was fixed alongside RETURN_DOM in CVE-2026-41239
-        // (both reach the body.innerHTML scrub). Pinning the fragment path
-        // here so future refactors of the post-walk return logic do not
-        // silently regress it.
+        // and both paths now share the same scrub helper as IN_PLACE. Pinning
+        // the fragment path here so future refactors of the post-walk return
+        // logic do not silently regress it.
         var result = DOMPurify.sanitize(
           '<div>{<foo></foo>{constructor.constructor("alert(1)")()}<foo></foo>}</div>',
           {
