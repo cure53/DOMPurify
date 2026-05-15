@@ -3,33 +3,38 @@
 # Scope: this suppresses currently present advisories from the package-lock
 # that are pulled in through development / test / CI tooling, not the shipped
 # DOMPurify runtime artifact itself.
+#
+# ignoreUntil is set to a one-year horizon so suppressions get re-evaluated
+# annually instead of indefinitely. When updating, check whether the
+# underlying dev dep has been replaced or upgraded out of the vulnerable
+# range; if so, drop the entry instead of extending it.
 
 [[IgnoredVulns]]
 id = "GHSA-f886-m6hf-6m8v"
-ignoreUntil = 2029-12-31
+ignoreUntil = 2027-05-31
 reason = "Current package-lock includes brace-expansion 1.1.12 via development tooling only; not part of the distributed runtime artifact."
 
 [[IgnoredVulns]]
 id = "GHSA-grv7-fg5c-xmjg"
-ignoreUntil = 2029-12-31
+ignoreUntil = 2027-05-31
 reason = "Current package-lock includes braces 3.0.2 under development tooling only; not part of the distributed runtime artifact."
 
 [[IgnoredVulns]]
 id = "GHSA-952p-6rrq-rcjv"
-ignoreUntil = 2029-12-31
+ignoreUntil = 2027-05-31
 reason = "Current package-lock includes micromatch 4.0.5 under development tooling only; not part of the distributed runtime artifact."
 
 [[IgnoredVulns]]
 id = "GHSA-3v7f-55p6-f55p"
-ignoreUntil = 2029-12-31
+ignoreUntil = 2027-05-31
 reason = "Current package-lock includes vulnerable picomatch versions via development tooling only; not part of the distributed runtime artifact."
 
 [[IgnoredVulns]]
 id = "GHSA-c2c7-rcm5-vvqj"
-ignoreUntil = 2029-12-31
+ignoreUntil = 2027-05-31
 reason = "Current package-lock includes vulnerable picomatch versions via development tooling only; not part of the distributed runtime artifact."
 
 [[IgnoredVulns]]
 id = "GHSA-c2qf-rxjj-qqgw"
-ignoreUntil = 2029-12-31
+ignoreUntil = 2027-05-31
 reason = "Current package-lock includes semver 7.5.0 via development tooling only; not part of the distributed runtime artifact."
