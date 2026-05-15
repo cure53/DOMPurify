@@ -981,6 +981,23 @@
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
     };
     /**
+     * Strip template-engine expressions ({{...}}, ${...}, <%...%>) from the
+     * serialized markup of an element subtree. Used as the final safety net for
+     * SAFE_FOR_TEMPLATES on every DOM-returning code path so that expressions
+     * which only form after text-node normalization (e.g. fragments split across
+     * stripped elements) cannot survive into a template-evaluating framework.
+     *
+     * @param node The root element whose innerHTML should be scrubbed.
+     */
+    const _scrubTemplateExpressions = function _scrubTemplateExpressions(node) {
+      node.normalize();
+      let html = node.innerHTML;
+      arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
+        html = stringReplace(html, expr, ' ');
+      });
+      node.innerHTML = html;
+    };
+    /**
      * _isClobbered
      *
      * @param element element to check for clobbering attacks
@@ -1451,17 +1468,15 @@
       }
       /* If we sanitized `dirty` in-place, return it. */
       if (IN_PLACE) {
+        if (SAFE_FOR_TEMPLATES) {
+          _scrubTemplateExpressions(dirty);
+        }
         return dirty;
       }
       /* Return sanitized string or DOM */
       if (RETURN_DOM) {
         if (SAFE_FOR_TEMPLATES) {
-          body.normalize();
-          let html = body.innerHTML;
-          arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
-            html = stringReplace(html, expr, ' ');
-          });
-          body.innerHTML = html;
+          _scrubTemplateExpressions(body);
         }
         if (RETURN_DOM_FRAGMENT) {
           returnNode = createDocumentFragment.call(body.ownerDocument);
