@@ -2,28 +2,32 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>DOMPurify 3.4.2 "Mythotron"</title>
+        <title>DOMPurify 3.4.3 "Rockwool"</title>
         <script src="../dist/purify.min.js"></script>
         <!-- we don't actually need it - just to demo and test the $(html) sanitation -->
         <script src="//code.jquery.com/jquery-3.2.0.min.js"></script>
         <script>
-            if(typeof console === 'undefined') {console={}; console.log=function(){}}
-            window.onload = function(){
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://cdn.rawgit.com/cure53/DOMPurify/main/test/fixtures/expect.mjs');
-                xhr.onload = function(){
-                    var data=JSON.parse(xhr.responseText.slice(15, -1));
-                    x.value = '<!-- I am ready now, click one of the buttons! -->\r\n';
-                    for(var i in data) {
-                        x.value+=data[i].payload+"\r\n\r\n";
-                    }
-                }
-                xhr.send(null);
+        if (typeof console === 'undefined') { console = {}; console.log = function(){}; }
+
+        window.onload = async function () {
+            const url = 'https://cdn.jsdelivr.net/gh/cure53/DOMPurify@main/test/fixtures/expect.mjs';
+            try {
+            // expect.mjs is a real ES module — import it instead of string-slicing.
+            const { default: data } = await import(url);
+
+            x.value = '<!-- I am ready now, click one of the buttons! -->\r\n';
+            for (const entry of data) {
+                x.value += entry.payload + '\r\n\r\n';
             }
+            } catch (err) {
+            console.error('Failed to load test vectors:', err);
+            x.value = '<!-- Could not load test vectors. Paste your own HTML to test. -->\r\n';
+            }
+        };
         </script>
     </head>
     <body>
-        <h4>DOMPurify 3.4.2 "Mythotron"</h4>
+        <h4>DOMPurify 3.4.3 "Rockwool"</h4>
         <p>
             <a href="http://badge.fury.io/js/dompurify" rel="nofollow"><img alt="npm version" src="https://badge.fury.io/js/dompurify.svg"></a>  
             <a target="_blank" rel="noopener noreferrer" href="https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main"><img src="https://github.com/cure53/DOMPurify/workflows/Build%20and%20Test/badge.svg?branch=main" alt="Build and Test"></a>  
