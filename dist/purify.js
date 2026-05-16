@@ -1453,7 +1453,7 @@
         /* Sanitize attached shadow roots before the main iterator runs.
            The iterator does not descend into shadow trees. */
         _sanitizeAttachedShadowRoots2(dirty);
-      } else if (dirty instanceof Node) {
+      } else if (_isNode(dirty)) {
         /* If dirty is a DOM element, append to an empty document to avoid
            elements being stripped by the parser */
         body = _initDocument('<!---->');
