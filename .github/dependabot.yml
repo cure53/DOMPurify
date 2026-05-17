@@ -1,31 +1,65 @@
 version: 2
 updates:
-- package-ecosystem: "github-actions"
-  directory: "/"
-  schedule:
-      interval: "weekly"
+  # GitHub Actions: weekly, grouped. SHA-pinning means most updates are just
+  # noise unless a real CVE lands; weekly cadence is plenty.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - '*'
 
-- package-ecosystem: npm
-  directory: /
-  schedule:
-    interval: daily
+  # Main npm tree (build, test, lint tooling). Weekly + grouped minor/patch so
+  # routine bumps land in one reviewable PR; majors stay separate.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
 
-- package-ecosystem: npm
-  directory: /typescript/esm-with-no-types
-  schedule:
-    interval: daily
+  # Consumer-shape verification harnesses under typescript/. These exist to
+  # catch packaging regressions, not to ship code — group them all together
+  # so we don't get six separate PRs every time @types/node bumps.
+  - package-ecosystem: npm
+    directory: /typescript
+    schedule:
+      interval: weekly
+    groups:
+      typescript-harness:
+        patterns:
+          - '*'
 
-- package-ecosystem: npm
-  directory: /typescript/esm-with-specific-types
-  schedule:
-    interval: daily
+  - package-ecosystem: npm
+    directory: /typescript/esm
+    schedule:
+      interval: weekly
+    groups:
+      typescript-harness:
+        patterns:
+          - '*'
 
-- package-ecosystem: npm
-  directory: /typescript/esm
-  schedule:
-    interval: daily
+  - package-ecosystem: npm
+    directory: /typescript/esm-with-no-types
+    schedule:
+      interval: weekly
+    groups:
+      typescript-harness:
+        patterns:
+          - '*'
 
-- package-ecosystem: npm
-  directory: /typescript
-  schedule:
-    interval: daily
+  - package-ecosystem: npm
+    directory: /typescript/esm-with-specific-types
+    schedule:
+      interval: weekly
+    groups:
+      typescript-harness:
+        patterns:
+          - '*'

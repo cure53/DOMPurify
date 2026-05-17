@@ -831,6 +831,78 @@
       assert.equal(dirty.href, ''); // should still sanitize
     });
     QUnit.test(
+      'Config-Flag tests: SAFE_FOR_TEMPLATES strips boundary-spanning Mustache expressions in IN_PLACE mode',
+      function (assert) {
+        // Regression for the IN_PLACE counterpart of CVE-2026-41239.
+        // Per-text-node scrubbing during the sanitizer walk misses {{...}}
+        // whose halves sit on either side of a stripped foreign element: at
+        // walk time each surrounding text node holds only a single '{' or '}',
+        // so MUSTACHE_EXPR (which requires '{{' or '}}') matches nothing.
+        // Once the foreign element is removed, the surrounding text nodes are
+        // adjacent; a normalize() call merges them into one node containing
+        // '{{...}}', which a template-evaluating framework would interpolate
+        // on mount. The final scrub pass runs normalize() and then walks the
+        // merged character data so the joined expression is caught.
+        var dirty = document.createElement('div');
+        dirty.innerHTML =
+          '{<foo></foo>{constructor.constructor("alert(1)")()}<foo></foo>}';
+        DOMPurify.sanitize(dirty, {
+          SAFE_FOR_TEMPLATES: true,
+          IN_PLACE: true,
+        });
+        assert.notOk(
+          /\{\{[\s\S]*\}\}/.test(dirty.innerHTML),
+          'merged Mustache expression should be scrubbed'
+        );
+        assert.notOk(
+          /constructor/.test(dirty.innerHTML),
+          'expression body should not survive scrubbing'
+        );
+      }
+    );
+    QUnit.test(
+      'Config-Flag tests: SAFE_FOR_TEMPLATES strips boundary-spanning template-literal expressions in IN_PLACE mode',
+      function (assert) {
+        // Same bug class as above, for ES template literals: '$' and '{' land
+        // in separate text nodes, so TMPLIT_EXPR (which requires the paired
+        // '${' sigil) does not match per node. After normalize() merges the
+        // surrounding text fragments the final scrub walks the joined node
+        // and strips '${...}'.
+        var dirty = document.createElement('div');
+        dirty.innerHTML = '$<foo></foo>{<foo></foo>danger}';
+        DOMPurify.sanitize(dirty, {
+          SAFE_FOR_TEMPLATES: true,
+          IN_PLACE: true,
+        });
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(dirty.innerHTML),
+          'merged template-literal expression should be scrubbed'
+        );
+      }
+    );
+    QUnit.test(
+      'Config-Flag tests: SAFE_FOR_TEMPLATES pins RETURN_DOM_FRAGMENT scrub behavior',
+      function (assert) {
+        // RETURN_DOM_FRAGMENT was fixed alongside RETURN_DOM in CVE-2026-41239
+        // and both paths now share the same scrub helper as IN_PLACE. Pinning
+        // the fragment path here so future refactors of the post-walk return
+        // logic do not silently regress it.
+        var result = DOMPurify.sanitize(
+          '<div>{<foo></foo>{constructor.constructor("alert(1)")()}<foo></foo>}</div>',
+          {
+            SAFE_FOR_TEMPLATES: true,
+            RETURN_DOM_FRAGMENT: true,
+          }
+        );
+        var container = document.createElement('div');
+        container.appendChild(result);
+        assert.notOk(
+          /\{\{[\s\S]*\}\}/.test(container.innerHTML),
+          'merged Mustache expression should be scrubbed in fragment mode'
+        );
+      }
+    );
+    QUnit.test(
       'Config-Flag tests: IN_PLACE insecure root-nodes',
       function (assert) {
         //IN_PLACE with insecure root node (script)
@@ -3338,6 +3410,184 @@
           window.xssed = false;
           done();
         }, 100);
+      }
+    );
+    QUnit.test(
+      'IN_PLACE sanitizes cross-realm DOM nodes (GHSA-4w3q-35jp-p934)',
+      (assert) => {
+        const iframe = document.createElement('iframe');
+        document.body.appendChild(iframe);
+        const foreignDoc = iframe.contentDocument;
+
+        const dirty = foreignDoc.createElement('div');
+        dirty.innerHTML =
+          '<img src=x onerror=alert(1)><script>alert(2)<\/script>';
+
+        const result = DOMPurify.sanitize(dirty, { IN_PLACE: true });
+
+        assert.strictEqual(
+          result,
+          dirty,
+          'returns the same node, not a string'
+        );
+        assert.notOk(dirty.querySelector('script'), 'script removed');
+        assert.notOk(
+          dirty.querySelector('img').getAttribute('onerror'),
+          'onerror removed'
+        );
+
+        document.body.removeChild(iframe);
+      }
+    );
+
+    QUnit.test(
+      'string-input path still strings-stringifies non-node objects',
+      (assert) => {
+        assert.strictEqual(
+          DOMPurify.sanitize({
+            toString: () => '<b>hi</b><script>x<\/script>',
+          }),
+          '<b>hi</b>'
+        );
+      }
+    );
+
+    QUnit.test(
+      'plain objects with nodeType are not treated as nodes',
+      (assert) => {
+        // Regression guard: duck-typing must not accept spoofed objects.
+        const fake = { nodeType: 1, nodeName: 'DIV', ownerDocument: {} };
+        // Should be stringified, not iterated. No throw, returns sanitized string.
+        const result = DOMPurify.sanitize(fake);
+        assert.strictEqual(typeof result, 'string');
+      }
+    );
+
+    QUnit.test(
+      'cross-realm DOM input across config variants (GHSA-4w3q-35jp-p934 follow-up)',
+      (assert) => {
+        // Set up a cross-realm node identical to the PoC: an HTMLDivElement
+        // owned by an iframe document, containing a known XSS payload.
+        const iframe = document.createElement('iframe');
+        document.body.appendChild(iframe);
+        const foreignDoc = iframe.contentDocument;
+
+        const PAYLOAD =
+          '<p>hi <b>x</b></p>' +
+          '<img src=x onerror=alert(1)>' +
+          '<script>alert(2)<\/script>';
+
+        const mk = () => {
+          const n = foreignDoc.createElement('div');
+          n.innerHTML = PAYLOAD;
+          return n;
+        };
+
+        // Helper: serialize whatever sanitize returns into a string we can grep.
+        const ser = (r) => {
+          if (r === undefined || r === null) return String(r);
+          if (typeof r === 'string') return r;
+          if (r.outerHTML !== undefined) return r.outerHTML;
+          if (r.nodeType === 11) {
+            // DocumentFragment
+            const w = document.createElement('div');
+            w.appendChild(r.cloneNode(true));
+            return w.innerHTML;
+          }
+          return String(r);
+        };
+
+        // The universal invariant across every config variant: no executable
+        // payload may appear in the returned value. This is the actual security
+        // property; useful-output is a separate (looser) concern.
+        const assertNoExecutable = (label, returned) => {
+          const s = ser(returned);
+          assert.notOk(/<script/i.test(s), label + ': no <script> in return');
+          assert.notOk(/onerror=/i.test(s), label + ': no onerror= in return');
+        };
+
+        // ── c1: sanitize(node, {}) ────────────────────────────────────────────
+        // Current behavior with the _isNode patch alone: throws TypeError because
+        // `dirty instanceof Node` is still realm-bound, the cross-realm node
+        // falls through to the string branch, and `dirty.indexOf` is undefined.
+        // If the dispatch is broadened (`else if (_isNode(dirty))`), this should
+        // return a sanitized string instead. Either outcome is acceptable from a
+        // security standpoint; both are tested.
+        {
+          const n = mk();
+          let returned, threw;
+          try {
+            returned = DOMPurify.sanitize(n, {});
+          } catch (e) {
+            threw = e;
+          }
+
+          if (threw) {
+            assert.ok(
+              threw instanceof TypeError,
+              'c1: throwing is acceptable (loud failure, no bypass)'
+            );
+          } else {
+            assertNoExecutable('c1', returned);
+            assert.notOk(
+              /\[object /.test(ser(returned)),
+              'c1: should not return a stringified-node placeholder (would mean ' +
+                'dispatch still goes through the string branch)'
+            );
+          }
+        }
+
+        // ── c2: sanitize(node, { IN_PLACE: true }) ────────────────────────────
+        // This is the original GHSA-4w3q-35jp-p934 case. The node must be
+        // mutated in place and returned.
+        {
+          const n = mk();
+          const returned = DOMPurify.sanitize(n, { IN_PLACE: true });
+
+          assert.strictEqual(
+            returned,
+            n,
+            'c2: returns the same node, not a string'
+          );
+          assert.notOk(
+            n.querySelector('script'),
+            'c2: <script> removed in place'
+          );
+          const img = n.querySelector('img');
+          assert.ok(img, 'c2: <img> retained');
+          assert.notOk(
+            img.hasAttribute('onerror'),
+            'c2: onerror stripped in place'
+          );
+          assertNoExecutable('c2', n);
+        }
+
+        // ── c3: sanitize(node, { RETURN_DOM: true }) ─────────────────────────
+        // The return value must be safe regardless of whether the cross-realm
+        // node was actually sanitized or just stringified to a placeholder.
+        {
+          const n = mk();
+          const returned = DOMPurify.sanitize(n, { RETURN_DOM: true });
+          assertNoExecutable('c3', returned);
+          // Original node is non-IN_PLACE and must not have been mutated.
+          assert.ok(
+            /onerror=/i.test(n.outerHTML),
+            'c3: original cross-realm node is left untouched (non-IN_PLACE contract)'
+          );
+        }
+
+        // ── c4: sanitize(node, { RETURN_DOM_FRAGMENT: true }) ────────────────
+        {
+          const n = mk();
+          const returned = DOMPurify.sanitize(n, { RETURN_DOM_FRAGMENT: true });
+          assertNoExecutable('c4', returned);
+          assert.ok(
+            /onerror=/i.test(n.outerHTML),
+            'c4: original cross-realm node is left untouched (non-IN_PLACE contract)'
+          );
+        }
+
+        document.body.removeChild(iframe);
       }
     );
   };

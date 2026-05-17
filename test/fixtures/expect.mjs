@@ -926,5 +926,17 @@ export default [
     "title": "Does not remove the SVG 'mask-type' attribute",
     "payload": "<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><mask id=\"a\" mask-type=\"alpha\"><rect width=\"100%\" height=\"100%\" fill=\"rgb(10% 10% 10% / 0.4)\"></rect><circle cx=\"50\" cy=\"50\" r=\"35\" fill=\"rgb(90% 90% 90% / 0.6)\"></circle></mask><rect width=\"45\" height=\"45\" fill=\"red\" mask=\"url(#a)\"></rect></svg>",
     "expected": "<svg viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><mask id=\"a\" mask-type=\"alpha\"><rect width=\"100%\" height=\"100%\" fill=\"rgb(10% 10% 10% / 0.4)\"></rect><circle cx=\"50\" cy=\"50\" r=\"35\" fill=\"rgb(90% 90% 90% / 0.6)\"></circle></mask><rect width=\"45\" height=\"45\" fill=\"red\" mask=\"url(#a)\"></rect></svg>"
-  }
+  }, {
+    "title":"Testing support for command and commandfor",
+    "payload": "<button command=\"show-modal\" commandfor=\"dialog\">Show Modal</button>",
+    "expected": "<button command=\"show-modal\" commandfor=\"dialog\">Show Modal</button>"
+  }, {
+    "title":"Testing support for popovertarget and popovertargetaction",
+    "payload": "<button popovertargetaction=\"show\" popovertarget=\"popover\">Show Popover</button>",
+    "expected": "<button popovertargetaction=\"show\" popovertarget=\"popover\">Show Popover</button>"
+  }, {
+    "title":"Testing support for selectedcontent",
+    "payload": "<selectedcontent></selectedcontent>",
+    "expected": "<selectedcontent></selectedcontent>"
+  },
 ];

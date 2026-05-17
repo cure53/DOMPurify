@@ -22,6 +22,8 @@ export const html = freeze([
   'color',
   'cols',
   'colspan',
+  'command',
+  'commandfor',
   'controls',
   'controlslist',
   'coords',

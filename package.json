@@ -116,7 +116,7 @@
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/estree": "^1.0.9",
-    "@types/node": "^25.7.0",
+    "@types/node": "^25.8.0",
     "cross-env": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.2.1",
@@ -128,7 +128,7 @@
     "qunit": "^2.4.1",
     "qunit-tap": "^1.5.0",
     "rimraf": "^6.0.1",
-    "rollup": "^4.60.3",
+    "rollup": "^4.60.4",
     "rollup-plugin-dts": "^6.4.1",
     "tslib": "^2.7.0",
     "typescript": "^5.6.3",
@@ -139,7 +139,7 @@
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It's written in JavaScript and works in all modern browsers (Safari, Opera (15+), Internet Explorer (10+), Firefox and Chrome - as well as almost anything else using Blink or WebKit). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
-  "version": "3.4.3",
+  "version": "3.4.4",
   "directories": {
     "test": "test"
   },
