@@ -166,6 +166,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
   const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
   const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
+  const getNodeType =
+    Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -1064,6 +1066,49 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
+   * Strip template-engine expressions ({{...}}, ${...}, <%...%>) from the
+   * character data of an element subtree. Used as the final safety net for
+   * SAFE_FOR_TEMPLATES on every DOM-returning code path so that expressions
+   * which only form after text-node normalization (e.g. fragments split across
+   * stripped elements) cannot survive into a template-evaluating framework.
+   *
+   * Walks text/comment/CDATA/processing-instruction nodes and mutates `.data`
+   * in place rather than round-tripping through innerHTML. This preserves
+   * descendant node references (important for IN_PLACE callers), avoids a
+   * serialize/reparse cycle, and reads literal character data — which means
+   * `<%...%>` in text content matches the ERB regex against its real bytes
+   * instead of the HTML-entity-escaped form innerHTML would produce.
+   *
+   * Attribute values are not visited here; SAFE_FOR_TEMPLATES handling for
+   * attributes is performed during the per-node `_sanitizeAttributes` pass.
+   *
+   * @param node The root element whose character data should be scrubbed.
+   */
+  const _scrubTemplateExpressions = function (node: Element): void {
+    node.normalize();
+    const walker = createNodeIterator.call(
+      node.ownerDocument || node,
+      node,
+      // eslint-disable-next-line no-bitwise
+      NodeFilter.SHOW_TEXT |
+        NodeFilter.SHOW_COMMENT |
+        NodeFilter.SHOW_CDATA_SECTION |
+        NodeFilter.SHOW_PROCESSING_INSTRUCTION,
+      null
+    );
+
+    let currentNode = walker.nextNode() as CharacterData | null;
+    while (currentNode) {
+      let data = currentNode.data;
+      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
+        data = stringReplace(data, expr, ' ');
+      });
+      currentNode.data = data;
+      currentNode = walker.nextNode() as CharacterData | null;
+    }
+  };
+
+  /**
    * _isClobbered
    *
    * @param element element to check for clobbering attacks
@@ -1085,13 +1130,32 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
-   * Checks whether the given object is a DOM node.
+   * Checks whether the given object is a DOM node, including nodes that
+   * originate from a different window/realm (e.g. an iframe's
+   * contentDocument). The previous `value instanceof Node` check was
+   * realm-bound: nodes from a different window failed it, causing
+   * sanitize() to silently stringify them and reset IN_PLACE to false,
+   * returning the original node unsanitized. See GHSA-4w3q-35jp-p934.
+   *
+   * Implementation: call the cached `nodeType` getter from Node.prototype
+   * directly on the value. This bypasses any clobbered instance property
+   * (e.g. a child element named "nodeType") and works across realms
+   * because the WebIDL `nodeType` getter reads an internal slot that
+   * every real Node has, regardless of which window minted it.
    *
    * @param value object to check whether it's a DOM node
-   * @return true is object is a DOM node
+   * @return true if value is a DOM node from any realm
    */
   const _isNode = function (value: unknown): value is Node {
-    return typeof Node === 'function' && value instanceof Node;
+    if (!getNodeType || typeof value !== 'object' || value === null) {
+      return false;
+    }
+
+    try {
+      return typeof getNodeType(value) === 'number';
+    } catch (_) {
+      return false;
+    }
   };
 
   function _executeHooks<T extends HookFunction>(
@@ -1698,7 +1762,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Sanitize attached shadow roots before the main iterator runs.
          The iterator does not descend into shadow trees. */
       _sanitizeAttachedShadowRoots(dirty as Node);
-    } else if (dirty instanceof Node) {
+    } else if (_isNode(dirty)) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
       body = _initDocument('<!---->');
@@ -1767,18 +1831,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* If we sanitized `dirty` in-place, return it. */
     if (IN_PLACE) {
+      if (SAFE_FOR_TEMPLATES) {
+        _scrubTemplateExpressions(dirty as Element);
+      }
+
       return dirty;
     }
 
     /* Return sanitized string or DOM */
     if (RETURN_DOM) {
       if (SAFE_FOR_TEMPLATES) {
-        body.normalize();
-        let html = body.innerHTML;
-        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
-          html = stringReplace(html, expr, ' ');
-        });
-        body.innerHTML = html;
+        _scrubTemplateExpressions(body);
       }
 
       if (RETURN_DOM_FRAGMENT) {
