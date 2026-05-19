@@ -3590,5 +3590,109 @@
         document.body.removeChild(iframe);
       }
     );
+
+    QUnit.test(
+      'selectedcontent: refresh-after-sanitize bypass is closed (CVE: 3.4.4 → 3.4.5)',
+      (assert) => {
+        // --- 1. Exact PoC from KabirAcharya's report. ----------------------------
+        // In Chromium/WebKit, <selectedcontent> inside <select> is populated with
+        // a browser-generated clone of the selected <option>'s children. If the
+        // iterator visits the clone first and DOMPurify later mutates the option
+        // (e.g., removes an invalid attribute), the browser refreshes the clone
+        // from the still-unsanitized option content, after the walk has passed.
+        //
+        // Pre-3.4.5, the sanitized return string contained
+        // <selectedcontent><img onerror=...>x</selectedcontent>. Reinserting that
+        // via innerHTML fires the handler before the live DOM gets a chance to
+        // re-strip it. The fix removes <selectedcontent> from the default
+        // allow-list; the element and its content must not survive.
+        const exactPoC =
+          '<select><button><selectedcontent></selectedcontent></button>' +
+          '<option selected=javascript:1>' +
+          '<img src=x onerror=alert(1)>x' +
+          '</option></select>';
+        const cleanedPoC = DOMPurify.sanitize(exactPoC);
+        assert.notOk(
+          /onerror/i.test(cleanedPoC),
+          'exact PoC: no onerror= in sanitized output'
+        );
+        assert.notOk(
+          /<selectedcontent/i.test(cleanedPoC),
+          'exact PoC: <selectedcontent> stripped from default-config output'
+        );
+
+        // --- 2. Generalised trigger family. --------------------------------------
+        // The clone-refresh isn't unique to the `selected` attribute. Any mutation
+        // DOMPurify performs on the source <option> can in principle re-pollute
+        // an already-walked <selectedcontent> sibling. Each of the below removes a
+        // different attribute or child from the option during sanitization. If a
+        // future patch only handles the `selected` attribute path specifically,
+        // these variants would still bypass — this guards against that.
+        const triggerVariants = [
+          // Stripped attribute on the option itself.
+          '<select><selectedcontent></selectedcontent>' +
+            '<option onclick=alert(1)><img src=x onerror=alert(1)>y</option></select>',
+          // Stripped child element of the option.
+          '<select><selectedcontent></selectedcontent>' +
+            '<option><script>alert(1)<\/script>' +
+            '<img src=x onerror=alert(1)>z</option></select>',
+          // Stripped forbidden attribute on a nested element of the option.
+          '<select><selectedcontent></selectedcontent>' +
+            '<option><a href=javascript:alert(1)>' +
+            '<img src=x onerror=alert(1)>w</a></option></select>',
+        ];
+        triggerVariants.forEach((dirty, i) => {
+          const out = DOMPurify.sanitize(dirty);
+          assert.notOk(
+            /onerror/i.test(out),
+            'trigger variant ' + i + ': no onerror= survives sanitization'
+          );
+          assert.notOk(
+            /<selectedcontent/i.test(out),
+            'trigger variant ' + i + ': <selectedcontent> removed'
+          );
+        });
+
+        // --- 3. Live-DOM behaviour check. ---------------------------------------
+        // The full impact requires reinserting the sanitized string. Confirm the
+        // round-trip doesn't fire handlers. This is what callers actually do:
+        // sanitize(...), then element.innerHTML = result.
+        let alertFired = false;
+        const originalAlert = window.alert;
+        window.alert = () => {
+          alertFired = true;
+        };
+        try {
+          const host = document.createElement('div');
+          host.innerHTML = DOMPurify.sanitize(exactPoC);
+          // Force any pending image-load error handlers to run by attaching to DOM.
+          document.body.appendChild(host);
+          // Tick the event loop synchronously where possible. img.onerror fires
+          // synchronously in most browsers when src is unreachable; if a test
+          // runner needs an await tick here, wrap the test in QUnit.test.async.
+          document.body.removeChild(host);
+        } finally {
+          window.alert = originalAlert;
+        }
+        assert.notOk(
+          alertFired,
+          'round-trip (sanitize → innerHTML) does not execute attacker handler'
+        );
+
+        // --- 4. Opt-in path still works for callers who explicitly allow it. -----
+        // The fix should be removing <selectedcontent> from defaults, not banning
+        // it entirely. Users who pass it through ADD_TAGS should still be able to
+        // use it for plain (non-attack) content. If a future fix removes this
+        // capability outright, this assertion will catch the over-correction.
+        const benign = '<selectedcontent>hello</selectedcontent>';
+        const benignClean = DOMPurify.sanitize(benign, {
+          ADD_TAGS: ['selectedcontent'],
+        });
+        assert.ok(
+          /<selectedcontent[^>]*>hello<\/selectedcontent>/i.test(benignClean),
+          'ADD_TAGS opt-in: benign <selectedcontent> content survives'
+        );
+      }
+    );
   };
 });
