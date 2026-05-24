@@ -3694,5 +3694,387 @@
         );
       }
     );
+
+    QUnit.module('DOM Clobbering of attached-shadow-root traversal');
+
+    // Cached probe results. Populated by the first test; consulted by the rest.
+    var __probe = {
+      ran: false,
+      shadowSanitization: false, // basic _sanitizeAttachedShadowRoots works
+      formClobbering: false, // <input name="X"> shadows form.X
+      setHTMLUnsafe: false, // declarative shadow DOM via setHTMLUnsafe
+    };
+
+    function _probeOnce() {
+      if (__probe.ran) {
+        return __probe;
+      }
+      __probe.ran = true;
+
+      // (1) Does _sanitizeAttachedShadowRoots reach an imperatively-attached
+      // shadow root under IN_PLACE? Use a fresh host with a known-bad payload
+      // and check whether DOMPurify scrubs it.
+      try {
+        var probeHost = document.createElement('div');
+        if (typeof probeHost.attachShadow === 'function') {
+          probeHost.attachShadow({ mode: 'open' }).innerHTML =
+            '<img src=x onerror=alert(1)>';
+          DOMPurify.sanitize(probeHost, { IN_PLACE: true });
+          __probe.shadowSanitization =
+            probeHost.shadowRoot &&
+            probeHost.shadowRoot.querySelectorAll('img').length === 0;
+        }
+      } catch (_) {}
+
+      // (2) Does HTMLFormElement implement named-property clobbering?
+      try {
+        var probeForm = document.createElement('form');
+        var probeInput = document.createElement('input');
+        probeInput.setAttribute('name', 'childNodes');
+        probeForm.appendChild(probeInput);
+        // In a clobbering-capable engine, form.childNodes is *replaced* by the
+        // named child (the input element or a RadioNodeList around it) and no
+        // longer behaves as a NodeList of length 1 whose [0] is the input.
+        var cn = probeForm.childNodes;
+        var looksLikeRealChildNodes =
+          cn && typeof cn.length === 'number' && cn[0] === probeInput;
+        __probe.formClobbering = !looksLikeRealChildNodes;
+      } catch (_) {}
+
+      // (3) Is declarative shadow DOM via setHTMLUnsafe available? Probe on
+      // an instance to avoid depending on a global `Element` reference.
+      try {
+        var probeContainer = document.createElement('div');
+        __probe.setHTMLUnsafe =
+          typeof probeContainer.setHTMLUnsafe === 'function';
+      } catch (_) {}
+
+      return __probe;
+    }
+
+    QUnit.test(
+      'environment probe: report shadow-DOM and form-clobbering support',
+      function (assert) {
+        var p = _probeOnce();
+        // Each probe is reported as its own assertion so the test log makes the
+        // capability picture obvious if anything below skips.
+        assert.ok(true, 'shadowSanitization=' + p.shadowSanitization);
+        assert.ok(true, 'formClobbering=' + p.formClobbering);
+        assert.ok(true, 'setHTMLUnsafe=' + p.setHTMLUnsafe);
+      }
+    );
+
+    // ---------------------------------------------------------------------------
+    // Bypass-specific tests. They REQUIRE both shadow sanitization and form
+    // clobbering to be supported — otherwise the bug under test cannot be
+    // reproduced in this engine, and we skip rather than silently pass.
+    // ---------------------------------------------------------------------------
+
+    function _skipIfMissingPrereqs(assert) {
+      var p = _probeOnce();
+      if (!p.shadowSanitization) {
+        assert.ok(
+          true,
+          'SKIP: this engine does not sanitize attached shadow roots via IN_PLACE; the bug under test is below the prerequisite'
+        );
+        return true;
+      }
+      if (!p.formClobbering) {
+        assert.ok(
+          true,
+          'SKIP: this engine does not implement HTMLFormElement [LegacyOverrideBuiltIns] named-property clobbering; the bypass is not reproducible here (browser runs cover it)'
+        );
+        return true;
+      }
+      return false;
+    }
+
+    QUnit.test(
+      'IN_PLACE: form clobbered by name="childNodes" does not hide a shadow root',
+      function (assert) {
+        if (_skipIfMissingPrereqs(assert)) return;
+
+        var host = document.createElement('div');
+        host.attachShadow({ mode: 'open' }).innerHTML =
+          '<img src=x onerror="window.__pwned_childNodes=1">';
+
+        var form = document.createElement('form');
+        var clobber = document.createElement('input');
+        clobber.setAttribute('name', 'childNodes');
+        form.appendChild(clobber);
+        form.appendChild(host);
+
+        DOMPurify.sanitize(form, { IN_PLACE: true });
+
+        assert.notOk(
+          host.shadowRoot && host.shadowRoot.querySelector('img'),
+          'onerror <img> must not survive inside the attached shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: form clobbered by name="nodeType" does not hide a shadow root',
+      function (assert) {
+        if (_skipIfMissingPrereqs(assert)) return;
+
+        var host = document.createElement('div');
+        host.attachShadow({ mode: 'open' }).innerHTML =
+          '<img src=x onerror="window.__pwned_nodeType=1">';
+
+        var form = document.createElement('form');
+        var clobber = document.createElement('input');
+        clobber.setAttribute('name', 'nodeType');
+        form.appendChild(clobber);
+        form.appendChild(host);
+
+        DOMPurify.sanitize(form, { IN_PLACE: true });
+
+        assert.notOk(
+          host.shadowRoot && host.shadowRoot.querySelector('img'),
+          'onerror <img> must not survive inside the attached shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: form clobbered by name="shadowRoot" does not hide its descendant host shadow root',
+      function (assert) {
+        if (_skipIfMissingPrereqs(assert)) return;
+
+        var host = document.createElement('div');
+        host.attachShadow({ mode: 'open' }).innerHTML =
+          '<img src=x onerror="window.__pwned_shadowRoot=1">';
+
+        var form = document.createElement('form');
+        var clobber = document.createElement('input');
+        clobber.setAttribute('name', 'shadowRoot');
+        form.appendChild(clobber);
+        form.appendChild(host);
+
+        DOMPurify.sanitize(form, { IN_PLACE: true });
+
+        assert.notOk(
+          host.shadowRoot && host.shadowRoot.querySelector('img'),
+          'onerror <img> must not survive inside the attached shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: root-allowlist check is not bypassable by name="nodeName" clobbering',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.formClobbering) {
+          assert.ok(true, 'SKIP: no form clobbering in this engine');
+          return;
+        }
+
+        // Allowed root: must not throw even when nodeName is clobbered.
+        var allowedRoot = document.createElement('form');
+        var clobberA = document.createElement('input');
+        clobberA.setAttribute('name', 'nodeName');
+        allowedRoot.appendChild(clobberA);
+        DOMPurify.sanitize(allowedRoot, { IN_PLACE: true });
+        assert.ok(true, 'allowed clobbered-nodeName root did not throw');
+
+        // Forbidden root: must still throw despite the clobbering attempt. We
+        // append the clobbering child via DOM API since <script><input> isn't a
+        // shape the HTML parser would produce, but the IN_PLACE check sees the
+        // tree the caller hands it.
+        var forbiddenRoot = document.createElement('script');
+        var clobberB = document.createElement('input');
+        clobberB.setAttribute('name', 'nodeName');
+        try {
+          forbiddenRoot.appendChild(clobberB);
+        } catch (_) {
+          // Some engines reject this; if so, the test is moot.
+          assert.ok(
+            true,
+            'SKIP: cannot attach input child to script in this engine'
+          );
+          return;
+        }
+        assert.throws(function () {
+          DOMPurify.sanitize(forbiddenRoot, { IN_PLACE: true });
+        }, 'forbidden root must still throw even when nodeName is clobbered');
+      }
+    );
+
+    QUnit.test(
+      'DOM-node input (no IN_PLACE): clobbered form does not hide a clonable shadow root',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.formClobbering) {
+          assert.ok(true, 'SKIP: no form clobbering in this engine');
+          return;
+        }
+
+        var host = document.createElement('div');
+        if (typeof host.attachShadow !== 'function') {
+          assert.ok(true, 'SKIP: attachShadow not available');
+          return;
+        }
+        try {
+          host.attachShadow({ mode: 'open', clonable: true }).innerHTML =
+            '<img src=x onerror="window.__pwned_import=1">';
+        } catch (_) {
+          assert.ok(true, 'SKIP: clonable shadow roots not supported here');
+          return;
+        }
+
+        var form = document.createElement('form');
+        var clobber = document.createElement('input');
+        clobber.setAttribute('name', 'childNodes');
+        form.appendChild(clobber);
+        form.appendChild(host);
+
+        var clean = DOMPurify.sanitize(form); // not IN_PLACE — node-input path
+        var probe = document.createElement('div');
+        if (typeof clean === 'string') {
+          probe.innerHTML = clean;
+        }
+        assert.equal(
+          probe.querySelectorAll('img[src="x"][onerror]').length,
+          0,
+          'onerror <img> must not survive via the node-input path'
+        );
+      }
+    );
+
+    QUnit.test(
+      'setHTMLUnsafe + IN_PLACE: declarative shadow DOM under a clobbered form is sanitized',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.setHTMLUnsafe) {
+          assert.ok(true, 'SKIP: setHTMLUnsafe not available in this engine');
+          return;
+        }
+        if (!p.formClobbering) {
+          assert.ok(true, 'SKIP: no form clobbering in this engine');
+          return;
+        }
+
+        var container = document.createElement('div');
+        container.setHTMLUnsafe(
+          '<form>' +
+            '<input name="childNodes">' +
+            '<div id="host">' +
+            '<template shadowrootmode="open">' +
+            '<img src=x onerror="window.__pwned_setHTMLUnsafe=1">' +
+            '</template>' +
+            '</div>' +
+            '</form>'
+        );
+
+        DOMPurify.sanitize(container, { IN_PLACE: true });
+
+        var host = container.querySelector('#host');
+        var img =
+          host && host.shadowRoot && host.shadowRoot.querySelector('img');
+        assert.notOk(
+          img,
+          'shadow-root <img> from declarative shadow DOM must be sanitized'
+        );
+      }
+    );
+
+    // ---------------------------------------------------------------------------
+    // _isClobbered defense-in-depth.
+    // ---------------------------------------------------------------------------
+
+    QUnit.test(
+      '_isClobbered: form with name="childNodes" child is removed during sanitization',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.formClobbering) {
+          assert.ok(true, 'SKIP: no form clobbering in this engine');
+          return;
+        }
+
+        var form = document.createElement('form');
+        var clobber = document.createElement('input');
+        clobber.setAttribute('name', 'childNodes');
+        form.appendChild(clobber);
+
+        var wrapper = document.createElement('div');
+        wrapper.appendChild(form);
+
+        DOMPurify.sanitize(wrapper, { IN_PLACE: true });
+
+        assert.equal(
+          wrapper.querySelectorAll('form').length,
+          0,
+          'clobbered form must be removed'
+        );
+      }
+    );
+
+    // ---------------------------------------------------------------------------
+    // Regression guards. These exercise behaviour that must hold independent of
+    // the clobbering fix, so the patch does not silently regress ordinary
+    // attached-shadow-root sanitization. They skip if the engine can't sanitize
+    // shadow roots at all (older jsdom), which is reported by the probe.
+    // ---------------------------------------------------------------------------
+
+    QUnit.test(
+      'Regression guard: ordinary attached shadow roots are still sanitized in-place',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.shadowSanitization) {
+          assert.ok(
+            true,
+            'SKIP: this engine does not sanitize attached shadow roots via IN_PLACE'
+          );
+          return;
+        }
+
+        var host = document.createElement('div');
+        host.attachShadow({ mode: 'open' }).innerHTML =
+          '<img src=x onerror=alert(1)><b>kept</b>';
+
+        DOMPurify.sanitize(host, { IN_PLACE: true });
+
+        assert.equal(
+          host.shadowRoot.querySelectorAll('img').length,
+          0,
+          'onerror <img> is removed'
+        );
+        assert.equal(
+          host.shadowRoot.querySelector('b').textContent,
+          'kept',
+          'safe content is preserved'
+        );
+      }
+    );
+
+    QUnit.test(
+      'Regression guard: nested attached shadow roots are still reached',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.shadowSanitization) {
+          assert.ok(
+            true,
+            'SKIP: this engine does not sanitize attached shadow roots via IN_PLACE'
+          );
+          return;
+        }
+
+        var outer = document.createElement('div');
+        var outerRoot = outer.attachShadow({ mode: 'open' });
+        var inner = document.createElement('section');
+        outerRoot.appendChild(inner);
+        inner.attachShadow({ mode: 'open' }).innerHTML =
+          '<img src=x onerror=alert(2)>';
+
+        DOMPurify.sanitize(outer, { IN_PLACE: true });
+
+        assert.equal(
+          inner.shadowRoot.querySelectorAll('img').length,
+          0,
+          'onerror <img> inside a nested shadow root is removed'
+        );
+      }
+    );
   };
 });
