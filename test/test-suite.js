@@ -3017,23 +3017,29 @@
     QUnit.test(
       'Config-Flag tests: IN_PLACE handles DOM-clobbered nodeName safely',
       function (assert) {
-        // <input name=nodeName> in a form clobbers form.nodeName in most
-        // browsers. The IN_PLACE path must handle this without producing a
-        // sanitized output that still contains attacker-controlled handlers.
-        var dirty = document.createElement('form');
-        dirty.innerHTML =
+        // Build the clobbering candidate.
+        var root = document.createElement('form');
+        root.innerHTML =
           '<input name="nodeName" onclick="alert(1)">' +
           '<input name="attributes" onclick="alert(2)">';
-        try {
-          DOMPurify.sanitize(dirty, { IN_PLACE: true });
-        } catch (e) {
-          // Either throwing OR scrubbing is acceptable; only script execution
-          // would be unacceptable.
+
+        var clobbersNodeName = typeof root.nodeName !== 'string';
+
+        if (clobbersNodeName) {
+          assert.throws(
+            function () {
+              DOMPurify.sanitize(root, { IN_PLACE: true });
+            },
+            /clobbered|forbidden/i,
+            'clobbered IN_PLACE root must throw in clobbering-capable engines'
+          );
+        } else {
+          var clean = DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.ok(
+            !/on\w+=/i.test(clean.outerHTML),
+            'no on-handler survived: ' + clean.outerHTML
+          );
         }
-        assert.notOk(
-          /\son[a-z]+\s*=/i.test(dirty.innerHTML),
-          'no on-handler survived: ' + dirty.innerHTML
-        );
       }
     );
 
@@ -3862,7 +3868,7 @@
     );
 
     QUnit.test(
-      'IN_PLACE: root-allowlist check is not bypassable by name="nodeName" clobbering',
+      'IN_PLACE: nodeName-clobbered root is rejected regardless of allowlist',
       function (assert) {
         var p = _probeOnce();
         if (!p.formClobbering) {
@@ -3870,34 +3876,38 @@
           return;
         }
 
-        // Allowed root: must not throw even when nodeName is clobbered.
+        // After GHSA-r47g-fvhr-h676, a clobbered form root is rejected by the
+        // IN_PLACE preamble's _isClobbered pre-flight, independent of the tag
+        // allowlist. So both cases below must throw:
+        //   1. allowed tag (form is in the default allowlist) but clobbered
+        //   2. forbidden tag (form excluded via FORBID_TAGS) and clobbered
+        // The earlier draft of this test asserted case 1 must NOT throw — that
+        // expectation predated the GHSA-r47g-fvhr-h676 fix and was wrong.
+
+        // Case 1: allowed tag, clobbered → must throw (clobbering check fires).
         var allowedRoot = document.createElement('form');
         var clobberA = document.createElement('input');
         clobberA.setAttribute('name', 'nodeName');
         allowedRoot.appendChild(clobberA);
-        DOMPurify.sanitize(allowedRoot, { IN_PLACE: true });
-        assert.ok(true, 'allowed clobbered-nodeName root did not throw');
 
-        // Forbidden root: must still throw despite the clobbering attempt. We
-        // append the clobbering child via DOM API since <script><input> isn't a
-        // shape the HTML parser would produce, but the IN_PLACE check sees the
-        // tree the caller hands it.
-        var forbiddenRoot = document.createElement('script');
+        assert.throws(function () {
+          DOMPurify.sanitize(allowedRoot, { IN_PLACE: true });
+        }, 'allowed-tag clobbered root must throw');
+
+        // Case 2: forbidden tag AND clobbered → must throw. The exact error
+        // message depends on which check fires first (allowlist vs clobbering
+        // pre-flight); both are correct refusals.
+        var forbiddenRoot = document.createElement('form');
         var clobberB = document.createElement('input');
         clobberB.setAttribute('name', 'nodeName');
-        try {
-          forbiddenRoot.appendChild(clobberB);
-        } catch (_) {
-          // Some engines reject this; if so, the test is moot.
-          assert.ok(
-            true,
-            'SKIP: cannot attach input child to script in this engine'
-          );
-          return;
-        }
+        forbiddenRoot.appendChild(clobberB);
+
         assert.throws(function () {
-          DOMPurify.sanitize(forbiddenRoot, { IN_PLACE: true });
-        }, 'forbidden root must still throw even when nodeName is clobbered');
+          DOMPurify.sanitize(forbiddenRoot, {
+            IN_PLACE: true,
+            FORBID_TAGS: ['form'],
+          });
+        }, 'forbidden-tag clobbered root must throw');
       }
     );
 
@@ -4007,6 +4017,187 @@
           0,
           'clobbered form must be removed'
         );
+      }
+    );
+
+    QUnit.test(
+      '_isClobbered: form clobbered by <select name="childNodes"> is still removed',
+      function (assert) {
+        // <select> defeats a naive `typeof childNodes.length === "number"`
+        // probe because HTMLSelectElement.length is a defined unsigned-long
+        // attribute returning the option count. The probe must instead compare
+        // the direct read against the cached Node.prototype getter, which is
+        // type-agnostic and catches every clobbering child.
+        var p = _probeOnce();
+        if (!p.formClobbering) {
+          assert.ok(true, 'SKIP: no form clobbering in this engine');
+          return;
+        }
+
+        var form = document.createElement('form');
+        var clobber = document.createElement('select');
+        clobber.setAttribute('name', 'childNodes');
+        form.appendChild(clobber);
+
+        var wrapper = document.createElement('div');
+        wrapper.appendChild(form);
+
+        DOMPurify.sanitize(wrapper, { IN_PLACE: true });
+
+        assert.equal(
+          wrapper.querySelectorAll('form').length,
+          0,
+          'form clobbered by <select name="childNodes"> must be removed'
+        );
+      }
+    );
+
+    QUnit.test(
+      '_isClobbered: shadow root nested under a <select>-clobbered form is still sanitized',
+      function (assert) {
+        // End-to-end version of the <select> probe defeat: confirms the actual
+        // XSS impact is still blocked. The primary defense — cached prototype
+        // getters in _sanitizeAttachedShadowRoots — handles this regardless of
+        // _isClobbered, so this test passes even with the old length-based
+        // probe. We keep it so a future regression in the traversal would be
+        // visible alongside the _isClobbered hardening.
+        var p = _probeOnce();
+        if (!p.formClobbering || !p.shadowSanitization) {
+          assert.ok(true, 'SKIP: missing prerequisites in this engine');
+          return;
+        }
+
+        var host = document.createElement('div');
+        host.attachShadow({ mode: 'open' }).innerHTML =
+          '<img src=x onerror="window.__pwned_select=1">';
+
+        var form = document.createElement('form');
+        var clobber = document.createElement('select');
+        clobber.setAttribute('name', 'childNodes');
+        form.appendChild(clobber);
+        form.appendChild(host);
+
+        DOMPurify.sanitize(form, { IN_PLACE: true });
+
+        assert.notOk(
+          host.shadowRoot && host.shadowRoot.querySelector('img'),
+          'onerror <img> must not survive inside the attached shadow root'
+        );
+      }
+    );
+
+    // ---------------------------------------------------------------------------
+    // GHSA-r47g-fvhr-h676 — parent-less clobbered IN_PLACE root retains
+    // attacker-controlled attributes. When _forceRemove can't detach the root
+    // (no parent) and _sanitizeAttributes early-returns on _isClobbered, any
+    // event-handler attribute on the root survives. sanitize() must instead
+    // throw on a clobbered IN_PLACE root, the same way it throws on a
+    // forbidden root tag.
+    // ---------------------------------------------------------------------------
+
+    QUnit.test(
+      'GHSA-r47g-fvhr-h676: parent-less clobbered form root throws instead of returning the root with onmouseover intact',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.formClobbering) {
+          assert.ok(true, 'SKIP: no form clobbering in this engine');
+          return;
+        }
+
+        // Build the report's PoC: parent-less <form onmouseover=...> with an
+        // <input name="nodeName"> child that clobbers form.nodeName. The
+        // patched sanitize() must throw; an attacker should not get back a
+        // form carrying the event-handler attribute.
+        //
+        // The throw IS the protection: by refusing to return the root, the
+        // sanitizer makes it impossible for the caller to insert an
+        // attacker-controlled element into the live DOM. We do NOT assert
+        // anything about the root's attributes afterwards — the fix is
+        // "fail closed, don't hand back this node", not "scrub then return".
+        // Asserting onmouseover is gone would be incorrect: the throw fires
+        // in the preamble before any attribute walk, so the input node is
+        // unchanged, by design.
+        var root = document.createElement('form');
+        root.setAttribute('onmouseover', 'window.__rooted_h676 = 1');
+        var clobber = document.createElement('input');
+        clobber.setAttribute('name', 'nodeName');
+        root.appendChild(clobber);
+
+        assert.throws(function () {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+        }, 'clobbered parent-less IN_PLACE root must throw');
+      }
+    );
+
+    QUnit.test(
+      'GHSA-r47g-fvhr-h676: each clobbering name covered by _isClobbered triggers the IN_PLACE preamble throw',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.formClobbering) {
+          assert.ok(true, 'SKIP: no form clobbering in this engine');
+          return;
+        }
+
+        // The report enumerates "nodeName | setAttribute | namespaceURI |
+        // insertBefore | hasChildNodes | childNodes" as PoC seeds. Each name
+        // is in _isClobbered's typing checklist, so the preamble must throw
+        // for each of them when the root is parent-less.
+        var clobberNames = [
+          'nodeName',
+          'setAttribute',
+          'namespaceURI',
+          'insertBefore',
+          'hasChildNodes',
+          'childNodes',
+        ];
+
+        clobberNames.forEach(function (name) {
+          var root = document.createElement('form');
+          root.setAttribute('onmouseover', 'window.__rooted_' + name + ' = 1');
+          var clobber = document.createElement('input');
+          clobber.setAttribute('name', name);
+          root.appendChild(clobber);
+
+          assert.throws(
+            function () {
+              DOMPurify.sanitize(root, { IN_PLACE: true });
+            },
+            'IN_PLACE preamble must throw for clobber name="' + name + '"'
+          );
+        });
+      }
+    );
+
+    QUnit.test(
+      'GHSA-r47g-fvhr-h676: a parented clobbered form is still sanitized normally (regression guard)',
+      function (assert) {
+        var p = _probeOnce();
+        if (!p.formClobbering) {
+          assert.ok(true, 'SKIP: no form clobbering in this engine');
+          return;
+        }
+
+        // Sanity-check that the preamble fix is narrowly scoped: when the
+        // IN_PLACE root is NOT the clobbered form (it's a wrapper that
+        // contains it), the iterator-driven removal path works normally —
+        // _forceRemove succeeds because the form has a parent — and the
+        // application should not see any error.
+        var wrapper = document.createElement('div');
+        var form = document.createElement('form');
+        form.setAttribute('onmouseover', 'window.__rooted_parented = 1');
+        var clobber = document.createElement('input');
+        clobber.setAttribute('name', 'nodeName');
+        form.appendChild(clobber);
+        wrapper.appendChild(form);
+
+        DOMPurify.sanitize(wrapper, { IN_PLACE: true });
+
+        assert.equal(
+          wrapper.querySelectorAll('form').length,
+          0,
+          'parented clobbered form is removed by the iterator-driven path'
+        );
+        // The form was detached; no chance for onmouseover to fire.
       }
     );
 

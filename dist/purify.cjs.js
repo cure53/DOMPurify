@@ -1021,13 +1021,18 @@ function createDOMPurify() {
    */
   const _isClobbered = function _isClobbered(element) {
     return element instanceof HTMLFormElement && (typeof element.nodeName !== 'string' || typeof element.textContent !== 'string' || typeof element.removeChild !== 'function' || !(element.attributes instanceof NamedNodeMap) || typeof element.removeAttribute !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function' ||
-    // HTMLFormElement has [LegacyOverrideBuiltIns]: a descendant with
-    // name="childNodes" / "firstChild" / "nextSibling" shadows the
-    // matching prototype getter. Walks that read these properties
-    // directly off a clobbered form silently skip children. Flagging
-    // the form here ensures sanitize() removes it even if a future
-    // caller forgets to route through the cached prototype getters.
-    !(element.childNodes && typeof element.childNodes.length === 'number'));
+    // HTMLFormElement has [LegacyOverrideBuiltIns]: a descendant named
+    // "childNodes" shadows the prototype getter. Direct reads of
+    // form.childNodes from a clobbered form return the named child
+    // instead of the real NodeList, so any walk that reads it directly
+    // skips the form's real children. Compare the direct read to the
+    // cached Node.prototype getter — when the form's named-property
+    // getter intercepts the read, the two values differ and we flag
+    // the form. This catches every clobbering child type (input,
+    // select, etc.) regardless of whether the named child happens to
+    // carry a numeric .length, which a typeof-based probe would miss
+    // (e.g. HTMLSelectElement.length is a defined unsigned-long).
+    element.childNodes !== getChildNodes(element));
   };
   /**
    * Checks whether the given object is a DOM node, including nodes that
@@ -1472,6 +1477,19 @@ function createDOMPurify() {
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
           throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
         }
+      }
+      /* Pre-flight the root through _isClobbered. The iterator-driven
+         removal path can not detach a parent-less root: _forceRemove
+         falls through to Element.prototype.remove(), which per spec
+         is a no-op on a node with no parent. A clobbered root would
+         then survive the main loop with its attributes uninspected,
+         because _sanitizeAttributes early-returns on _isClobbered. The
+         result would be an attacker-controlled form, complete with any
+         event-handler attributes the caller passed in, handed back to
+         the application unsanitized. Refuse to sanitize such a root
+         the same way we refuse a forbidden tag. GHSA-r47g-fvhr-h676. */
+      if (_isClobbered(dirty)) {
+        throw typeErrorCreate('root node is clobbered and cannot be sanitized in-place');
       }
       /* Sanitize attached shadow roots before the main iterator runs.
          The iterator does not descend into shadow trees. */
