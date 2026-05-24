@@ -166,8 +166,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
   const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
   const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
+  const getShadowRoot = lookupGetter(ElementPrototype, 'shadowRoot');
   const getNodeType =
     Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
+  const getNodeName =
+    Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -1125,7 +1128,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         typeof element.setAttribute !== 'function' ||
         typeof element.namespaceURI !== 'string' ||
         typeof element.insertBefore !== 'function' ||
-        typeof element.hasChildNodes !== 'function')
+        typeof element.hasChildNodes !== 'function' ||
+        // HTMLFormElement has [LegacyOverrideBuiltIns]: a descendant with
+        // name="childNodes" / "firstChild" / "nextSibling" shadows the
+        // matching prototype getter. Walks that read these properties
+        // directly off a clobbered form silently skip children. Flagging
+        // the form here ensures sanitize() removes it even if a future
+        // caller forgets to route through the cached prototype getters.
+        !(element.childNodes && typeof element.childNodes.length === 'number'))
     );
   };
 
@@ -1673,25 +1683,41 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * existing _sanitizeShadowDOM template-content recursion) stay
    * untouched — string-input paths are not affected.
    *
+   * DOM-Clobbering hardening: HTMLFormElement carries the WebIDL
+   * [LegacyOverrideBuiltIns] extended attribute, so a descendant element
+   * named `nodeType`, `shadowRoot`, or `childNodes` shadows the matching
+   * prototype getter on the form. Reading those properties directly off
+   * the node would let an attacker steer this walk past shadow hosts
+   * (e.g. <input name="childNodes"> collapses the form's child list to
+   * the input itself, so descent stops dead and any shadow root deeper
+   * in the subtree is never sanitized). Every property access here is
+   * therefore routed through the cached prototype getter; the form's
+   * named-property getter cannot intercept those reads.
+   *
    * @param root the subtree root to walk for attached shadow roots
    */
   const _sanitizeAttachedShadowRoots = function (root: Node): void {
-    if (
-      root.nodeType === NODE_TYPE.element &&
-      (root as Element).shadowRoot instanceof DocumentFragment
-    ) {
-      const sr = (root as Element).shadowRoot as DocumentFragment;
-      // Recurse first so that nested shadow roots are reached even if
-      // _sanitizeShadowDOM removes hosts at this level.
-      _sanitizeAttachedShadowRoots(sr);
-      _sanitizeShadowDOM(sr);
+    const nodeType = getNodeType ? getNodeType(root) : (root as any).nodeType;
+
+    if (nodeType === NODE_TYPE.element) {
+      const sr = getShadowRoot
+        ? getShadowRoot(root)
+        : (root as Element).shadowRoot;
+      if (sr instanceof DocumentFragment) {
+        // Recurse first so that nested shadow roots are reached even if
+        // _sanitizeShadowDOM removes hosts at this level.
+        _sanitizeAttachedShadowRoots(sr);
+        _sanitizeShadowDOM(sr);
+      }
     }
 
     // Snapshot children before recursing. Sanitization of one subtree
     // (e.g. via an uponSanitizeShadowNode hook) may detach siblings,
     // and naive nextSibling traversal would silently skip the rest of
     // the list once a node is detached.
-    const childNodes = root.childNodes;
+    const childNodes = getChildNodes
+      ? getChildNodes(root)
+      : (root as Element).childNodes;
     if (!childNodes) {
       return;
     }
@@ -1748,8 +1774,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     if (IN_PLACE) {
-      /* Do some early pre-sanitization to avoid unsafe root nodes */
-      const nn = (dirty as Node).nodeName;
+      /* Do some early pre-sanitization to avoid unsafe root nodes.
+         Read nodeName through the cached prototype getter — a clobbering
+         child named "nodeName" on the form root would otherwise shadow
+         the property and let this check skip the root-allowlist
+         validation entirely. */
+      const nn = getNodeName
+        ? getNodeName(dirty as Node)
+        : (dirty as Node).nodeName;
       if (typeof nn === 'string') {
         const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
@@ -1782,7 +1814,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       /* Clonable shadow roots are deep-cloned by importNode(); sanitize
          them before the main iterator runs, since the iterator does not
-         descend into shadow trees. */
+         descend into shadow trees. The walk routes every read through a
+         cached prototype getter so clobbering descendants on a form root
+         cannot hide a shadow host from this pass. */
       _sanitizeAttachedShadowRoots(importedNode);
     } else {
       /* Exit directly if we have nothing to do */
