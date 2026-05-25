@@ -3701,6 +3701,32 @@
       }
     );
 
+    /*
+     * Regression tests for DOM Clobbering bypass of attached-shadow-root sanitization.
+     *
+     * Drop this block into test/test-suite.js (anywhere after the existing
+     * QUnit.module declarations). It owns its own module so the test labels do
+     * not leak the name of whatever module preceded it in the suite.
+     *
+     * Environment notes:
+     *   - The DOMPurify Node test runner globalizes `document` and `DOMPurify`
+     *     but not `Element`, `Window`, etc. Tests here feature-detect through
+     *     `document` or instance probes to stay portable.
+     *   - HTMLFormElement [LegacyOverrideBuiltIns] named-property clobbering is
+     *     a hard prerequisite for exercising the bug. Some jsdom builds do not
+     *     implement it; in those builds the clobbering-specific tests cannot
+     *     reproduce the issue and skip with a clear message rather than passing
+     *     silently. Browser runs (chromium/webkit/firefox) always implement it.
+     *   - Imperative `attachShadow` + IN_PLACE traversal is also a prerequisite.
+     *     If even that fails (older jsdom where ShadowRoot does not extend
+     *     DocumentFragment), every test below skips — the bug under test is a
+     *     refinement of behavior that has to work in the first place.
+     *
+     * Before running locally:
+     *     npm run build       # rebuild dist/ from src/purify.ts
+     *     npm run test:jsdom  # run only the node-side suite
+     */
+
     QUnit.module('DOM Clobbering of attached-shadow-root traversal');
 
     // Cached probe results. Populated by the first test; consulted by the rest.
