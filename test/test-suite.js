@@ -4267,5 +4267,208 @@
         );
       }
     );
+
+    // ---------------------------------------------------------------------------
+    // GHSA-hpcv-96wg-7vj8 — cross-realm IN_PLACE sanitization. Foreign-realm
+    // nodes (e.g. <form>, <template>, attached shadow roots from a same-origin
+    // iframe document) reach DOMPurify via the realm-agnostic _isNode check
+    // at the entry point, but several downstream security branches used to
+    // gate on `instanceof X` against parent-realm constructors. Each gate
+    // short-circuited to false for foreign-realm objects and the relevant
+    // sanitization branch was skipped: form clobbering went undetected,
+    // <template>.content was never walked, attached shadow roots were never
+    // walked. The fix routes every such decision through realm-independent
+    // shape checks (cached prototype getters, nodeType comparisons).
+    //
+    // These tests are gated on the ability to construct a same-origin iframe
+    // document, which works in real browsers and modern jsdom. They skip
+    // gracefully if the environment can't host an iframe (e.g. some Node
+    // setups).
+    // ---------------------------------------------------------------------------
+
+    function _withForeignRealmDoc(callback) {
+      // Returns a foreign-realm document for the test, plus a teardown.
+      // Returns null if the environment can't provide one — caller skips.
+      if (typeof document.createElement !== 'function') {
+        return null;
+      }
+      try {
+        var iframe = document.createElement('iframe');
+        // Empty srcdoc gives us a clean same-origin document with body/head.
+        iframe.srcdoc = '<!doctype html><html><body></body></html>';
+        if (document.body) {
+          document.body.appendChild(iframe);
+        } else {
+          // No live body — can't host an iframe load. Skip.
+          return null;
+        }
+        var foreignDoc = iframe.contentDocument;
+        if (!foreignDoc) {
+          iframe.remove();
+          return null;
+        }
+        try {
+          callback(foreignDoc, iframe.contentWindow);
+        } finally {
+          iframe.remove();
+        }
+        return true;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    QUnit.test(
+      'GHSA-hpcv-96wg-7vj8: cross-realm clobbered form is recognized by _isClobbered',
+      function (assert) {
+        var ran = _withForeignRealmDoc(function (idoc) {
+          var foreignForm = idoc.createElement('form');
+          foreignForm.setAttribute('onmouseover', 'window.__hpcv_form_xss = 1');
+          var clobber = idoc.createElement('input');
+          clobber.setAttribute('name', 'attributes');
+          foreignForm.appendChild(clobber);
+
+          // Capability probe inside the foreign realm: does this engine
+          // actually implement [LegacyOverrideBuiltIns] for HTMLFormElement?
+          // jsdom (at least up to 29.x) does not, so .attributes is never
+          // shadowed and there is nothing to detect. Real browsers do, and
+          // the patched _isClobbered must catch it via the cached-getter
+          // equality probe even though the form is from a foreign realm.
+          //
+          // typeof on the canonical NamedNodeMap is 'object'. On a clobbered
+          // form .attributes becomes the <input> element — still typeof
+          // 'object' — so we check identity instead: foreignForm.attributes
+          // is the input if (and only if) the engine performs the shadowing.
+          var foreignClobbers = foreignForm.attributes === clobber;
+          if (!foreignClobbers) {
+            assert.ok(
+              true,
+              'SKIP: foreign realm does not implement HTMLFormElement ' +
+                '[LegacyOverrideBuiltIns]; the bypass is not reproducible here'
+            );
+            return;
+          }
+
+          // Pre-fix: the parent-realm DOMPurify sees this foreign-realm
+          // form, the `instanceof HTMLFormElement` check short-circuits to
+          // false in _isClobbered, the form is not flagged, and the
+          // onmouseover attribute survives (because the attribute walk
+          // reads the clobbered .attributes collection rather than the
+          // real one). After the fix the tag-name probe via cached
+          // Node.prototype getter identifies the foreign-realm form, and
+          // the cached-getter equality probe on .attributes detects the
+          // clobbering.
+          assert.throws(
+            function () {
+              DOMPurify.sanitize(foreignForm, { IN_PLACE: true });
+            },
+            /clobbered|forbidden/i,
+            'foreign-realm clobbered form must throw on IN_PLACE'
+          );
+        });
+        if (!ran) {
+          assert.ok(true, 'SKIP: cannot construct a foreign-realm document');
+        }
+      }
+    );
+
+    QUnit.test(
+      'GHSA-hpcv-96wg-7vj8: cross-realm <template>.content is walked and sanitized',
+      function (assert) {
+        var ran = _withForeignRealmDoc(function (idoc) {
+          var wrapper = idoc.createElement('div');
+          var tpl = idoc.createElement('template');
+          tpl.innerHTML = '<img src="x" onerror="window.__hpcv_tpl_xss = 1">';
+          wrapper.appendChild(tpl);
+
+          // Pre-fix the `template.content instanceof DocumentFragment` check
+          // failed for the foreign-realm fragment, so its contents were never
+          // walked and the onerror handler survived inside the template body.
+          DOMPurify.sanitize(wrapper, { IN_PLACE: true });
+
+          // After the fix the content is walked. The <img> retains src="x"
+          // (a benign src is allowed) but its onerror attribute is stripped.
+          var img = tpl.content.querySelector('img');
+          assert.ok(img, 'template content was reached');
+          assert.equal(
+            img.getAttribute('onerror'),
+            null,
+            'onerror inside foreign-realm <template> must be stripped'
+          );
+        });
+        if (!ran) {
+          assert.ok(true, 'SKIP: cannot construct a foreign-realm document');
+        }
+      }
+    );
+
+    QUnit.test(
+      'GHSA-hpcv-96wg-7vj8: cross-realm attached shadow root is walked and sanitized',
+      function (assert) {
+        var ran = _withForeignRealmDoc(function (idoc) {
+          var host = idoc.createElement('div');
+          if (typeof host.attachShadow !== 'function') {
+            assert.ok(
+              true,
+              'SKIP: foreign realm does not support attachShadow'
+            );
+            return;
+          }
+          host.attachShadow({ mode: 'open' }).innerHTML =
+            '<img src=x onerror="window.__hpcv_shadow_xss=1"><b>safe</b>';
+
+          // Pre-fix the `sr instanceof DocumentFragment` check in
+          // _sanitizeAttachedShadowRoots failed for the foreign-realm shadow
+          // root and the whole shadow subtree was skipped. The handler then
+          // fired the moment the host was inserted into the live document.
+          DOMPurify.sanitize(host, { IN_PLACE: true });
+
+          var img = host.shadowRoot && host.shadowRoot.querySelector('img');
+          // The <img> tag survives (with sanitized attrs) — the assertion is
+          // specifically about the onerror handler being stripped.
+          if (img) {
+            assert.equal(
+              img.getAttribute('onerror'),
+              null,
+              'onerror inside foreign-realm shadow root must be stripped'
+            );
+          } else {
+            assert.ok(
+              true,
+              'shadow root contents removed entirely — also acceptable'
+            );
+          }
+        });
+        if (!ran) {
+          assert.ok(true, 'SKIP: cannot construct a foreign-realm document');
+        }
+      }
+    );
+
+    QUnit.test(
+      'GHSA-hpcv-96wg-7vj8: cross-realm Element with forbidden namespace is removed',
+      function (assert) {
+        var ran = _withForeignRealmDoc(function (idoc) {
+          // _checkValidNamespace was gated behind `currentNode instanceof
+          // Element` (parent realm). A foreign-realm element with an
+          // unallowed namespace would slip past. Confirm the realm-safe
+          // nodeType-based gate catches it.
+          var wrapper = idoc.createElement('div');
+          var weird = idoc.createElementNS('urn:example:not-allowed', 'weird');
+          wrapper.appendChild(weird);
+
+          DOMPurify.sanitize(wrapper, { IN_PLACE: true });
+
+          assert.equal(
+            wrapper.getElementsByTagName('weird').length,
+            0,
+            'foreign-realm bad-namespace element must be removed'
+          );
+        });
+        if (!ran) {
+          assert.ok(true, 'SKIP: cannot construct a foreign-realm document');
+        }
+      }
+    );
   };
 });
