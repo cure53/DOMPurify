@@ -38,3 +38,8 @@ reason = "Current package-lock includes vulnerable picomatch versions via develo
 id = "GHSA-c2qf-rxjj-qqgw"
 ignoreUntil = 2027-05-31
 reason = "Current package-lock includes semver 7.5.0 via development tooling only; not part of the distributed runtime artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-jxxr-4gwj-5jf2"
+reason = "brace-expansion DoS via large numeric ranges; low relevance unless user-controlled brace patterns are expanded. Prefer upgrading to brace-expansion 5.0.6."
+ignoreUntil = 2027-05-31
