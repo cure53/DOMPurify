@@ -72,7 +72,7 @@
     "cross-env": "^7.0.3",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "jquery": "^3.6.0",
+    "jquery": "^4.0.0",
     "jsdom": "^20.0.0",
     "karma": "^6.3.17",
     "karma-browserstack-launcher": "^1.5.1",
