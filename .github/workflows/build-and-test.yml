@@ -41,7 +41,7 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Test
-        uses: GabrielBB/xvfb-action@86fe1d57e2167d427a1882fbeefdaaba735c2cd6 # v1.7
+        uses: GabrielBB/xvfb-action@b706e4e27b14669b486812790492dc50ca16b465 # v1.7
         with:
           run: npm run test:ci
         env:
