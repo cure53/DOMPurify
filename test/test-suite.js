@@ -4496,5 +4496,212 @@
         }
       }
     );
+    // ---------------------------------------------------------------------------
+    // Hook-driven allowlist pollution (GHSA-XXXX-XXXX-XXXX).
+    //
+    // Pre-3.4.7: The data.allowedTags / data.allowedAttributes fields passed to
+    // uponSanitizeElement / uponSanitizeAttribute hooks were direct references
+    // to the library's live ALLOWED_TAGS / ALLOWED_ATTR sets. When no explicit
+    // cfg.ALLOWED_TAGS was supplied, that live set WAS the module-level
+    // DEFAULT_ALLOWED_TAGS constant. A hook that wrote
+    //     data.allowedTags['script'] = true
+    // therefore wrote permanently into the default constant. Subsequent
+    // sanitize calls — even after removeAllHooks() and clearConfig() —
+    // inherited the widened defaults until the entire DOMPurify instance
+    // was recreated.
+    //
+    // Fix: hand the hook a shallow copy of the allowlist set. Mutations
+    // stay scoped to the copy, which is discarded at hook return. Hooks
+    // that intended to widen the allowlist for subsequent calls must use
+    // the documented cfg.ADD_TAGS / cfg.ADD_ATTR API instead.
+    // ---------------------------------------------------------------------------
+
+    QUnit.module(
+      'Hook-driven allowlist pollution (GHSA-XXXX)',
+      function (hooks) {
+        // Each test gets a fresh DOMPurify instance so pollution from one test
+        // can't survive into the next. The bug being tested IS cross-call
+        // pollution, so we have to be paranoid about per-test isolation.
+        var purify;
+        hooks.beforeEach(function () {
+          // Re-import is the only way to get a fully clean instance, because
+          // the bug pollutes module-level defaults. window is shared, that's
+          // fine — the defaults live on the DOMPurify instance, not the window.
+          purify = DOMPurify(window);
+        });
+        hooks.afterEach(function () {
+          purify.removeAllHooks();
+          purify.clearConfig();
+        });
+
+        QUnit.test(
+          'baseline: <script> and onclick are stripped under default config',
+          function (assert) {
+            assert.equal(
+              purify.sanitize('<svg><script>alert(1)</script></svg>'),
+              '<svg></svg>',
+              'fresh default sanitize strips <script>'
+            );
+            assert.equal(
+              purify.sanitize('<a onclick="alert(1)">x</a>'),
+              '<a>x</a>',
+              'fresh default sanitize strips onclick'
+            );
+          }
+        );
+
+        QUnit.test(
+          'hook mutating data.allowedTags does not poison subsequent default-config calls',
+          function (assert) {
+            purify.addHook('uponSanitizeElement', function (node, data) {
+              // Natural-looking pattern: widen the allowlist for this iteration.
+              // This is the exact construct the GHSA report identifies as
+              // the source of permanent pollution pre-fix.
+              data.allowedTags['script'] = true;
+            });
+
+            // The hook is active. We don't assert on this call's output — the
+            // fix may either preserve in-call widening semantics or not. The
+            // GHSA only requires that the NEXT call (without the hook) sees
+            // clean defaults.
+            purify.sanitize('<svg><script>alert(1)</script></svg>');
+
+            // Remove the hook and any config the user may have set.
+            purify.removeAllHooks();
+            purify.clearConfig();
+
+            // The bug manifests here: a subsequent default-config sanitize
+            // call must strip <script>. If pollution leaked into the
+            // module-level defaults, this returns the dangerous payload.
+            var clean = purify.sanitize('<svg><script>alert(1)</script></svg>');
+            assert.equal(
+              clean,
+              '<svg></svg>',
+              'default sanitize after hook removal must strip <script>'
+            );
+          }
+        );
+
+        QUnit.test(
+          'hook mutating data.allowedAttributes does not poison subsequent default-config calls',
+          function (assert) {
+            purify.addHook('uponSanitizeAttribute', function (node, data) {
+              data.allowedAttributes['onclick'] = true;
+            });
+
+            purify.sanitize('<a onclick="alert(1)">x</a>');
+
+            purify.removeAllHooks();
+            purify.clearConfig();
+
+            var clean = purify.sanitize('<a onclick="alert(1)">x</a>');
+            assert.equal(
+              clean,
+              '<a>x</a>',
+              'default sanitize after attr hook removal must strip onclick'
+            );
+          }
+        );
+
+        QUnit.test(
+          'pollution does not cross instance boundaries',
+          function (assert) {
+            // Pollute the first instance.
+            purify.addHook('uponSanitizeElement', function (node, data) {
+              data.allowedTags['script'] = true;
+            });
+            purify.sanitize('<svg><script>alert(1)</script></svg>');
+            purify.removeAllHooks();
+            purify.clearConfig();
+
+            // A separately-constructed instance must not inherit the
+            // (now-fixed-or-not) state of the first instance. This is a
+            // sanity guarantee even pre-fix — DOMPurify(window) returns a
+            // new instance whose own DEFAULT_ALLOWED_TAGS is independent.
+            var freshInstance = DOMPurify(window);
+            var clean = freshInstance.sanitize(
+              '<svg><script>alert(1)</script></svg>'
+            );
+            assert.equal(
+              clean,
+              '<svg></svg>',
+              'fresh DOMPurify instance must not inherit poisoned defaults'
+            );
+          }
+        );
+
+        QUnit.test(
+          'hook reading data.allowedTags without mutation does not poison',
+          function (assert) {
+            // Pure-read access to data.allowedTags is the safest hook pattern
+            // and must continue to work. Asserting it explicitly catches a
+            // hypothetical over-correction where the fix replaces the
+            // reference with a frozen or proxy object that breaks reads.
+            var seenScriptKey;
+            purify.addHook('uponSanitizeElement', function (node, data) {
+              if (seenScriptKey === undefined) {
+                seenScriptKey = 'script' in data.allowedTags;
+              }
+            });
+
+            purify.sanitize('<div><span>hi</span></div>');
+
+            assert.strictEqual(
+              seenScriptKey,
+              false,
+              'hook sees default allowlist with script NOT included'
+            );
+
+            purify.removeAllHooks();
+            purify.clearConfig();
+
+            // After removing the read-only hook, defaults remain unchanged.
+            var clean = purify.sanitize('<svg><script>alert(1)</script></svg>');
+            assert.equal(
+              clean,
+              '<svg></svg>',
+              'read-only hook does not poison defaults'
+            );
+          }
+        );
+
+        QUnit.test(
+          'multiple sanitize calls with mutating hook still see clean defaults afterwards',
+          function (assert) {
+            // Stress the bug: many calls with the mutating hook, then check
+            // recovery. Pre-fix, each call would add more pollution; here we
+            // make sure the fix scales.
+            purify.addHook('uponSanitizeElement', function (node, data) {
+              data.allowedTags['script'] = true;
+              data.allowedTags['iframe'] = true;
+              data.allowedTags['object'] = true;
+            });
+
+            for (var i = 0; i < 10; i++) {
+              purify.sanitize('<div></div>');
+            }
+
+            purify.removeAllHooks();
+            purify.clearConfig();
+
+            assert.equal(
+              purify.sanitize('<svg><script>1</script></svg>'),
+              '<svg></svg>',
+              'script still stripped after 10 polluting calls'
+            );
+            assert.equal(
+              purify.sanitize('<iframe src="x"></iframe>'),
+              '',
+              'iframe still stripped after 10 polluting calls'
+            );
+            assert.equal(
+              purify.sanitize('<object data="x"></object>'),
+              '',
+              'object still stripped after 10 polluting calls'
+            );
+          }
+        );
+      }
+    );
   };
 });
