@@ -792,6 +792,30 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     }
 
+    /*
+     * Mirror the clone-before-mutate pattern already applied above for
+     * cfg.ADD_TAGS / cfg.ADD_ATTR: if any uponSanitize* hook is
+     * registered AND the set still points at the default constant,
+     * clone it. The hook then mutates the clone (in-call widening
+     * still works exactly as documented) and the next default-cfg
+     * call rebinds to the untouched original via the reassignment at
+     * the top of this function.
+     */
+    if (
+      (hooks.uponSanitizeElement.length > 0 ||
+        hooks.uponSanitizeAttribute.length > 0) &&
+      ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS
+    ) {
+      ALLOWED_TAGS = clone(ALLOWED_TAGS);
+    }
+
+    if (
+      hooks.uponSanitizeAttribute.length > 0 &&
+      ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR
+    ) {
+      ALLOWED_ATTR = clone(ALLOWED_ATTR);
+    }
+
     // Prevent further manipulation of configuration.
     // Not available in IE8, Safari 5, etc.
     if (freeze) {
@@ -1178,6 +1202,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       typeof element.namespaceURI !== 'string' ||
       typeof element.insertBefore !== 'function' ||
       typeof element.hasChildNodes !== 'function' ||
+      // NodeType clobbering probe. Cached Node.prototype.nodeType getter
+      // returns the integer 1 for any Element regardless of realm; direct
+      // read on a clobbered form (e.g. <input name="nodeType">) returns
+      // the named child element. Cheap addition — nodeType is read from
+      // an internal slot, no serialization cost — and removes a residual
+      // clobbering surface used by several mXSS / PI / comment branches
+      // in _sanitizeElements that compare currentNode.nodeType directly.
+      element.nodeType !== getNodeType(element) ||
       // HTMLFormElement has [LegacyOverrideBuiltIns]: a descendant named
       // "childNodes" shadows the prototype getter. Direct reads of
       // form.childNodes from a clobbered form return the named child
@@ -1358,10 +1390,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         }
       }
 
-      /* Keep content except for bad-listed elements */
+      /* Keep content except for bad-listed elements.
+         Use the cached prototype getters exclusively — the previous code
+         had `|| currentNode.parentNode` / `|| currentNode.childNodes`
+         fallbacks, but the cached getters always return the canonical
+         value (or null for a real parent-less node), so the fallback
+         path was dead in safe cases and a clobbering surface in unsafe
+         ones. Falsy cached results stay falsy; the `if (childNodes &&
+         parentNode)` check already gates correctly. */
       if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
-        const parentNode = getParentNode(currentNode) || currentNode.parentNode;
-        const childNodes = getChildNodes(currentNode) || currentNode.childNodes;
+        const parentNode = getParentNode(currentNode);
+        const childNodes = getChildNodes(currentNode);
 
         if (childNodes && parentNode) {
           const childCount = childNodes.length;
