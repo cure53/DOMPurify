@@ -34,18 +34,35 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+      - name: Install xvfb
+        # Inline replacement for GabrielBB/xvfb-action (unmaintained since 2022).
+        # The action did the same thing this two-line install does, plus a
+        # JavaScript wrapper around xvfb-run. Inlining removes a third-party
+        # action dependency from the CI supply chain.
+        run: sudo apt-get update && sudo apt-get install -y xvfb
       - name: Install Dependencies
-        run: npm ci
+        # --ignore-scripts skips preinstall/install/postinstall scripts from
+        # all packages. Reduces the attack surface for malicious npm deps
+        # that try to read secrets from the runner env during install.
+        # Matches the pattern used by main's slsa-provenance.yml.
+        run: npm ci --ignore-scripts
       - name: Build
         run: npm run build
       - name: Lint
         run: npm run lint
       - name: Test
-        uses: GabrielBB/xvfb-action@b706e4e27b14669b486812790492dc50ca16b465 # v1.7
-        with:
-          run: npm run test:ci
+        # xvfb-run -a allocates a fresh display number, runs the command
+        # against it, and tears down. Functionally equivalent to what the
+        # old xvfb-action did, but without the third-party action.
+        run: xvfb-run -a npm run test:ci
         env:
           TEST_BROWSERSTACK: ${{ startsWith(matrix.node-version, '21') }}
           TEST_PROBE_ONLY: ${{ github.ref != 'refs/heads/2.x' }}
-          BS_USERNAME: ${{ secrets.BS_USERNAME }}
-          BS_ACCESSKEY: ${{ secrets.BS_ACCESSKEY }}
+          # BrowserStack credentials are injected ONLY for the Node 21 matrix
+          # entry, which is the only entry where TEST_BROWSERSTACK is true.
+          # For other matrix entries the values resolve to empty strings,
+          # so a malicious dependency installed during Node 16-20 jobs
+          # cannot read BrowserStack credentials from env even if the
+          # --ignore-scripts defense above fails for some reason.
+          BS_USERNAME: ${{ startsWith(matrix.node-version, '21') && secrets.BS_USERNAME || '' }}
+          BS_ACCESSKEY: ${{ startsWith(matrix.node-version, '21') && secrets.BS_ACCESSKEY || '' }}
