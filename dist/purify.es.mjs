@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.4.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.5/LICENSE */
+/*! @license DOMPurify 3.4.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.6/LICENSE */
 
 function _arrayLikeToArray(r, a) {
   (null == a || a > r.length) && (a = r.length);
@@ -332,11 +332,20 @@ const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 const NODE_TYPE = {
   element: 1,
+  attribute: 2,
   text: 3,
+  cdataSection: 4,
+  entityReference: 5,
+  // Deprecated
+  entityNode: 6,
   // Deprecated
   progressingInstruction: 7,
   comment: 8,
-  document: 9};
+  document: 9,
+  documentType: 10,
+  documentFragment: 11,
+  notation: 12 // Deprecated
+};
 const getGlobal = function getGlobal() {
   return typeof window === 'undefined' ? null : window;
 };
@@ -394,7 +403,7 @@ const _createHooksMap = function _createHooksMap() {
 function createDOMPurify() {
   let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
   const DOMPurify = root => createDOMPurify(root);
-  DOMPurify.version = '3.4.5';
+  DOMPurify.version = '3.4.6';
   DOMPurify.removed = [];
   if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
     // Not running in a browser, provide a factory function
@@ -405,15 +414,15 @@ function createDOMPurify() {
   let document = window.document;
   const originalDocument = document;
   const currentScript = originalDocument.currentScript;
-  const DocumentFragment = window.DocumentFragment,
-    HTMLTemplateElement = window.HTMLTemplateElement,
+  window.DocumentFragment;
+    const HTMLTemplateElement = window.HTMLTemplateElement,
     Node = window.Node,
     Element = window.Element,
     NodeFilter = window.NodeFilter,
-    _window$NamedNodeMap = window.NamedNodeMap,
-    NamedNodeMap = _window$NamedNodeMap === void 0 ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap,
-    HTMLFormElement = window.HTMLFormElement,
-    DOMParser = window.DOMParser,
+    _window$NamedNodeMap = window.NamedNodeMap;
+    _window$NamedNodeMap === void 0 ? window.NamedNodeMap || window.MozNamedAttrMap : _window$NamedNodeMap;
+    window.HTMLFormElement;
+    const DOMParser = window.DOMParser,
     trustedTypes = window.trustedTypes;
   const ElementPrototype = Element.prototype;
   const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
@@ -421,7 +430,10 @@ function createDOMPurify() {
   const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
   const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
   const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
+  const getShadowRoot = lookupGetter(ElementPrototype, 'shadowRoot');
+  const getAttributes = lookupGetter(ElementPrototype, 'attributes');
   const getNodeType = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
+  const getNodeName = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
   // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
@@ -1012,11 +1024,100 @@ function createDOMPurify() {
   /**
    * _isClobbered
    *
+   * Detect DOM-clobbering on HTMLFormElement nodes. Form is the only HTML
+   * interface with [LegacyOverrideBuiltIns]; a descendant element with a
+   * `name` attribute matching a prototype property shadows that property
+   * on direct reads. We use this check at the IN_PLACE entry-point and
+   * during attribute sanitization to refuse clobbered forms.
+   *
+   * Realm safety (GHSA-hpcv-96wg-7vj8): every check in this function must
+   * work for foreign-realm forms — e.g. a <form> created inside a same-
+   * origin iframe and then handed to a parent-realm DOMPurify instance
+   * with IN_PLACE: true. The original implementation used
+   * `element instanceof HTMLFormElement` and `element.attributes
+   * instanceof NamedNodeMap`, both of which are realm-bound: a foreign-
+   * realm form is an instance of the *foreign* realm's HTMLFormElement,
+   * not the parent realm's. The instanceof short-circuited to false and
+   * the function returned false (= not clobbered) regardless of how
+   * thoroughly the form was clobbered. Sanitize then walked a clobbered
+   * .attributes and missed every attribute on the form root, leaving
+   * onmouseover / onclick / formaction / etc. intact.
+   *
+   * The realm-independent replacements:
+   *   - HTMLFormElement detection — read the tag name through the cached
+   *     Node.prototype.nodeName getter. WebIDL getters operate on internal
+   *     slots that exist on every real Node regardless of which realm
+   *     minted the JS wrapper, so getNodeName(foreignForm) === "FORM".
+   *   - NamedNodeMap detection — compare the direct .attributes read
+   *     against the cached Element.prototype.attributes getter. Same
+   *     equality-probe pattern we use for .childNodes: if a clobbering
+   *     child shadows the named property, the two reads diverge; if not,
+   *     both return the same NamedNodeMap (same-realm OR foreign-realm —
+   *     doesn't matter, both are the canonical attributes object for the
+   *     node).
+   *
    * @param element element to check for clobbering attacks
    * @return true if clobbered, false if safe
    */
   const _isClobbered = function _isClobbered(element) {
-    return element instanceof HTMLFormElement && (typeof element.nodeName !== 'string' || typeof element.textContent !== 'string' || typeof element.removeChild !== 'function' || !(element.attributes instanceof NamedNodeMap) || typeof element.removeAttribute !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function');
+    // Realm-independent tag-name probe. If we can't determine the tag
+    // name at all, we can't reason about clobbering — return false
+    // (the caller's other defences still apply).
+    const realTagName = getNodeName ? getNodeName(element) : null;
+    if (typeof realTagName !== 'string') {
+      return false;
+    }
+    if (transformCaseFunc(realTagName) !== 'form') {
+      return false;
+    }
+    return typeof element.nodeName !== 'string' || typeof element.textContent !== 'string' || typeof element.removeChild !== 'function' ||
+    // Realm-safe NamedNodeMap detection: equality against the cached
+    // prototype getter. Clobbered .attributes (e.g. <input name="attributes">)
+    // makes the direct read diverge from the cached read; a clean form
+    // (same-realm OR foreign-realm) has both reads pointing at the same
+    // canonical NamedNodeMap.
+    element.attributes !== getAttributes(element) || typeof element.removeAttribute !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function' ||
+    // HTMLFormElement has [LegacyOverrideBuiltIns]: a descendant named
+    // "childNodes" shadows the prototype getter. Direct reads of
+    // form.childNodes from a clobbered form return the named child
+    // instead of the real NodeList, so any walk that reads it directly
+    // skips the form's real children. Compare the direct read to the
+    // cached Node.prototype getter — when the form's named-property
+    // getter intercepts the read, the two values differ and we flag
+    // the form. This catches every clobbering child type (input,
+    // select, etc.) regardless of whether the named child happens to
+    // carry a numeric .length, which a typeof-based probe would miss
+    // (e.g. HTMLSelectElement.length is a defined unsigned-long).
+    element.childNodes !== getChildNodes(element);
+  };
+  /**
+   * Checks whether the given value is a DocumentFragment from any realm.
+   *
+   * Realm safety (GHSA-hpcv-96wg-7vj8): the original sites used
+   * `value instanceof DocumentFragment`, which is realm-bound — a fragment
+   * from a foreign realm (template content or shadow root from an iframe
+   * document) is an instance of the foreign realm's DocumentFragment, not
+   * the parent realm's, so the check returned false and the template-
+   * content / shadow-root recursion was silently skipped. The attacker
+   * payload inside survived untouched.
+   *
+   * The realm-independent replacement reads `nodeType` through the cached
+   * Node.prototype getter and compares to the DOCUMENT_FRAGMENT_NODE
+   * constant (11). nodeType is a numeric value resolved from the node's
+   * internal slot, identical across realms for the same kind of node.
+   *
+   * @param value object to check
+   * @return true if value is a DocumentFragment-shaped node from any realm
+   */
+  const _isDocumentFragment = function _isDocumentFragment(value) {
+    if (!getNodeType || typeof value !== 'object' || value === null) {
+      return false;
+    }
+    try {
+      return getNodeType(value) === NODE_TYPE.documentFragment;
+    } catch (_) {
+      return false;
+    }
   };
   /**
    * Checks whether the given object is a DOM node, including nodes that
@@ -1121,8 +1222,14 @@ function createDOMPurify() {
       _forceRemove(currentNode);
       return true;
     }
-    /* Check whether element has a valid namespace */
-    if (currentNode instanceof Element && !_checkValidNamespace(currentNode)) {
+    /* Check whether element has a valid namespace.
+       Realm-safe check (GHSA-hpcv-96wg-7vj8): use the cached Node.prototype
+       nodeType getter rather than `instanceof Element`, which is realm-
+       bound and short-circuits to false for any node minted in a different
+       realm — letting a foreign-realm element with a forbidden namespace
+       slip past the namespace check entirely. */
+    const nt = getNodeType ? getNodeType(currentNode) : currentNode.nodeType;
+    if (nt === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -1349,8 +1456,11 @@ function createDOMPurify() {
       _sanitizeElements(shadowNode);
       /* Check attributes next */
       _sanitizeAttributes(shadowNode);
-      /* Deep shadow DOM detected */
-      if (shadowNode.content instanceof DocumentFragment) {
+      /* Deep shadow DOM detected.
+         Realm-safe check (GHSA-hpcv-96wg-7vj8): use nodeType against the
+         DOCUMENT_FRAGMENT_NODE constant rather than instanceof, so we
+         recurse into <template>.content from foreign realms too. */
+      if (_isDocumentFragment(shadowNode.content)) {
         _sanitizeShadowDOM2(shadowNode.content);
       }
     }
@@ -1374,21 +1484,42 @@ function createDOMPurify() {
    * existing _sanitizeShadowDOM template-content recursion) stay
    * untouched — string-input paths are not affected.
    *
+   * DOM-Clobbering hardening: HTMLFormElement carries the WebIDL
+   * [LegacyOverrideBuiltIns] extended attribute, so a descendant element
+   * named `nodeType`, `shadowRoot`, or `childNodes` shadows the matching
+   * prototype getter on the form. Reading those properties directly off
+   * the node would let an attacker steer this walk past shadow hosts
+   * (e.g. <input name="childNodes"> collapses the form's child list to
+   * the input itself, so descent stops dead and any shadow root deeper
+   * in the subtree is never sanitized). Every property access here is
+   * therefore routed through the cached prototype getter; the form's
+   * named-property getter cannot intercept those reads.
+   *
    * @param root the subtree root to walk for attached shadow roots
    */
   const _sanitizeAttachedShadowRoots2 = function _sanitizeAttachedShadowRoots(root) {
-    if (root.nodeType === NODE_TYPE.element && root.shadowRoot instanceof DocumentFragment) {
-      const sr = root.shadowRoot;
-      // Recurse first so that nested shadow roots are reached even if
-      // _sanitizeShadowDOM removes hosts at this level.
-      _sanitizeAttachedShadowRoots2(sr);
-      _sanitizeShadowDOM2(sr);
+    const nodeType = getNodeType ? getNodeType(root) : root.nodeType;
+    if (nodeType === NODE_TYPE.element) {
+      const sr = getShadowRoot ? getShadowRoot(root) : root.shadowRoot;
+      // Realm-safe check (GHSA-hpcv-96wg-7vj8): use nodeType-based
+      // detection rather than `instanceof DocumentFragment`, which is
+      // realm-bound and silently skipped shadow roots whose host element
+      // belonged to a foreign realm (e.g. iframe.contentDocument
+      // attachShadow). A foreign-realm ShadowRoot extends the foreign
+      // realm's DocumentFragment, not ours, so the old instanceof check
+      // returned false and the shadow subtree was never walked.
+      if (_isDocumentFragment(sr)) {
+        // Recurse first so that nested shadow roots are reached even if
+        // _sanitizeShadowDOM removes hosts at this level.
+        _sanitizeAttachedShadowRoots2(sr);
+        _sanitizeShadowDOM2(sr);
+      }
     }
     // Snapshot children before recursing. Sanitization of one subtree
     // (e.g. via an uponSanitizeShadowNode hook) may detach siblings,
     // and naive nextSibling traversal would silently skip the rest of
     // the list once a node is detached.
-    const childNodes = root.childNodes;
+    const childNodes = getChildNodes ? getChildNodes(root) : root.childNodes;
     if (!childNodes) {
       return;
     }
@@ -1436,13 +1567,30 @@ function createDOMPurify() {
       IN_PLACE = false;
     }
     if (IN_PLACE) {
-      /* Do some early pre-sanitization to avoid unsafe root nodes */
-      const nn = dirty.nodeName;
+      /* Do some early pre-sanitization to avoid unsafe root nodes.
+         Read nodeName through the cached prototype getter — a clobbering
+         child named "nodeName" on the form root would otherwise shadow
+         the property and let this check skip the root-allowlist
+         validation entirely. */
+      const nn = getNodeName ? getNodeName(dirty) : dirty.nodeName;
       if (typeof nn === 'string') {
         const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
           throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
         }
+      }
+      /* Pre-flight the root through _isClobbered. The iterator-driven
+         removal path can not detach a parent-less root: _forceRemove
+         falls through to Element.prototype.remove(), which per spec
+         is a no-op on a node with no parent. A clobbered root would
+         then survive the main loop with its attributes uninspected,
+         because _sanitizeAttributes early-returns on _isClobbered. The
+         result would be an attacker-controlled form, complete with any
+         event-handler attributes the caller passed in, handed back to
+         the application unsanitized. Refuse to sanitize such a root
+         the same way we refuse a forbidden tag. GHSA-r47g-fvhr-h676. */
+      if (_isClobbered(dirty)) {
+        throw typeErrorCreate('root node is clobbered and cannot be sanitized in-place');
       }
       /* Sanitize attached shadow roots before the main iterator runs.
          The iterator does not descend into shadow trees. */
@@ -1463,7 +1611,9 @@ function createDOMPurify() {
       }
       /* Clonable shadow roots are deep-cloned by importNode(); sanitize
          them before the main iterator runs, since the iterator does not
-         descend into shadow trees. */
+         descend into shadow trees. The walk routes every read through a
+         cached prototype getter so clobbering descendants on a form root
+         cannot hide a shadow host from this pass. */
       _sanitizeAttachedShadowRoots2(importedNode);
     } else {
       /* Exit directly if we have nothing to do */
@@ -1491,8 +1641,11 @@ function createDOMPurify() {
       _sanitizeElements(currentNode);
       /* Check attributes next */
       _sanitizeAttributes(currentNode);
-      /* Shadow DOM detected, sanitize it */
-      if (currentNode.content instanceof DocumentFragment) {
+      /* Shadow DOM detected, sanitize it.
+         Realm-safe check (GHSA-hpcv-96wg-7vj8): nodeType-based detection
+         instead of instanceof, so foreign-realm <template>.content is
+         walked correctly. */
+      if (_isDocumentFragment(currentNode.content)) {
         _sanitizeShadowDOM2(currentNode.content);
       }
     }
