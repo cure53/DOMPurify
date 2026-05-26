@@ -10,7 +10,6 @@ updates:
       actions:
         patterns:
           - '*'
-
   # Main npm tree (build, test, lint tooling). Weekly + grouped minor/patch so
   # routine bumps land in one reviewable PR; majors stay separate.
   - package-ecosystem: npm
@@ -24,7 +23,6 @@ updates:
         update-types:
           - minor
           - patch
-
   # Consumer-shape verification harnesses under typescript/. These exist to
   # catch packaging regressions, not to ship code — group them all together
   # so we don't get six separate PRs every time @types/node bumps.
@@ -36,7 +34,6 @@ updates:
       typescript-harness:
         patterns:
           - '*'
-
   - package-ecosystem: npm
     directory: /typescript/esm
     schedule:
@@ -45,7 +42,6 @@ updates:
       typescript-harness:
         patterns:
           - '*'
-
   - package-ecosystem: npm
     directory: /typescript/esm-with-no-types
     schedule:
@@ -54,7 +50,6 @@ updates:
       typescript-harness:
         patterns:
           - '*'
-
   - package-ecosystem: npm
     directory: /typescript/esm-with-specific-types
     schedule:
@@ -63,3 +58,34 @@ updates:
       typescript-harness:
         patterns:
           - '*'
+  # ---------------------------------------------------------------------
+  # 2.x LTS branch. Dependabot watches exactly one branch per entry, so
+  # the entries above (without target-branch) apply only to main. Mirror
+  # the actions and root-npm entries here so 2.x receives routine
+  # dependency updates too. The /typescript/... entries are not mirrored:
+  # those harnesses don't exist on 2.x. Security updates (driven by GHSA
+  # matches) reach 2.x automatically and bypass group settings, so an
+  # incoming CVE patch lands as its own PR rather than being bundled
+  # with the weekly grouped batch.
+  # ---------------------------------------------------------------------
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: '2.x'
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns:
+          - '*'
+  - package-ecosystem: npm
+    directory: /
+    target-branch: '2.x'
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
