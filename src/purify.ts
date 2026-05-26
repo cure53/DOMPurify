@@ -1290,7 +1290,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Execute a hook if present */
     _executeHooks(hooks.uponSanitizeElement, currentNode, {
       tagName,
-      allowedTags: ALLOWED_TAGS,
+      allowedTags: { ...ALLOWED_TAGS},
     });
 
     /* Detect mXSS attempts abusing namespace confusion */
@@ -1586,7 +1586,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       attrName: '',
       attrValue: '',
       keepAttr: true,
-      allowedAttributes: ALLOWED_ATTR,
+      allowedAttributes: { ...ALLOWED_ATTR },
       forceKeepAttr: undefined,
     };
     let l = attributes.length;
