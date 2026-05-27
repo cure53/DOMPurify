@@ -1834,7 +1834,7 @@
     });
 
     // =======================================================================
-    // Config: ALLOW_ARIA_ATTR
+    // Config: ALLOW_ARIA_ATTR (#198)
     // =======================================================================
 
     QUnit.module('Config — ALLOW_ARIA_ATTR');
@@ -2745,7 +2745,7 @@
     );
 
     // =======================================================================
-    // Config: FORCE_BODY
+    // Config: FORCE_BODY (#199)
     // =======================================================================
 
     QUnit.module('Config — FORCE_BODY');
@@ -3858,7 +3858,7 @@
     // letting the engine populate the mirror.
     // =======================================================================
 
-    QUnit.module('Regression — selectedcontent (CVE-2025 / 3.4.5)');
+    QUnit.module('Regression — selectedcontent (3.4.5)');
 
     QUnit.test('default config removes <selectedcontent>', (assert) => {
       const dirty =
@@ -4159,6 +4159,75 @@
         document.body.removeChild(wrapper);
         window.xssed = false;
         assert.equal(triggered, false, 'no XSS on native insertion');
+      }
+    );
+
+    QUnit.test(
+      'bypass (#1150): entity-encoded </style> + XHTML + RETURN_DOM_FRAGMENT',
+      (assert) => {
+        // The #1150-1158 source-side check strips a <style> element
+        // whose text content, once entity-decoded, contains </style>
+        // followed by markup. The payload below relies on:
+        //   1. XHTML parsing — text content of <style> is NOT raw-text
+        //      mode, so &lt; / &gt; entities decode to angle brackets.
+        //   2. RETURN_DOM_FRAGMENT — serialiser hand-back skips the
+        //      string-level pre-pass that would otherwise normalise.
+        // Without the source-side check, the decoded <img> escapes
+        // the <style> on the consumer side and fires onerror.
+        //
+        // We confirm BOTH the string output is clean AND that a live
+        // round-trip does not trigger window.xssed. The async portion
+        // is important: alert() / onerror may fire from a microtask
+        // after innerHTML returns.
+        const payload =
+          '<style>&lt;/style&gt;&lt;img src=x onerror=alert(1)&gt;<a></a></style>';
+
+        const stringOut = DOMPurify.sanitize(payload);
+        assert.notOk(
+          /<img/i.test(stringOut) || /onerror/i.test(stringOut),
+          `string sanitize output: ${stringOut}`
+        );
+
+        const done = assert.async();
+        let clean;
+        try {
+          clean = DOMPurify.sanitize(payload, {
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+            RETURN_DOM_FRAGMENT: true,
+          });
+        } catch (e) {
+          assert.ok(false, `sanitize() threw: ${e && e.message}`);
+          done();
+          return;
+        }
+
+        const div = document.createElement('div');
+        div.appendChild(document.importNode(clean, true));
+
+        // Scoped container — don't taint document.body if XSS were
+        // to fire. Falls back to a transient body child when the
+        // QUnit fixture isn't present (jsdom runner).
+        const container =
+          document.getElementById('qunit-fixture') ||
+          document.body.appendChild(document.createElement('div'));
+        const ownsContainer =
+          container.parentNode === document.body &&
+          container.id !== 'qunit-fixture';
+
+        window.xssed = false;
+        container.innerHTML = div.innerHTML;
+
+        setTimeout(() => {
+          assert.notEqual(
+            window.xssed,
+            true,
+            'alert() fired via XHTML-style round-trip (bypass reproduces)'
+          );
+          container.innerHTML = '';
+          if (ownsContainer) document.body.removeChild(container);
+          window.xssed = false;
+          done();
+        }, 50);
       }
     );
 
