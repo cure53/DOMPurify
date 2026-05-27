@@ -4763,6 +4763,12 @@
         );
       }
     );
+    // ---------------------------------------------------------------------------
+    // GHSA-XXXX-shadow-template: attached shadow root nested inside
+    // <template>.content was reached by no walk in 3.4.6. Fix adds
+    // template.content recursion to _sanitizeAttachedShadowRoots and adds
+    // shadowRoot inspection inside _sanitizeShadowDOM's iterator.
+    // ---------------------------------------------------------------------------
 
     QUnit.module(
       'IN_PLACE: shadow root inside template.content (GHSA-XXXX)',
@@ -4896,6 +4902,188 @@
               );
             } else {
               assert.ok(true, '<img> removed entirely');
+            }
+          }
+        );
+
+        /*
+         * The deeper-nesting tests below cover shapes that aren't in the
+         * original GHSA-XXXX reporter's PoC but are reachable via the same
+         * "the existing walks don't cross template <-> shadow boundaries"
+         * primitive. They were uncovered during the pre-3.4.7 audit. The
+         * recursion in _sanitizeAttachedShadowRoots (Patch A) and the
+         * shadowRoot inspection in _sanitizeShadowDOM's iterator (Patch B)
+         * are both recursive, so closing the direct PoC also closes these
+         * deeper shapes — these tests pin that property so a future
+         * "simplification" of either walk can't silently regress it.
+         */
+
+        QUnit.test(
+          'nested templates: outer.content > inner.content > shadow root',
+          function (assert) {
+            // Two <template> elements nested by content. The innermost
+            // host inside the inner template's content carries the
+            // malicious shadow root. Reaches the host only via repeated
+            // recursion into template.content.
+            var outer = document.createElement('template');
+            var inner = document.createElement('template');
+            var host = document.createElement('div');
+            try {
+              host.attachShadow({ mode: 'open' }).innerHTML =
+                '<img src=x onerror=alert(1)>';
+            } catch (_) {
+              assert.ok(true, 'SKIP: attachShadow not supported');
+              return;
+            }
+            inner.content.appendChild(host);
+            outer.content.appendChild(inner);
+
+            purify.sanitize(outer, { IN_PLACE: true });
+
+            var sr =
+              outer.content.firstChild &&
+              outer.content.firstChild.content &&
+              outer.content.firstChild.content.firstChild &&
+              outer.content.firstChild.content.firstChild.shadowRoot;
+            var img = sr && sr.querySelector('img');
+            if (img) {
+              assert.equal(
+                img.getAttribute('onerror'),
+                null,
+                'onerror in shadow root inside nested template content must be stripped'
+              );
+            } else {
+              assert.ok(true, '<img> removed entirely');
+            }
+          }
+        );
+
+        QUnit.test(
+          'wrapper element > template > shadow root: walked via descent',
+          function (assert) {
+            // A regular <div> as the IN_PLACE root, containing a template,
+            // whose content holds a shadow host. The pre-pass must descend
+            // through the wrapper's childNodes, find the template, recurse
+            // into template.content, and walk the host's shadow root.
+            var root = document.createElement('div');
+            var tpl = document.createElement('template');
+            var host = document.createElement('div');
+            try {
+              host.attachShadow({ mode: 'open' }).innerHTML =
+                '<img src=x onerror=alert(1)>';
+            } catch (_) {
+              assert.ok(true, 'SKIP: attachShadow not supported');
+              return;
+            }
+            tpl.content.appendChild(host);
+            root.appendChild(tpl);
+
+            purify.sanitize(root, { IN_PLACE: true });
+
+            var sr =
+              root.firstChild &&
+              root.firstChild.content &&
+              root.firstChild.content.firstChild &&
+              root.firstChild.content.firstChild.shadowRoot;
+            var img = sr && sr.querySelector('img');
+            if (img) {
+              assert.equal(
+                img.getAttribute('onerror'),
+                null,
+                'onerror in shadow root inside template inside wrapper must be stripped'
+              );
+            } else {
+              assert.ok(true, '<img> removed entirely');
+            }
+          }
+        );
+
+        QUnit.test(
+          'shadow root > template > shadow root: alternating descent',
+          function (assert) {
+            // Outer host with shadow root, whose shadow contains a
+            // <template>, whose content contains an inner host with its
+            // own shadow root carrying the payload. The walk has to
+            // alternate between shadow-root descent (Patch B in
+            // _sanitizeShadowDOM) and template-content recursion (Patch A
+            // in _sanitizeAttachedShadowRoots), reaching arbitrary depth.
+            var outerHost = document.createElement('div');
+            var outerSr;
+            try {
+              outerSr = outerHost.attachShadow({ mode: 'open' });
+            } catch (_) {
+              assert.ok(true, 'SKIP: attachShadow not supported');
+              return;
+            }
+            var tpl = document.createElement('template');
+            var innerHost = document.createElement('div');
+            innerHost.attachShadow({ mode: 'open' }).innerHTML =
+              '<img src=x onerror=alert(1)>';
+            tpl.content.appendChild(innerHost);
+            outerSr.appendChild(tpl);
+
+            purify.sanitize(outerHost, { IN_PLACE: true });
+
+            var innerSr =
+              outerHost.shadowRoot &&
+              outerHost.shadowRoot.firstChild &&
+              outerHost.shadowRoot.firstChild.content &&
+              outerHost.shadowRoot.firstChild.content.firstChild &&
+              outerHost.shadowRoot.firstChild.content.firstChild.shadowRoot;
+            var img = innerSr && innerSr.querySelector('img');
+            if (img) {
+              assert.equal(
+                img.getAttribute('onerror'),
+                null,
+                'onerror in deep shadow > template > shadow chain must be stripped'
+              );
+            } else {
+              assert.ok(true, '<img> removed entirely');
+            }
+          }
+        );
+
+        QUnit.test(
+          'clonable shadow root in nested template survives stamping unscathed',
+          function (assert) {
+            // End-to-end version of the deeper-nesting case: clonable
+            // shadow root inside nested template content, then stamp the
+            // outer template into the live document. The cloned tree
+            // must not carry the original onerror.
+            var probe = document.createElement('div');
+            try {
+              probe.attachShadow({ mode: 'open', clonable: true });
+            } catch (_) {
+              assert.ok(true, 'SKIP: clonable shadow roots not supported');
+              return;
+            }
+
+            var outer = document.createElement('template');
+            var inner = document.createElement('template');
+            var host = document.createElement('div');
+            host.attachShadow({ mode: 'open', clonable: true }).innerHTML =
+              '<img src=x onerror=alert(1)>';
+            inner.content.appendChild(host);
+            outer.content.appendChild(inner);
+
+            purify.sanitize(outer, { IN_PLACE: true });
+
+            // Stamp the outer template into the live document.
+            var stamped = outer.content.cloneNode(true);
+            var stampedSr =
+              stamped.firstChild &&
+              stamped.firstChild.content &&
+              stamped.firstChild.content.firstChild &&
+              stamped.firstChild.content.firstChild.shadowRoot;
+            var stampedImg = stampedSr && stampedSr.querySelector('img');
+            if (stampedImg) {
+              assert.equal(
+                stampedImg.getAttribute('onerror'),
+                null,
+                'stamped img onerror stripped after deep-nested sanitize'
+              );
+            } else {
+              assert.ok(true, '<img> removed entirely after stamping');
             }
           }
         );
