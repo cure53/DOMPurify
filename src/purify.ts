@@ -792,21 +792,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     }
 
-    /* Defense against hook-driven default-set pollution (GHSA-XXXX).
-     *
-     * The uponSanitizeElement / uponSanitizeAttribute hooks receive
-     * data.allowedTags / data.allowedAttributes references that are
-     * the live ALLOWED_TAGS / ALLOWED_ATTR sets. When no
-     * cfg.ALLOWED_TAGS / cfg.ALLOWED_ATTR array is supplied and no
-     * array-form ADD_TAGS / ADD_ATTR has already triggered a clone
-     * above, those references ARE the module-level DEFAULT_ALLOWED_TAGS
-     * / DEFAULT_ALLOWED_ATTR constants. A hook that writes to those
-     * objects — a natural-looking pattern that the documented behavior
-     * "hook can add allowed tags / attributes on the fly" relies on —
-     * would otherwise write permanently into the module-level defaults,
-     * polluting every subsequent default-cfg sanitize call and
-     * surviving removeAllHooks() and clearConfig().
-     *
+    /*
      * Mirror the clone-before-mutate pattern already applied above for
      * cfg.ADD_TAGS / cfg.ADD_ATTR: if any uponSanitize* hook is
      * registered AND the set still points at the default constant,
@@ -1159,32 +1145,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * on direct reads. We use this check at the IN_PLACE entry-point and
    * during attribute sanitization to refuse clobbered forms.
    *
-   * Realm safety (GHSA-hpcv-96wg-7vj8): every check in this function must
-   * work for foreign-realm forms — e.g. a <form> created inside a same-
-   * origin iframe and then handed to a parent-realm DOMPurify instance
-   * with IN_PLACE: true. The original implementation used
-   * `element instanceof HTMLFormElement` and `element.attributes
-   * instanceof NamedNodeMap`, both of which are realm-bound: a foreign-
-   * realm form is an instance of the *foreign* realm's HTMLFormElement,
-   * not the parent realm's. The instanceof short-circuited to false and
-   * the function returned false (= not clobbered) regardless of how
-   * thoroughly the form was clobbered. Sanitize then walked a clobbered
-   * .attributes and missed every attribute on the form root, leaving
-   * onmouseover / onclick / formaction / etc. intact.
-   *
-   * The realm-independent replacements:
-   *   - HTMLFormElement detection — read the tag name through the cached
-   *     Node.prototype.nodeName getter. WebIDL getters operate on internal
-   *     slots that exist on every real Node regardless of which realm
-   *     minted the JS wrapper, so getNodeName(foreignForm) === "FORM".
-   *   - NamedNodeMap detection — compare the direct .attributes read
-   *     against the cached Element.prototype.attributes getter. Same
-   *     equality-probe pattern we use for .childNodes: if a clobbering
-   *     child shadows the named property, the two reads diverge; if not,
-   *     both return the same NamedNodeMap (same-realm OR foreign-realm —
-   *     doesn't matter, both are the canonical attributes object for the
-   *     node).
-   *
    * @param element element to check for clobbering attacks
    * @return true if clobbered, false if safe
    */
@@ -1242,14 +1202,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * Checks whether the given value is a DocumentFragment from any realm.
    *
-   * Realm safety (GHSA-hpcv-96wg-7vj8): the original sites used
-   * `value instanceof DocumentFragment`, which is realm-bound — a fragment
-   * from a foreign realm (template content or shadow root from an iframe
-   * document) is an instance of the foreign realm's DocumentFragment, not
-   * the parent realm's, so the check returned false and the template-
-   * content / shadow-root recursion was silently skipped. The attacker
-   * payload inside survived untouched.
-   *
    * The realm-independent replacement reads `nodeType` through the cached
    * Node.prototype getter and compares to the DOCUMENT_FRAGMENT_NODE
    * constant (11). nodeType is a numeric value resolved from the node's
@@ -1277,12 +1229,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * realm-bound: nodes from a different window failed it, causing
    * sanitize() to silently stringify them and reset IN_PLACE to false,
    * returning the original node unsanitized. See GHSA-4w3q-35jp-p934.
-   *
-   * Implementation: call the cached `nodeType` getter from Node.prototype
-   * directly on the value. This bypasses any clobbered instance property
-   * (e.g. a child element named "nodeType") and works across realms
-   * because the WebIDL `nodeType` getter reads an internal slot that
-   * every real Node has, regardless of which window minted it.
    *
    * @param value object to check whether it's a DOM node
    * @return true if value is a DOM node from any realm
@@ -1808,7 +1754,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _sanitizeShadowDOM(shadowNode.content);
       }
 
-      /* GHSA-XXXX: an element iterated here may itself host an attached
+      /* An element iterated here may itself host an attached
          shadow root. The default NodeIterator does not enter shadow
          trees, so a shadow root nested inside template.content was
          previously reached by no walk at all (the pre-pass at
@@ -1852,17 +1798,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * This pass runs once, up front, so the main iteration loop (and the
    * existing _sanitizeShadowDOM template-content recursion) stay
    * untouched — string-input paths are not affected.
-   *
-   * DOM-Clobbering hardening: HTMLFormElement carries the WebIDL
-   * [LegacyOverrideBuiltIns] extended attribute, so a descendant element
-   * named `nodeType`, `shadowRoot`, or `childNodes` shadows the matching
-   * prototype getter on the form. Reading those properties directly off
-   * the node would let an attacker steer this walk past shadow hosts
-   * (e.g. <input name="childNodes"> collapses the form's child list to
-   * the input itself, so descent stops dead and any shadow root deeper
-   * in the subtree is never sanitized). Every property access here is
-   * therefore routed through the cached prototype getter; the form's
-   * named-property getter cannot intercept those reads.
    *
    * @param root the subtree root to walk for attached shadow roots
    */
@@ -1908,16 +1843,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       _sanitizeAttachedShadowRoots(child);
     }
 
-    /* When the root is a <template>, also descend into root.content
-       (GHSA-XXXX, "shadow root inside template content"). Templates'
-       inert document fragment is NOT a child of the template element,
-       so the childNodes walk above never enters it. A shadow root
-       attached to an element inside template.content would therefore
-       never be sanitized; when the application later stamps the
-       template via cloneNode(true), the malicious shadow tree clones
-       along (if clonable: true) and executes on insertion. Routing
-       the recursion through the cached prototype getter for nodeName
-       keeps the realm-safety guarantees from GHSA-hpcv-96wg-7vj8. */
+    /* When the root is a <template>, also descend into root.content */
     if (nodeType === NODE_TYPE.element) {
       const rootName = getNodeName ? getNodeName(root) : null;
       if (
