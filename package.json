@@ -5,7 +5,6 @@
     "format": "npm run format:js && npm run format:md",
     "format:md": "prettier --write --parser markdown '**/*.md'",
     "format:js": "prettier --write '{src,demos,scripts,test,website}/*.{js,ts}'",
-    "commit-amend-build": "scripts/commit-amend-build.sh",
     "prebuild": "rimraf dist",
     "dev": "cross-env NODE_ENV=development BABEL_ENV=rollup rollup -w -c -o dist/purify.js",
     "build": "npm run build:types && npm run build:rollup && npm run build:fix-types && npm run build:cleanup",
