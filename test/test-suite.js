@@ -4763,5 +4763,143 @@
         );
       }
     );
+
+    QUnit.module(
+      'IN_PLACE: shadow root inside template.content (GHSA-XXXX)',
+      function (hooks) {
+        var purify;
+        hooks.beforeEach(function () {
+          purify = DOMPurify(window);
+        });
+        hooks.afterEach(function () {
+          purify.removeAllHooks();
+          purify.clearConfig();
+        });
+
+        function envSupportsClonableShadow() {
+          var probe = document.createElement('div');
+          try {
+            probe.attachShadow({ mode: 'open', clonable: true });
+            return true;
+          } catch (_) {
+            return false;
+          }
+        }
+
+        QUnit.test(
+          'shadow root inside template.content is sanitized in-place',
+          function (assert) {
+            var tpl = document.createElement('template');
+            var host = document.createElement('div');
+            try {
+              host.attachShadow({ mode: 'open' }).innerHTML =
+                '<img src=x onerror=alert(1)>';
+            } catch (_) {
+              assert.ok(true, 'SKIP: attachShadow not supported');
+              return;
+            }
+            tpl.content.appendChild(host);
+
+            purify.sanitize(tpl, { IN_PLACE: true });
+
+            // The shadow root's onerror attribute must be stripped.
+            var shadowImg =
+              tpl.content.firstChild &&
+              tpl.content.firstChild.shadowRoot &&
+              tpl.content.firstChild.shadowRoot.querySelector('img');
+            if (shadowImg) {
+              assert.equal(
+                shadowImg.getAttribute('onerror'),
+                null,
+                'onerror inside shadow root inside template.content must be stripped'
+              );
+            } else {
+              // The whole img may have been removed; also acceptable.
+              assert.ok(
+                true,
+                '<img> removed entirely from shadow root inside template.content'
+              );
+            }
+          }
+        );
+
+        QUnit.test(
+          'clonable shadow root inside template.content does not survive stamping',
+          function (assert) {
+            if (!envSupportsClonableShadow()) {
+              assert.ok(
+                true,
+                'SKIP: clonable shadow roots not supported in this engine'
+              );
+              return;
+            }
+
+            var tpl = document.createElement('template');
+            var host = document.createElement('div');
+            host.attachShadow({ mode: 'open', clonable: true }).innerHTML =
+              '<img src=x onerror=alert(1)>';
+            tpl.content.appendChild(host);
+
+            purify.sanitize(tpl, { IN_PLACE: true });
+
+            // The realistic exploitation path: clone the (now-sanitized)
+            // template content into the live document. The cloned shadow
+            // tree must not carry the onerror.
+            var clone = tpl.content.cloneNode(true);
+            var clonedImg =
+              clone.firstChild &&
+              clone.firstChild.shadowRoot &&
+              clone.firstChild.shadowRoot.querySelector('img');
+            if (clonedImg) {
+              assert.equal(
+                clonedImg.getAttribute('onerror'),
+                null,
+                'onerror inside cloned-stamped shadow root must be stripped'
+              );
+            } else {
+              assert.ok(true, '<img> removed entirely after stamping');
+            }
+          }
+        );
+
+        QUnit.test(
+          'symmetric: <template> nested inside a shadow root is walked',
+          function (assert) {
+            // The shadow-in-template variant the reporter mentions.
+            // A <template> appearing inside a shadow root, with content
+            // carrying an event handler, must have its content walked too.
+            var host = document.createElement('div');
+            var sr;
+            try {
+              sr = host.attachShadow({ mode: 'open' });
+            } catch (_) {
+              assert.ok(true, 'SKIP: attachShadow not supported');
+              return;
+            }
+            var inner = document.createElement('template');
+            inner.innerHTML = '<img src=x onerror=alert(1)>';
+            sr.appendChild(inner);
+
+            purify.sanitize(host, { IN_PLACE: true });
+
+            var img =
+              host.shadowRoot &&
+              host.shadowRoot.querySelector('template') &&
+              host.shadowRoot
+                .querySelector('template')
+                .content.querySelector('img');
+            if (img) {
+              assert.equal(
+                img.getAttribute('onerror'),
+                null,
+                'onerror inside <template>.content inside shadow root must be stripped'
+              );
+            } else {
+              assert.ok(true, '<img> removed entirely');
+            }
+          }
+        );
+      }
+    );
   };
 });

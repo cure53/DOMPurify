@@ -788,7 +788,21 @@ function createDOMPurify() {
         emptyHTML = trustedTypesPolicy.createHTML('');
       }
     }
-    /*
+    /* Defense against hook-driven default-set pollution (GHSA-XXXX).
+     *
+     * The uponSanitizeElement / uponSanitizeAttribute hooks receive
+     * data.allowedTags / data.allowedAttributes references that are
+     * the live ALLOWED_TAGS / ALLOWED_ATTR sets. When no
+     * cfg.ALLOWED_TAGS / cfg.ALLOWED_ATTR array is supplied and no
+     * array-form ADD_TAGS / ADD_ATTR has already triggered a clone
+     * above, those references ARE the module-level DEFAULT_ALLOWED_TAGS
+     * / DEFAULT_ALLOWED_ATTR constants. A hook that writes to those
+     * objects — a natural-looking pattern that the documented behavior
+     * "hook can add allowed tags / attributes on the fly" relies on —
+     * would otherwise write permanently into the module-level defaults,
+     * polluting every subsequent default-cfg sanitize call and
+     * surviving removeAllHooks() and clearConfig().
+     *
      * Mirror the clone-before-mutate pattern already applied above for
      * cfg.ADD_TAGS / cfg.ADD_ATTR: if any uponSanitize* hook is
      * registered AND the set still points at the default constant,
@@ -1493,6 +1507,24 @@ function createDOMPurify() {
       if (_isDocumentFragment(shadowNode.content)) {
         _sanitizeShadowDOM2(shadowNode.content);
       }
+      /* GHSA-XXXX: an element iterated here may itself host an attached
+         shadow root. The default NodeIterator does not enter shadow
+         trees, so a shadow root nested inside template.content was
+         previously reached by no walk at all (the pre-pass at
+         _sanitizeAttachedShadowRoots descends via childNodes, which
+         doesn't enter template.content; the template-content recursion
+         above iterates the content but never inspected shadowRoot).
+         Walk it explicitly. The nodeType guard avoids reading
+         shadowRoot off text / comment / CDATA / PI nodes that the
+         iterator also surfaces. */
+      const shadowNodeType = getNodeType ? getNodeType(shadowNode) : shadowNode.nodeType;
+      if (shadowNodeType === NODE_TYPE.element) {
+        const innerSr = getShadowRoot ? getShadowRoot(shadowNode) : shadowNode.shadowRoot;
+        if (_isDocumentFragment(innerSr)) {
+          _sanitizeAttachedShadowRoots2(innerSr);
+          _sanitizeShadowDOM2(innerSr);
+        }
+      }
     }
     /* Execute a hook if present */
     _executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
@@ -1559,6 +1591,25 @@ function createDOMPurify() {
     });
     for (const child of snapshot) {
       _sanitizeAttachedShadowRoots2(child);
+    }
+    /* When the root is a <template>, also descend into root.content
+       (GHSA-XXXX, "shadow root inside template content"). Templates'
+       inert document fragment is NOT a child of the template element,
+       so the childNodes walk above never enters it. A shadow root
+       attached to an element inside template.content would therefore
+       never be sanitized; when the application later stamps the
+       template via cloneNode(true), the malicious shadow tree clones
+       along (if clonable: true) and executes on insertion. Routing
+       the recursion through the cached prototype getter for nodeName
+       keeps the realm-safety guarantees from GHSA-hpcv-96wg-7vj8. */
+    if (nodeType === NODE_TYPE.element) {
+      const rootName = getNodeName ? getNodeName(root) : null;
+      if (typeof rootName === 'string' && transformCaseFunc(rootName) === 'template') {
+        const content = root.content;
+        if (_isDocumentFragment(content)) {
+          _sanitizeAttachedShadowRoots2(content);
+        }
+      }
     }
   };
   // eslint-disable-next-line complexity
