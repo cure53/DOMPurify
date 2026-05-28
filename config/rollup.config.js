@@ -6,7 +6,7 @@ const replace = require('@rollup/plugin-replace');
 const terser = require('@rollup/plugin-terser');
 const typescript = require('@rollup/plugin-typescript');
 const { dts } = require('rollup-plugin-dts');
-const pkg = require('./package.json');
+const pkg = require('../package.json');
 
 const env = process.env.NODE_ENV;
 const version = process.env.npm_package_version;
@@ -62,7 +62,7 @@ const config = [
       },
     ],
     plugins: [
-      typescript(),
+      typescript({ tsconfig: 'config/tsconfig.json' }),
       babel({
         babelHelpers: 'bundled',
         exclude: ['**/node_modules/**'],
