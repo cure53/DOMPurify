@@ -19,7 +19,7 @@
     "build:cleanup": "rimraf dist/types",
     "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:browser -- --project=chromium",
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
-    "test:browser": "playwright test",
+    "test:browser": "playwright test --config config/playwright.config.js",
     "test:browser:install": "playwright install",
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:browser",
     "test:fuzz": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/fuzz/sanitize.fast-check.js",

@@ -14,7 +14,7 @@ const { defineConfig, devices } = require('@playwright/test');
 const isCI = Boolean(process.env.CI);
 
 module.exports = defineConfig({
-  testDir: './test',
+  testDir: '../test',
   testMatch: ['browser.spec.js'],
   timeout: 120_000,
   fullyParallel: true,
@@ -28,6 +28,7 @@ module.exports = defineConfig({
   },
   webServer: {
     command: 'node test/browser/server.js',
+    cwd: '..',
     port: 9877,
     reuseExistingServer: !isCI,
     stdout: 'ignore',
