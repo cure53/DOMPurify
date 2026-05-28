@@ -1766,7 +1766,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
          iterator also surfaces. */
       const shadowNodeType = getNodeType
         ? getNodeType(shadowNode)
-        : (shadowNode as Node).nodeType;
+        : shadowNode.nodeType;
       if (shadowNodeType === NODE_TYPE.element) {
         const innerSr = getShadowRoot
           ? getShadowRoot(shadowNode)

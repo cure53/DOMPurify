@@ -7,3 +7,7 @@ yarn-error.log
 nbproject/private/private.properties
 nbproject/project.properties
 nbproject/private/private.xml
+
+# Playwright generated output
+test-results/
+playwright-report/
