@@ -780,7 +780,7 @@ function createDOMPurify() {
       emptyHTML = trustedTypesPolicy.createHTML('');
     } else {
       // Uninitialized policy, attempt to initialize the internal dompurify policy.
-      if (trustedTypesPolicy === undefined) {
+      if (trustedTypesPolicy === undefined && cfg.TRUSTED_TYPES_POLICY !== null) {
         trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
       }
       // If creating the internal policy succeeded sign internal variables.
