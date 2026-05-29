@@ -1169,7 +1169,7 @@
         return true;
       }
       /* Now let's check the element's type and name */
-      const tagName = transformCaseFunc(currentNode.nodeName);
+      const tagName = transformCaseFunc(getNodeName ? getNodeName(currentNode) : currentNode.nodeName);
       /* Execute a hook if present */
       _executeHooks(hooks.uponSanitizeElement, currentNode, {
         tagName,
