@@ -4909,5 +4909,99 @@
         }
       }
     );
+
+    QUnit.module('Regression — template.content traversal bypass');
+
+    QUnit.test(
+      'RETURN_DOM scrubs boundary-spanning expressions inside template.content',
+      (assert) => {
+        // _scrubTemplateExpressions uses a NodeIterator rooted at the output
+        // body. Per the DOM spec, NodeIterator does not descend into
+        // <template>.content, which is a separate DocumentFragment outside
+        // the normal child-node tree. Stripped foreign elements inside a
+        // <template> leave adjacent text nodes in template.content whose
+        // individual fragments ('$' and '{...}') do not match TMPLIT_EXPR,
+        // but merge into a full '${...}' after normalize(). The fix
+        // explicitly recurses into each template.content, mirroring the
+        // approach already used by _sanitizeShadowDOM.
+        const dirty = document.createElement('div');
+        const tmpl = document.createElement('template');
+        tmpl.content.appendChild(document.createTextNode('$'));
+        tmpl.content.appendChild(
+          document.createTextNode('{constructor.constructor("alert(1)")()')
+        );
+        dirty.appendChild(tmpl);
+
+        const result = DOMPurify.sanitize(dirty, {
+          RETURN_DOM: true,
+          SAFE_FOR_TEMPLATES: true,
+        });
+
+        result.querySelector('template').content.normalize();
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(
+            result.querySelector('template').content.textContent
+          ),
+          'merged template-literal expression inside template.content should be scrubbed'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE scrubs boundary-spanning expressions inside template.content',
+      (assert) => {
+        // Same blind spot as the RETURN_DOM case above, but for the IN_PLACE
+        // path. The fix must cover both since they share _scrubTemplateExpressions.
+        const dirty = document.createElement('div');
+        const tmpl = document.createElement('template');
+        tmpl.content.appendChild(document.createTextNode('$'));
+        tmpl.content.appendChild(
+          document.createTextNode('{constructor.constructor("alert(1)")()')
+        );
+        dirty.appendChild(tmpl);
+
+        DOMPurify.sanitize(dirty, {
+          IN_PLACE: true,
+          SAFE_FOR_TEMPLATES: true,
+        });
+
+        dirty.querySelector('template').content.normalize();
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(
+            dirty.querySelector('template').content.textContent
+          ),
+          'merged template-literal expression inside template.content should be scrubbed in-place'
+        );
+      }
+    );
+
+    QUnit.test('scrub recurses into nested template.content', (assert) => {
+      // A <template> inside a <template> produces two nested
+      // DocumentFragments, both invisible to a flat NodeIterator. The
+      // recursive fix must descend through each level.
+      const dirty = document.createElement('div');
+      const outer = document.createElement('template');
+      const inner = document.createElement('template');
+      inner.content.appendChild(document.createTextNode('$'));
+      inner.content.appendChild(
+        document.createTextNode('{constructor.constructor("alert(1)")()')
+      );
+      outer.content.appendChild(inner);
+      dirty.appendChild(outer);
+
+      const result = DOMPurify.sanitize(dirty, {
+        RETURN_DOM: true,
+        SAFE_FOR_TEMPLATES: true,
+      });
+
+      const innerAfter = result
+        .querySelector('template')
+        .content.querySelector('template');
+      innerAfter.content.normalize();
+      assert.notOk(
+        /\$\{[\s\S]*\}/.test(innerAfter.content.textContent),
+        'merged expression inside nested template.content should be scrubbed'
+      );
+    });
   };
 });

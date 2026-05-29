@@ -1023,7 +1023,8 @@ function createDOMPurify() {
    *
    * @param node The root element whose character data should be scrubbed.
    */
-  const _scrubTemplateExpressions = function _scrubTemplateExpressions(node) {
+  const _scrubTemplateExpressions2 = function _scrubTemplateExpressions(node) {
+    var _node$querySelectorAl, _node$querySelectorAl2;
     node.normalize();
     const walker = createNodeIterator.call(node.ownerDocument || node, node,
     // eslint-disable-next-line no-bitwise
@@ -1037,6 +1038,15 @@ function createDOMPurify() {
       currentNode.data = data;
       currentNode = walker.nextNode();
     }
+    // NodeIterator does not descend into <template>.content per the DOM spec,
+    // so we must explicitly recurse into each template's content fragment,
+    // mirroring the approach used by _sanitizeShadowDOM.
+    const templates = (_node$querySelectorAl = (_node$querySelectorAl2 = node.querySelectorAll) === null || _node$querySelectorAl2 === void 0 ? void 0 : _node$querySelectorAl2.call(node, 'template')) !== null && _node$querySelectorAl !== void 0 ? _node$querySelectorAl : [];
+    arrayForEach(Array.from(templates), tmpl => {
+      if (_isDocumentFragment(tmpl.content)) {
+        _scrubTemplateExpressions2(tmpl.content);
+      }
+    });
   };
   /**
    * _isClobbered
@@ -1661,14 +1671,14 @@ function createDOMPurify() {
     /* If we sanitized `dirty` in-place, return it. */
     if (IN_PLACE) {
       if (SAFE_FOR_TEMPLATES) {
-        _scrubTemplateExpressions(dirty);
+        _scrubTemplateExpressions2(dirty);
       }
       return dirty;
     }
     /* Return sanitized string or DOM */
     if (RETURN_DOM) {
       if (SAFE_FOR_TEMPLATES) {
-        _scrubTemplateExpressions(body);
+        _scrubTemplateExpressions2(body);
       }
       if (RETURN_DOM_FRAGMENT) {
         returnNode = createDocumentFragment.call(body.ownerDocument);
