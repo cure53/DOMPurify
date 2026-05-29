@@ -448,6 +448,23 @@ function createDOMPurify() {
   }
   let trustedTypesPolicy;
   let emptyHTML = '';
+  // Tracks whether we are already inside a call to the configured Trusted Types
+  // policy's `createHTML`. If the supplied `TRUSTED_TYPES_POLICY.createHTML`
+  // itself calls `DOMPurify.sanitize` (the cause of #1422), `sanitize` would
+  // re-enter the policy and recurse until the stack overflows. We detect that
+  // re-entry and throw a clear, actionable error instead.
+  let IN_POLICY_CREATE_HTML = 0;
+  const _createTrustedHTML = function _createTrustedHTML(html) {
+    if (IN_POLICY_CREATE_HTML > 0) {
+      throw typeErrorCreate('The configured TRUSTED_TYPES_POLICY.createHTML must not call ' + 'DOMPurify.sanitize, as that causes infinite recursion. Do not pass ' + 'a policy whose createHTML wraps DOMPurify as TRUSTED_TYPES_POLICY; ' + 'see the "DOMPurify and Trusted Types" section of the README.');
+    }
+    IN_POLICY_CREATE_HTML++;
+    try {
+      return trustedTypesPolicy.createHTML(html);
+    } finally {
+      IN_POLICY_CREATE_HTML--;
+    }
+  };
   const _document = document,
     implementation = _document.implementation,
     createNodeIterator = _document.createNodeIterator,
@@ -775,17 +792,30 @@ function createDOMPurify() {
         throw typeErrorCreate('TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.');
       }
       // Overwrite existing TrustedTypes policy.
+      const previousTrustedTypesPolicy = trustedTypesPolicy;
       trustedTypesPolicy = cfg.TRUSTED_TYPES_POLICY;
-      // Sign local variables required by `sanitize`.
-      emptyHTML = trustedTypesPolicy.createHTML('');
+      // Sign local variables required by `sanitize`. If the supplied policy's
+      // `createHTML` is circular (i.e. it calls `DOMPurify.sanitize`), this
+      // throws via the re-entrancy guard. Restore the previous policy first so
+      // the instance is not left in a poisoned state. See #1422.
+      try {
+        emptyHTML = _createTrustedHTML('');
+      } catch (error) {
+        trustedTypesPolicy = previousTrustedTypesPolicy;
+        throw error;
+      }
     } else {
       // Uninitialized policy, attempt to initialize the internal dompurify policy.
       if (trustedTypesPolicy === undefined && cfg.TRUSTED_TYPES_POLICY !== null) {
         trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
       }
       // If creating the internal policy succeeded sign internal variables.
-      if (trustedTypesPolicy !== null && typeof emptyHTML === 'string') {
-        emptyHTML = trustedTypesPolicy.createHTML('');
+      // Note: a falsy `trustedTypesPolicy` (null when policy creation failed or
+      // was skipped via `TRUSTED_TYPES_POLICY: null`, or undefined when no
+      // policy has been initialized yet) must be excluded here, otherwise we
+      // would call `.createHTML` on a non-policy and throw. See #1422.
+      if (trustedTypesPolicy && typeof emptyHTML === 'string') {
+        emptyHTML = _createTrustedHTML('');
       }
     }
     /*
@@ -962,7 +992,7 @@ function createDOMPurify() {
       // Root of XHTML doc must contain xmlns declaration (see https://www.w3.org/TR/xhtml1/normative.html#strict)
       dirty = '<html xmlns="http://www.w3.org/1999/xhtml"><head></head><body>' + dirty + '</body></html>';
     }
-    const dirtyPayload = trustedTypesPolicy ? trustedTypesPolicy.createHTML(dirty) : dirty;
+    const dirtyPayload = trustedTypesPolicy ? _createTrustedHTML(dirty) : dirty;
     /*
      * Use the DOMParser API by default, fallback later if needs be
      * DOMParser not work for svg when has multiple root element.
@@ -1406,7 +1436,7 @@ function createDOMPurify() {
           switch (trustedTypes.getAttributeType(lcTag, lcName)) {
             case 'TrustedHTML':
               {
-                value = trustedTypesPolicy.createHTML(value);
+                value = _createTrustedHTML(value);
                 break;
               }
             case 'TrustedScriptURL':
@@ -1637,7 +1667,7 @@ function createDOMPurify() {
       if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT &&
       // eslint-disable-next-line unicorn/prefer-includes
       dirty.indexOf('<') === -1) {
-        return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(dirty) : dirty;
+        return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? _createTrustedHTML(dirty) : dirty;
       }
       /* Initialize the document to work on */
       body = _initDocument(dirty);
@@ -1710,7 +1740,7 @@ function createDOMPurify() {
         serializedHTML = stringReplace(serializedHTML, expr, ' ');
       });
     }
-    return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? trustedTypesPolicy.createHTML(serializedHTML) : serializedHTML;
+    return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? _createTrustedHTML(serializedHTML) : serializedHTML;
   };
   DOMPurify.setConfig = function () {
     let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};

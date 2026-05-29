@@ -165,6 +165,19 @@ window.trustedTypes.createPolicy('default', {
 });
 ```
 
+When no `TRUSTED_TYPES_POLICY` is supplied, DOMPurify attempts to create its own internal Trusted Types policy named `dompurify`. If your page already defines its own policy together with a strict CSP (for example `trusted-types my-organization`) that does not allow a policy named `dompurify`, this attempt is blocked by the browser and logs a `TrustedTypes policy dompurify could not be created.` warning along with a CSP violation.
+
+To stop DOMPurify from creating its internal fallback policy, pass `TRUSTED_TYPES_POLICY: null`. This is the right choice when you call `DOMPurify.sanitize` from inside your own policy's `createHTML`, and it means you do not have to add `dompurify` to your CSP's `trusted-types` allowlist.
+
+```js
+window.trustedTypes.createPolicy('my-organization', {
+  createHTML: (input) =>
+    DOMPurify.sanitize(input, { TRUSTED_TYPES_POLICY: null }),
+});
+```
+
+Do **not** pass your own wrapping policy back to DOMPurify as its `TRUSTED_TYPES_POLICY` (for example via `DOMPurify.setConfig({ TRUSTED_TYPES_POLICY: myPolicy })`) when that policy's `createHTML` already calls `DOMPurify.sanitize`. That is circular by definition — sanitizing would call the policy, which sanitizes by calling DOMPurify again — and DOMPurify will throw a descriptive `TypeError` to prevent the infinite recursion. Your own policy should call DOMPurify; DOMPurify should not be configured to call your policy.
+
 ## Can I configure DOMPurify?
 
 Yes. The included default configuration values are pretty good already - but you can of course override them. Check out the [`/demos`](https://github.com/cure53/DOMPurify/tree/main/demos) folder to see a bunch of examples on how you can [customize DOMPurify](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this).
@@ -370,6 +383,10 @@ const clean = DOMPurify.sanitize(dirty, {
     },
   }),
 });
+
+// opt out of DOMPurify's internal `dompurify` Trusted Types policy entirely
+// (useful when your CSP `trusted-types` allowlist does not include `dompurify`)
+const clean = DOMPurify.sanitize(dirty, { TRUSTED_TYPES_POLICY: null });
 ```
 
 ### Influence how we sanitize
