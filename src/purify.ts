@@ -779,7 +779,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       emptyHTML = trustedTypesPolicy.createHTML('');
     } else {
       // Uninitialized policy, attempt to initialize the internal dompurify policy.
-      if (trustedTypesPolicy === undefined) {
+      if (
+        trustedTypesPolicy === undefined &&
+        cfg.TRUSTED_TYPES_POLICY !== null
+      ) {
         trustedTypesPolicy = _createTrustedTypesPolicy(
           trustedTypes,
           currentScript
@@ -1287,7 +1290,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Now let's check the element's type and name */
-    const tagName = transformCaseFunc(currentNode.nodeName);
+    const tagName = transformCaseFunc(
+      getNodeName ? getNodeName(currentNode) : currentNode.nodeName
+    );
 
     /* Execute a hook if present */
     _executeHooks(hooks.uponSanitizeElement, currentNode, {

@@ -782,7 +782,7 @@ function createDOMPurify() {
       emptyHTML = trustedTypesPolicy.createHTML('');
     } else {
       // Uninitialized policy, attempt to initialize the internal dompurify policy.
-      if (trustedTypesPolicy === undefined) {
+      if (trustedTypesPolicy === undefined && cfg.TRUSTED_TYPES_POLICY !== null) {
         trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
       }
       // If creating the internal policy succeeded sign internal variables.
@@ -1165,7 +1165,7 @@ function createDOMPurify() {
       return true;
     }
     /* Now let's check the element's type and name */
-    const tagName = transformCaseFunc(currentNode.nodeName);
+    const tagName = transformCaseFunc(getNodeName ? getNodeName(currentNode) : currentNode.nodeName);
     /* Execute a hook if present */
     _executeHooks(hooks.uponSanitizeElement, currentNode, {
       tagName,
