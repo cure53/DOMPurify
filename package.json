@@ -69,7 +69,7 @@
     "@rollup/plugin-replace": "^4.0.0",
     "@types/dompurify": "^2.3.3",
     "@types/estree": "^1.0.9",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jquery": "^3.6.0",
