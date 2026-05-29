@@ -1134,6 +1134,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       currentNode.data = data;
       currentNode = walker.nextNode() as CharacterData | null;
     }
+
+    // NodeIterator does not descend into <template>.content per the DOM spec,
+    // so we must explicitly recurse into each template's content fragment,
+    // mirroring the approach used by _sanitizeShadowDOM.
+    const templates = node.querySelectorAll?.('template') ?? [];
+    arrayForEach(Array.from(templates), (tmpl: HTMLTemplateElement) => {
+      if (_isDocumentFragment(tmpl.content)) {
+        _scrubTemplateExpressions(tmpl.content as unknown as Element);
+      }
+    });
   };
 
   /**
