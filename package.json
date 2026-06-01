@@ -48,7 +48,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "LICENSE-MPL"
   ],
   "xo": {
     "semicolon": true,
