@@ -6,7 +6,7 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.4.7**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.4.8**.
 
 DOMPurify runs as JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
@@ -164,6 +164,19 @@ window.trustedTypes.createPolicy('default', {
     DOMPurify.sanitize(to_escape, { RETURN_TRUSTED_TYPE: false }),
 });
 ```
+
+When no `TRUSTED_TYPES_POLICY` is supplied, DOMPurify attempts to create its own internal Trusted Types policy named `dompurify`. If your page already defines its own policy together with a strict CSP (for example `trusted-types my-organization`) that does not allow a policy named `dompurify`, this attempt is blocked by the browser and logs a `TrustedTypes policy dompurify could not be created.` warning along with a CSP violation.
+
+To stop DOMPurify from creating its internal fallback policy, pass `TRUSTED_TYPES_POLICY: null`. This is the right choice when you call `DOMPurify.sanitize` from inside your own policy's `createHTML`, and it means you do not have to add `dompurify` to your CSP's `trusted-types` allowlist.
+
+```js
+window.trustedTypes.createPolicy('my-organization', {
+  createHTML: (input) =>
+    DOMPurify.sanitize(input, { TRUSTED_TYPES_POLICY: null }),
+});
+```
+
+Do **not** pass your own wrapping policy back to DOMPurify as its `TRUSTED_TYPES_POLICY` (for example via `DOMPurify.setConfig({ TRUSTED_TYPES_POLICY: myPolicy })`) when that policy's `createHTML` already calls `DOMPurify.sanitize`. That is circular by definition — sanitizing would call the policy, which sanitizes by calling DOMPurify again — and DOMPurify will throw a descriptive `TypeError` to prevent the infinite recursion. Your own policy should call DOMPurify; DOMPurify should not be configured to call your policy.
 
 ## Can I configure DOMPurify?
 
@@ -370,6 +383,10 @@ const clean = DOMPurify.sanitize(dirty, {
     },
   }),
 });
+
+// opt out of DOMPurify's internal `dompurify` Trusted Types policy entirely
+// (useful when your CSP `trusted-types` allowlist does not include `dompurify`)
+const clean = DOMPurify.sanitize(dirty, { TRUSTED_TYPES_POLICY: null });
 ```
 
 ### Influence how we sanitize

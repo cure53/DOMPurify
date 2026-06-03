@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.4.7 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.7/LICENSE */
+/*! @license DOMPurify 3.4.8 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.8/LICENSE */
 
 import { TrustedTypePolicy, TrustedTypesWindow, TrustedHTML } from 'trusted-types/lib/index.js';
 
@@ -177,7 +177,7 @@ interface Config {
     /**
      * Supplied policy must define `createHTML` and `createScriptURL`.
      */
-    TRUSTED_TYPES_POLICY?: TrustedTypePolicy | undefined;
+    TRUSTED_TYPES_POLICY?: TrustedTypePolicy | null | undefined;
     /**
      * Controls categories of allowed elements.
      *
