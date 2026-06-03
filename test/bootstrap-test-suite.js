@@ -272,4 +272,102 @@ module.exports = function (JSDOM) {
       );
     }
   );
+
+  QUnit.test(
+    'internal TrustedTypes policy is not created when TRUSTED_TYPES_POLICY is null',
+    function (assert) {
+      const createdPolicies = [];
+      loadDOMPurify(
+        assert,
+        false,
+        function setup(window) {
+          window.trustedTypes = {
+            createPolicy(name, rules) {
+              createdPolicies.push(name);
+              return {
+                createHTML(s) {
+                  return new StringWrapper(rules.createHTML(s));
+                },
+                createScriptURL(s) {
+                  return new StringWrapper(rules.createScriptURL(s));
+                },
+              };
+            },
+          };
+        },
+        undefined,
+        function onload(window) {
+          // Sanitizing with an explicit null policy must NOT create the
+          // internal `dompurify` fallback policy, and must NOT throw (see
+          // #1422). This lets pages with a strict `trusted-types` CSP that does
+          // not allow a `dompurify` policy call `sanitize` from inside their own
+          // policy's `createHTML`.
+          const out = window.DOMPurify.sanitize(
+            '<img src=x onerror=alert(1)>',
+            { TRUSTED_TYPES_POLICY: null }
+          );
+          assert.equal(out, '<img src="x">');
+          assert.equal(createdPolicies.length, 0);
+
+          // A subsequent call with null should likewise create nothing.
+          window.DOMPurify.sanitize('<img />', { TRUSTED_TYPES_POLICY: null });
+          assert.equal(createdPolicies.length, 0);
+        }
+      );
+    }
+  );
+
+  QUnit.test(
+    'a self-referential TRUSTED_TYPES_POLICY throws a clear error instead of recursing',
+    function (assert) {
+      loadDOMPurify(
+        assert,
+        false,
+        function setup(window) {
+          window.trustedTypes = {
+            createPolicy(name, rules) {
+              return {
+                createHTML(s) {
+                  return rules.createHTML(s);
+                },
+                createScriptURL(s) {
+                  return rules.createScriptURL(s);
+                },
+              };
+            },
+          };
+        },
+        undefined,
+        function onload(window) {
+          // A policy whose createHTML calls back into DOMPurify.sanitize is
+          // circular by definition (see #1422). Setting it as DOMPurify's own
+          // policy must fail fast with a descriptive error rather than blowing
+          // the stack with "Maximum call stack size exceeded".
+          const selfPolicy = window.trustedTypes.createPolicy('my-policy', {
+            createHTML(input) {
+              return window.DOMPurify.sanitize(input);
+            },
+            createScriptURL(input) {
+              return input;
+            },
+          });
+
+          assert.throws(
+            function () {
+              window.DOMPurify.setConfig({ TRUSTED_TYPES_POLICY: selfPolicy });
+            },
+            /must not call DOMPurify\.sanitize/,
+            'circular TRUSTED_TYPES_POLICY throws a descriptive TypeError'
+          );
+
+          // The failed setConfig must not poison the instance: a normal
+          // sanitize call still works afterwards.
+          assert.equal(
+            window.DOMPurify.sanitize('<img src=x onerror=alert(1)>'),
+            '<img src="x">'
+          );
+        }
+      );
+    }
+  );
 };

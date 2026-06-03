@@ -9,10 +9,16 @@ on:
   branch_protection_rule:
   # To guarantee Maintained check is occasionally updated. See
   # https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained
+  # Daily (was weekly): if any run catches a commit mid-CodeQL-scan, the next
+  # run corrects it within a day instead of leaving a stale reading for a week.
   schedule:
-    - cron: '24 17 * * 5'
-  push:
-    branches: [ "main" ]
+    - cron: '24 17 * * *'
+  # NOTE: the 'push: [main]' trigger was intentionally removed. It made this
+  # workflow run at merge time, racing the CodeQL scan of the just-merged
+  # commit. Scorecard would query for a SAST run before CodeQL had finished
+  # producing one, reporting that commit as unchecked (e.g. 29/30). Running
+  # only on schedule + branch_protection_rule means evaluation happens well
+  # after CodeQL has completed, so merges no longer move the score.
 
 # Declare default permissions as read only.
 permissions: read-all
@@ -25,11 +31,18 @@ jobs:
     # (The previous 'pull_request' clause here was dead code - this workflow
     # doesn't trigger on pull_request events.)
     if: github.event.repository.default_branch == github.ref_name
+    # A job-level permissions block REPLACES the top-level 'read-all' default
+    # entirely - anything not listed here is set to 'none'. The reads below are
+    # required for Scorecard to enumerate commits/PRs and detect the CodeQL
+    # check runs that the SAST check looks for. With them commented out, the
+    # job effectively had no read access and relied entirely on SCORECARD_TOKEN.
     permissions:
-      security-events: write
-      id-token: write
-      # contents: read
-      # actions: read
+      security-events: write # upload SARIF to the code-scanning dashboard
+      id-token: write        # publish results to the OpenSSF REST API
+      contents: read         # read commit history (the SAST evaluation window)
+      actions: read          # read workflow runs
+      checks: read           # read CodeQL check runs (the SAST signal)
+      pull-requests: read    # map merged commits to their PRs
 
     steps:
       - name: Harden the runner (Audit all outbound calls)

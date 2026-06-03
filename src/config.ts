@@ -217,7 +217,7 @@ export interface Config {
   /**
    * Supplied policy must define `createHTML` and `createScriptURL`.
    */
-  TRUSTED_TYPES_POLICY?: TrustedTypePolicy | undefined;
+  TRUSTED_TYPES_POLICY?: TrustedTypePolicy | null | undefined;
 
   /**
    * Controls categories of allowed elements.
