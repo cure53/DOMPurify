@@ -170,8 +170,28 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const getAttributes = lookupGetter(ElementPrototype, 'attributes');
   const getNodeType =
     Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
-  const getNodeName =
+  const _getNodeNameRaw =
     Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
+  // Read an element's tag name through the realm-safe cached prototype getter
+  // (for DOM-clobbering resistance), but fall back to the instance `nodeName`
+  // when that getter is unavailable, throws (e.g. a node from another realm
+  // whose prototype brand-check fails), or returns an empty/invalid value.
+  // Some non-browser DOM implementations (e.g. happy-dom) define the working
+  // `nodeName` accessor on a subclass rather than on Node.prototype, so the
+  // cached base-class getter returns '' for elements -- which made 3.4.8
+  // misclassify and keep forbidden elements such as <script>.
+  const getNodeName = _getNodeNameRaw
+    ? function (node: Node): string {
+        let name: unknown = null;
+        try {
+          name = _getNodeNameRaw(node);
+        } catch {
+          name = null;
+        }
+
+        return name !== null && name !== '' ? (name as string) : node.nodeName;
+      }
+    : null;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec

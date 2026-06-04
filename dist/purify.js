@@ -439,7 +439,24 @@
     const getShadowRoot = lookupGetter(ElementPrototype, 'shadowRoot');
     const getAttributes = lookupGetter(ElementPrototype, 'attributes');
     const getNodeType = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
-    const getNodeName = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
+    const _getNodeNameRaw = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
+    // Read an element's tag name through the realm-safe cached prototype getter
+    // (for DOM-clobbering resistance), but fall back to the instance `nodeName`
+    // when that getter is unavailable, throws (e.g. a node from another realm
+    // whose prototype brand-check fails), or returns an empty/invalid value.
+    // Some non-browser DOM implementations (e.g. happy-dom) define the working
+    // `nodeName` accessor on a subclass rather than on Node.prototype, so the
+    // cached base-class getter returns '' for elements -- which made 3.4.8
+    // misclassify and keep forbidden elements such as <script>.
+    const getNodeName = _getNodeNameRaw ? function (node) {
+      let name = null;
+      try {
+        name = _getNodeNameRaw(node);
+      } catch (_unused) {
+        name = null;
+      }
+      return name !== null && name !== '' ? name : node.nodeName;
+    } : null;
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
     // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
