@@ -988,7 +988,28 @@ function createDOMPurify() {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
       getParentNode(node).removeChild(node);
     } catch (_) {
+      /* The normal detach failed — this is reached for a parentless node
+         (getParentNode() is null, so .removeChild throws). Element.prototype
+         .remove() is itself a spec no-op on a parentless node, so a recorded
+         "removal" would otherwise hand the caller back an intact,
+         payload-bearing node (e.g. a detached IN_PLACE root the mXSS canary or
+         the style-with-element-child rule decided to kill). Fail closed by
+         throwing — exactly as a clobbered root does at the IN_PLACE entry —
+         rather than trying to "neutralize" the node via its own methods.
+         Neutralizing would mean calling getAttributeNames()/removeAttribute()
+         on the node, both of which a <form> root can clobber via a named child
+         (and _isClobbered does not even probe getAttributeNames), so the
+         neutralize step could itself be silently defeated, leaving the payload
+         intact. A throw touches only the cached, clobber-safe remove() and
+         getParentNode(). Generalizes GHSA-r47g-fvhr-h676 (clobbered-form root)
+         to every root-kill reason. REPORT-3.
+                This lives inside the catch, so it never fires for a normally-removed
+         in-tree node: those have a parent, removeChild() succeeds, and the
+         catch is not entered. Only a kept (parentless) root reaches here. */
       remove(node);
+      if (!getParentNode(node)) {
+        throw typeErrorCreate('a node selected for removal could not be detached from its tree ' + 'and cannot be safely returned; refusing to sanitize in place');
+      }
     }
   };
   /**
@@ -1661,11 +1682,14 @@ function createDOMPurify() {
     }
     /* Clean up removed elements */
     DOMPurify.removed = [];
-    /* Check if dirty is correctly typed for IN_PLACE */
-    if (typeof dirty === 'string') {
-      IN_PLACE = false;
-    }
-    if (IN_PLACE) {
+    /* Resolve IN_PLACE for this call without mutating persistent config.
+       Writing the IN_PLACE closure variable here leaks under setConfig(),
+       where _parseConfig is skipped on later calls: a single string call would
+       disable in-place mode for every subsequent node call, returning a
+       sanitized copy while leaving the caller's node — which in-place callers
+       keep using and whose return value they ignore — unsanitized. REPORT-2. */
+    const inPlace = IN_PLACE && typeof dirty !== 'string' && _isNode(dirty);
+    if (inPlace) {
       /* Do some early pre-sanitization to avoid unsafe root nodes.
          Read nodeName through the cached prototype getter — a clobbering
          child named "nodeName" on the form root would otherwise shadow
@@ -1733,7 +1757,7 @@ function createDOMPurify() {
       _forceRemove(body.firstChild);
     }
     /* Get node iterator */
-    const nodeIterator = _createNodeIterator(IN_PLACE ? dirty : body);
+    const nodeIterator = _createNodeIterator(inPlace ? dirty : body);
     /* Now start iterating over the created document */
     while (currentNode = nodeIterator.nextNode()) {
       /* Sanitize tags and elements */
@@ -1749,7 +1773,7 @@ function createDOMPurify() {
       }
     }
     /* If we sanitized `dirty` in-place, return it. */
-    if (IN_PLACE) {
+    if (inPlace) {
       if (SAFE_FOR_TEMPLATES) {
         _scrubTemplateExpressions2(dirty);
       }
