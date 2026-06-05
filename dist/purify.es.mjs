@@ -433,24 +433,7 @@ function createDOMPurify() {
   const getShadowRoot = lookupGetter(ElementPrototype, 'shadowRoot');
   const getAttributes = lookupGetter(ElementPrototype, 'attributes');
   const getNodeType = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
-  const _getNodeNameRaw = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
-  // Read an element's tag name through the realm-safe cached prototype getter
-  // (for DOM-clobbering resistance), but fall back to the instance `nodeName`
-  // when that getter is unavailable, throws (e.g. a node from another realm
-  // whose prototype brand-check fails), or returns an empty/invalid value.
-  // Some non-browser DOM implementations (e.g. happy-dom) define the working
-  // `nodeName` accessor on a subclass rather than on Node.prototype, so the
-  // cached base-class getter returns '' for elements -- which made 3.4.8
-  // misclassify and keep forbidden elements such as <script>.
-  const getNodeName = _getNodeNameRaw ? function (node) {
-    let name = null;
-    try {
-      name = _getNodeNameRaw(node);
-    } catch (_unused) {
-      name = null;
-    }
-    return name !== null && name !== '' ? name : node.nodeName;
-  } : null;
+  const getNodeName = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
   // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
@@ -465,6 +448,12 @@ function createDOMPurify() {
   }
   let trustedTypesPolicy;
   let emptyHTML = '';
+  // The instance's own internal Trusted Types policy. Unlike a caller-supplied
+  // `TRUSTED_TYPES_POLICY`, this is created at most once — Trusted Types throws
+  // on duplicate policy names — and is the only policy allowed to persist
+  // across configurations and survive `clearConfig()`.
+  let defaultTrustedTypesPolicy;
+  let defaultTrustedTypesPolicyResolved = false;
   // Tracks whether we are already inside a call to the configured Trusted Types
   // policy's `createHTML`. If the supplied `TRUSTED_TYPES_POLICY.createHTML`
   // itself calls `DOMPurify.sanitize` (the cause of #1422), `sanitize` would
@@ -481,6 +470,17 @@ function createDOMPurify() {
     } finally {
       IN_POLICY_CREATE_HTML--;
     }
+  };
+  // Lazily resolve (and cache) the instance's internal default policy.
+  // Resolution is attempted at most once: a successful `createPolicy` cannot be
+  // repeated (Trusted Types throws on duplicate names), and a failed or
+  // unsupported attempt must not be retried on every parse.
+  const _getDefaultTrustedTypesPolicy = function _getDefaultTrustedTypesPolicy() {
+    if (!defaultTrustedTypesPolicyResolved) {
+      defaultTrustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
+      defaultTrustedTypesPolicyResolved = true;
+    }
+    return defaultTrustedTypesPolicy;
   };
   const _document = document,
     implementation = _document.implementation,
@@ -801,6 +801,13 @@ function createDOMPurify() {
       addToSet(ALLOWED_TAGS, ['tbody']);
       delete FORBID_TAGS.tbody;
     }
+    // Re-derive the active Trusted Types policy from this configuration on
+    // every parse. The active policy must never be sticky closure state that
+    // outlives the config that set it: a caller-supplied policy left in place
+    // after `clearConfig()` — or after a later call that supplied none, or
+    // `TRUSTED_TYPES_POLICY: null` — could sign a subsequent "default"
+    // `RETURN_TRUSTED_TYPE` result with a foreign, possibly unsafe policy.
+    // See GHSA-vxr8-fq34-vvx9.
     if (cfg.TRUSTED_TYPES_POLICY) {
       if (typeof cfg.TRUSTED_TYPES_POLICY.createHTML !== 'function') {
         throw typeErrorCreate('TRUSTED_TYPES_POLICY configuration option must provide a "createHTML" hook.');
@@ -808,7 +815,7 @@ function createDOMPurify() {
       if (typeof cfg.TRUSTED_TYPES_POLICY.createScriptURL !== 'function') {
         throw typeErrorCreate('TRUSTED_TYPES_POLICY configuration option must provide a "createScriptURL" hook.');
       }
-      // Overwrite existing TrustedTypes policy.
+      // A caller-supplied policy applies to this configuration only.
       const previousTrustedTypesPolicy = trustedTypesPolicy;
       trustedTypesPolicy = cfg.TRUSTED_TYPES_POLICY;
       // Sign local variables required by `sanitize`. If the supplied policy's
@@ -821,16 +828,30 @@ function createDOMPurify() {
         trustedTypesPolicy = previousTrustedTypesPolicy;
         throw error;
       }
+    } else if (cfg.TRUSTED_TYPES_POLICY === null) {
+      // Explicit opt-out for this call: perform no Trusted Types signing and
+      // create nothing (so a strict `trusted-types` CSP that disallows a
+      // `dompurify` policy can still call `sanitize` from inside its own
+      // policy — see #1422). Resetting to `undefined` rather than a sticky
+      // `null` also drops any previously retained caller policy, so it cannot
+      // resurface on a later call, while still allowing the next config-less
+      // call to restore the internal default policy. See GHSA-vxr8-fq34-vvx9.
+      trustedTypesPolicy = undefined;
+      emptyHTML = '';
     } else {
-      // Uninitialized policy, attempt to initialize the internal dompurify policy.
-      if (trustedTypesPolicy === undefined && cfg.TRUSTED_TYPES_POLICY !== null) {
-        trustedTypesPolicy = _createTrustedTypesPolicy(trustedTypes, currentScript);
+      // No policy supplied: keep the currently active policy if one is set — a
+      // previously supplied policy is intentionally sticky across config-less
+      // calls — otherwise fall back to the instance's own internal policy,
+      // created at most once. (A policy supplied for a *single* call still
+      // lingers by design; what must not linger is a policy whose configuration
+      // has been torn down via `clearConfig()`, which restores the default.)
+      if (trustedTypesPolicy === undefined) {
+        trustedTypesPolicy = _getDefaultTrustedTypesPolicy();
       }
-      // If creating the internal policy succeeded sign internal variables.
-      // Note: a falsy `trustedTypesPolicy` (null when policy creation failed or
-      // was skipped via `TRUSTED_TYPES_POLICY: null`, or undefined when no
-      // policy has been initialized yet) must be excluded here, otherwise we
-      // would call `.createHTML` on a non-policy and throw. See #1422.
+      // Sign internal variables only when a policy is active. A falsy policy
+      // (Trusted Types unsupported, creation failed, or an explicit opt-out)
+      // leaves `emptyHTML` as a plain string, so we never call `.createHTML` on
+      // a non-policy and throw. See #1422.
       if (trustedTypesPolicy && typeof emptyHTML === 'string') {
         emptyHTML = _createTrustedHTML('');
       }
@@ -1767,6 +1788,12 @@ function createDOMPurify() {
   DOMPurify.clearConfig = function () {
     CONFIG = null;
     SET_CONFIG = false;
+    // Drop any caller-supplied Trusted Types policy so it cannot poison later
+    // `RETURN_TRUSTED_TYPE` output. The internal default policy (cached, and
+    // never recreated — Trusted Types throws on duplicate names) is restored by
+    // the next `_parseConfig`. See GHSA-vxr8-fq34-vvx9.
+    trustedTypesPolicy = defaultTrustedTypesPolicy;
+    emptyHTML = '';
   };
   DOMPurify.isValidAttribute = function (tag, attr, value) {
     /* Initialize shared config vars if necessary. */
