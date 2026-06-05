@@ -457,20 +457,34 @@ function createDOMPurify() {
   let defaultTrustedTypesPolicy;
   let defaultTrustedTypesPolicyResolved = false;
   // Tracks whether we are already inside a call to the configured Trusted Types
-  // policy's `createHTML`. If the supplied `TRUSTED_TYPES_POLICY.createHTML`
+  // policy (`createHTML` or `createScriptURL`). If a supplied policy callback
   // itself calls `DOMPurify.sanitize` (the cause of #1422), `sanitize` would
   // re-enter the policy and recurse until the stack overflows. We detect that
-  // re-entry and throw a clear, actionable error instead.
-  let IN_POLICY_CREATE_HTML = 0;
-  const _createTrustedHTML = function _createTrustedHTML(html) {
-    if (IN_POLICY_CREATE_HTML > 0) {
-      throw typeErrorCreate('The configured TRUSTED_TYPES_POLICY.createHTML must not call ' + 'DOMPurify.sanitize, as that causes infinite recursion. Do not pass ' + 'a policy whose createHTML wraps DOMPurify as TRUSTED_TYPES_POLICY; ' + 'see the "DOMPurify and Trusted Types" section of the README.');
+  // re-entry and throw a clear, actionable error instead. The guard is shared
+  // across both callbacks, because either one re-entering `sanitize` triggers
+  // the same unbounded recursion.
+  let IN_TRUSTED_TYPES_POLICY = 0;
+  const _assertNotInTrustedTypesPolicy = function _assertNotInTrustedTypesPolicy() {
+    if (IN_TRUSTED_TYPES_POLICY > 0) {
+      throw typeErrorCreate('A configured TRUSTED_TYPES_POLICY callback (createHTML or ' + 'createScriptURL) must not call DOMPurify.sanitize, as that causes ' + 'infinite recursion. Do not pass a policy whose callbacks wrap ' + 'DOMPurify as TRUSTED_TYPES_POLICY; see the "DOMPurify and Trusted ' + 'Types" section of the README.');
     }
-    IN_POLICY_CREATE_HTML++;
+  };
+  const _createTrustedHTML = function _createTrustedHTML(html) {
+    _assertNotInTrustedTypesPolicy();
+    IN_TRUSTED_TYPES_POLICY++;
     try {
       return trustedTypesPolicy.createHTML(html);
     } finally {
-      IN_POLICY_CREATE_HTML--;
+      IN_TRUSTED_TYPES_POLICY--;
+    }
+  };
+  const _createTrustedScriptURL = function _createTrustedScriptURL(scriptUrl) {
+    _assertNotInTrustedTypesPolicy();
+    IN_TRUSTED_TYPES_POLICY++;
+    try {
+      return trustedTypesPolicy.createScriptURL(scriptUrl);
+    } finally {
+      IN_TRUSTED_TYPES_POLICY--;
     }
   };
   // Lazily resolve (and cache) the instance's internal default policy.
@@ -1481,7 +1495,7 @@ function createDOMPurify() {
               }
             case 'TrustedScriptURL':
               {
-                value = trustedTypesPolicy.createScriptURL(value);
+                value = _createTrustedScriptURL(value);
                 break;
               }
           }

@@ -531,4 +531,72 @@ module.exports = function (JSDOM) {
       );
     }
   );
+
+  QUnit.test(
+    'a self-referential createScriptURL throws a clear error instead of recursing',
+    function (assert) {
+      loadDOMPurify(
+        assert,
+        false,
+        function setup(window) {
+          window.trustedTypes = {
+            createPolicy(name, rules) {
+              return {
+                createHTML(s) {
+                  return rules.createHTML(s);
+                },
+                createScriptURL(s) {
+                  return rules.createScriptURL(s);
+                },
+              };
+            },
+            // Needed for DOMPurify to reach the TrustedScriptURL branch.
+            getAttributeType(tag, attr) {
+              return tag === 'script' && attr === 'src'
+                ? 'TrustedScriptURL'
+                : null;
+            },
+          };
+        },
+        undefined,
+        function onload(window) {
+          const DOMPurify = window.DOMPurify;
+          const cfg = { ADD_TAGS: ['script'], ADD_ATTR: ['src'] };
+
+          // createScriptURL re-entering DOMPurify.sanitize is circular in the
+          // same way as the createHTML case (#1422); it must fail fast rather
+          // than recurse into a stack overflow. (A lone top-level <script> is
+          // dropped by the parser, so it is wrapped in a <div>.)
+          const selfPolicy = {
+            createHTML(input) {
+              return input;
+            },
+            createScriptURL() {
+              return DOMPurify.sanitize(
+                '<div><script src=x></script></div>',
+                Object.assign({ TRUSTED_TYPES_POLICY: selfPolicy }, cfg)
+              );
+            },
+          };
+
+          assert.throws(
+            function () {
+              DOMPurify.sanitize(
+                '<div><script src=x></script></div>',
+                Object.assign({ TRUSTED_TYPES_POLICY: selfPolicy }, cfg)
+              );
+            },
+            /must not call DOMPurify\.sanitize/,
+            'circular createScriptURL throws a descriptive TypeError'
+          );
+
+          // The failed call must not poison the instance.
+          assert.equal(
+            DOMPurify.sanitize('<img src=x onerror=alert(1)>'),
+            '<img src="x">'
+          );
+        }
+      );
+    }
+  );
 };
