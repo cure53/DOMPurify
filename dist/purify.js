@@ -1386,21 +1386,35 @@
             }
           }
         }
-        /* Neutralise the original subtree before detaching it.
-           KEEP_CONTENT re-parents *clones* of the children (sanitised by the
+        /* Neutralise the original subtree before detaching it — but only for
+           in-place sanitisation, which is the sole path that can exhibit the
+           bug, and so the only path that pays for the walk.
+                  KEEP_CONTENT re-parents *clones* of the children (sanitised by the
            iterator); the originals leave only via `_forceRemove` below, which
-           never strips anything. For a root parsed into the live document
-           (IN_PLACE / build-then-sanitize) those detached originals keep any
-           `on*` handler and still receive their already-queued resource events
-           — `<img onerror>`, `<video>`/`<audio>` error, lazy/`onload`, … — so
-           the handler runs in page scope even though the returned tree is
-           clean. Stripping the handler attributes here, synchronously, wins the
-           same race the direct (unwrapped) path already wins. Cloning the
-           children (rather than moving them) is retained deliberately: the
-           iterator is rooted at — and the result serialised from — `body`, so a
-           restrictive ALLOWED_TAGS that removes `body` itself must leave its
-           content in place, which only the clone-and-detach strategy does. */
-        _stripEventHandlers2(currentNode);
+           never strips anything. When the caller built the tree in the live
+           document and asked for in-place sanitisation
+           (`el.innerHTML = dirty; sanitize(el, { IN_PLACE: true })`), those
+           detached originals keep any `on*` handler and still receive their
+           already-queued resource events — `<img onerror>`, `<video>`/`<audio>`
+           error, lazy/`onload`, … — so the handler runs in page scope even
+           though the returned tree is clean. Stripping the handler attributes
+           here, synchronously, wins the same race the direct (unwrapped) path
+           already wins.
+                  The non-in-place paths cannot reach this: string input is parsed with
+           DOMParser and DOM input is `importNode`-copied, both into an inert
+           document with no browsing context, so their discarded originals never
+           had a queued event to fire. Gating on IN_PLACE therefore adds nothing
+           to the default/string path (one boolean test that short-circuits) and
+           never under-strips: the per-call in-place mode implies IN_PLACE is
+           set, so a real in-place removal always takes this branch.
+                  Cloning the children (rather than moving them) is retained
+           deliberately: the iterator is rooted at — and the result serialised
+           from — `body`, so a restrictive ALLOWED_TAGS that removes `body`
+           itself must leave its content in place, which only the
+           clone-and-detach strategy does. */
+        if (IN_PLACE) {
+          _stripEventHandlers2(currentNode);
+        }
         _forceRemove(currentNode);
         return true;
       }
