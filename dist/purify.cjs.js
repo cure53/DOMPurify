@@ -1015,6 +1015,64 @@ function createDOMPurify() {
     }
   };
   /**
+   * _stripElementEventHandlers
+   *
+   * Remove every event-handler (`on*`) attribute from a single element.
+   * Enumerates via the cached `attributes` getter (clobber-safe) and tolerates
+   * a clobbered `removeAttribute` (try/catch) — see `_stripEventHandlers`.
+   *
+   * @param element the element to neutralise
+   */
+  const _stripElementEventHandlers = function _stripElementEventHandlers(element) {
+    const attributes = getAttributes ? getAttributes(element) : null;
+    if (!attributes) {
+      return;
+    }
+    for (let i = attributes.length - 1; i >= 0; --i) {
+      const attribute = attributes[i];
+      const name = attribute && attribute.name;
+      if (typeof name !== 'string' || !regExpTest(/^on/i, name)) {
+        continue;
+      }
+      try {
+        element.removeAttribute(name);
+      } catch (_) {
+        /* Clobbered removeAttribute on a non-vehicle element — ignore */
+      }
+    }
+  };
+  /**
+   * _stripEventHandlers
+   *
+   * Recursively remove every event-handler (`on*`) attribute from a node and
+   * its descendants. Called on a subtree that KEEP_CONTENT is about to detach
+   * and discard: the iterator only sanitises the re-parented *clones*, so the
+   * discarded originals would otherwise keep their handlers and run them when
+   * an already-queued resource event (`<img onerror>`, `<video>`/`<audio>`
+   * error, lazy/`onload`, …) dispatches on the detached node.
+   *
+   * Clobber-safe by construction: element/child enumeration uses the cached
+   * Node.prototype getters (a `<form>` with a named child cannot redirect
+   * them), and `removeAttribute` is wrapped in try/catch — a clobbered `<form>`
+   * can shadow its own `removeAttribute`, but a `<form>` is not a
+   * queued-resource-event vehicle, so failing to strip it is harmless while
+   * the genuine vehicles (img/video/audio/object/…) are not clobberable this
+   * way and are reliably neutralised.
+   *
+   * @param node root of the subtree to neutralise
+   */
+  const _stripEventHandlers2 = function _stripEventHandlers(node) {
+    if (getNodeType && getNodeType(node) === NODE_TYPE.element) {
+      _stripElementEventHandlers(node);
+    }
+    const childNodes = getChildNodes ? getChildNodes(node) : null;
+    if (childNodes) {
+      for (const child of childNodes) {
+        _stripEventHandlers2(child);
+      }
+    }
+  };
+  /**
    * _removeAttribute
    *
    * @param name an Attribute name
@@ -1324,6 +1382,21 @@ function createDOMPurify() {
           }
         }
       }
+      /* Neutralise the original subtree before detaching it.
+         KEEP_CONTENT re-parents *clones* of the children (sanitised by the
+         iterator); the originals leave only via `_forceRemove` below, which
+         never strips anything. For a root parsed into the live document
+         (IN_PLACE / build-then-sanitize) those detached originals keep any
+         `on*` handler and still receive their already-queued resource events
+         — `<img onerror>`, `<video>`/`<audio>` error, lazy/`onload`, … — so
+         the handler runs in page scope even though the returned tree is
+         clean. Stripping the handler attributes here, synchronously, wins the
+         same race the direct (unwrapped) path already wins. Cloning the
+         children (rather than moving them) is retained deliberately: the
+         iterator is rooted at — and the result serialised from — `body`, so a
+         restrictive ALLOWED_TAGS that removes `body` itself must leave its
+         content in place, which only the clone-and-detach strategy does. */
+      _stripEventHandlers2(currentNode);
       _forceRemove(currentNode);
       return true;
     }
