@@ -33,6 +33,7 @@ on:
       - '.github/workflows/scorecard.yml'
       - '.github/workflows/sign-release.yml'
       - '.github/workflows/slsa-provenance.yml'
+      - '.github/workflows/legacy-browsers.yml'
   pull_request:
     paths-ignore:
       - '**/*.md'
@@ -56,6 +57,7 @@ on:
       - '.github/workflows/scorecard.yml'
       - '.github/workflows/sign-release.yml'
       - '.github/workflows/slsa-provenance.yml'
+      - '.github/workflows/legacy-browsers.yml'
 
 permissions:
   contents: read
