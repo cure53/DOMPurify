@@ -21,7 +21,10 @@ name: Legacy Browsers
 
 on:
   push:
-    branches: [main, 3.x, 2.x]
+    # Only the lines that carry the Playwright test harness (server.js +
+    # legacy-runner.js + the QUnit page globals). 2.x predates the Playwright
+    # migration and runs its own legacy coverage, so it is deliberately excluded.
+    branches: [main, 3.x]
     paths-ignore:
       - '**/*.md'
       - 'demos/**'
