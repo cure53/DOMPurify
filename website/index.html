@@ -1,100 +1,627 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>DOMPurify 3.4.9 "Spacetime"</title>
-        <script src="https://cdn.jsdelivr.net/gh/cure53/DOMPurify@main/dist/purify.js"></script>
-        <!-- we don't actually need it - just to demo and test the $(html) sanitation -->
-        <script src="//code.jquery.com/jquery-3.2.0.min.js"></script>
-        <script>
-        if (typeof console === 'undefined') { console = {}; console.log = function(){}; }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOMPurify Demo</title>
+  <script src="https://cdn.jsdelivr.net/gh/cure53/DOMPurify@main/dist/purify.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f6f6;
+      --panel: #ffffff;
+      --panel-2: #eeeeee;
+      --text: #1a1a1a;
+      --muted: #626262;
+      --border: #d8d8d8;
+      --accent: #2f2f2f;
+      --accent-ink: #ffffff;
+      --code: #111111;
+      --shadow: 0 12px 40px rgba(0, 0, 0, .08);
+    }
 
-        window.onload = async function () {
-            const url = 'https://cdn.jsdelivr.net/gh/cure53/DOMPurify@main/test/fixtures/expect.mjs';
-            try {
-            // expect.mjs is a real ES module — import it instead of string-slicing.
-            const { default: data } = await import(url);
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f0f;
+        --panel: #171717;
+        --panel-2: #111111;
+        --text: #eeeeee;
+        --muted: #a8a8a8;
+        --border: #303030;
+        --accent: #e2e2e2;
+        --accent-ink: #101010;
+        --code: #f0f0f0;
+        --shadow: 0 12px 40px rgba(0, 0, 0, .28);
+      }
+    }
 
-            x.value = '<!-- I am ready now, click one of the buttons! -->\r\n';
-            for (const entry of data) {
-                x.value += entry.payload + '\r\n\r\n';
-            }
-            } catch (err) {
-            console.error('Failed to load test vectors:', err);
-            x.value = '<!-- Could not load test vectors. Paste your own HTML to test. -->\r\n';
-            }
-        };
-        </script>
-    </head>
-    <body>
-        <h4>DOMPurify 3.4.9 "Spacetime"</h4>
-        <p>
-            <a href="https://www.npmjs.com/package/dompurify"><img src="https://img.shields.io/npm/v/dompurify.svg" alt="npm" /></a>
-            <a href="https://github.com/cure53/DOMPurify/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MPL--2.0%20OR%20Apache--2.0-blue.svg" alt="License" /></a>
-            <a href="https://www.npmjs.com/package/dompurify"><img src="https://img.shields.io/npm/dm/dompurify.svg" alt="Downloads" /></a>
-            <a href="https://github.com/cure53/DOMPurify/network/dependents"><img src="https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&amp;label=dependents" alt="dependents" /></a>
-            <img src="https://img.shields.io/bundlejs/size/dompurify?color=%233C1&amp;label=gzip" alt="npm package minimized gzipped size (select exports)" />
-        </p>
-        <p>
-            <a href="https://github.com/cure53/DOMPurify/actions/workflows/build-and-test.yml"><img src="https://github.com/cure53/DOMPurify/actions/workflows/build-and-test.yml/badge.svg?branch=main" alt="Build &amp; Test" /></a>
-            <a href="https://www.bestpractices.dev/projects/12162"><img src="https://www.bestpractices.dev/projects/12162/badge" alt="OpenSSF Best Practices" /></a>
-            <a href="https://scorecard.dev/viewer/?uri=github.com/cure53/DOMPurify"><img src="https://api.scorecard.dev/projects/github.com/cure53/DOMPurify/badge" alt="OpenSSF Scorecard" /></a>
-            <a href="https://badge.socket.dev/npm/package/dompurify/latest"><img src="https://badge.socket.dev/npm/package/dompurify/latest" alt="Socket Badge" /></a>
-            <a href="https://cloudback.it"><img src="https://app.cloudback.it/badge/cure53/DOMPurify" alt="Cloudback" /></a>
-        </p>
-        <p>
-        This is the demo for <a href="https://github.com/cure53/DOMPurify">DOMPurify</a>, a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, SVG and MathML. The textarea below contains sample-payload - you can also add your own. Watch it sanitize on the console or in the Iframe below. This page uses the <a href="https://github.com/cure53/DOMPurify/commits/main/">latest commit</a> from main.
-        </p>
-        <hr>
-        <button onclick="
-            var tx1 = Date.now();
-            var xss = DOMPurify.sanitize(x.value);
-            console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
-            console.log(xss.toString());
-            y.value=xss;
-            timing.innerHTML=t+'ms '+timing.innerHTML
-        ">Sanitize textarea value, then write result to console</button>
-        <button onclick="
-            var ifr = document.getElementById('ifr');
-            var tx1 = Date.now();
-            var xss = DOMPurify.sanitize(x.value);
-            console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
-            ifr.contentDocument.open();
-            ifr.contentDocument.write(xss.toString());
-            y.value=xss;
-            ifr.contentDocument.close();
-            timing.innerHTML=t+'ms '+timing.innerHTML
-        ">Sanitize textarea value, then write result to DOM</button>
-        <label for="auto">Auto convert?</label><input type="checkbox" id="auto">
-        <button title="This might not work with the large default payload. Better try with smaller, realistic values" onclick="
-            var ifr = document.getElementById('ifr');
-            var tx1 = Date.now();
-            var xss = DOMPurify.sanitize(x.value);
-            console.info('Operation took ' + (t=Date.now()-tx1) + ' milliseconds to complete.');
-            $(ifr.contentDocument.body).html(xss.toString());
-            y.value=$(ifr.contentDocument.body).html();
-            ifr.contentDocument.close();
-            timing.innerHTML=t+'ms '+timing.innerHTML
-        ">Sanitize textarea value, then use $(elm).html()</button>
-        <hr>
-        <p>
-            Timings: <code id="timing"> </code>
-        </p>
-        <p><label for="x">Dirty HTML</label></p>
-        <textarea onkeyup="
-            if(!document.getElementById('auto').checked) {
-              return;
-            }
-            var ifr = document.getElementById('ifr');
-            var xss = DOMPurify.sanitize(x.value);
-            ifr.contentDocument.open();
-            ifr.contentDocument.write(xss.toString());
-            y.value=xss;
-            ifr.contentDocument.close();
-        " placeholder="Payload goes here, test me, test me hard!" id="x" style="width:95%;height:100px"><!-- Loading Test-Vectors ... --></textarea>
-        <p><label for="y">Clean HTML</label></p>
-        <textarea placeholder="Here be the sanitized markup to inspect!" id="y" style="width:95%;height:100px"></textarea>
-        <p><label for="ifr">Clean DOM</label></p>
-        <iframe src="about:blank" id="ifr" style="width:95%;height:100px"></iframe>
-    </body>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    a {
+      color: var(--text);
+      text-decoration-color: var(--muted);
+      text-underline-offset: 2px;
+    }
+
+    .shell {
+      width: 80%;
+      margin: 0 auto;
+      padding: 32px 0;
+    }
+
+    header {
+      display: grid;
+      gap: 18px;
+      padding: 28px;
+      margin-bottom: 18px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--panel), transparent 4%);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    h1 {
+      margin: 0;
+      letter-spacing: -.02em;
+      font-size: clamp(22px, 3vw, 32px);
+      line-height: 1.08;
+    }
+
+    .intro {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .badges img {
+      display: block;
+      max-width: 100%;
+      height: 20px;
+    }
+
+    .toolbar,
+    .status-grid,
+    .workspace,
+    .preview-card {
+      margin-top: 18px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label,
+    .label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    select,
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    select {
+      min-height: 40px;
+      padding: 0 12px;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0 14px;
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-weight: 800;
+    }
+
+    button:hover,
+    select:hover {
+      border-color: var(--muted);
+    }
+
+    .checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      padding-bottom: 4px;
+    }
+
+    .checks label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      letter-spacing: 0;
+      text-transform: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+      overflow: clip;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--panel-2), transparent 20%);
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: .02em;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    textarea {
+      display: block;
+      min-height: 310px;
+      padding: 14px;
+      border: 0;
+      border-radius: 0;
+      resize: vertical;
+      color: var(--code);
+      font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      tab-size: 2;
+    }
+
+    #clean {
+      background: color-mix(in srgb, var(--panel-2), transparent 14%);
+    }
+
+    .preview-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    iframe {
+      width: 100%;
+      min-height: 240px;
+      border: 0;
+      background: white;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 2fr;
+      gap: 18px;
+    }
+
+    .stat {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 26px;
+      letter-spacing: -.04em;
+    }
+
+    pre {
+      max-height: 180px;
+      overflow: auto;
+      margin: 8px 0 0;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--panel-2);
+      color: var(--code);
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .note {
+      margin: 12px 14px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer-note {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 1180px) {
+      .toolbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 920px) {
+      .workspace,
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      body {
+        font-size: 14px;
+      }
+
+      .shell {
+        width: calc(100% - 24px);
+        padding: 12px 0 18px;
+      }
+
+      header,
+      .toolbar,
+      .stat {
+        border-radius: 12px;
+      }
+
+      header {
+        padding: 18px;
+        gap: 12px;
+      }
+
+      .intro {
+        font-size: 15px;
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .checks {
+        gap: 10px;
+      }
+
+      .card-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .meta {
+        white-space: normal;
+      }
+
+      textarea {
+        min-height: 210px;
+        font-size: 12px;
+      }
+
+      iframe {
+        min-height: 210px;
+      }
+
+      .badges img {
+        height: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="eyebrow">
+        <span class="pill">Demo build: main</span>
+        <span class="pill" id="versionPill">DOMPurify: loading…</span>
+        <span class="pill">HTML · SVG · MathML</span>
+      </div>
+      <h1>DOMPurify Demo</h1>
+      <p class="intro">
+        Paste dirty markup, choose a preset, and inspect the sanitized string, rendered DOM, timing, and removed elements/attributes.
+        The default preview is intentionally detection-oriented, so modal dialogs are not suppressed when testing bypasses.
+      </p>
+      <div class="badges" aria-label="Project badges">
+        <a href="https://www.npmjs.com/package/dompurify"><img src="https://img.shields.io/npm/v/dompurify.svg" alt="npm"></a>
+        <a href="https://github.com/cure53/DOMPurify/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MPL--2.0%20OR%20Apache--2.0-blue.svg" alt="License"></a>
+        <a href="https://www.npmjs.com/package/dompurify"><img src="https://img.shields.io/npm/dm/dompurify.svg" alt="Downloads"></a>
+        <a href="https://github.com/cure53/DOMPurify/network/dependents"><img src="https://badgen.net/github/dependents-repo/cure53/dompurify?color=green&amp;label=dependents" alt="dependents"></a>
+        <img src="https://img.shields.io/bundlejs/size/dompurify?color=%233C1&amp;label=gzip" alt="npm package minimized gzipped size (select exports)">
+        <a href="https://github.com/cure53/DOMPurify/actions/workflows/build-and-test.yml"><img src="https://github.com/cure53/DOMPurify/actions/workflows/build-and-test.yml/badge.svg?branch=main" alt="Build &amp; Test"></a>
+        <a href="https://www.bestpractices.dev/projects/12162"><img src="https://www.bestpractices.dev/projects/12162/badge" alt="OpenSSF Best Practices"></a>
+        <a href="https://scorecard.dev/viewer/?uri=github.com/cure53/DOMPurify"><img src="https://api.scorecard.dev/projects/github.com/cure53/DOMPurify/badge" alt="OpenSSF Scorecard"></a>
+        <a href="https://badge.socket.dev/npm/package/dompurify/latest"><img src="https://badge.socket.dev/npm/package/dompurify/latest" alt="Socket Badge"></a>
+        <a href="https://cloudback.it"><img src="https://app.cloudback.it/badge/cure53/DOMPurify" alt="Cloudback"></a>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="Sanitizer controls">
+      <div class="field">
+        <label for="example">Example</label>
+        <select id="example">
+          <option value="fixtures" selected>Upstream test vectors</option>
+          <option value="basic">Basic img onerror</option>
+          <option value="svg">SVG onload</option>
+          <option value="mathml">MathML link payload</option>
+          <option value="domclobbering">DOM clobbering-ish markup</option>
+          <option value="richtext">Harmless rich text</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="preset">Preset</label>
+        <select id="preset">
+          <option value="default">Default: HTML + SVG + MathML</option>
+          <option value="html">HTML only</option>
+          <option value="strict">Strict: b, i, em, strong, a</option>
+          <option value="templates">Template-safe helper</option>
+          <option value="trusted">Trusted Types return value</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <span class="label">Options</span>
+        <div class="checks">
+          <label><input id="auto" type="checkbox" checked> Auto-run</label>
+          <label><input id="jquerySink" type="checkbox"> jQuery sink</label>
+          <label><input id="safePreview" type="checkbox"> Safe preview</label>
+        </div>
+      </div>
+
+      <button class="primary" id="sanitizeBtn" type="button">Sanitize</button>
+    </section>
+
+    <section class="workspace" aria-label="Sanitizer workbench">
+      <article class="card">
+        <div class="card-header">
+          <h2>Dirty HTML</h2>
+          <span class="meta" id="dirtyMeta">0 chars</span>
+        </div>
+        <textarea id="dirty" spellcheck="false" placeholder="Paste payload here"></textarea>
+      </article>
+
+      <article class="card">
+        <div class="card-header">
+          <h2>Clean HTML</h2>
+          <span class="meta" id="cleanMeta">0 chars</span>
+        </div>
+        <textarea id="clean" spellcheck="false" readonly placeholder="Sanitized markup appears here"></textarea>
+      </article>
+    </section>
+
+    <section class="preview-card" aria-label="Clean DOM preview">
+      <div class="card-header">
+        <h2>Clean DOM Preview</h2>
+        <span class="meta" id="previewMode">Detection mode: dialogs allowed</span>
+      </div>
+      <iframe id="preview" src="about:blank" title="Sanitized DOM preview"></iframe>
+      <p class="note">
+        Detection mode mirrors the old demo behavior: sanitized output is rendered in the frame and dialogs may pop if a bypass executes.
+        Safe preview restricts rendering for quieter inspection, but it is not the primary bypass signal.
+      </p>
+    </section>
+
+    <section class="status-grid" aria-label="Sanitizer telemetry">
+      <div class="stat">
+        <span class="label">Timing</span>
+        <strong id="timing">–</strong>
+      </div>
+      <div class="stat">
+        <span class="label">Removed</span>
+        <strong id="removedCount">–</strong>
+      </div>
+      <div class="stat">
+        <span class="label">Active config</span>
+        <pre id="activeConfig">{}</pre>
+      </div>
+    </section>
+
+    <section class="status-grid" aria-label="Details">
+      <div class="stat" style="grid-column: 1 / -1;">
+        <span class="label">Removed elements and attributes</span>
+        <pre id="removedLog">Sanitize something to inspect DOMPurify.removed.</pre>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Helper note: DOMPurify.removed is shown for curiosity and debugging only. Do not use it for security-critical decisions.
+    </p>
+  </main>
+
+  <script>
+    const examples = {
+      basic: '<img src=x onerror=alert(1)>\n<p>Hello <strong>DOMPurify</strong></p>',
+      svg: '<svg><g/onload=alert(1)//<p>\n<svg><a xlink:href="javascript:alert(2)"><circle r="40"></circle></a></svg>',
+      mathml: '<math><mi//xlink:href="data:x,<script>alert(4)<\/script>">MathML</mi></math>',
+      domclobbering: '<form id="attributes"><input name="__proto__"></form><a id="constructor">link</a>',
+      richtext: '<article><h2>Hello</h2><p>This is <em>harmless</em> rich text with <a href="https://github.com/cure53/DOMPurify">a link</a>.</p></article>'
+    };
+
+    const dirty = document.getElementById('dirty');
+    const clean = document.getElementById('clean');
+    const preview = document.getElementById('preview');
+    const timing = document.getElementById('timing');
+    const removedCount = document.getElementById('removedCount');
+    const removedLog = document.getElementById('removedLog');
+    const activeConfig = document.getElementById('activeConfig');
+    const previewMode = document.getElementById('previewMode');
+    const dirtyMeta = document.getElementById('dirtyMeta');
+    const cleanMeta = document.getElementById('cleanMeta');
+
+    function getConfig() {
+      const selected = document.getElementById('preset').value;
+      if (selected === 'html') return { USE_PROFILES: { html: true } };
+      if (selected === 'strict') return { ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a'], ALLOWED_ATTR: ['href', 'title'] };
+      if (selected === 'templates') return { SAFE_FOR_TEMPLATES: true };
+      if (selected === 'trusted') return { RETURN_TRUSTED_TYPE: true };
+      return {};
+    }
+
+    function describeRemoved(item) {
+      if (item.element) return '<' + item.element.nodeName.toLowerCase() + '>';
+      if (item.attribute) {
+        const owner = item.from && item.from.nodeName ? item.from.nodeName.toLowerCase() : 'unknown';
+        return owner + '[@' + item.attribute.name + '="' + item.attribute.value + '"]';
+      }
+      return JSON.stringify(item);
+    }
+
+    function updatePreview(html) {
+      const safe = document.getElementById('safePreview').checked;
+      preview.removeAttribute('sandbox');
+      preview.src = 'about:blank';
+
+      if (safe) {
+        preview.setAttribute('sandbox', '');
+        preview.srcdoc = html;
+        previewMode.textContent = 'Safe preview: scripts and dialogs blocked';
+        return;
+      }
+
+      previewMode.textContent = 'Detection mode: dialogs allowed';
+      const doc = preview.contentDocument;
+      doc.open();
+      doc.write(html);
+      doc.close();
+    }
+
+    function sanitize() {
+      const config = getConfig();
+      const started = performance.now();
+      const result = DOMPurify.sanitize(dirty.value, config);
+      const elapsed = performance.now() - started;
+      const html = result && result.toString ? result.toString() : String(result);
+
+      if (document.getElementById('jquerySink').checked && window.jQuery) {
+        const tmp = document.implementation.createHTMLDocument('jquery-sink');
+        jQuery(tmp.body).html(html);
+        clean.value = jQuery(tmp.body).html();
+      } else {
+        clean.value = html;
+      }
+
+      timing.textContent = elapsed.toFixed(2) + 'ms';
+      removedCount.textContent = DOMPurify.removed.length;
+      removedLog.textContent = DOMPurify.removed.length
+        ? DOMPurify.removed.map(describeRemoved).join('\n')
+        : 'Nothing removed.';
+      activeConfig.textContent = JSON.stringify(config, null, 2);
+      dirtyMeta.textContent = dirty.value.length + ' chars';
+      cleanMeta.textContent = clean.value.length + ' chars';
+      updatePreview(clean.value);
+    }
+
+    async function loadFixtures() {
+      dirty.value = '<!-- Loading upstream test vectors… -->\n';
+      try {
+        const { default: data } = await import('https://cdn.jsdelivr.net/gh/cure53/DOMPurify@main/test/fixtures/expect.mjs');
+        dirty.value = '<!-- Upstream DOMPurify test vectors -->\n\n' + data.map((entry) => entry.payload).join('\n\n');
+      } catch (error) {
+        console.error(error);
+        dirty.value = '<!-- Could not load test vectors. Paste your own HTML to test. -->';
+      }
+      sanitize();
+    }
+
+    document.getElementById('versionPill').textContent = 'DOMPurify: ' + (DOMPurify.version || 'main');
+    document.getElementById('sanitizeBtn').addEventListener('click', sanitize);
+    document.getElementById('dirty').addEventListener('input', () => {
+      dirtyMeta.textContent = dirty.value.length + ' chars';
+      if (document.getElementById('auto').checked) sanitize();
+    });
+    document.getElementById('preset').addEventListener('change', sanitize);
+    document.getElementById('jquerySink').addEventListener('change', sanitize);
+    document.getElementById('safePreview').addEventListener('change', sanitize);
+    document.getElementById('example').addEventListener('change', async (event) => {
+      if (event.target.value === 'fixtures') return loadFixtures();
+      dirty.value = examples[event.target.value];
+      sanitize();
+    });
+
+    loadFixtures();
+  </script>
+</body>
 </html>
