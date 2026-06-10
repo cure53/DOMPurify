@@ -22,6 +22,7 @@
     "test:happydom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/happydom-node-runner --dot",
     "test:browser": "playwright test --config config/playwright.config.js",
     "test:browser:install": "playwright install",
+    "test:browser:legacy": "node test/browser/legacy-runner.js",
     "test:ci": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run test:jsdom && npm run test:browser",
     "test:fuzz": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/fuzz/sanitize.fast-check.js",
     "verify-typescript": "node ./typescript/verify.js"
