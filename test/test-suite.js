@@ -1474,6 +1474,80 @@
       }
     });
 
+    QUnit.test(
+      'setConfig({IN_PLACE}) is not disabled by an intervening string call (REPORT-2)',
+      (assert) => {
+        DOMPurify.setConfig({ IN_PLACE: true });
+        try {
+          const div1 = document.createElement('div');
+          div1.innerHTML = '<img onerror="alert(1)">'; // no src: avoid a load
+          const ret1 = DOMPurify.sanitize(div1);
+          assert.equal(ret1, div1, 'baseline: returns the same node');
+          assert.notOk(
+            /onerror/i.test(div1.innerHTML),
+            'baseline: node sanitized in place'
+          );
+
+          // An innocuous string call must not flip the persistent IN_PLACE
+          // flag (under setConfig, _parseConfig is skipped on later calls).
+          DOMPurify.sanitize('<b>hello</b>');
+
+          const div2 = document.createElement('div');
+          div2.innerHTML = '<img onerror="alert(1)">';
+          const ret2 = DOMPurify.sanitize(div2);
+          assert.equal(
+            ret2,
+            div2,
+            'after string call: still returns the same node'
+          );
+          assert.notOk(
+            /onerror/i.test(div2.innerHTML),
+            'after string call: node still sanitized in place'
+          );
+        } finally {
+          DOMPurify.clearConfig();
+        }
+      }
+    );
+
+    QUnit.test(
+      'a kill-decision on a detached IN_PLACE root is not a silent no-op (REPORT-3)',
+      (assert) => {
+        // A detached <style> whose text breaks out of the element trips the
+        // mXSS canary. _forceRemove cannot detach a parentless root, so the
+        // node must be neutralized (or the call must throw) rather than be
+        // handed back intact while DOMPurify.removed claims a removal.
+        const style = document.createElement('style');
+        style.textContent = '</style><img onerror=alert(1)>'; // no src
+        let ret = null;
+        try {
+          ret = DOMPurify.sanitize(style, { IN_PLACE: true });
+        } catch (_) {
+          assert.ok(true, 'fail-closed by throwing is acceptable');
+          return;
+        }
+
+        // Emulate the app-side store-and-rerender (serialize -> reparse).
+        const probe = document.createElement('div');
+        probe.innerHTML = (ret || style).outerHTML;
+        assert.notOk(
+          probe.querySelector('[onerror],[onload],script'),
+          'no executable sink survives serialize/reparse: ' + probe.innerHTML
+        );
+
+        const claimedRemoval = DOMPurify.removed.some(
+          (entry) => entry.element === style
+        );
+        const stillDangerous = /<\/style|onerror/i.test(
+          style.textContent || ''
+        );
+        assert.notOk(
+          claimedRemoval && stillDangerous,
+          'DOMPurify.removed bookkeeping matches reality'
+        );
+      }
+    );
+
     // =======================================================================
     // Config: FORBID_TAGS / FORBID_ATTR
     // =======================================================================
@@ -5003,5 +5077,504 @@
         'merged expression inside nested template.content should be scrubbed'
       );
     });
+
+    // =======================================================================
+    // DOM clobbering — comprehensive matrix ("roundhouse")
+    //
+    // A tripwire over the full cross-product of clobber-carrier markup and the
+    // property/method names DOMPurify relies on when reading DOM nodes. The
+    // carrier is <form>: its named/id children shadow built-ins via
+    // LegacyOverrideBuiltIns, which is the element-level clobbering vector the
+    // sanitizer must survive.
+    //
+    // IMPORTANT: this override is a *real-browser* behavior. jsdom does NOT
+    // implement it, so under jsdom these tests pass trivially (no clobber ever
+    // happens) — they only grow teeth in the Chromium (Playwright) run. The
+    // first assertion reports whether the override is live in the current
+    // engine so a green jsdom run is not mistaken for real coverage.
+    // =======================================================================
+
+    QUnit.module('DOM clobbering — comprehensive matrix');
+
+    // Names DOMPurify (or a downstream consumer) reads off a node. Shadowing
+    // any of these is the lever an attacker would pull.
+    const CLOBBER_NAMES = [
+      // identity / type
+      'nodeName',
+      'nodeType',
+      'nodeValue',
+      'tagName',
+      'localName',
+      'namespaceURI',
+      'prefix',
+      // content
+      'textContent',
+      'innerHTML',
+      'outerHTML',
+      'innerText',
+      'data',
+      // tree navigation
+      'parentNode',
+      'parentElement',
+      'childNodes',
+      'children',
+      'firstChild',
+      'lastChild',
+      'firstElementChild',
+      'lastElementChild',
+      'nextSibling',
+      'previousSibling',
+      'nextElementSibling',
+      'previousElementSibling',
+      'ownerDocument',
+      'getRootNode',
+      'content',
+      // attributes
+      'attributes',
+      'getAttribute',
+      'getAttributeNode',
+      'getAttributeNames',
+      'hasAttribute',
+      'hasAttributes',
+      'setAttribute',
+      'setAttributeNS',
+      'removeAttribute',
+      'removeAttributeNS',
+      // mutation
+      'removeChild',
+      'appendChild',
+      'insertBefore',
+      'replaceChild',
+      'cloneNode',
+      'remove',
+      'replaceWith',
+      'before',
+      'after',
+      // shadow / query
+      'shadowRoot',
+      'host',
+      'attachShadow',
+      'querySelector',
+      'querySelectorAll',
+      'getElementsByTagName',
+      'matches',
+      'closest',
+      // misc props read during sanitization or by consumers
+      'classList',
+      'className',
+      'id',
+      'name',
+      'is',
+      'value',
+      'type',
+      'style',
+    ];
+
+    // Inert sinks: none auto-loads (no <img src>), none executes in a parsed
+    // or disconnected document, so the harness can never fire them itself —
+    // yet each leaves a syntactic trace if sanitization is defeated.
+    const CLOBBER_SINKS =
+      '<img onerror="window.__clob=(window.__clob||0)+1">' +
+      '<a href="javascript:window.__clob=1">x</a>' +
+      '<script>window.__clob=1</script>' +
+      '<div onclick="window.__clob=1">z</div>';
+
+    const clobberHasSink = (s) => /\son\w+\s*=|<script|javascript:/i.test(s);
+    const clobberReparseSink = (s) =>
+      new window.DOMParser()
+        .parseFromString(s, 'text/html')
+        .querySelector('[onerror],[onload],[onclick],script');
+
+    const clobberPayloads = (name) => [
+      '<form><input name="' + name + '">' + CLOBBER_SINKS + '</form>',
+      '<form><input id="' + name + '">' + CLOBBER_SINKS + '</form>',
+      // two same-named controls -> a RadioNodeList/HTMLCollection clobber
+      '<form><input name="' +
+        name +
+        '"><input name="' +
+        name +
+        '">' +
+        CLOBBER_SINKS +
+        '</form>',
+      '<form name="' + name + '">' + CLOBBER_SINKS + '</form>',
+    ];
+
+    QUnit.test(
+      'no clobbering combination defeats sanitization (string path)',
+      (assert) => {
+        window.__clob = 0;
+
+        // Report whether this engine overrides built-ins at all.
+        const probe = document.createElement('form');
+        probe.innerHTML =
+          '<input name="attributes"><input name="getAttributeNames">';
+        const realAttributes = Object.getOwnPropertyDescriptor(
+          window.Element.prototype,
+          'attributes'
+        ).get.call(probe);
+        const overrideLive =
+          typeof probe.nodeName !== 'string' ||
+          typeof probe.getAttributeNames !== 'function' ||
+          probe.attributes !== realAttributes;
+        assert.ok(
+          true,
+          'form LegacyOverrideBuiltIns active in this engine: ' + overrideLive
+        );
+
+        const failures = [];
+        const allBlocks = [];
+        for (const name of CLOBBER_NAMES) {
+          for (const payload of clobberPayloads(name)) {
+            allBlocks.push(payload);
+            const out = DOMPurify.sanitize(payload);
+            if (clobberHasSink(out) || clobberReparseSink(out)) {
+              failures.push(name + ' :: ' + out.slice(0, 160));
+            }
+          }
+        }
+        assert.deepEqual(
+          failures,
+          [],
+          'every individual clobber payload sanitized to a sink-free result'
+        );
+
+        // The roundhouse: the entire matrix in a single block.
+        const big = DOMPurify.sanitize(allBlocks.join(''));
+        assert.notOk(
+          clobberHasSink(big) || clobberReparseSink(big),
+          'combined clobbering block leaves no executable sink'
+        );
+
+        assert.equal(
+          window.__clob,
+          0,
+          'no clobbering payload executed during the test'
+        );
+      }
+    );
+
+    QUnit.test(
+      'clobbered IN_PLACE roots throw or sanitize safely',
+      (assert) => {
+        window.__clob = 0;
+        // Disconnected roots, inert sinks: nothing loads or fires here.
+        const inPlaceSinks =
+          '<img onerror="window.__clob=1">' +
+          '<a href="javascript:window.__clob=1">x</a>' +
+          '<div onclick="window.__clob=1">z</div>';
+
+        const failures = [];
+        for (const name of CLOBBER_NAMES) {
+          const root = document.createElement('form');
+          root.innerHTML = '<input name="' + name + '">' + inPlaceSinks;
+
+          let threw = false;
+          let out = null;
+          try {
+            out = DOMPurify.sanitize(root, { IN_PLACE: true });
+          } catch (_) {
+            threw = true; // fail-closed is acceptable (clobbered/forbidden root)
+          }
+
+          // Either it threw, or the returned node carries no sink.
+          if (!threw && clobberHasSink(out.outerHTML)) {
+            failures.push(name + ' :: ' + out.outerHTML.slice(0, 160));
+          }
+        }
+        assert.deepEqual(
+          failures,
+          [],
+          'every clobbered IN_PLACE root threw or returned a sink-free node'
+        );
+        assert.equal(
+          window.__clob,
+          0,
+          'no payload executed during IN_PLACE matrix'
+        );
+      }
+    );
+
+    // =======================================================================
+    // Security regression — audit-5 Finding A:
+    // IN_PLACE hoisted content must neutralise the ORIGINAL subtree
+    // =======================================================================
+    // When KEEP_CONTENT removes a disallowed element it re-parents that
+    // element's children so the sanitizer walk reaches them. The walk only
+    // protects the IN_PLACE / build-then-sanitize pattern
+    //
+    //     el.innerHTML = dirty;                      // queues <img> loads
+    //     DOMPurify.sanitize(el, { IN_PLACE: true }); // strips on* synchronously
+    //
+    // if the node that carries the queued resource event is the same node the
+    // walk sanitizes. The historical implementation hoisted *clones* of the
+    // children and merely detached the originals, so a handler wrapped in any
+    // disallowed tag — `<x-wrap><img src=… onerror=…></x-wrap>` — left the
+    // original <img> detached but still armed: its queued error/load event
+    // fired the surviving on* handler in page scope while the returned tree
+    // looked perfectly clean. The fix hoists the original nodes themselves, so
+    // the walk strips the handler off the very node that holds the queued
+    // event. Direct (unwrapped) handlers were always neutralised; these tests
+    // pin that one wrapper tag can no longer flip that guarantee.
+    QUnit.module(
+      'Security — IN_PLACE hoisted-content neutralisation (audit-5)'
+    );
+
+    QUnit.test(
+      'wrapped on*-handler original is scrubbed, not just its clone',
+      (assert) => {
+        // Capture the ORIGINAL handler-bearing node by reference *before*
+        // sanitize. After IN_PLACE sanitize it must carry no on* attribute,
+        // whether it survived in the tree or was detached — that attribute is
+        // exactly what a queued load/error event would execute in a browser.
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<x-wrap><img src="http://127.0.0.1:1/x" onerror="alert(1)"></x-wrap>';
+        const original = root.querySelector('img');
+        assert.equal(
+          original.getAttribute('onerror'),
+          'alert(1)',
+          'precondition: original carries the handler before sanitize'
+        );
+
+        DOMPurify.sanitize(root, { IN_PLACE: true });
+
+        assert.equal(
+          original.getAttribute('onerror'),
+          null,
+          'the original node (which holds any queued event) is scrubbed'
+        );
+        assert.notOk(
+          /onerror/i.test(root.innerHTML),
+          'returned tree is free of the handler'
+        );
+        // No surviving <img> anywhere may keep the handler (guards against a
+        // sanitized clone in the tree masking an armed detached original).
+        const imgs = root.querySelectorAll('img');
+        let armed = 0;
+        imgs.forEach((img) => {
+          if (img.hasAttribute('onerror')) armed++;
+        });
+        assert.equal(armed, 0, 'no surviving <img> retains the handler');
+      }
+    );
+
+    QUnit.test(
+      'nested disallowed wrappers around a handler are fully scrubbed',
+      (assert) => {
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<x-a><x-b><img src="http://127.0.0.1:1/x" ' +
+          'onerror="alert(1)" onload="alert(2)"></x-b></x-a>';
+        const original = root.querySelector('img');
+        DOMPurify.sanitize(root, { IN_PLACE: true });
+        assert.equal(
+          original.getAttribute('onerror'),
+          null,
+          'onerror stripped from original through nested wrappers'
+        );
+        assert.equal(
+          original.getAttribute('onload'),
+          null,
+          'onload stripped from original through nested wrappers'
+        );
+        assert.notOk(
+          /onerror|onload/i.test(root.innerHTML),
+          'returned tree is free of every handler'
+        );
+      }
+    );
+
+    QUnit.test(
+      'wrapped handler does not execute after IN_PLACE sanitize',
+      (assert) => {
+        // Browser-meaningful execution check (inert but passing under jsdom,
+        // which does not load resources). A succeeding data: image onload is
+        // used so the vehicle does not depend on a failing network fetch.
+        window.xssed = false;
+        const root = document.createElement('div');
+        document.getElementById('qunit-fixture').appendChild(root);
+        root.innerHTML =
+          '<x-wrap><img onload="alert(1)" ' +
+          'src="data:image/gif;base64,' +
+          'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></x-wrap>';
+        DOMPurify.sanitize(root, { IN_PLACE: true });
+        const done = assert.async();
+        setTimeout(() => {
+          assert.notEqual(
+            window.xssed,
+            true,
+            'handler of the wrapped/hoisted image must not fire'
+          );
+          document.getElementById('qunit-fixture').innerHTML = '';
+          window.xssed = false;
+          done();
+        }, 100);
+      }
+    );
+
+    QUnit.test(
+      'handler stripping is not defeated by a clobbering <form> sibling',
+      (assert) => {
+        // The discarded original subtree may contain a <form> whose named
+        // children clobber removeAttribute / attributes / childNodes. Because
+        // in-place KEEP_CONTENT hoists the originals back into the walk (via
+        // the cached Node.prototype getters, which a clobbering child cannot
+        // redirect), the genuine event-handler vehicle (the <img>) is reached
+        // and sanitised by the normal allowlist pass — the clobbering form
+        // cannot hide it.
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<x-wrap><form>' +
+          '<input name="removeAttribute"><input name="attributes">' +
+          '<input name="childNodes">' +
+          '<img src="http://127.0.0.1:1/x" onerror="alert(1)">' +
+          '</form></x-wrap>';
+        const original = root.querySelector('img');
+        DOMPurify.sanitize(root, { IN_PLACE: true });
+        assert.equal(
+          original.getAttribute('onerror'),
+          null,
+          'handler stripped from the vehicle despite the clobbering form'
+        );
+        assert.notOk(
+          /onerror/i.test(root.innerHTML),
+          'returned tree carries no handler'
+        );
+      }
+    );
+
+    // =======================================================================
+    // Security regression — campaign-3 (selectedcontent mirroring, exception
+    // barrier, deep-tree fail-open). See audits 7-11.
+    // =======================================================================
+    // <selectedcontent> (customizable <select>) is mirrored by Chromium 148+
+    // and WebKit 26.4+: the UA clones the selected <option>'s subtree —
+    // including on* handlers — into it and re-mirrors synchronously whenever a
+    // removal changes which option/selectedcontent is current, even inside
+    // DOMPurify's inert DOMParser document. The full mirror cascade (infinite
+    // loop F1, quadratic output F6, re-mirror bypass F3) can only be reproduced
+    // in those engines; the structural guarantees pinned below hold in every
+    // engine. The exception-barrier (F2) and deep-tree (F4) tests run anywhere.
+    QUnit.module(
+      'Security — campaign-3 (selectedcontent / barrier / deep tree)'
+    );
+
+    QUnit.test(
+      'C3-F1/F6: <selectedcontent> is removed without hoisting its content',
+      (assert) => {
+        // The infinite re-mirror loop and quadratic amplification are both
+        // driven by KEEP_CONTENT hoisting the engine-mirrored children of a
+        // removed <selectedcontent> back into the tree, where the engine
+        // refills the next mirror target. selectedcontent is now in
+        // FORBID_CONTENTS, so removal drops its content instead of hoisting it,
+        // breaking the cascade (the mirrored content is a duplicate of the
+        // option, which is sanitized on its own). This pins the deterministic
+        // structural guarantee that holds without engine mirroring.
+        const clean = DOMPurify.sanitize(
+          '<div><selectedcontent><img src=x onerror=alert(1)>' +
+            '<b>copy</b></selectedcontent></div>'
+        );
+        assert.equal(
+          clean,
+          '<div></div>',
+          'selectedcontent content dropped, not hoisted: ' + clean
+        );
+        assert.notOk(/onerror/i.test(clean), 'no hoisted handler');
+        assert.notOk(/<img/i.test(clean), 'no hoisted element');
+      }
+    );
+
+    QUnit.test(
+      'C3-F1: selectedcontent content drop survives the KEEP_CONTENT path',
+      (assert) => {
+        // Explicit KEEP_CONTENT: true is the default and the vulnerable mode;
+        // confirm the FORBID_CONTENTS entry still wins there.
+        const clean = DOMPurify.sanitize(
+          '<selectedcontent><span>x</span></selectedcontent>',
+          { KEEP_CONTENT: true }
+        );
+        assert.equal(clean, '', 'content dropped under KEEP_CONTENT: ' + clean);
+      }
+    );
+
+    QUnit.test(
+      'C3-F2: custom-element mid-walk abort leaves no surviving handler',
+      (assert) => {
+        // A page-registered custom element whose reaction detaches the wrapper
+        // currently being removed makes DOMPurify's own _forceRemove hit its
+        // parentless guard and throw mid-walk. Without an exception barrier the
+        // IN_PLACE walk aborts and the caller's live tree keeps everything after
+        // the wrapper unsanitized. The barrier neutralises the in-place root on
+        // any abort: nothing executable may survive (the call may still throw,
+        // which is an accepted contract).
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this environment; skipping');
+          return;
+        }
+        if (!window.customElements.get('x-surgeon-c3')) {
+          class XSurgeonC3 extends window.HTMLElement {
+            disconnectedCallback() {
+              const w = document.querySelector('x-wrap-c3');
+              if (w && w.parentNode) {
+                w.remove();
+              }
+            }
+          }
+          window.customElements.define('x-surgeon-c3', XSurgeonC3);
+        }
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<x-wrap-c3><x-surgeon-c3></x-surgeon-c3></x-wrap-c3>' +
+          '<img src="data:,x" onerror="window.xssed = true">' +
+          '<a href="javascript:alert(1)">l</a>' +
+          '<div onclick="window.xssed = true">d</div>';
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+        } catch (_) {
+          // A thrown abort is acceptable; the tree must still be fail-closed.
+        }
+        assert.notOk(/onerror/i.test(root.innerHTML), 'no surviving onerror');
+        assert.notOk(/onclick/i.test(root.innerHTML), 'no surviving onclick');
+        assert.notOk(
+          /javascript:/i.test(root.innerHTML),
+          'no surviving javascript: URL'
+        );
+      }
+    );
+
+    QUnit.test(
+      'C3-F4: deep DOM-built tree sanitizes in place without failing open',
+      (assert) => {
+        // The IN_PLACE entry pre-pass (_sanitizeAttachedShadowRoots) used to
+        // recurse once per child, so a deep DOM-built tree — DOM APIs have no
+        // parser depth cap — overflowed the call stack and threw before any
+        // node was sanitized, leaving the caller's live tree 0% sanitized. The
+        // walk is now iterative. Depth 5000 overflowed the old recursion
+        // (~4500 in Chromium). The tree is never attached and never serialized
+        // here, to avoid the engine's own deep-render / serializer recursion.
+        const DEPTH = 5000;
+        const root = document.createElement('div');
+        const img = document.createElement('img');
+        img.setAttribute('onerror', 'window.xssed = true');
+        root.appendChild(img);
+        let cursor = root;
+        for (let i = 0; i < DEPTH; i++) {
+          const child = document.createElement('div');
+          cursor.appendChild(child);
+          cursor = child;
+        }
+        let threw = false;
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+        } catch (_) {
+          threw = true;
+        }
+        assert.notOk(threw, 'no stack-overflow throw at the entry pre-pass');
+        assert.notOk(
+          img.hasAttribute('onerror'),
+          'shallow handler stripped despite deep tree'
+        );
+      }
+    );
   };
 });
