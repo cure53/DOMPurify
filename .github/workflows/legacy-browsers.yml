@@ -54,11 +54,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { playwright: '1.50.1', node: '20.x' } # Chromium 133 / FF 134 / WebKit 18.2
-          - { playwright: '1.44.1', node: '20.x' } # Chromium 125 / FF 125 / WebKit 17.4  (~2 yrs)
-          - { playwright: '1.40.0', node: '18.x' } # Chromium 120 / FF 119 / WebKit 17.4
-          - { playwright: '1.35.1', node: '18.x' } # Chromium 115 / FF 113 / WebKit 16.4
-          - { playwright: '1.30.0', node: '18.x' } # Chromium 110 / FF 108 / WebKit 16.4
+          - { pw: playwright-1-50-1, node: '20.x' } # Chromium 133 / FF 134 / WebKit 18.2
+          - { pw: playwright-1-44-1, node: '20.x' } # Chromium 125 / FF 125 / WebKit 17.4  (~2 yrs)
+          - { pw: playwright-1-40-0, node: '18.x' } # Chromium 120 / FF 119 / WebKit 17.4
+          - { pw: playwright-1-35-1, node: '18.x' } # Chromium 115 / FF 113 / WebKit 16.4
+          - { pw: playwright-1-30-0, node: '18.x' } # Chromium 110 / FF 108 / WebKit 16.4
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -79,17 +79,24 @@ jobs:
 
       # No build step: dist/ is committed and kept in sync with src/ by
       # build-and-test.yml, so the legacy job tests the artifact that actually
-      # ships. npm ci only needs to provide qunit + jquery for the served page.
-      # (EBADENGINE warnings on the Node 18 rows are harmless: we serve static
-      # assets and run the pinned Playwright, never the >=20 build toolchain.)
+      # ships. The root npm ci only needs to provide qunit + jquery for the
+      # served page. (EBADENGINE warnings on the Node 18 rows are harmless: we
+      # serve static assets and run the pinned Playwright, never the >=20 build
+      # toolchain.)
       - name: Install Dependencies
         run: npm ci --ignore-scripts
 
-      - name: Install pinned legacy Playwright (${{ matrix.playwright }})
-        run: |
-          npm i --prefix /tmp/pw playwright@${{ matrix.playwright }}
-          /tmp/pw/node_modules/.bin/playwright install --with-deps chromium firefox webkit
+      # The older Playwright snapshots are pinned by integrity hash in
+      # test/legacy-playwright/package-lock.json (each is an npm alias to an
+      # exact version), so `npm ci` installs hash-verified tarballs rather than
+      # whatever the registry currently serves for that version.
+      - name: Install pinned legacy Playwright snapshots
+        working-directory: test/legacy-playwright
+        run: npm ci --ignore-scripts
+
+      - name: Install browsers for ${{ matrix.pw }}
+        run: node test/legacy-playwright/node_modules/${{ matrix.pw }}/cli.js install --with-deps chromium firefox webkit
 
       # legacy-runner.js self-starts test/browser/server.js and stops it on exit.
       - name: Run suite on legacy engines
-        run: PW_MODULE=/tmp/pw/node_modules/playwright node test/browser/legacy-runner.js
+        run: PW_MODULE="$GITHUB_WORKSPACE/test/legacy-playwright/node_modules/${{ matrix.pw }}" node test/browser/legacy-runner.js
