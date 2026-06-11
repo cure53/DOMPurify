@@ -212,8 +212,6 @@ interface UseProfilesConfig {
     html?: boolean | undefined;
 }
 
-declare const _default: DOMPurify;
-
 interface DOMPurify {
     /**
      * Creates a DOMPurify instance using the given window-like object. Defaults to `window`.
@@ -443,6 +441,8 @@ type WindowLike = Pick<typeof globalThis, 'DocumentFragment' | 'HTMLTemplateElem
     document?: Document;
     MozNamedAttrMap?: typeof window.NamedNodeMap;
 } & Pick<TrustedTypesWindow, 'trustedTypes'>;
+
+declare const _default: DOMPurify;
 
 export { _default as default };
 export type { Config, DOMPurify, DocumentFragmentHook, ElementHook, HookName, NodeHook, RemovedAttribute, RemovedElement, UponSanitizeAttributeHook, UponSanitizeAttributeHookEvent, UponSanitizeElementHook, UponSanitizeElementHookEvent, WindowLike };

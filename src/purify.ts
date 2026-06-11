@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/indent */
 
-import type {
-  TrustedHTML,
-  TrustedTypesWindow,
-} from 'trusted-types/lib/index.js';
 import type { Config, UseProfilesConfig } from './config';
+import type { DOMPurify, HooksMap, HookFunction, WindowLike } from './types';
 import * as TAGS from './tags.js';
 import * as ATTRS from './attrs.js';
 import * as EXPRESSIONS from './regexp.js';
@@ -13,6 +10,7 @@ import {
   clone,
   entries,
   freeze,
+  seal,
   arrayForEach,
   arrayIsArray,
   arrayLastIndexOf,
@@ -36,6 +34,21 @@ import {
 
 export type { Config } from './config';
 
+export type {
+  DOMPurify,
+  RemovedElement,
+  RemovedAttribute,
+  HookName,
+  NodeHook,
+  ElementHook,
+  DocumentFragmentHook,
+  UponSanitizeElementHook,
+  UponSanitizeAttributeHook,
+  UponSanitizeElementHookEvent,
+  UponSanitizeAttributeHookEvent,
+  WindowLike,
+} from './types';
+
 declare const VERSION: string;
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
@@ -46,7 +59,7 @@ const NODE_TYPE = {
   cdataSection: 4,
   entityReference: 5, // Deprecated
   entityNode: 6, // Deprecated
-  progressingInstruction: 7,
+  processingInstruction: 7,
   comment: 8,
   document: 9,
   documentType: 10,
@@ -526,15 +539,20 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     stringToString
   );
 
-  let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, [
+  const DEFAULT_MATHML_TEXT_INTEGRATION_POINTS = freeze([
     'mi',
     'mo',
     'mn',
     'ms',
     'mtext',
   ]);
+  let MATHML_TEXT_INTEGRATION_POINTS = addToSet(
+    {},
+    DEFAULT_MATHML_TEXT_INTEGRATION_POINTS
+  );
 
-  let HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
+  const DEFAULT_HTML_INTEGRATION_POINTS = freeze(['annotation-xml']);
+  let HTML_INTEGRATION_POINTS = addToSet({}, DEFAULT_HTML_INTEGRATION_POINTS);
 
   // Certain elements are allowed in both SVG and HTML
   // namespace. We need to specify them explicitly
@@ -679,14 +697,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       cfg.MATHML_TEXT_INTEGRATION_POINTS &&
       typeof cfg.MATHML_TEXT_INTEGRATION_POINTS === 'object'
         ? clone(cfg.MATHML_TEXT_INTEGRATION_POINTS)
-        : addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']); // Default built-in map
+        : addToSet({}, DEFAULT_MATHML_TEXT_INTEGRATION_POINTS); // Default built-in map
 
     HTML_INTEGRATION_POINTS =
       objectHasOwnProperty(cfg, 'HTML_INTEGRATION_POINTS') &&
       cfg.HTML_INTEGRATION_POINTS &&
       typeof cfg.HTML_INTEGRATION_POINTS === 'object'
         ? clone(cfg.HTML_INTEGRATION_POINTS)
-        : addToSet({}, ['annotation-xml']); // Default built-in map
+        : addToSet({}, DEFAULT_HTML_INTEGRATION_POINTS); // Default built-in map
 
     const customElementHandling =
       objectHasOwnProperty(cfg, 'CUSTOM_ELEMENT_HANDLING') &&
@@ -722,6 +740,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements =
         customElementHandling.allowCustomizedBuiltInElements; // Default undefined
     }
+
+    seal(CUSTOM_ELEMENT_HANDLING);
 
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
@@ -1112,9 +1132,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param root the in-place root to empty
    */
   const _neutralizeRoot = function (root: Node): void {
-    const childNodes = getChildNodes
-      ? getChildNodes(root)
-      : (root as Element).childNodes;
+    const childNodes = getChildNodes(root);
     if (childNodes) {
       const snapshot: Node[] = [];
       arrayForEach(childNodes, (child) => {
@@ -1129,7 +1147,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       });
     }
 
-    const attributes = getAttributes ? getAttributes(root) : null;
+    const attributes = getAttributes(root);
     if (attributes) {
       for (let i = attributes.length - 1; i >= 0; --i) {
         const attribute = attributes[i];
@@ -1191,9 +1209,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param element the element to strip
    */
   const _stripDisallowedAttributes = function (element: Element): void {
-    const attributes = getAttributes
-      ? getAttributes(element)
-      : element.attributes;
+    const attributes = getAttributes(element);
     if (!attributes) {
       return;
     }
@@ -1246,9 +1262,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _stripDisallowedAttributes(node as Element);
       }
 
-      const childNodes = getChildNodes
-        ? getChildNodes(node)
-        : (node as Element).childNodes;
+      const childNodes = getChildNodes(node);
       if (childNodes) {
         for (let i = childNodes.length - 1; i >= 0; --i) {
           stack.push(childNodes[i]);
@@ -1395,12 +1409,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     // NodeIterator does not descend into <template>.content per the DOM spec,
     // so we must explicitly recurse into each template's content fragment,
     // mirroring the approach used by _sanitizeShadowDOM.
-    const templates = node.querySelectorAll?.('template') ?? [];
-    arrayForEach(Array.from(templates), (tmpl: HTMLTemplateElement) => {
-      if (_isDocumentFragment(tmpl.content)) {
-        _scrubTemplateExpressions(tmpl.content as unknown as Element);
-      }
-    });
+    const templates = node.querySelectorAll?.('template');
+    if (templates) {
+      arrayForEach(templates, (tmpl: HTMLTemplateElement) => {
+        if (_isDocumentFragment(tmpl.content)) {
+          _scrubTemplateExpressions(tmpl.content as unknown as Element);
+        }
+      });
+    }
   };
 
   /**
@@ -1578,7 +1594,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Remove any occurrence of processing instructions */
-    if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
+    if (currentNode.nodeType === NODE_TYPE.processingInstruction) {
       _forceRemove(currentNode);
       return true;
     }
@@ -1749,16 +1765,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
         XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
         We don't need to check the value; it's always URI safe. */
-    if (
-      ALLOW_DATA_ATTR &&
-      !FORBID_ATTR[lcName] &&
-      regExpTest(DATA_ATTR, lcName)
-    ) {
+    if (ALLOW_DATA_ATTR && regExpTest(DATA_ATTR, lcName)) {
       // This attribute is safe
     } else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR, lcName)) {
       // This attribute is safe
       /* Otherwise, check the name is permitted */
-    } else if (!nameIsPermitted || FORBID_ATTR[lcName]) {
+    } else if (!nameIsPermitted) {
       if (
         // First condition does a very basic check if a) it's basically a valid custom element tagname AND
         // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
@@ -2060,9 +2072,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         ? getNodeType(shadowNode)
         : shadowNode.nodeType;
       if (shadowNodeType === NODE_TYPE.element) {
-        const innerSr = getShadowRoot
-          ? getShadowRoot(shadowNode)
-          : (shadowNode as Element).shadowRoot;
+        const innerSr = getShadowRoot(shadowNode);
         if (_isDocumentFragment(innerSr)) {
           _sanitizeAttachedShadowRoots(innerSr);
           _sanitizeShadowDOM(innerSr);
@@ -2129,9 +2139,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* (pushed last → processed first) Children, snapshotted in reverse so
          the first child is processed first. Snapshotting matters because a
          hook may detach siblings mid-walk. */
-      const childNodes = getChildNodes
-        ? getChildNodes(node)
-        : (node as Element).childNodes;
+      const childNodes = getChildNodes(node);
       if (childNodes) {
         for (let i = childNodes.length - 1; i >= 0; --i) {
           stack.push({ node: childNodes[i], shadow: null });
@@ -2160,9 +2168,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
          silently skipped foreign-realm shadow roots (e.g.
          iframe.contentDocument attachShadow). */
       if (isElement) {
-        const sr = getShadowRoot
-          ? getShadowRoot(node)
-          : (node as Element).shadowRoot;
+        const sr = getShadowRoot(node);
         if (_isDocumentFragment(sr)) {
           /* Push the deferred sanitise first so it pops after the shadow
              walk we push next, i.e. nested shadow roots are discovered
@@ -2497,352 +2503,3 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 }
 
 export default createDOMPurify();
-
-export interface DOMPurify {
-  /**
-   * Creates a DOMPurify instance using the given window-like object. Defaults to `window`.
-   */
-  (root?: WindowLike): DOMPurify;
-
-  /**
-   * Version label, exposed for easier checks
-   * if DOMPurify is up to date or not
-   */
-  version: string;
-
-  /**
-   * Array of elements that DOMPurify removed during sanitation.
-   * Empty if nothing was removed.
-   */
-  removed: Array<RemovedElement | RemovedAttribute>;
-
-  /**
-   * Expose whether this browser supports running the full DOMPurify.
-   */
-  isSupported: boolean;
-
-  /**
-   * Set the configuration once.
-   *
-   * @param cfg configuration object
-   */
-  setConfig(cfg?: Config): void;
-
-  /**
-   * Removes the configuration.
-   */
-  clearConfig(): void;
-
-  /**
-   * Provides core sanitation functionality.
-   *
-   * @param dirty string or DOM node
-   * @param cfg object
-   * @returns Sanitized TrustedHTML.
-   */
-  sanitize(
-    dirty: string | Node,
-    cfg: Config & { RETURN_TRUSTED_TYPE: true }
-  ): TrustedHTML;
-
-  /**
-   * Provides core sanitation functionality.
-   *
-   * @param dirty DOM node
-   * @param cfg object
-   * @returns Sanitized DOM node.
-   */
-  sanitize(dirty: Node, cfg: Config & { IN_PLACE: true }): Node;
-
-  /**
-   * Provides core sanitation functionality.
-   *
-   * @param dirty string or DOM node
-   * @param cfg object
-   * @returns Sanitized DOM node.
-   */
-  sanitize(dirty: string | Node, cfg: Config & { RETURN_DOM: true }): Node;
-
-  /**
-   * Provides core sanitation functionality.
-   *
-   * @param dirty string or DOM node
-   * @param cfg object
-   * @returns Sanitized document fragment.
-   */
-  sanitize(
-    dirty: string | Node,
-    cfg: Config & { RETURN_DOM_FRAGMENT: true }
-  ): DocumentFragment;
-
-  /**
-   * Provides core sanitation functionality.
-   *
-   * @param dirty string or DOM node
-   * @param cfg object
-   * @returns Sanitized string.
-   */
-  sanitize(dirty: string | Node, cfg?: Config): string;
-
-  /**
-   * Checks if an attribute value is valid.
-   * Uses last set config, if any. Otherwise, uses config defaults.
-   *
-   * @param tag Tag name of containing element.
-   * @param attr Attribute name.
-   * @param value Attribute value.
-   * @returns Returns true if `value` is valid. Otherwise, returns false.
-   */
-  isValidAttribute(tag: string, attr: string, value: string): boolean;
-
-  /**
-   * Adds a DOMPurify hook.
-   *
-   * @param entryPoint entry point for the hook to add
-   * @param hookFunction function to execute
-   */
-  addHook(entryPoint: BasicHookName, hookFunction: NodeHook): void;
-
-  /**
-   * Adds a DOMPurify hook.
-   *
-   * @param entryPoint entry point for the hook to add
-   * @param hookFunction function to execute
-   */
-  addHook(entryPoint: ElementHookName, hookFunction: ElementHook): void;
-
-  /**
-   * Adds a DOMPurify hook.
-   *
-   * @param entryPoint entry point for the hook to add
-   * @param hookFunction function to execute
-   */
-  addHook(
-    entryPoint: DocumentFragmentHookName,
-    hookFunction: DocumentFragmentHook
-  ): void;
-
-  /**
-   * Adds a DOMPurify hook.
-   *
-   * @param entryPoint entry point for the hook to add
-   * @param hookFunction function to execute
-   */
-  addHook(
-    entryPoint: 'uponSanitizeElement',
-    hookFunction: UponSanitizeElementHook
-  ): void;
-
-  /**
-   * Adds a DOMPurify hook.
-   *
-   * @param entryPoint entry point for the hook to add
-   * @param hookFunction function to execute
-   */
-  addHook(
-    entryPoint: 'uponSanitizeAttribute',
-    hookFunction: UponSanitizeAttributeHook
-  ): void;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if hook not specified)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @param hookFunction optional specific hook to remove
-   * @returns removed hook
-   */
-  removeHook(
-    entryPoint: BasicHookName,
-    hookFunction?: NodeHook
-  ): NodeHook | undefined;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if hook not specified)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @param hookFunction optional specific hook to remove
-   * @returns removed hook
-   */
-  removeHook(
-    entryPoint: ElementHookName,
-    hookFunction?: ElementHook
-  ): ElementHook | undefined;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if hook not specified)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @param hookFunction optional specific hook to remove
-   * @returns removed hook
-   */
-  removeHook(
-    entryPoint: DocumentFragmentHookName,
-    hookFunction?: DocumentFragmentHook
-  ): DocumentFragmentHook | undefined;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if hook not specified)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @param hookFunction optional specific hook to remove
-   * @returns removed hook
-   */
-  removeHook(
-    entryPoint: 'uponSanitizeElement',
-    hookFunction?: UponSanitizeElementHook
-  ): UponSanitizeElementHook | undefined;
-
-  /**
-   * Remove a DOMPurify hook at a given entryPoint
-   * (pops it from the stack of hooks if hook not specified)
-   *
-   * @param entryPoint entry point for the hook to remove
-   * @param hookFunction optional specific hook to remove
-   * @returns removed hook
-   */
-  removeHook(
-    entryPoint: 'uponSanitizeAttribute',
-    hookFunction?: UponSanitizeAttributeHook
-  ): UponSanitizeAttributeHook | undefined;
-
-  /**
-   * Removes all DOMPurify hooks at a given entryPoint
-   *
-   * @param entryPoint entry point for the hooks to remove
-   */
-  removeHooks(entryPoint: HookName): void;
-
-  /**
-   * Removes all DOMPurify hooks.
-   */
-  removeAllHooks(): void;
-}
-
-/**
- * An element removed by DOMPurify.
- */
-export interface RemovedElement {
-  /**
-   * The element that was removed.
-   */
-  element: Node;
-}
-
-/**
- * An element removed by DOMPurify.
- */
-export interface RemovedAttribute {
-  /**
-   * The attribute that was removed.
-   */
-  attribute: Attr | null;
-
-  /**
-   * The element that the attribute was removed.
-   */
-  from: Node;
-}
-
-type BasicHookName =
-  | 'beforeSanitizeElements'
-  | 'afterSanitizeElements'
-  | 'uponSanitizeShadowNode';
-type ElementHookName = 'beforeSanitizeAttributes' | 'afterSanitizeAttributes';
-type DocumentFragmentHookName =
-  | 'beforeSanitizeShadowDOM'
-  | 'afterSanitizeShadowDOM';
-type UponSanitizeElementHookName = 'uponSanitizeElement';
-type UponSanitizeAttributeHookName = 'uponSanitizeAttribute';
-
-interface HooksMap {
-  beforeSanitizeElements: NodeHook[];
-  afterSanitizeElements: NodeHook[];
-  beforeSanitizeShadowDOM: DocumentFragmentHook[];
-  uponSanitizeShadowNode: NodeHook[];
-  afterSanitizeShadowDOM: DocumentFragmentHook[];
-  beforeSanitizeAttributes: ElementHook[];
-  afterSanitizeAttributes: ElementHook[];
-  uponSanitizeElement: UponSanitizeElementHook[];
-  uponSanitizeAttribute: UponSanitizeAttributeHook[];
-}
-
-type ArrayElement<T> = T extends Array<infer U> ? U : never;
-
-type HookFunction = ArrayElement<HooksMap[keyof HooksMap]>;
-
-export type HookName =
-  | BasicHookName
-  | ElementHookName
-  | DocumentFragmentHookName
-  | UponSanitizeElementHookName
-  | UponSanitizeAttributeHookName;
-
-export type NodeHook = (
-  this: DOMPurify,
-  currentNode: Node,
-  hookEvent: null,
-  config: Config
-) => void;
-
-export type ElementHook = (
-  this: DOMPurify,
-  currentNode: Element,
-  hookEvent: null,
-  config: Config
-) => void;
-
-export type DocumentFragmentHook = (
-  this: DOMPurify,
-  currentNode: DocumentFragment,
-  hookEvent: null,
-  config: Config
-) => void;
-
-export type UponSanitizeElementHook = (
-  this: DOMPurify,
-  currentNode: Node,
-  hookEvent: UponSanitizeElementHookEvent,
-  config: Config
-) => void;
-
-export type UponSanitizeAttributeHook = (
-  this: DOMPurify,
-  currentNode: Element,
-  hookEvent: UponSanitizeAttributeHookEvent,
-  config: Config
-) => void;
-
-export interface UponSanitizeElementHookEvent {
-  tagName: string;
-  allowedTags: Record<string, boolean>;
-}
-
-export interface UponSanitizeAttributeHookEvent {
-  attrName: string;
-  attrValue: string;
-  keepAttr: boolean;
-  allowedAttributes: Record<string, boolean>;
-  forceKeepAttr: boolean | undefined;
-}
-
-/**
- * A `Window`-like object containing the properties and types that DOMPurify requires.
- */
-export type WindowLike = Pick<
-  typeof globalThis,
-  | 'DocumentFragment'
-  | 'HTMLTemplateElement'
-  | 'Node'
-  | 'Element'
-  | 'NodeFilter'
-  | 'NamedNodeMap'
-  | 'HTMLFormElement'
-  | 'DOMParser'
-> & {
-  document?: Document;
-  MozNamedAttrMap?: typeof window.NamedNodeMap;
-} & Pick<TrustedTypesWindow, 'trustedTypes'>;

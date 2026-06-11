@@ -341,7 +341,7 @@ const NODE_TYPE = {
   // Deprecated
   entityNode: 6,
   // Deprecated
-  progressingInstruction: 7,
+  processingInstruction: 7,
   comment: 8,
   document: 9,
   documentType: 10,
@@ -662,8 +662,10 @@ function createDOMPurify() {
   /* Allowed XHTML+XML namespaces */
   let ALLOWED_NAMESPACES = null;
   const DEFAULT_ALLOWED_NAMESPACES = addToSet({}, [MATHML_NAMESPACE, SVG_NAMESPACE, HTML_NAMESPACE], stringToString);
-  let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']);
-  let HTML_INTEGRATION_POINTS = addToSet({}, ['annotation-xml']);
+  const DEFAULT_MATHML_TEXT_INTEGRATION_POINTS = freeze(['mi', 'mo', 'mn', 'ms', 'mtext']);
+  let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, DEFAULT_MATHML_TEXT_INTEGRATION_POINTS);
+  const DEFAULT_HTML_INTEGRATION_POINTS = freeze(['annotation-xml']);
+  let HTML_INTEGRATION_POINTS = addToSet({}, DEFAULT_HTML_INTEGRATION_POINTS);
   // Certain elements are allowed in both SVG and HTML
   // namespace. We need to specify them explicitly
   // so that they don't get erroneously deleted from
@@ -731,8 +733,8 @@ function createDOMPurify() {
     IN_PLACE = cfg.IN_PLACE || false; // Default false
     IS_ALLOWED_URI$1 = isRegex(cfg.ALLOWED_URI_REGEXP) ? cfg.ALLOWED_URI_REGEXP : IS_ALLOWED_URI; // Default regexp
     NAMESPACE = typeof cfg.NAMESPACE === 'string' ? cfg.NAMESPACE : HTML_NAMESPACE; // Default HTML namespace
-    MATHML_TEXT_INTEGRATION_POINTS = objectHasOwnProperty(cfg, 'MATHML_TEXT_INTEGRATION_POINTS') && cfg.MATHML_TEXT_INTEGRATION_POINTS && typeof cfg.MATHML_TEXT_INTEGRATION_POINTS === 'object' ? clone(cfg.MATHML_TEXT_INTEGRATION_POINTS) : addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext']); // Default built-in map
-    HTML_INTEGRATION_POINTS = objectHasOwnProperty(cfg, 'HTML_INTEGRATION_POINTS') && cfg.HTML_INTEGRATION_POINTS && typeof cfg.HTML_INTEGRATION_POINTS === 'object' ? clone(cfg.HTML_INTEGRATION_POINTS) : addToSet({}, ['annotation-xml']); // Default built-in map
+    MATHML_TEXT_INTEGRATION_POINTS = objectHasOwnProperty(cfg, 'MATHML_TEXT_INTEGRATION_POINTS') && cfg.MATHML_TEXT_INTEGRATION_POINTS && typeof cfg.MATHML_TEXT_INTEGRATION_POINTS === 'object' ? clone(cfg.MATHML_TEXT_INTEGRATION_POINTS) : addToSet({}, DEFAULT_MATHML_TEXT_INTEGRATION_POINTS); // Default built-in map
+    HTML_INTEGRATION_POINTS = objectHasOwnProperty(cfg, 'HTML_INTEGRATION_POINTS') && cfg.HTML_INTEGRATION_POINTS && typeof cfg.HTML_INTEGRATION_POINTS === 'object' ? clone(cfg.HTML_INTEGRATION_POINTS) : addToSet({}, DEFAULT_HTML_INTEGRATION_POINTS); // Default built-in map
     const customElementHandling = objectHasOwnProperty(cfg, 'CUSTOM_ELEMENT_HANDLING') && cfg.CUSTOM_ELEMENT_HANDLING && typeof cfg.CUSTOM_ELEMENT_HANDLING === 'object' ? clone(cfg.CUSTOM_ELEMENT_HANDLING) : create(null);
     CUSTOM_ELEMENT_HANDLING = create(null);
     if (objectHasOwnProperty(customElementHandling, 'tagNameCheck') && isRegexOrFunction(customElementHandling.tagNameCheck)) {
@@ -744,6 +746,7 @@ function createDOMPurify() {
     if (objectHasOwnProperty(customElementHandling, 'allowCustomizedBuiltInElements') && typeof customElementHandling.allowCustomizedBuiltInElements === 'boolean') {
       CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements = customElementHandling.allowCustomizedBuiltInElements; // Default undefined
     }
+    seal(CUSTOM_ELEMENT_HANDLING);
     if (SAFE_FOR_TEMPLATES) {
       ALLOW_DATA_ATTR = false;
     }
@@ -1041,7 +1044,7 @@ function createDOMPurify() {
    * @param root the in-place root to empty
    */
   const _neutralizeRoot = function _neutralizeRoot(root) {
-    const childNodes = getChildNodes ? getChildNodes(root) : root.childNodes;
+    const childNodes = getChildNodes(root);
     if (childNodes) {
       const snapshot = [];
       arrayForEach(childNodes, child => {
@@ -1055,7 +1058,7 @@ function createDOMPurify() {
         }
       });
     }
-    const attributes = getAttributes ? getAttributes(root) : null;
+    const attributes = getAttributes(root);
     if (attributes) {
       for (let i = attributes.length - 1; i >= 0; --i) {
         const attribute = attributes[i];
@@ -1113,7 +1116,7 @@ function createDOMPurify() {
    * @param element the element to strip
    */
   const _stripDisallowedAttributes = function _stripDisallowedAttributes(element) {
-    const attributes = getAttributes ? getAttributes(element) : element.attributes;
+    const attributes = getAttributes(element);
     if (!attributes) {
       return;
     }
@@ -1160,7 +1163,7 @@ function createDOMPurify() {
       if (nodeType === NODE_TYPE.element) {
         _stripDisallowedAttributes(node);
       }
-      const childNodes = getChildNodes ? getChildNodes(node) : node.childNodes;
+      const childNodes = getChildNodes(node);
       if (childNodes) {
         for (let i = childNodes.length - 1; i >= 0; --i) {
           stack.push(childNodes[i]);
@@ -1249,7 +1252,7 @@ function createDOMPurify() {
    * @param node The root element whose character data should be scrubbed.
    */
   const _scrubTemplateExpressions2 = function _scrubTemplateExpressions(node) {
-    var _node$querySelectorAl, _node$querySelectorAl2;
+    var _node$querySelectorAl;
     node.normalize();
     const walker = createNodeIterator.call(node.ownerDocument || node, node,
     // eslint-disable-next-line no-bitwise
@@ -1266,12 +1269,14 @@ function createDOMPurify() {
     // NodeIterator does not descend into <template>.content per the DOM spec,
     // so we must explicitly recurse into each template's content fragment,
     // mirroring the approach used by _sanitizeShadowDOM.
-    const templates = (_node$querySelectorAl = (_node$querySelectorAl2 = node.querySelectorAll) === null || _node$querySelectorAl2 === void 0 ? void 0 : _node$querySelectorAl2.call(node, 'template')) !== null && _node$querySelectorAl !== void 0 ? _node$querySelectorAl : [];
-    arrayForEach(Array.from(templates), tmpl => {
-      if (_isDocumentFragment(tmpl.content)) {
-        _scrubTemplateExpressions2(tmpl.content);
-      }
-    });
+    const templates = (_node$querySelectorAl = node.querySelectorAll) === null || _node$querySelectorAl === void 0 ? void 0 : _node$querySelectorAl.call(node, 'template');
+    if (templates) {
+      arrayForEach(templates, tmpl => {
+        if (_isDocumentFragment(tmpl.content)) {
+          _scrubTemplateExpressions2(tmpl.content);
+        }
+      });
+    }
   };
   /**
    * _isClobbered
@@ -1407,7 +1412,7 @@ function createDOMPurify() {
       return true;
     }
     /* Remove any occurrence of processing instructions */
-    if (currentNode.nodeType === NODE_TYPE.progressingInstruction) {
+    if (currentNode.nodeType === NODE_TYPE.processingInstruction) {
       _forceRemove(currentNode);
       return true;
     }
@@ -1525,7 +1530,7 @@ function createDOMPurify() {
         (https://html.spec.whatwg.org/multipage/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes)
         XML-compatible (https://html.spec.whatwg.org/multipage/infrastructure.html#xml-compatible and http://www.w3.org/TR/xml/#d0e804)
         We don't need to check the value; it's always URI safe. */
-    if (ALLOW_DATA_ATTR && !FORBID_ATTR[lcName] && regExpTest(DATA_ATTR$1, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR$1, lcName)) ; else if (!nameIsPermitted || FORBID_ATTR[lcName]) {
+    if (ALLOW_DATA_ATTR && regExpTest(DATA_ATTR$1, lcName)) ; else if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR$1, lcName)) ; else if (!nameIsPermitted) {
       if (
       // First condition does a very basic check if a) it's basically a valid custom element tagname AND
       // b) if the tagName passes whatever the user has configured for CUSTOM_ELEMENT_HANDLING.tagNameCheck
@@ -1721,7 +1726,7 @@ function createDOMPurify() {
          iterator also surfaces. */
       const shadowNodeType = getNodeType ? getNodeType(shadowNode) : shadowNode.nodeType;
       if (shadowNodeType === NODE_TYPE.element) {
-        const innerSr = getShadowRoot ? getShadowRoot(shadowNode) : shadowNode.shadowRoot;
+        const innerSr = getShadowRoot(shadowNode);
         if (_isDocumentFragment(innerSr)) {
           _sanitizeAttachedShadowRoots(innerSr);
           _sanitizeShadowDOM2(innerSr);
@@ -1783,7 +1788,7 @@ function createDOMPurify() {
       /* (pushed last → processed first) Children, snapshotted in reverse so
          the first child is processed first. Snapshotting matters because a
          hook may detach siblings mid-walk. */
-      const childNodes = getChildNodes ? getChildNodes(node) : node.childNodes;
+      const childNodes = getChildNodes(node);
       if (childNodes) {
         for (let i = childNodes.length - 1; i >= 0; --i) {
           stack.push({
@@ -1813,7 +1818,7 @@ function createDOMPurify() {
          silently skipped foreign-realm shadow roots (e.g.
          iframe.contentDocument attachShadow). */
       if (isElement) {
-        const sr = getShadowRoot ? getShadowRoot(node) : node.shadowRoot;
+        const sr = getShadowRoot(node);
         if (_isDocumentFragment(sr)) {
           /* Push the deferred sanitise first so it pops after the shadow
              walk we push next, i.e. nested shadow roots are discovered
