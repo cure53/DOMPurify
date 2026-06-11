@@ -5678,5 +5678,214 @@
         `got: ${out}`
       );
     });
+
+    // =======================================================================
+    // Coverage - reachable branches the markup-driven suite never hits
+    //
+    // Public API surface (isValidAttribute, addHook guard), the user-supplied
+    // TRUSTED_TYPES_POLICY config path (including its re-entrancy guard, #1422 /
+    // GHSA-vxr8-fq34-vvx9), the forceKeepAttr/keepAttr hook decisions, the
+    // noscript/noembed fallback-mXSS guard, and a few config permutations.
+    //
+    // Isolated: afterEach clears config and hooks so the sticky Trusted Types
+    // policy and any added hooks cannot leak into the rest of the suite.
+    // =======================================================================
+
+    QUnit.module('Coverage - reachable branches', {
+      beforeEach() {
+        DOMPurify.clearConfig();
+      },
+      afterEach() {
+        DOMPurify.removeAllHooks();
+        DOMPurify.clearConfig();
+      },
+    });
+
+    QUnit.test('isValidAttribute accepts and rejects', (assert) => {
+      assert.ok(DOMPurify.isValidAttribute('a', 'href', 'https://example.com'));
+      assert.notOk(DOMPurify.isValidAttribute('a', 'onclick', 'alert(1)'));
+    });
+
+    QUnit.test('addHook ignores a non-function', (assert) => {
+      DOMPurify.addHook('uponSanitizeElement', null);
+      assert.equal(DOMPurify.sanitize('<b>x</b>'), '<b>x</b>');
+    });
+
+    QUnit.test('null config is treated as empty config', (assert) => {
+      assert.equal(DOMPurify.sanitize('<b>x</b>', null), '<b>x</b>');
+    });
+
+    QUnit.test('WHOLE_DOCUMENT keeps the document structure', (assert) => {
+      const out = DOMPurify.sanitize(
+        '<html><head></head><body><p>x</p></body></html>',
+        { WHOLE_DOCUMENT: true }
+      );
+      assert.ok(out.indexOf('<p>x</p>') > -1, `got: ${out}`);
+    });
+
+    QUnit.test('template content is sanitized', (assert) => {
+      const out = DOMPurify.sanitize(
+        '<template><img src=x onerror=alert(1)></template>'
+      );
+      assert.equal(out.indexOf('onerror'), -1, `onerror survived: ${out}`);
+    });
+
+    QUnit.test(
+      'namespaced SVG attribute is written via setAttributeNS',
+      (assert) => {
+        const out = DOMPurify.sanitize(
+          '<svg><a xlink:href="https://x"></a></svg>'
+        );
+        assert.ok(out.indexOf('svg') > -1, `got: ${out}`);
+      }
+    );
+
+    QUnit.test(
+      'noscript/noembed fallback-mXSS guard removes the element',
+      (assert) => {
+        const out = DOMPurify.sanitize(
+          '<noscript><noembed>x</noembed></noscript>'
+        );
+        assert.equal(out.indexOf('onerror'), -1, `got: ${out}`);
+      }
+    );
+
+    QUnit.test(
+      'uponSanitizeAttribute forceKeepAttr keeps a disallowed attribute',
+      (assert) => {
+        DOMPurify.addHook('uponSanitizeAttribute', (node, hookEvent) => {
+          hookEvent.forceKeepAttr = true;
+        });
+        const out = DOMPurify.sanitize('<a onclick="alert(1)">x</a>');
+        assert.ok(out.indexOf('onclick') > -1, `forceKeepAttr ignored: ${out}`);
+      }
+    );
+
+    QUnit.test(
+      'uponSanitizeAttribute keepAttr=false drops an allowed attribute',
+      (assert) => {
+        DOMPurify.addHook('uponSanitizeAttribute', (node, hookEvent) => {
+          hookEvent.keepAttr = false;
+        });
+        const out = DOMPurify.sanitize('<a href="https://x">y</a>');
+        assert.equal(out.indexOf('href'), -1, `keepAttr=false ignored: ${out}`);
+      }
+    );
+
+    // ---- user-supplied TRUSTED_TYPES_POLICY config ----
+
+    QUnit.test(
+      'TRUSTED_TYPES_POLICY signs output through the policy',
+      (assert) => {
+        const policy = { createHTML: (s) => s, createScriptURL: (s) => s };
+        const out = DOMPurify.sanitize('<b>x</b>', {
+          TRUSTED_TYPES_POLICY: policy,
+          RETURN_TRUSTED_TYPE: true,
+        });
+        assert.equal(String(out), '<b>x</b>');
+      }
+    );
+
+    QUnit.test('TRUSTED_TYPES_POLICY without createHTML throws', (assert) => {
+      assert.throws(
+        () =>
+          DOMPurify.sanitize('x', {
+            TRUSTED_TYPES_POLICY: { createScriptURL: (s) => s },
+          }),
+        /createHTML/
+      );
+    });
+
+    QUnit.test(
+      'TRUSTED_TYPES_POLICY without createScriptURL throws',
+      (assert) => {
+        assert.throws(
+          () =>
+            DOMPurify.sanitize('x', {
+              TRUSTED_TYPES_POLICY: { createHTML: (s) => s },
+            }),
+          /createScriptURL/
+        );
+      }
+    );
+
+    QUnit.test('TRUSTED_TYPES_POLICY null opts out for the call', (assert) => {
+      assert.equal(
+        DOMPurify.sanitize('<b>x</b>', { TRUSTED_TYPES_POLICY: null }),
+        '<b>x</b>'
+      );
+    });
+
+    QUnit.test(
+      'a circular TRUSTED_TYPES_POLICY is rejected by the re-entrancy guard',
+      (assert) => {
+        const circular = {
+          createHTML(s) {
+            return DOMPurify.sanitize(s);
+          },
+          createScriptURL: (s) => s,
+        };
+        assert.throws(() =>
+          DOMPurify.sanitize('<b>x</b>', { TRUSTED_TYPES_POLICY: circular })
+        );
+      }
+    );
+
+    // ---- config permutations ----
+
+    QUnit.test('setConfig applies persistent configuration', (assert) => {
+      DOMPurify.setConfig({ ALLOWED_TAGS: ['b'] });
+      assert.equal(DOMPurify.sanitize('<b>x</b><i>y</i>'), '<b>x</b>y');
+    });
+
+    QUnit.test('ADD_ATTR given an array allows the attribute', (assert) => {
+      const out = DOMPurify.sanitize('<a data-x="1">y</a>', {
+        ADD_ATTR: ['data-x'],
+      });
+      assert.ok(out.indexOf('data-x') > -1, `got: ${out}`);
+    });
+
+    QUnit.test('integration-point objects are accepted', (assert) => {
+      const out = DOMPurify.sanitize('<div>x</div>', {
+        MATHML_TEXT_INTEGRATION_POINTS: { mtext: true },
+        HTML_INTEGRATION_POINTS: { foreignobject: true },
+      });
+      assert.ok(out.indexOf('x') > -1, `got: ${out}`);
+    });
+
+    QUnit.test(
+      'FORBID_CONTENTS clones before mutating the default',
+      (assert) => {
+        const out = DOMPurify.sanitize('<div><span>x</span></div>', {
+          FORBID_CONTENTS: ['span'],
+        });
+        assert.ok(out.indexOf('<div>') > -1, `got: ${out}`);
+      }
+    );
+
+    QUnit.test(
+      'allowed noscript with a fallback-mXSS payload is removed',
+      (assert) => {
+        // The guard only runs for noscript/noembed/noframes that pass the
+        // allow-list, so they have to be added first.
+        const out = DOMPurify.sanitize(
+          '<noscript><noembed>x</noembed></noscript>',
+          { ADD_TAGS: ['noscript', 'noembed'] }
+        );
+        assert.equal(out.indexOf('onerror'), -1, `got: ${out}`);
+      }
+    );
+
+    QUnit.test('IN_PLACE sanitizes and returns the passed node', (assert) => {
+      const el = document.createElement('div');
+      el.innerHTML = '<img src=x onerror=alert(1)>';
+      const ret = DOMPurify.sanitize(el, { IN_PLACE: true });
+      const img = el.querySelector('img');
+      assert.equal(ret, el, 'returns the same node');
+      assert.notOk(
+        img && img.hasAttribute('onerror'),
+        'onerror stripped in place'
+      );
+    });
   };
 });
