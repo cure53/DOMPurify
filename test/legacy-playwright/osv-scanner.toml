@@ -1,0 +1,10 @@
+# Why this is safe to ignore: dev-only legacy-browser harness, not shipped in the
+# published npm package. The vulnerable `curl -k` scripts are the chrome/msedge
+# stable-channel reinstall helpers, never hit by the chromium/firefox/webkit
+# install path this harness uses; `npm ci` runs with --ignore-scripts; the runner
+# is Linux while the flagged scripts are *_mac.sh. Those four conditions are
+# load-bearing - if any of them changes, this ignore must be re-reviewed.
+[[IgnoredVulns]]
+id = "GHSA-7mvr-c777-76hp"
+ignoreUntil = 2027-05-31
+reason = "Dev-only legacy-browser harness, not in the published package; vulnerable curl -k mac reinstall scripts never invoked by the chromium/firefox/webkit install path; npm ci --ignore-scripts; Linux runner."
