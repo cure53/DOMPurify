@@ -509,6 +509,8 @@ These are our npm scripts:
   - `npm run test:browser:legacy` to run the suite on older browser engines (point `PW_MODULE` at a pinned old Playwright install; see `.github/workflows/legacy-browsers.yml`)
   - `npm run test:ci` to run the CI test flow for jsdom and Playwright
   - `npm run test:fuzz` to run a small fuzzer covering `sanitize()` and CONFIG
+- `npm run coverage` to build an instrumented bundle, run the jsdom suite, and write a local HTML line/branch coverage report to `coverage/index.html` (jsdom scope only, not run in CI)
+  - `npm run build:cov` to only build the instrumented coverage bundle
 - `npm run lint` to lint the sources using ESLint via xo
 - `npm run format` to format JavaScript/TypeScript and Markdown sources with Prettier
   - `npm run format:js` to only format JavaScript/TypeScript sources

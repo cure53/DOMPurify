@@ -5576,5 +5576,107 @@
         );
       }
     );
+
+    // =======================================================================
+    // Coverage - non-string input coercion (utils.stringifyValue/lookupGetter)
+    //
+    // sanitize() stringifies any non-string, non-Node input before parsing
+    // (purify.ts: `dirty = stringifyValue(dirty)`). The markup-driven tests
+    // only ever pass strings, so the entire stringifyValue type switch and the
+    // lookupGetter prototype walk go unexercised. These cover both, and the
+    // object-with-toString case doubles as a real check that markup produced by
+    // a coerced toString() is still sanitized.
+    // =======================================================================
+
+    QUnit.module('Coverage - input coercion');
+
+    QUnit.test('coerces a number input', (assert) => {
+      assert.equal(DOMPurify.sanitize(123), '123');
+    });
+
+    QUnit.test('coerces a boolean input', (assert) => {
+      assert.equal(DOMPurify.sanitize(true), 'true');
+    });
+
+    if (typeof BigInt !== 'undefined') {
+      QUnit.test('coerces a bigint input', (assert) => {
+        assert.equal(DOMPurify.sanitize(BigInt(42)), '42');
+      });
+    }
+
+    if (typeof Symbol !== 'undefined') {
+      QUnit.test('coerces a symbol input', (assert) => {
+        const out = DOMPurify.sanitize(Symbol('x'));
+        assert.equal(out.indexOf('Symbol('), 0, `got: ${out}`);
+      });
+    }
+
+    QUnit.test('coerces a function input', (assert) => {
+      const out = DOMPurify.sanitize(function demo() {});
+      assert.ok(out.indexOf('demo') > -1, `got: ${out}`);
+    });
+
+    QUnit.test('coerced toString() markup is still sanitized', (assert) => {
+      const dirty = {
+        toString() {
+          return '<b>x</b><img src=x onerror=alert(1)>';
+        },
+      };
+      const out = DOMPurify.sanitize(dirty);
+      assert.equal(out.indexOf('onerror'), -1, `onerror survived: ${out}`);
+      assert.ok(out.indexOf('<b>x</b>') > -1, `got: ${out}`);
+    });
+
+    QUnit.test(
+      'coerces an object whose toString returns a non-string',
+      (assert) => {
+        const out = DOMPurify.sanitize({
+          toString() {
+            return 42;
+          },
+        });
+        assert.equal(out, '[object Number]');
+      }
+    );
+
+    QUnit.test(
+      'coerces a null-prototype object (lookupGetter fallback)',
+      (assert) => {
+        // No toString on the chain: lookupGetter walks to null and returns its
+        // fallbackValue(), which yields null, so objectToString is used instead.
+        const out = DOMPurify.sanitize(Object.create(null));
+        assert.equal(out, '[object Null]');
+      }
+    );
+
+    // =======================================================================
+    // Coverage - config set construction (utils.addToSet/cleanArray)
+    //
+    // Exercises the non-array guard, the non-string element branch, and the
+    // sparse-array null-fill that clone()/cleanArray() perform on user config.
+    // =======================================================================
+
+    QUnit.module('Coverage - config set construction');
+
+    QUnit.test('ADD_TAGS given a non-array is handled safely', (assert) => {
+      const out = DOMPurify.sanitize('<div>x</div>', {
+        ADD_TAGS: 'notanarray',
+      });
+      assert.ok(out.indexOf('x') > -1, `got: ${out}`);
+    });
+
+    QUnit.test('ADD_TAGS with a hole and a non-string element', (assert) => {
+      const tags = ['custom-a'];
+      tags[2] = 'custom-b'; // index 1 is a hole -> cleanArray null-fills it
+      tags.push(123); // non-string element -> non-string branch of addToSet
+      const out = DOMPurify.sanitize(
+        '<custom-a></custom-a><custom-b></custom-b>',
+        { ADD_TAGS: tags }
+      );
+      assert.ok(
+        out.indexOf('custom-a') > -1 && out.indexOf('custom-b') > -1,
+        `got: ${out}`
+      );
+    });
   };
 });

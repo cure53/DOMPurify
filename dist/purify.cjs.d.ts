@@ -449,3 +449,12 @@ export type { Config, DOMPurify, DocumentFragmentHook, ElementHook, HookName, No
 
 // @ts-ignore
 export = _default;
+
+// @ts-ignore
+export = _default;
+
+// @ts-ignore
+export = _default;
+
+// @ts-ignore
+export = _default;
