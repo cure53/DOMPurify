@@ -14,3 +14,11 @@ export const ATTR_WHITESPACE = seal(
 );
 export const DOCTYPE_NAME = seal(/^html$/i);
 export const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
+
+// Markup-significant character probes used by _sanitizeElements.
+// Shared module-level instances are safe despite the sticky /g flags:
+// unapply() resets lastIndex for RegExp receivers before every call.
+export const ELEMENT_MARKUP_PROBE = seal(/<[/\w!]/g);
+export const COMMENT_MARKUP_PROBE = seal(/<[/\w]/g);
+export const FALLBACK_TAG_CLOSE = seal(/<\/no(script|embed|frames)/i);
+export const SELF_CLOSING_TAG = seal(/\/>/i);

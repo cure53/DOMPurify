@@ -333,6 +333,13 @@
   );
   const DOCTYPE_NAME = seal(/^html$/i);
   const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
+  // Markup-significant character probes used by _sanitizeElements.
+  // Shared module-level instances are safe despite the sticky /g flags:
+  // unapply() resets lastIndex for RegExp receivers before every call.
+  const ELEMENT_MARKUP_PROBE = seal(/<[/\w!]/g);
+  const COMMENT_MARKUP_PROBE = seal(/<[/\w]/g);
+  const FALLBACK_TAG_CLOSE = seal(/<\/no(script|embed|frames)/i);
+  const SELF_CLOSING_TAG = seal(/\/>/i);
 
   /* eslint-disable @typescript-eslint/indent */
   // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
@@ -1308,6 +1315,21 @@
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
     };
     /**
+     * Replace template expression syntax (mustache, ERB, template literal)
+     * with a space, in the same order the previous inline arrayForEach
+     * applied. One shared helper avoids re-allocating the expression array
+     * and iteration closure at every scrub site.
+     *
+     * @param value the string to scrub
+     * @returns the scrubbed string
+     */
+    const _stripTemplateExpressions = function _stripTemplateExpressions(value) {
+      value = stringReplace(value, MUSTACHE_EXPR$1, ' ');
+      value = stringReplace(value, ERB_EXPR$1, ' ');
+      value = stringReplace(value, TMPLIT_EXPR$1, ' ');
+      return value;
+    };
+    /**
      * Strip template-engine expressions ({{...}}, ${...}, <%...%>) from the
      * character data of an element subtree. Used as the final safety net for
      * SAFE_FOR_TEMPLATES on every DOM-returning code path so that expressions
@@ -1334,11 +1356,7 @@
       NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_CDATA_SECTION | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
       let currentNode = walker.nextNode();
       while (currentNode) {
-        let data = currentNode.data;
-        arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
-          data = stringReplace(data, expr, ' ');
-        });
-        currentNode.data = data;
+        currentNode.data = _stripTemplateExpressions(currentNode.data);
         currentNode = walker.nextNode();
       }
       // NodeIterator does not descend into <template>.content per the DOM spec,
@@ -1447,6 +1465,9 @@
       }
     };
     function _executeHooks(hooks, currentNode, data) {
+      if (hooks.length === 0) {
+        return;
+      }
       arrayForEach(hooks, hook => {
         hook.call(DOMPurify, currentNode, data, CONFIG);
       });
@@ -1467,7 +1488,7 @@
      */
     const _isUnsafeNode = function _isUnsafeNode(currentNode, tagName) {
       /* Detect mXSS attempts abusing namespace confusion */
-      if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
+      if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.innerHTML)) {
         return true;
       }
       /* Remove risky CSS construction leading to mXSS */
@@ -1479,7 +1500,7 @@
         return true;
       }
       /* Remove any kind of possibly harmful comments */
-      if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(/<[/\w]/g, currentNode.data)) {
+      if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, currentNode.data)) {
         return true;
       }
       return false;
@@ -1595,17 +1616,14 @@
         return true;
       }
       /* Make sure that older browsers don't get fallback-tag mXSS */
-      if ((tagName === 'noscript' || tagName === 'noembed' || tagName === 'noframes') && regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)) {
+      if ((tagName === 'noscript' || tagName === 'noembed' || tagName === 'noframes') && regExpTest(FALLBACK_TAG_CLOSE, currentNode.innerHTML)) {
         _forceRemove(currentNode);
         return true;
       }
       /* Sanitize element content to be template-safe */
       if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
         /* Get the element's text content */
-        let content = currentNode.textContent;
-        arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
-          content = stringReplace(content, expr, ' ');
-        });
+        const content = _stripTemplateExpressions(currentNode.textContent);
         if (currentNode.textContent !== content) {
           arrayPush(DOMPurify.removed, {
             element: currentNode.cloneNode()
@@ -1762,6 +1780,7 @@
         forceKeepAttr: undefined
       };
       let l = attributes.length;
+      const lcTag = transformCaseFunc(currentNode.nodeName);
       /* Go backwards over all attributes; safely remove bad ones */
       while (l--) {
         const attr = attributes[l];
@@ -1809,18 +1828,15 @@
           continue;
         }
         /* Work around a security issue in jQuery 3.0 */
-        if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
+        if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(SELF_CLOSING_TAG, value)) {
           _removeAttribute(name, currentNode);
           continue;
         }
         /* Sanitize attribute content to be template-safe */
         if (SAFE_FOR_TEMPLATES) {
-          arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
-            value = stringReplace(value, expr, ' ');
-          });
+          value = _stripTemplateExpressions(value);
         }
         /* Is `value` valid for this attribute? */
-        const lcTag = transformCaseFunc(currentNode.nodeName);
         if (!_isValidAttribute(lcTag, lcName, value)) {
           _removeAttribute(name, currentNode);
           continue;
@@ -2175,9 +2191,7 @@
       }
       /* Sanitize final string template-safe */
       if (SAFE_FOR_TEMPLATES) {
-        arrayForEach([MUSTACHE_EXPR$1, ERB_EXPR$1, TMPLIT_EXPR$1], expr => {
-          serializedHTML = stringReplace(serializedHTML, expr, ' ');
-        });
+        serializedHTML = _stripTemplateExpressions(serializedHTML);
       }
       return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? _createTrustedHTML(serializedHTML) : serializedHTML;
     };
