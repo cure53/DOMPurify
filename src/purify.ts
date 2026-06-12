@@ -135,6 +135,41 @@ const _createHooksMap = function (): HooksMap {
   };
 };
 
+/**
+ * Resolve a set-valued configuration option.
+ *
+ * When `cfg` carries an own array property under `key`, build a fresh set
+ * from it - seeded with a clone of `base` when given, an empty set
+ * otherwise - using `transform` for case normalization. Otherwise return
+ * `fallback` as-is. Mirrors the long-standing inline pattern exactly: a
+ * fresh set object per parse on the array path, the (possibly shared)
+ * default on the fallback path.
+ *
+ * @param cfg the cloned, prototype-free configuration object
+ * @param key the configuration property to read
+ * @param fallback the set to use when the option is absent or not an array
+ * @param options transform: case-transform function handed to addToSet;
+ *   base: optional default set to merge the supplied values into
+ * @returns the resolved set
+ */
+const _resolveSetOption = function (
+  cfg: Config,
+  key: keyof Config,
+  fallback: Record<string, boolean>,
+  options: {
+    transform: Parameters<typeof addToSet>[2];
+    base?: Record<string, boolean>;
+  }
+): Record<string, boolean> {
+  return objectHasOwnProperty(cfg, key) && arrayIsArray(cfg[key])
+    ? addToSet(
+        options.base ? clone(options.base) : {},
+        cfg[key] as readonly unknown[],
+        options.transform
+      )
+    : fallback;
+};
+
 function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const DOMPurify: DOMPurify = (root: WindowLike) => createDOMPurify(root);
 
@@ -618,52 +653,48 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         : stringToLowerCase;
 
     /* Set configuration parameters */
-    ALLOWED_TAGS =
-      objectHasOwnProperty(cfg, 'ALLOWED_TAGS') &&
-      arrayIsArray(cfg.ALLOWED_TAGS)
-        ? addToSet({}, cfg.ALLOWED_TAGS, transformCaseFunc)
-        : DEFAULT_ALLOWED_TAGS;
-    ALLOWED_ATTR =
-      objectHasOwnProperty(cfg, 'ALLOWED_ATTR') &&
-      arrayIsArray(cfg.ALLOWED_ATTR)
-        ? addToSet({}, cfg.ALLOWED_ATTR, transformCaseFunc)
-        : DEFAULT_ALLOWED_ATTR;
-    ALLOWED_NAMESPACES =
-      objectHasOwnProperty(cfg, 'ALLOWED_NAMESPACES') &&
-      arrayIsArray(cfg.ALLOWED_NAMESPACES)
-        ? addToSet({}, cfg.ALLOWED_NAMESPACES, stringToString)
-        : DEFAULT_ALLOWED_NAMESPACES;
-    URI_SAFE_ATTRIBUTES =
-      objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') &&
-      arrayIsArray(cfg.ADD_URI_SAFE_ATTR)
-        ? addToSet(
-            clone(DEFAULT_URI_SAFE_ATTRIBUTES),
-            cfg.ADD_URI_SAFE_ATTR,
-            transformCaseFunc
-          )
-        : DEFAULT_URI_SAFE_ATTRIBUTES;
-    DATA_URI_TAGS =
-      objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS') &&
-      arrayIsArray(cfg.ADD_DATA_URI_TAGS)
-        ? addToSet(
-            clone(DEFAULT_DATA_URI_TAGS),
-            cfg.ADD_DATA_URI_TAGS,
-            transformCaseFunc
-          )
-        : DEFAULT_DATA_URI_TAGS;
-    FORBID_CONTENTS =
-      objectHasOwnProperty(cfg, 'FORBID_CONTENTS') &&
-      arrayIsArray(cfg.FORBID_CONTENTS)
-        ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc)
-        : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS =
-      objectHasOwnProperty(cfg, 'FORBID_TAGS') && arrayIsArray(cfg.FORBID_TAGS)
-        ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc)
-        : clone({});
-    FORBID_ATTR =
-      objectHasOwnProperty(cfg, 'FORBID_ATTR') && arrayIsArray(cfg.FORBID_ATTR)
-        ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc)
-        : clone({});
+    ALLOWED_TAGS = _resolveSetOption(
+      cfg,
+      'ALLOWED_TAGS',
+      DEFAULT_ALLOWED_TAGS,
+      { transform: transformCaseFunc }
+    );
+    ALLOWED_ATTR = _resolveSetOption(
+      cfg,
+      'ALLOWED_ATTR',
+      DEFAULT_ALLOWED_ATTR,
+      { transform: transformCaseFunc }
+    );
+    ALLOWED_NAMESPACES = _resolveSetOption(
+      cfg,
+      'ALLOWED_NAMESPACES',
+      DEFAULT_ALLOWED_NAMESPACES,
+      { transform: stringToString }
+    );
+    URI_SAFE_ATTRIBUTES = _resolveSetOption(
+      cfg,
+      'ADD_URI_SAFE_ATTR',
+      DEFAULT_URI_SAFE_ATTRIBUTES,
+      { transform: transformCaseFunc, base: DEFAULT_URI_SAFE_ATTRIBUTES }
+    );
+    DATA_URI_TAGS = _resolveSetOption(
+      cfg,
+      'ADD_DATA_URI_TAGS',
+      DEFAULT_DATA_URI_TAGS,
+      { transform: transformCaseFunc, base: DEFAULT_DATA_URI_TAGS }
+    );
+    FORBID_CONTENTS = _resolveSetOption(
+      cfg,
+      'FORBID_CONTENTS',
+      DEFAULT_FORBID_CONTENTS,
+      { transform: transformCaseFunc }
+    );
+    FORBID_TAGS = _resolveSetOption(cfg, 'FORBID_TAGS', clone({}), {
+      transform: transformCaseFunc,
+    });
+    FORBID_ATTR = _resolveSetOption(cfg, 'FORBID_ATTR', clone({}), {
+      transform: transformCaseFunc,
+    });
     USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES')
       ? cfg.USE_PROFILES && typeof cfg.USE_PROFILES === 'object'
         ? clone(cfg.USE_PROFILES)
@@ -965,6 +996,111 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   ]);
 
   /**
+   * Namespace rules for an element in the SVG namespace.
+   *
+   * @param tagName the element's lowercase tag name
+   * @param parent the (possibly simulated) parent node
+   * @param parentTagName the parent's lowercase tag name
+   * @returns true if a spec-compliant parser could produce this element
+   */
+  const _checkSvgNamespace = function (
+    tagName: string,
+    parent: { namespaceURI?: string },
+    parentTagName: string
+  ): boolean {
+    // The only way to switch from HTML namespace to SVG
+    // is via <svg>. If it happens via any other tag, then
+    // it should be killed.
+    if (parent.namespaceURI === HTML_NAMESPACE) {
+      return tagName === 'svg';
+    }
+
+    // The only way to switch from MathML to SVG is via`
+    // svg if parent is either <annotation-xml> or MathML
+    // text integration points.
+    if (parent.namespaceURI === MATHML_NAMESPACE) {
+      return (
+        tagName === 'svg' &&
+        (parentTagName === 'annotation-xml' ||
+          MATHML_TEXT_INTEGRATION_POINTS[parentTagName])
+      );
+    }
+
+    // We only allow elements that are defined in SVG
+    // spec. All others are disallowed in SVG namespace.
+    return Boolean(ALL_SVG_TAGS[tagName]);
+  };
+
+  /**
+   * Namespace rules for an element in the MathML namespace.
+   *
+   * @param tagName the element's lowercase tag name
+   * @param parent the (possibly simulated) parent node
+   * @param parentTagName the parent's lowercase tag name
+   * @returns true if a spec-compliant parser could produce this element
+   */
+  const _checkMathMlNamespace = function (
+    tagName: string,
+    parent: { namespaceURI?: string },
+    parentTagName: string
+  ): boolean {
+    // The only way to switch from HTML namespace to MathML
+    // is via <math>. If it happens via any other tag, then
+    // it should be killed.
+    if (parent.namespaceURI === HTML_NAMESPACE) {
+      return tagName === 'math';
+    }
+
+    // The only way to switch from SVG to MathML is via
+    // <math> and HTML integration points
+    if (parent.namespaceURI === SVG_NAMESPACE) {
+      return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
+    }
+
+    // We only allow elements that are defined in MathML
+    // spec. All others are disallowed in MathML namespace.
+    return Boolean(ALL_MATHML_TAGS[tagName]);
+  };
+
+  /**
+   * Namespace rules for an element in the HTML namespace.
+   *
+   * @param tagName the element's lowercase tag name
+   * @param parent the (possibly simulated) parent node
+   * @param parentTagName the parent's lowercase tag name
+   * @returns true if a spec-compliant parser could produce this element
+   */
+  const _checkHtmlNamespace = function (
+    tagName: string,
+    parent: { namespaceURI?: string },
+    parentTagName: string
+  ): boolean {
+    // The only way to switch from SVG to HTML is via
+    // HTML integration points, and from MathML to HTML
+    // is via MathML text integration points
+    if (
+      parent.namespaceURI === SVG_NAMESPACE &&
+      !HTML_INTEGRATION_POINTS[parentTagName]
+    ) {
+      return false;
+    }
+
+    if (
+      parent.namespaceURI === MATHML_NAMESPACE &&
+      !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]
+    ) {
+      return false;
+    }
+
+    // We disallow tags that are specific for MathML
+    // or SVG and should never appear in HTML namespace
+    return (
+      !ALL_MATHML_TAGS[tagName] &&
+      (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName])
+    );
+  };
+
+  /**
    * @param element a DOM element whose namespace is being checked
    * @returns Return false if the element has a
    *  namespace that a spec-compliant parser would never
@@ -990,72 +1126,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     if (element.namespaceURI === SVG_NAMESPACE) {
-      // The only way to switch from HTML namespace to SVG
-      // is via <svg>. If it happens via any other tag, then
-      // it should be killed.
-      if (parent.namespaceURI === HTML_NAMESPACE) {
-        return tagName === 'svg';
-      }
-
-      // The only way to switch from MathML to SVG is via`
-      // svg if parent is either <annotation-xml> or MathML
-      // text integration points.
-      if (parent.namespaceURI === MATHML_NAMESPACE) {
-        return (
-          tagName === 'svg' &&
-          (parentTagName === 'annotation-xml' ||
-            MATHML_TEXT_INTEGRATION_POINTS[parentTagName])
-        );
-      }
-
-      // We only allow elements that are defined in SVG
-      // spec. All others are disallowed in SVG namespace.
-      return Boolean(ALL_SVG_TAGS[tagName]);
+      return _checkSvgNamespace(tagName, parent, parentTagName);
     }
 
     if (element.namespaceURI === MATHML_NAMESPACE) {
-      // The only way to switch from HTML namespace to MathML
-      // is via <math>. If it happens via any other tag, then
-      // it should be killed.
-      if (parent.namespaceURI === HTML_NAMESPACE) {
-        return tagName === 'math';
-      }
-
-      // The only way to switch from SVG to MathML is via
-      // <math> and HTML integration points
-      if (parent.namespaceURI === SVG_NAMESPACE) {
-        return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
-      }
-
-      // We only allow elements that are defined in MathML
-      // spec. All others are disallowed in MathML namespace.
-      return Boolean(ALL_MATHML_TAGS[tagName]);
+      return _checkMathMlNamespace(tagName, parent, parentTagName);
     }
 
     if (element.namespaceURI === HTML_NAMESPACE) {
-      // The only way to switch from SVG to HTML is via
-      // HTML integration points, and from MathML to HTML
-      // is via MathML text integration points
-      if (
-        parent.namespaceURI === SVG_NAMESPACE &&
-        !HTML_INTEGRATION_POINTS[parentTagName]
-      ) {
-        return false;
-      }
-
-      if (
-        parent.namespaceURI === MATHML_NAMESPACE &&
-        !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]
-      ) {
-        return false;
-      }
-
-      // We disallow tags that are specific for MathML
-      // or SVG and should never appear in HTML namespace
-      return (
-        !ALL_MATHML_TAGS[tagName] &&
-        (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName])
-      );
+      return _checkHtmlNamespace(tagName, parent, parentTagName);
     }
 
     // For XHTML and XML documents that support custom namespaces
@@ -1539,37 +1618,20 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   }
 
   /**
-   * _sanitizeElements
+   * _isUnsafeNode
    *
-   * @protect nodeName
-   * @protect textContent
-   * @protect removeChild
-   * @param currentNode to check for permission to exist
-   * @return true if node was killed, false if left alive
+   * Structural-threat checks that condemn a node regardless of the
+   * allowlists: mXSS via namespace confusion, risky CSS construction,
+   * processing instructions, and comments with markup-significant
+   * content. Pure predicate - reads only; the caller performs the
+   * removal. Check order is load-bearing and mirrors the original
+   * inline sequence.
+   *
+   * @param currentNode the node to inspect
+   * @param tagName the node's transformCaseFunc'd tag name
+   * @return true if the node must be removed
    */
-  const _sanitizeElements = function (currentNode: any): boolean {
-    let content = null;
-
-    /* Execute a hook if present */
-    _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
-
-    /* Check if element is clobbered or can clobber */
-    if (_isClobbered(currentNode)) {
-      _forceRemove(currentNode);
-      return true;
-    }
-
-    /* Now let's check the element's type and name */
-    const tagName = transformCaseFunc(
-      getNodeName ? getNodeName(currentNode) : currentNode.nodeName
-    );
-
-    /* Execute a hook if present */
-    _executeHooks(hooks.uponSanitizeElement, currentNode, {
-      tagName,
-      allowedTags: ALLOWED_TAGS,
-    });
-
+  const _isUnsafeNode = function (currentNode: any, tagName: string): boolean {
     /* Detect mXSS attempts abusing namespace confusion */
     if (
       SAFE_FOR_XML &&
@@ -1578,7 +1640,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       regExpTest(/<[/\w!]/g, currentNode.innerHTML) &&
       regExpTest(/<[/\w!]/g, currentNode.textContent)
     ) {
-      _forceRemove(currentNode);
       return true;
     }
 
@@ -1589,13 +1650,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       tagName === 'style' &&
       _isNode(currentNode.firstElementChild)
     ) {
-      _forceRemove(currentNode);
       return true;
     }
 
     /* Remove any occurrence of processing instructions */
     if (currentNode.nodeType === NODE_TYPE.processingInstruction) {
-      _forceRemove(currentNode);
       return true;
     }
 
@@ -1605,37 +1664,49 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       currentNode.nodeType === NODE_TYPE.comment &&
       regExpTest(/<[/\w]/g, currentNode.data)
     ) {
-      _forceRemove(currentNode);
       return true;
     }
 
-    /* Remove element if anything forbids its presence */
-    if (
-      FORBID_TAGS[tagName] ||
-      (!(
-        EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
-        EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
-      ) &&
-        !ALLOWED_TAGS[tagName])
-    ) {
-      /* Check if we have a custom element to handle */
-      if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
-        if (
-          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
-          regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)
-        ) {
-          return false;
-        }
+    return false;
+  };
 
-        if (
-          CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
-          CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)
-        ) {
-          return false;
-        }
+  /**
+   * _sanitizeDisallowedNode
+   *
+   * Handles a node whose tag is not on the active allowlist (or is
+   * explicitly forbidden). Keeps allowed custom elements (returning
+   * false exits _sanitizeElements early, exactly as the previous
+   * inline code did - the namespace and fallback-tag checks and the
+   * afterSanitizeElements hook are intentionally skipped for kept
+   * custom elements). Otherwise hoists content per KEEP_CONTENT and
+   * removes the node.
+   *
+   * @param currentNode the disallowed node
+   * @param tagName the node's transformCaseFunc'd tag name
+   * @return true if the node was removed, false if kept
+   */
+  const _sanitizeDisallowedNode = function (
+    currentNode: any,
+    tagName: string
+  ): boolean {
+    /* Check if we have a custom element to handle */
+    if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
+      if (
+        CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp &&
+        regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)
+      ) {
+        return false;
       }
 
-      /* Keep content except for bad-listed elements.
+      if (
+        CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof Function &&
+        CUSTOM_ELEMENT_HANDLING.tagNameCheck(tagName)
+      ) {
+        return false;
+      }
+    }
+
+    /* Keep content except for bad-listed elements.
          Use the cached prototype getters exclusively — the previous code
          had `|| currentNode.parentNode` / `|| currentNode.childNodes`
          fallbacks, but the cached getters always return the canonical
@@ -1643,14 +1714,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
          path was dead in safe cases and a clobbering surface in unsafe
          ones. Falsy cached results stay falsy; the `if (childNodes &&
          parentNode)` check already gates correctly. */
-      if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
-        const parentNode = getParentNode(currentNode);
-        const childNodes = getChildNodes(currentNode);
+    if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+      const parentNode = getParentNode(currentNode);
+      const childNodes = getChildNodes(currentNode);
 
-        if (childNodes && parentNode) {
-          const childCount = childNodes.length;
+      if (childNodes && parentNode) {
+        const childCount = childNodes.length;
 
-          /* In-place: hoist the *original* children so the iterator visits
+        /* In-place: hoist the *original* children so the iterator visits
              and sanitises them through the same allowlist pass as every other
              node. The caller built the tree in the live document, so the
              originals carry already-queued resource events (`<img onerror>`,
@@ -1671,17 +1742,65 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
              `childNodes` is live; a tail-to-head walk keeps `childNodes[i]`
              valid whether we move (drops the trailing entry) or clone (leaves
              the list intact). */
-          for (let i = childCount - 1; i >= 0; --i) {
-            const hoisted = IN_PLACE
-              ? childNodes[i]
-              : cloneNode(childNodes[i], true);
-            parentNode.insertBefore(hoisted, getNextSibling(currentNode));
-          }
+        for (let i = childCount - 1; i >= 0; --i) {
+          const hoisted = IN_PLACE
+            ? childNodes[i]
+            : cloneNode(childNodes[i], true);
+          parentNode.insertBefore(hoisted, getNextSibling(currentNode));
         }
       }
+    }
 
+    _forceRemove(currentNode);
+    return true;
+  };
+
+  /**
+   * _sanitizeElements
+   *
+   * @protect nodeName
+   * @protect textContent
+   * @protect removeChild
+   * @param currentNode to check for permission to exist
+   * @return true if node was killed, false if left alive
+   */
+  const _sanitizeElements = function (currentNode: any): boolean {
+    /* Execute a hook if present */
+    _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
+
+    /* Check if element is clobbered or can clobber */
+    if (_isClobbered(currentNode)) {
       _forceRemove(currentNode);
       return true;
+    }
+
+    /* Now let's check the element's type and name */
+    const tagName = transformCaseFunc(
+      getNodeName ? getNodeName(currentNode) : currentNode.nodeName
+    );
+
+    /* Execute a hook if present */
+    _executeHooks(hooks.uponSanitizeElement, currentNode, {
+      tagName,
+      allowedTags: ALLOWED_TAGS,
+    });
+
+    /* Remove mXSS vectors, processing instructions and risky comments */
+    if (_isUnsafeNode(currentNode, tagName)) {
+      _forceRemove(currentNode);
+      return true;
+    }
+
+    /* Remove element if anything forbids its presence */
+    if (
+      FORBID_TAGS[tagName] ||
+      (!(
+        EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
+        EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
+      ) &&
+        !ALLOWED_TAGS[tagName])
+    ) {
+      return _sanitizeDisallowedNode(currentNode, tagName);
     }
 
     /* Check whether element has a valid namespace.
@@ -1710,7 +1829,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Sanitize element content to be template-safe */
     if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
       /* Get the element's text content */
-      content = currentNode.textContent;
+      let content = currentNode.textContent;
 
       arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
         content = stringReplace(content, expr, ' ');
@@ -1865,6 +1984,92 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
+   * _applyTrustedTypesToAttribute
+   *
+   * Wrap an attribute value in the matching Trusted Types object when
+   * the active policy and browser support require it. Namespaced
+   * attributes are returned unchanged (Trusted Types does not support
+   * them yet, see https://bugs.chromium.org/p/chromium/issues/detail?id=1305293).
+   *
+   * @param lcTag lowercase tag name of the containing element
+   * @param lcName lowercase attribute name
+   * @param namespaceURI the attribute's namespace, if any
+   * @param value the attribute value to wrap
+   * @return the value, wrapped when Trusted Types demand it
+   */
+  const _applyTrustedTypesToAttribute = function (
+    lcTag: string,
+    lcName: string,
+    namespaceURI: string | null,
+    value: string
+  ): string {
+    if (
+      trustedTypesPolicy &&
+      typeof trustedTypes === 'object' &&
+      typeof trustedTypes.getAttributeType === 'function' &&
+      !namespaceURI
+    ) {
+      switch (trustedTypes.getAttributeType(lcTag, lcName)) {
+        case 'TrustedHTML': {
+          return _createTrustedHTML(value);
+        }
+
+        case 'TrustedScriptURL': {
+          return _createTrustedScriptURL(value);
+        }
+
+        default: {
+          break;
+        }
+      }
+    }
+
+    return value;
+  };
+
+  /**
+   * _setAttributeValue
+   *
+   * Write a (hook- or named-props-)modified attribute value back onto
+   * the element. On success, re-probe for clobbering introduced by the
+   * new value and remove the element when found; otherwise pop the
+   * removal entry recorded by the earlier _removeAttribute. On failure
+   * (e.g. an invalid data-* name for setAttributeNS), remove the
+   * attribute instead. Moved verbatim from the _sanitizeAttributes
+   * loop body - including the arrayPop bookkeeping, whose pairing with
+   * the SANITIZE_NAMED_PROPS _removeAttribute call above it is
+   * long-standing behavior.
+   *
+   * @param currentNode the element carrying the attribute
+   * @param name the attribute name as present on the element
+   * @param namespaceURI the attribute's namespace, if any
+   * @param value the new attribute value
+   */
+  const _setAttributeValue = function (
+    currentNode: Element,
+    name: string,
+    namespaceURI: string | null,
+    value: string
+  ): void {
+    try {
+      if (namespaceURI) {
+        currentNode.setAttributeNS(namespaceURI, name, value);
+      } else {
+        /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+        currentNode.setAttribute(name, value);
+      }
+
+      if (_isClobbered(currentNode)) {
+        _forceRemove(currentNode);
+      } else {
+        arrayPop(DOMPurify.removed);
+      }
+    } catch (_) {
+      _removeAttribute(name, currentNode);
+    }
+  };
+
+  /**
    * _sanitizeAttributes
    *
    * @protect attributes
@@ -1977,50 +2182,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       /* Handle attributes that require Trusted Types */
-      if (
-        trustedTypesPolicy &&
-        typeof trustedTypes === 'object' &&
-        typeof trustedTypes.getAttributeType === 'function'
-      ) {
-        if (namespaceURI) {
-          /* Namespaces are not yet supported, see https://bugs.chromium.org/p/chromium/issues/detail?id=1305293 */
-        } else {
-          switch (trustedTypes.getAttributeType(lcTag, lcName)) {
-            case 'TrustedHTML': {
-              value = _createTrustedHTML(value);
-              break;
-            }
-
-            case 'TrustedScriptURL': {
-              value = _createTrustedScriptURL(value);
-              break;
-            }
-
-            default: {
-              break;
-            }
-          }
-        }
-      }
+      value = _applyTrustedTypesToAttribute(lcTag, lcName, namespaceURI, value);
 
       /* Handle invalid data-* attribute set by try-catching it */
       if (value !== initValue) {
-        try {
-          if (namespaceURI) {
-            currentNode.setAttributeNS(namespaceURI, name, value);
-          } else {
-            /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
-            currentNode.setAttribute(name, value);
-          }
-
-          if (_isClobbered(currentNode)) {
-            _forceRemove(currentNode);
-          } else {
-            arrayPop(DOMPurify.removed);
-          }
-        } catch (_) {
-          _removeAttribute(name, currentNode);
-        }
+        _setAttributeValue(currentNode, name, namespaceURI, value);
       }
     }
 
