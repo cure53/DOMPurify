@@ -505,10 +505,12 @@ These are our npm scripts:
 - `npm run dev` to build the unminified UMD bundle while watching sources for changes
 - `npm run test` to lint the sources, run tests through jsdom, and run browser tests in Chromium via Playwright
   - `npm run test:jsdom` to only run tests through jsdom
+  - `npm run test:happydom` to run the suite through happy-dom (an unsupported environment; kept as a robustness check, not a compatibility promise)
   - `npm run test:browser` to only run tests through Playwright
   - `npm run test:browser:legacy` to run the suite on older browser engines (point `PW_MODULE` at a pinned old Playwright install; see `.github/workflows/legacy-browsers.yml`)
   - `npm run test:ci` to run the CI test flow for jsdom and Playwright
   - `npm run test:fuzz` to run a small fuzzer covering `sanitize()` and CONFIG
+- `npm run bench` to run the jsdom micro-benchmark over the built `dist/purify.cjs` (build first; `--json` and `--compare a.json b.json` support A/B runs across branches - results are directional, confirm user-facing claims in real browsers)
 - `npm run coverage` to build an instrumented bundle, run the jsdom suite, and write a local HTML line/branch coverage report to `coverage/index.html` (jsdom scope only, not run in CI)
   - `npm run build:cov` to only build the instrumented coverage bundle
 - `npm run lint` to lint the sources using ESLint via xo
