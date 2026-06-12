@@ -33,6 +33,7 @@ on:
       - '.github/workflows/scorecard.yml'
       - '.github/workflows/sign-release.yml'
       - '.github/workflows/slsa-provenance.yml'
+      - '.github/workflows/legacy-browsers.yml'
   pull_request:
     paths-ignore:
       - '**/*.md'
@@ -56,6 +57,7 @@ on:
       - '.github/workflows/scorecard.yml'
       - '.github/workflows/sign-release.yml'
       - '.github/workflows/slsa-provenance.yml'
+      - '.github/workflows/legacy-browsers.yml'
 
 permissions:
   contents: read
@@ -68,7 +70,10 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Fast feedback: lint, jsdom, chromium-only browser test across Node versions.
+  # Fast feedback: lint, build, dist-sync and jsdom across all supported
+  # Node versions. The full three-engine browser suite runs once, on the
+  # primary Node version only - browser behaviour is Node-independent, so
+  # repeating it per Node entry added cost without coverage.
   # Runs on every push and every PR.
   install:
     runs-on: ubuntu-latest
@@ -97,11 +102,15 @@ jobs:
       - name: Install Dependencies
         run: npm ci --ignore-scripts
 
-      # All three engines - test:ci runs the full browser matrix (no
-      # --project flag, unlike local `npm test`). DOMPurify's security
-      # posture depends on per-engine HTML parser behaviour being exercised,
-      # so this coverage is kept on every PR despite the download cost.
+      # All three engines, but only on the primary Node version (the same
+      # one the browser-matrix job uses). DOMPurify's security posture
+      # depends on per-engine HTML parser behaviour being exercised on
+      # every PR - but the browsers don't care which Node drives them, so
+      # installing and running 3 engines x 5 Node versions repeated the
+      # same suite 15 times. This gate keeps the full per-engine coverage
+      # once per PR and drops the 12 redundant runs.
       - name: Install Playwright Browsers
+        if: matrix.node-version == '25.x'
         run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
 
       - name: Build
@@ -121,11 +130,16 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
+      - name: Test (jsdom + full browser matrix)
+        if: matrix.node-version == '25.x'
         run: npm run test:ci
 
+      - name: Test (jsdom)
+        if: matrix.node-version != '25.x'
+        run: npm run test:jsdom
+
       - name: Upload Playwright report
-        if: failure()
+        if: failure() && matrix.node-version == '25.x'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-report-node-${{ matrix.node-version }}
@@ -140,8 +154,8 @@ jobs:
   # Safari engine, Windows font shaping, Linux-specific parser paths).
   #
   # Only runs on release branches (main, 2.x, 3.x) to conserve runner minutes.
-  # PRs get chromium-only coverage from the "install" job above, which is
-  # sufficient for catching regressions.
+  # PRs get full three-engine coverage on a single Node version from the
+  # "install" job above, which is sufficient for catching regressions.
   browser-matrix:
     if: github.event_name == 'push'
     runs-on: ${{ matrix.os }}
