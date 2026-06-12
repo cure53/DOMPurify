@@ -1444,6 +1444,22 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
+   * Replace template expression syntax (mustache, ERB, template literal)
+   * with a space, in the same order the previous inline arrayForEach
+   * applied. One shared helper avoids re-allocating the expression array
+   * and iteration closure at every scrub site.
+   *
+   * @param value the string to scrub
+   * @returns the scrubbed string
+   */
+  const _stripTemplateExpressions = function (value: string): string {
+    value = stringReplace(value, MUSTACHE_EXPR, ' ');
+    value = stringReplace(value, ERB_EXPR, ' ');
+    value = stringReplace(value, TMPLIT_EXPR, ' ');
+    return value;
+  };
+
+  /**
    * Strip template-engine expressions ({{...}}, ${...}, <%...%>) from the
    * character data of an element subtree. Used as the final safety net for
    * SAFE_FOR_TEMPLATES on every DOM-returning code path so that expressions
@@ -1477,11 +1493,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     let currentNode = walker.nextNode() as CharacterData | null;
     while (currentNode) {
-      let data = currentNode.data;
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
-        data = stringReplace(data, expr, ' ');
-      });
-      currentNode.data = data;
+      currentNode.data = _stripTemplateExpressions(currentNode.data);
       currentNode = walker.nextNode() as CharacterData | null;
     }
 
@@ -1612,6 +1624,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     currentNode: Parameters<T>[0],
     data: Parameters<T>[1]
   ): void {
+    if (hooks.length === 0) {
+      return;
+    }
+
     arrayForEach(hooks, (hook: T) => {
       hook.call(DOMPurify, currentNode, data, CONFIG);
     });
@@ -1637,8 +1653,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       SAFE_FOR_XML &&
       currentNode.hasChildNodes() &&
       !_isNode(currentNode.firstElementChild) &&
-      regExpTest(/<[/\w!]/g, currentNode.innerHTML) &&
-      regExpTest(/<[/\w!]/g, currentNode.textContent)
+      regExpTest(EXPRESSIONS.ELEMENT_MARKUP_PROBE, currentNode.textContent) &&
+      regExpTest(EXPRESSIONS.ELEMENT_MARKUP_PROBE, currentNode.innerHTML)
     ) {
       return true;
     }
@@ -1662,7 +1678,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (
       SAFE_FOR_XML &&
       currentNode.nodeType === NODE_TYPE.comment &&
-      regExpTest(/<[/\w]/g, currentNode.data)
+      regExpTest(EXPRESSIONS.COMMENT_MARKUP_PROBE, currentNode.data)
     ) {
       return true;
     }
@@ -1820,7 +1836,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       (tagName === 'noscript' ||
         tagName === 'noembed' ||
         tagName === 'noframes') &&
-      regExpTest(/<\/no(script|embed|frames)/i, currentNode.innerHTML)
+      regExpTest(EXPRESSIONS.FALLBACK_TAG_CLOSE, currentNode.innerHTML)
     ) {
       _forceRemove(currentNode);
       return true;
@@ -1829,11 +1845,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Sanitize element content to be template-safe */
     if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
       /* Get the element's text content */
-      let content = currentNode.textContent;
-
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
-        content = stringReplace(content, expr, ' ');
-      });
+      const content = _stripTemplateExpressions(currentNode.textContent);
 
       if (currentNode.textContent !== content) {
         arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
@@ -2098,6 +2110,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       forceKeepAttr: undefined,
     };
     let l = attributes.length;
+    const lcTag = transformCaseFunc(currentNode.nodeName);
 
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
@@ -2162,20 +2175,20 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       /* Work around a security issue in jQuery 3.0 */
-      if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
+      if (
+        !ALLOW_SELF_CLOSE_IN_ATTR &&
+        regExpTest(EXPRESSIONS.SELF_CLOSING_TAG, value)
+      ) {
         _removeAttribute(name, currentNode);
         continue;
       }
 
       /* Sanitize attribute content to be template-safe */
       if (SAFE_FOR_TEMPLATES) {
-        arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
-          value = stringReplace(value, expr, ' ');
-        });
+        value = _stripTemplateExpressions(value);
       }
 
       /* Is `value` valid for this attribute? */
-      const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
         _removeAttribute(name, currentNode);
         continue;
@@ -2593,9 +2606,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Sanitize final string template-safe */
     if (SAFE_FOR_TEMPLATES) {
-      arrayForEach([MUSTACHE_EXPR, ERB_EXPR, TMPLIT_EXPR], (expr: RegExp) => {
-        serializedHTML = stringReplace(serializedHTML, expr, ' ');
-      });
+      serializedHTML = _stripTemplateExpressions(serializedHTML);
     }
 
     return trustedTypesPolicy && RETURN_TRUSTED_TYPE

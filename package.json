@@ -18,6 +18,7 @@
     "build:cjs": "rollup -c config/rollup.config.js -f cjs -o dist/purify.cjs.js",
     "build:cov": "rollup -c config/rollup.coverage.config.js",
     "build:cleanup": "rimraf dist/types",
+    "bench": "node scripts/benchmark.js",
     "test": "cross-env NODE_ENV=test BABEL_ENV=rollup npm run lint && npm run test:jsdom && npm run test:browser -- --project=chromium",
     "test:jsdom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/jsdom-node-runner --dot",
     "test:happydom": "cross-env NODE_ENV=test BABEL_ENV=rollup node test/happydom-node-runner --dot",
