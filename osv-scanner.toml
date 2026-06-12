@@ -43,3 +43,8 @@ reason = "Current package-lock includes semver 7.5.0 via development tooling onl
 id = "GHSA-jxxr-4gwj-5jf2"
 reason = "brace-expansion DoS via large numeric ranges; low relevance unless user-controlled brace patterns are expanded. Prefer upgrading to brace-expansion 5.0.6."
 ignoreUntil = 2027-05-31
+
+[[IgnoredVulns]]
+id = "GHSA-7mvr-c777-76hp"
+ignoreUntil = 2027-05-31
+reason = "Dev-only legacy-browser harness, not in the published package. The vulnerable curl -k scripts are the chrome/msedge channel reinstall helpers, never hit by the chromium/firefox/webkit install path; npm ci runs --ignore-scripts; CI is Linux while the scripts are *_mac.sh."

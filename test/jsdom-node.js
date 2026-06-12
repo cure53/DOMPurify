@@ -3,7 +3,9 @@
 'use strict';
 
 // Test DOMPurify + jsdom using Node.js (version 8 and up)
-const createDOMPurify = require('../dist/purify.cjs');
+const createDOMPurify = require(
+  process.env.DOMPURIFY_COV ? '../dist/purify.cov.cjs' : '../dist/purify.cjs'
+);
 const jsdom = require('jsdom');
 const { JSDOM, VirtualConsole } = jsdom;
 const virtualConsole = new VirtualConsole();
@@ -52,6 +54,18 @@ async function startQUnit() {
   };
 
   sanitizeTestSuite(DOMPurify, window, tests, xssTests);
+
+  if (process.env.DOMPURIFY_COV) {
+    QUnit.done(() => {
+      const fs = require('fs');
+      fs.mkdirSync('.nyc_output', { recursive: true });
+      fs.writeFileSync(
+        '.nyc_output/out.json',
+        JSON.stringify(global.__coverage__ || {})
+      );
+    });
+  }
+
   QUnit.start();
 }
 

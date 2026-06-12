@@ -17,7 +17,7 @@ name: Build & Test
 #
 #   2. The `install` job's matrix and name must produce the SAME check
 #      names as build-and-test.yml: "install (20.x)", "install (22.x)",
-#      "install (24.x)", "install (25.x)".
+#      "install (24.x)", "install (25.x)", "install (26.x)".
 #
 #   3. The `paths` list below must be the INVERSE of the `paths-ignore`
 #      list in build-and-test.yml. If you exclude a path there, include it
@@ -51,6 +51,7 @@ on:
       - '.github/workflows/scorecard.yml'
       - '.github/workflows/sign-release.yml'
       - '.github/workflows/slsa-provenance.yml'
+      - '.github/workflows/legacy-browsers.yml'
 
 permissions:
   contents: read

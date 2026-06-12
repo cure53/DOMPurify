@@ -24,7 +24,7 @@ updates:
           - minor
           - patch
   # Consumer-shape verification harnesses under typescript/. These exist to
-  # catch packaging regressions, not to ship code — group them all together
+  # catch packaging regressions, not to ship code - group them all together
   # so we don't get six separate PRs every time @types/node bumps.
   - package-ecosystem: npm
     directory: /typescript
@@ -58,6 +58,21 @@ updates:
       typescript-harness:
         patterns:
           - '*'
+  # Legacy-browser harness: intentionally frozen old Playwright builds used
+  # only to exercise DOMPurify against older engines. They are never shipped
+  # and never updated (bumping them defeats the purpose). This entry exists
+  # solely to stop Dependabot trying - and failing - to open security-update
+  # PRs for them: open-pull-requests-limit 0 disables version PRs, and the
+  # ignore suppresses the playwright security-update attempts. NOTE: this only
+  # quiets Dependabot. OpenSSF Scorecard scans the lockfile via OSV separately
+  # and needs a root osv-scanner.toml entry to clear GHSA-7mvr-c777-76hp.
+  - package-ecosystem: npm
+    directory: /test/legacy-playwright
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: playwright
   # ---------------------------------------------------------------------
   # 2.x LTS branch. Dependabot watches exactly one branch per entry, so
   # the entries above (without target-branch) apply only to main. Mirror

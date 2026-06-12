@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>DOMPurify demo: Sanitize SVGs shown via an img tag</title>
+        <script src="../dist/purify.js"></script>
+    </head>
+    <body>
+        <!-- Our DIV to receive content -->
+        <div id="sanitized"></div>
+
+        <!-- Now let's sanitize an SVG and show it via an <img> -->
+        <script>
+            'use strict';
+
+            // An SVG as exported by Adobe Illustrator, including the
+            // namespace declarations DOMPurify strips by default and a
+            // <filter> element, which is not allowed by default.
+            const dirty = `<?xml version="1.0" encoding="utf-8"?>
+                <!-- Generator: Adobe Illustrator -->
+                <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+                     xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+                    <filter id="blur"><feGaussianBlur stdDeviation="2"/></filter>
+                    <circle cx="50" cy="50" r="40" fill="teal" filter="url(#blur)"
+                            onclick="alert(document.domain)"/>
+                </svg>`;
+
+            // Add a hook to post-process the sanitized SVG root: re-add the
+            // namespaces (added by tools like Illustrator, stripped during
+            // sanitization) that an <img>-embedded SVG needs to render.
+            DOMPurify.addHook('afterSanitizeAttributes', function (node) {
+                if (node.tagName && node.tagName.toLowerCase() === 'svg') {
+                    node.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                    node.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                }
+            });
+
+            // Clean the SVG string and allow the "filter" tag
+            const clean = DOMPurify.sanitize(dirty, { ADD_TAGS: ['filter'] });
+
+            // Show the sanitized content in an <img> element
+            const img = new Image();
+            img.src = 'data:image/svg+xml;base64,' + window.btoa(clean);
+            document.getElementById('sanitized').appendChild(img);
+        </script>
+    </body>
+</html>

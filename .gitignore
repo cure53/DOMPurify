@@ -11,3 +11,9 @@ nbproject/private/private.xml
 # Playwright generated output
 test-results/
 playwright-report/
+
+# Local code coverage (npm run coverage) - not committed
+.nyc_output/
+coverage/
+dist/purify.cov.cjs.js
+dist/purify.cov.cjs.js.map

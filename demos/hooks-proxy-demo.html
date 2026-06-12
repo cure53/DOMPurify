@@ -1,6 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="utf-8" />
+        <title>DOMPurify demo: Hook to proxy all HTTP leaks including CSS</title>
         <script src="../dist/purify.js"></script>
     </head>
     <body>
@@ -71,6 +73,11 @@
                 DOMPurify.addHook('uponSanitizeElement', (node, data) => {
                     if (data.tagName === 'style') {
                         const output = [];
+                        // Some DOM implementations (e.g. jsdom) do not
+                        // populate .sheet for styles in the inert document
+                        if (!node.sheet) {
+                            return;
+                        }
                         addCSSRules(output, node.sheet.cssRules);
                         node.textContent = output.join("\n");
                     }
