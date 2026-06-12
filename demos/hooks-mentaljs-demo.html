@@ -1,6 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="utf-8" />
+        <title>DOMPurify demo: Hook to sandbox JavaScript via MentalJS</title>
         <script src="../dist/purify.js"></script>
         <!--  Grab the latest version of MentalJS -->
         <script src="./lib/Mental.js"></script>
@@ -34,10 +36,14 @@
             DOMPurify.addHook('uponSanitizeElement', (node, data) => {
                 if (data.tagName === 'script') {
                     const script = node.textContent;
+                    // Note: we never remove the <script> node ourselves -
+                    // it is not an allowed tag, so DOMPurify removes it
+                    // after this hook returns. Pre-detaching it here would
+                    // trip DOMPurify's fail-closed removal guard.
                     if (!script || 'src' in node.attributes
                         || 'href' in node.attributes
                         || 'xlink:href' in node.attributes) {
-                            return node.parentNode.removeChild(node);
+                            return;
                     }
                     try {
                         const mental = MentalJS().parse({
@@ -47,9 +53,8 @@
                         const scriptNode = document.createElement('script');
                         scriptNode.appendChild(document.createTextNode(mental));
                         document.head.appendChild(scriptNode);
-                        return node.parentNode.removeChild(node);
                     } catch (e) {
-                        return node.parentNode.removeChild(node);
+                        // parse failed - DOMPurify removes the node anyway
                     }
                 }
             });

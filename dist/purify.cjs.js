@@ -410,20 +410,15 @@ const _createHooksMap = function _createHooksMap() {
   };
 };
 /**
- * Resolve a set-valued configuration option.
- *
- * When `cfg` carries an own array property under `key`, build a fresh set
- * from it - seeded with a clone of `base` when given, an empty set
- * otherwise - using `transform` for case normalization. Otherwise return
- * `fallback` as-is. Mirrors the long-standing inline pattern exactly: a
- * fresh set object per parse on the array path, the (possibly shared)
- * default on the fallback path.
+ * Resolve a set-valued configuration option: a fresh set built from
+ * cfg[key] when it is an own array property (seeded with a clone of
+ * options.base when given, case-normalized via options.transform),
+ * the fallback set otherwise.
  *
  * @param cfg the cloned, prototype-free configuration object
  * @param key the configuration property to read
  * @param fallback the set to use when the option is absent or not an array
- * @param options transform: case-transform function handed to addToSet;
- *   base: optional default set to merge the supplied values into
+ * @param options transform and optional base set to merge into
  * @returns the resolved set
  */
 const _resolveSetOption = function _resolveSetOption(cfg, key, fallback, options) {
@@ -972,9 +967,9 @@ function createDOMPurify() {
     if (parent.namespaceURI === HTML_NAMESPACE) {
       return tagName === 'svg';
     }
-    // The only way to switch from MathML to SVG is via`
-    // svg if parent is either <annotation-xml> or MathML
-    // text integration points.
+    // The only way to switch from MathML to SVG is via <svg>
+    // if the parent is either <annotation-xml> or a MathML
+    // text integration point.
     if (parent.namespaceURI === MATHML_NAMESPACE) {
       return tagName === 'svg' && (parentTagName === 'annotation-xml' || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
     }
@@ -1311,10 +1306,9 @@ function createDOMPurify() {
     NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
   };
   /**
-   * Replace template expression syntax (mustache, ERB, template literal)
-   * with a space, in the same order the previous inline arrayForEach
-   * applied. One shared helper avoids re-allocating the expression array
-   * and iteration closure at every scrub site.
+   * Replace template expression syntax (mustache, ERB, template
+   * literal) with a space; shared by all SAFE_FOR_TEMPLATES scrub
+   * sites. Order matters: mustache, then ERB, then template literal.
    *
    * @param value the string to scrub
    * @returns the scrubbed string
@@ -1469,14 +1463,10 @@ function createDOMPurify() {
     });
   }
   /**
-   * _isUnsafeNode
-   *
    * Structural-threat checks that condemn a node regardless of the
    * allowlists: mXSS via namespace confusion, risky CSS construction,
-   * processing instructions, and comments with markup-significant
-   * content. Pure predicate - reads only; the caller performs the
-   * removal. Check order is load-bearing and mirrors the original
-   * inline sequence.
+   * processing instructions, markup-bearing comments. Pure predicate;
+   * the caller removes. Check order is load-bearing.
    *
    * @param currentNode the node to inspect
    * @param tagName the node's transformCaseFunc'd tag name
@@ -1502,15 +1492,11 @@ function createDOMPurify() {
     return false;
   };
   /**
-   * _sanitizeDisallowedNode
-   *
-   * Handles a node whose tag is not on the active allowlist (or is
-   * explicitly forbidden). Keeps allowed custom elements (returning
-   * false exits _sanitizeElements early, exactly as the previous
-   * inline code did - the namespace and fallback-tag checks and the
-   * afterSanitizeElements hook are intentionally skipped for kept
-   * custom elements). Otherwise hoists content per KEEP_CONTENT and
-   * removes the node.
+   * Handle a node whose tag is forbidden or not allowlisted: keep
+   * allowed custom elements (false return exits _sanitizeElements
+   * early - namespace/fallback checks and the afterSanitizeElements
+   * hook are intentionally skipped for kept custom elements), else
+   * hoist content per KEEP_CONTENT and remove.
    *
    * @param currentNode the disallowed node
    * @param tagName the node's transformCaseFunc'd tag name
@@ -1687,12 +1673,10 @@ function createDOMPurify() {
     return !RESERVED_CUSTOM_ELEMENT_NAMES[stringToLowerCase(tagName)] && regExpTest(CUSTOM_ELEMENT$1, tagName);
   };
   /**
-   * _applyTrustedTypesToAttribute
-   *
    * Wrap an attribute value in the matching Trusted Types object when
-   * the active policy and browser support require it. Namespaced
-   * attributes are returned unchanged (Trusted Types does not support
-   * them yet, see https://bugs.chromium.org/p/chromium/issues/detail?id=1305293).
+   * the active policy requires it. Namespaced attributes pass through
+   * unchanged (no TT support yet, see
+   * https://bugs.chromium.org/p/chromium/issues/detail?id=1305293).
    *
    * @param lcTag lowercase tag name of the containing element
    * @param lcName lowercase attribute name
@@ -1716,17 +1700,12 @@ function createDOMPurify() {
     return value;
   };
   /**
-   * _setAttributeValue
-   *
-   * Write a (hook- or named-props-)modified attribute value back onto
-   * the element. On success, re-probe for clobbering introduced by the
-   * new value and remove the element when found; otherwise pop the
-   * removal entry recorded by the earlier _removeAttribute. On failure
-   * (e.g. an invalid data-* name for setAttributeNS), remove the
-   * attribute instead. Moved verbatim from the _sanitizeAttributes
-   * loop body - including the arrayPop bookkeeping, whose pairing with
-   * the SANITIZE_NAMED_PROPS _removeAttribute call above it is
-   * long-standing behavior.
+   * Write a modified attribute value back onto the element. On
+   * success, re-probe for clobbering introduced by the new value and
+   * remove the element when found; otherwise pop the removal entry
+   * recorded by the earlier _removeAttribute (long-standing pairing
+   * with the SANITIZE_NAMED_PROPS path - do not "fix" casually). On
+   * failure, remove the attribute instead.
    *
    * @param currentNode the element carrying the attribute
    * @param name the attribute name as present on the element
@@ -1814,7 +1793,7 @@ function createDOMPurify() {
         _removeAttribute(name, currentNode);
         continue;
       }
-      /* Did the hooks approve of the attribute? */
+      /* Did the hooks force-keep the attribute? */
       if (hookEvent.forceKeepAttr) {
         continue;
       }

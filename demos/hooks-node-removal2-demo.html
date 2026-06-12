@@ -1,6 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
+        <meta charset="utf-8" />
+        <title>DOMPurify demo: Hook to remove an element and its content</title>
         <script src="../dist/purify.js"></script>
     </head>
     <body>
@@ -52,7 +54,7 @@
             
             // Clean HTML string and write into our DIV
             const clean = DOMPurify.sanitize(dirty);
-            document.getElementById('sanitized').innerText = clean;
+            document.getElementById('sanitized').textContent = clean;
         </script>
     </body>
 </html>
