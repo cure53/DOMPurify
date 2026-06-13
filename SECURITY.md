@@ -8,6 +8,32 @@ First of all, please immediately contact us via [email](mailto:mario@cure53.de) 
 
 Also, you probably qualify for a bug bounty! The fine folks over at [Fastmail](https://www.fastmail.com/) use DOMPurify for their services and added our library to their bug bounty scope. So, if you find a way to bypass or weaken DOMPurify, please also have a look at their website and the [bug bounty info](https://www.fastmail.com/about/bugbounty/).
 
+### What we consider a vulnerability
+
+To set expectations for reporters and to help us triage quickly, the first
+question we ask of any report is **what does the attacker control?**
+
+- **Input only** - a default or reasonable configuration is defeated using only
+  attacker-controlled markup passed to `sanitize()`. This is a genuine bypass
+  and the kind of report we most want to receive.
+- **Input plus an application choice** - the report requires the application to
+  have first configured something dangerous (allowing event-handler attributes
+  via a hook, supplying a permissive `ALLOWED_URI_REGEXP`, allowing event
+  handlers through a custom-element predicate, and so on). We treat these as
+  hardening bugs: worth fixing when an advertised guarantee has a hole, but they
+  are not a default-configuration bypass, and severity is judged accordingly.
+- **Unvalidated input reaching a documented API** - between the two: no
+  dangerous intent is required, but the attack needs an unusual integration
+  (for example passing an attacker-controlled string as a hook entry point). We
+  treat these as defensive fixes.
+
+The dividing line is about *who supplies the dangerous element*, not how severe
+the consequence sounds. A report framed as "stored XSS" that requires the
+application to allow `onerror` via a hook is still a hardening bug, because the
+application allowed `onerror`. Configuration patterns that are safe by default
+but become dangerous when enabled are documented in the wiki's threat-model and
+attack-class pages.
+
 ## Supply Chain Security
 
 DOMPurify is downloaded by hundreds of millions of CI runs and dependent
