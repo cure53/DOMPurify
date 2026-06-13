@@ -31,8 +31,8 @@ The dividing line is about *who supplies the dangerous element*, not how severe
 the consequence sounds. A report framed as "stored XSS" that requires the
 application to allow `onerror` via a hook is still a hardening bug, because the
 application allowed `onerror`. Configuration patterns that are safe by default
-but become dangerous when enabled are documented in the wiki's threat-model and
-attack-class pages.
+but become dangerous when enabled are documented in the wiki's [threat-model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model) and
+[attack-class](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History) pages.
 
 ## Supply Chain Security
 
