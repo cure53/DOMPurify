@@ -3517,6 +3517,96 @@
           );
         }
       );
+
+      // -------------------------------------------------------------------
+      // Persistent-config path (setConfig). The original fix lived inside
+      // _parseConfig, which sanitize() skips once setConfig() has run, so
+      // these cases were unguarded: a hook write to data.allowedAttributes
+      // mutated the shared allowlist for the instance lifetime, across calls
+      // and elements. The guard is now applied on every sanitize() call for
+      // both config paths. (GHSA-cmwh-pvxp-8882)
+      // -------------------------------------------------------------------
+
+      QUnit.test(
+        'setConfig: attribute hook does not poison later calls',
+        (assert) => {
+          purify.setConfig({ ALLOWED_TAGS: ['img'], ALLOWED_ATTR: ['src'] });
+          purify.addHook('uponSanitizeAttribute', (node, data) => {
+            if (
+              node.getAttribute &&
+              node.getAttribute('data-trusted') === '1'
+            ) {
+              data.allowedAttributes['onerror'] = true;
+            }
+          });
+
+          // A trusted element widens onerror for its own call.
+          assert.ok(
+            purify
+              .sanitize('<img data-trusted="1" src="x" onerror="ok()">')
+              .indexOf('onerror') !== -1,
+            'in-call widening works for the trusted element under setConfig'
+          );
+
+          // A later untrusted call must NOT inherit the widened attribute.
+          assert.equal(
+            purify.sanitize('<img src="x" onerror="alert(1)">'),
+            '<img src="x">',
+            'untrusted call after trusted render strips onerror'
+          );
+
+          // Repeated calls must stay clean (no accumulated clone state).
+          for (let i = 0; i < 5; i++) {
+            assert.equal(
+              purify.sanitize('<img src="x" onerror="alert(' + i + ')">'),
+              '<img src="x">',
+              'repeated untrusted call ' + i + ' stays clean'
+            );
+          }
+        }
+      );
+
+      QUnit.test(
+        'setConfig: element hook does not poison later calls',
+        (assert) => {
+          purify.setConfig({ ALLOWED_TAGS: ['span'], ALLOWED_ATTR: [] });
+          purify.addHook('uponSanitizeElement', (node, data) => {
+            if (
+              node.getAttribute &&
+              node.getAttribute('data-trusted') === '1' &&
+              data.allowedTags
+            ) {
+              data.allowedTags['img'] = true;
+            }
+          });
+
+          purify.sanitize('<span data-trusted="1"><img src="x"></span>');
+
+          assert.equal(
+            purify.sanitize('<img src="x" onerror="alert(1)">'),
+            '',
+            'untrusted <img> not allowed after trusted render under setConfig'
+          );
+        }
+      );
+
+      QUnit.test('setConfig: clearConfig restores a clean state', (assert) => {
+        purify.setConfig({ ALLOWED_TAGS: ['img'], ALLOWED_ATTR: ['src'] });
+        purify.addHook('uponSanitizeAttribute', (node, data) => {
+          if (node.getAttribute && node.getAttribute('data-trusted') === '1') {
+            data.allowedAttributes['onerror'] = true;
+          }
+        });
+        purify.sanitize('<img data-trusted="1" src="x" onerror="ok()">');
+
+        purify.clearConfig();
+
+        assert.equal(
+          purify.sanitize('<img src="x" onerror="alert(1)">'),
+          '<img src="x">',
+          'default-cfg call after clearConfig strips onerror'
+        );
+      });
     });
 
     // =======================================================================
