@@ -2644,6 +2644,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return;
     }
 
+    /* Reject unknown entry points. Without this, a non-hook key (e.g.
+     * '__proto__') indexes off the prototype chain rather than a real
+     * hook array, and arrayPush then writes to Object.prototype. Guard
+     * with an own-property check against the known hook names. */
+    if (!objectHasOwnProperty(hooks, entryPoint)) {
+      return;
+    }
+
     arrayPush(hooks[entryPoint], hookFunction);
   };
 
@@ -2651,6 +2659,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     entryPoint: keyof HooksMap,
     hookFunction: HookFunction
   ) {
+    if (!objectHasOwnProperty(hooks, entryPoint)) {
+      return undefined;
+    }
+
     if (hookFunction !== undefined) {
       const index = arrayLastIndexOf(hooks[entryPoint], hookFunction);
 
@@ -2663,6 +2675,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   DOMPurify.removeHooks = function (entryPoint: keyof HooksMap) {
+    if (!objectHasOwnProperty(hooks, entryPoint)) {
+      return;
+    }
+
     hooks[entryPoint] = [];
   };
 
