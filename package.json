@@ -175,5 +175,8 @@
   "bugs": {
     "url": "https://github.com/cure53/DOMPurify/issues"
   },
-  "homepage": "https://github.com/cure53/DOMPurify"
+  "homepage": "https://github.com/cure53/DOMPurify",
+  "overrides": {
+    "js-yaml": "^4.2.0"
+  }
 }
