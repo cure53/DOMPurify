@@ -337,7 +337,6 @@ const COMMENT_MARKUP_PROBE = seal(/<[/\w]/g);
 const FALLBACK_TAG_CLOSE = seal(/<\/no(script|embed|frames)/i);
 const SELF_CLOSING_TAG = seal(/\/>/i);
 
-/* eslint-disable @typescript-eslint/indent */
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 const NODE_TYPE = {
   element: 1,
