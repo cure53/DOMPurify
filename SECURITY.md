@@ -27,7 +27,7 @@ question we ask of any report is **what does the attacker control?**
   (for example passing an attacker-controlled string as a hook entry point). We
   treat these as defensive fixes.
 
-The dividing line is about *who supplies the dangerous element*, not how severe
+The dividing line is about _who supplies the dangerous element_, not how severe
 the consequence sounds. A report framed as "stored XSS" that requires the
 application to allow `onerror` via a hook is still a hardening bug, because the
 application allowed `onerror`. Configuration patterns that are safe by default
