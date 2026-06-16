@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/indent */
-
 import type { Config, UseProfilesConfig } from './config';
 import type { DOMPurify, HooksMap, HookFunction, WindowLike } from './types';
 import * as TAGS from './tags.js';
