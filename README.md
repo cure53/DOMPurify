@@ -6,7 +6,7 @@
 
 DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG.
 
-It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.4.10**.
+It's also very simple to use and get started with. DOMPurify was [started in February 2014](https://github.com/cure53/DOMPurify/commit/a630922616927373485e0e787ab19e73e3691b2b) and, meanwhile, has reached version **v3.4.11**.
 
 DOMPurify runs as JavaScript and works in all modern browsers (Safari (10+), Opera (15+), Edge, Firefox and Chrome - as well as almost anything else using Blink, Gecko or WebKit). It doesn't break on MSIE or other legacy browsers. It simply does nothing.
 
@@ -16,7 +16,25 @@ Our automated tests cover 9 browser/OS combinations on the current engines (Chro
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really. And if you enjoy the gory details, the [Attack Classes & Bypass History](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History) page catalogs the parser-mutation, namespace, clobbering, and template tricks DOMPurify defends against.
 
-The DOMPurify project inspired the creation of the [HTML Sanitizer API](https://wicg.github.io/sanitizer-api/#sanitizer), which is already shipping in [many browsers](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Sanitizer_API#browser_compatibility).
+The DOMPurify project inspired the creation of the [HTML Sanitizer API](https://wicg.github.io/sanitizer-api/#sanitizer), which is already shipping in [many browsers](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Sanitizer_API#browser_compatibility). The same capability is now being standardized directly in the [WHATWG HTML specification](https://html.spec.whatwg.org/#html-sanitization).
+
+## Table of Contents
+
+- [What does it do?](#what-does-it-do)
+- [How do I use it?](#how-do-i-use-it)
+- [Is there a demo?](#is-there-a-demo)
+- [What if I find a _security_ bug?](#what-if-i-find-a-security-bug)
+- [Some purification samples please?](#some-purification-samples-please)
+- [What is supported?](#what-is-supported)
+- [What about legacy browsers like Internet Explorer?](#what-about-legacy-browsers-like-internet-explorer)
+- [What about DOMPurify and Trusted Types?](#what-about-dompurify-and-trusted-types)
+- [Can I configure DOMPurify?](#can-i-configure-dompurify)
+- [Persistent Configuration](#persistent-configuration)
+- [Hooks](#hooks)
+- [Removed Configuration](#removed-configuration)
+- [Continuous Integration](#continuous-integration)
+- [Security Mailing List](#security-mailing-list)
+- [Who contributed?](#who-contributed)
 
 ## What does it do?
 
@@ -122,7 +140,7 @@ const clean = DOMPurify.sanitize('<s>hello</s>');
 
 Of course there is a demo! [Play with DOMPurify](https://cure53.de/purify)
 
-## What if I find a _security_ bug?
+## What if I find a security bug?
 
 First of all, please immediately contact us via [email](mailto:mario@cure53.de) so we can work on a fix. [PGP key](https://keyserver.ubuntu.com/pks/lookup?op=vindex&search=0xC26C858090F70ADA)
 
@@ -145,7 +163,7 @@ These are just a taste. For the full taxonomy of attack classes these samples co
 
 ## What is supported?
 
-DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` API without any known problems.
+DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` API without any known problems. For the exact set of elements and attributes permitted by default, see the [Default TAGs & ATTRIBUTEs allow-list & blocklist](https://github.com/cure53/DOMPurify/wiki/Default-TAGs-ATTRIBUTEs-allow-list-&-blocklist) wiki page.
 
 ## What about legacy browsers like Internet Explorer?
 
@@ -153,7 +171,7 @@ DOMPurify does nothing at all. It simply returns exactly the string that you fed
 
 ## What about DOMPurify and Trusted Types?
 
-In version 1.0.9, support for [Trusted Types API](https://github.com/w3c/webappsec-trusted-types) was added to DOMPurify.
+In version 1.0.9, support for the [Trusted Types API](https://github.com/w3c/webappsec-trusted-types) ([MDN](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API)) was added to DOMPurify.
 In version 2.0.0, a config flag was added to control DOMPurify's behavior regarding this.
 
 When `DOMPurify.sanitize` is used in an environment where the Trusted Types API is available and `RETURN_TRUSTED_TYPE` is set to `true`, it tries to return a `TrustedHTML` value instead of a string (the behavior for `RETURN_DOM` and `RETURN_DOM_FRAGMENT` config options does not change).
@@ -179,6 +197,8 @@ window.trustedTypes.createPolicy('my-organization', {
 ```
 
 Do **not** pass your own wrapping policy back to DOMPurify as its `TRUSTED_TYPES_POLICY` (for example via `DOMPurify.setConfig({ TRUSTED_TYPES_POLICY: myPolicy })`) when that policy's `createHTML` already calls `DOMPurify.sanitize`. That is circular by definition - sanitizing would call the policy, which sanitizes by calling DOMPurify again - and DOMPurify will throw a descriptive `TypeError` to prevent the infinite recursion. Your own policy should call DOMPurify; DOMPurify should not be configured to call your policy.
+
+If you want this `default`-policy pattern applied across an entire page automatically - so that every HTML sink is sanitized, including legacy code, third-party widgets, and the thousands of `innerHTML` assignments you cannot easily find or rewrite - have a look at [DOMFortify](https://github.com/cure53/DOMFortify). It installs exactly such a Trusted Types `default` policy backed by DOMPurify and refuses script sinks (`eval`, `script.src`, ...) outright. It is a deliberately separate project: DOMPurify stays a focused sanitizer, and DOMFortify handles the document-wide enforcement layer that is intentionally out of DOMPurify's scope.
 
 ## Can I configure DOMPurify?
 
