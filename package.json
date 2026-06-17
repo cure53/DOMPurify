@@ -95,7 +95,12 @@
       "@typescript-eslint/prefer-includes": 0,
       "@typescript-eslint/prefer-optional-chain": 0,
       "@typescript-eslint/prefer-nullish-coalescing": 0,
-      "@typescript-eslint/restrict-plus-operands": 0
+      "@typescript-eslint/restrict-plus-operands": 0,
+      "unicorn/prevent-abbreviations": 0,
+      "unicorn/prefer-global-this": 0,
+      "n/file-extension-in-import": 0,
+      "logical-assignment-operators": 0,
+      "@typescript-eslint/switch-exhaustiveness-check": 0
     },
     "globals": [
       "window",
@@ -124,7 +129,7 @@
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/estree": "^1.0.9",
     "@types/node": "^25.9.3",
-    "babel-plugin-istanbul": "^8.0.0",
+    "babel-plugin-istanbul": "^5.2.0",
     "cross-env": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.6",
@@ -142,14 +147,14 @@
     "rollup-plugin-dts": "^6.4.1",
     "tslib": "^2.7.0",
     "typescript": "^5.6.3",
-    "xo": "^0.54.1"
+    "xo": "^0.60.0"
   },
   "resolutions": {
     "natives": "1.1.6"
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It runs as JavaScript and works in all modern browsers, as well as in Node.js (via jsdom). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
-  "version": "3.4.10",
+  "version": "3.4.11",
   "directories": {
     "test": "test"
   },
@@ -175,5 +180,8 @@
   "bugs": {
     "url": "https://github.com/cure53/DOMPurify/issues"
   },
-  "homepage": "https://github.com/cure53/DOMPurify"
+  "homepage": "https://github.com/cure53/DOMPurify",
+  "overrides": {
+    "js-yaml": "^4.2.0"
+  }
 }
