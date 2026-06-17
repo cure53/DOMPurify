@@ -1,50 +1,18 @@
 # OSV-Scanner configuration for DOMPurify
 #
-# Scope: this suppresses currently present advisories from the package-lock
-# that are pulled in through development / test / CI tooling, not the shipped
-# DOMPurify runtime artifact itself.
+# Scope: suppresses advisories present in package-lock that come from
+# development / test / CI tooling, not the shipped DOMPurify runtime artifact.
 #
 # ignoreUntil is set to a one-year horizon so suppressions get re-evaluated
 # annually instead of indefinitely. When updating, check whether the
 # underlying dev dep has been replaced or upgraded out of the vulnerable
 # range; if so, drop the entry instead of extending it.
-
-[[IgnoredVulns]]
-id = "GHSA-f886-m6hf-6m8v"
-ignoreUntil = 2027-05-31
-reason = "Current package-lock includes brace-expansion 1.1.12 via development tooling only; not part of the distributed runtime artifact."
-
-[[IgnoredVulns]]
-id = "GHSA-grv7-fg5c-xmjg"
-ignoreUntil = 2027-05-31
-reason = "Current package-lock includes braces 3.0.2 under development tooling only; not part of the distributed runtime artifact."
-
-[[IgnoredVulns]]
-id = "GHSA-952p-6rrq-rcjv"
-ignoreUntil = 2027-05-31
-reason = "Current package-lock includes micromatch 4.0.5 under development tooling only; not part of the distributed runtime artifact."
-
-[[IgnoredVulns]]
-id = "GHSA-3v7f-55p6-f55p"
-ignoreUntil = 2027-05-31
-reason = "Current package-lock includes vulnerable picomatch versions via development tooling only; not part of the distributed runtime artifact."
-
-[[IgnoredVulns]]
-id = "GHSA-c2c7-rcm5-vvqj"
-ignoreUntil = 2027-05-31
-reason = "Current package-lock includes vulnerable picomatch versions via development tooling only; not part of the distributed runtime artifact."
-
-[[IgnoredVulns]]
-id = "GHSA-c2qf-rxjj-qqgw"
-ignoreUntil = 2027-05-31
-reason = "Current package-lock includes semver 7.5.0 via development tooling only; not part of the distributed runtime artifact."
-
-[[IgnoredVulns]]
-id = "GHSA-jxxr-4gwj-5jf2"
-reason = "brace-expansion DoS via large numeric ranges; low relevance unless user-controlled brace patterns are expanded. Prefer upgrading to brace-expansion 5.0.6."
-ignoreUntil = 2027-05-31
-
-[[IgnoredVulns]]
-id = "GHSA-7mvr-c777-76hp"
-ignoreUntil = 2027-05-31
-reason = "Dev-only legacy-browser harness, not in the published package. The vulnerable curl -k scripts are the chrome/msedge channel reinstall helpers, never hit by the chromium/firefox/webkit install path; npm ci runs --ignore-scripts; CI is Linux while the scripts are *_mac.sh."
+#
+# 2026-06: all prior IgnoredVulns dropped after the dev-tooling upgrades.
+#   - braces / micromatch / picomatch / semver: the xo 0.54 bundled set,
+#     cleared by upgrading xo to 0.60 (now 3.0.3 / 4.0.8 / 2.3.2+4.0.4 / >=7.5.2).
+#   - GHSA-f886-m6hf-6m8v, GHSA-jxxr-4gwj-5jf2 (brace-expansion): tree resolves
+#     to 1.1.15 / 2.1.1 / 5.0.6, all outside the vulnerable ranges.
+#   - GHSA-7mvr-c777-76hp (Playwright): fixed in 1.55.1; root tree is on 1.61.0.
+#     The legacy-browser harness pins 1.30-1.50.1 on purpose and keeps its own
+#     suppression at test/legacy-playwright/osv-scanner.toml.
