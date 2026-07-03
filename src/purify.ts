@@ -1631,10 +1631,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
-    /* Remove risky CSS construction leading to mXSS */
+    /* Remove risky CSS construction leading to mXSS. A <style> element only
+       ever holds CSS text, so an element child is always a parser-mutation
+       signal. Not gated on HTML_NAMESPACE: declarative partial updates can
+       teleport a <style> into an <svg>/<math> foreign-content marker
+       (WICG/declarative-partial-updates), where the surviving element would
+       otherwise be SVG/MathML-namespaced and slip past an HTML-only check. */
     if (
       SAFE_FOR_XML &&
-      currentNode.namespaceURI === HTML_NAMESPACE &&
       tagName === 'style' &&
       _isNode(currentNode.firstElementChild)
     ) {
@@ -1843,6 +1847,25 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   ): boolean {
     /* FORBID_ATTR must always win, even if ADD_ATTR predicate would allow it */
     if (FORBID_ATTR[lcName]) {
+      return false;
+    }
+
+    /* Reject declarative-partial-updates patch-linkage attributes
+       (https://github.com/WICG/declarative-partial-updates). These turn a
+       surviving element into an out-of-band DOM-mutation primitive that a
+       parse-time sanitizer cannot model: the patch is applied on connection/
+       stream, after sanitization has already run over a detached fragment.
+       `for` is legitimate only on <label>/<output>; anywhere else (notably
+       <template for>) it links the element to a patch target and teleports or
+       removes an arbitrary DOM range by id/marker name. `patchsrc` fetches
+       remote markup and is treated as a script-loading mechanism (CSP). Neither
+       has a safe non-patch use, so drop them regardless of ADD_ATTR. Processing
+       instructions used as range markers are already removed by _isUnsafeNode. */
+    if (lcName === 'patchsrc') {
+      return false;
+    }
+
+    if (lcName === 'for' && lcTag !== 'label' && lcTag !== 'output') {
       return false;
     }
 
