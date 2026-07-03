@@ -1468,13 +1468,8 @@ function createDOMPurify() {
     if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.innerHTML)) {
       return true;
     }
-    /* Remove risky CSS construction leading to mXSS. A <style> element only
-       ever holds CSS text, so an element child is always a parser-mutation
-       signal. Not gated on HTML_NAMESPACE: declarative partial updates can
-       teleport a <style> into an <svg>/<math> foreign-content marker
-       (WICG/declarative-partial-updates), where the surviving element would
-       otherwise be SVG/MathML-namespaced and slip past an HTML-only check. */
-    if (SAFE_FOR_XML && tagName === 'style' && _isNode(currentNode.firstElementChild)) {
+    /* Remove risky CSS construction leading to mXSS */
+    if (SAFE_FOR_XML && currentNode.namespaceURI === HTML_NAMESPACE && tagName === 'style' && _isNode(currentNode.firstElementChild)) {
       return true;
     }
     /* Remove any occurrence of processing instructions */
@@ -1635,13 +1630,14 @@ function createDOMPurify() {
        `for` is legitimate only on <label>/<output>; anywhere else (notably
        <template for>) it links the element to a patch target and teleports or
        removes an arbitrary DOM range by id/marker name. `patchsrc` fetches
-       remote markup and is treated as a script-loading mechanism (CSP). Neither
-       has a safe non-patch use, so drop them regardless of ADD_ATTR. Processing
-       instructions used as range markers are already removed by _isUnsafeNode. */
-    if (lcName === 'patchsrc') {
+       remote markup and is treated as a script-loading mechanism (CSP). Gated
+       on SAFE_FOR_XML so the removal groups with the other structural-threat
+       checks and stays overridable, consistent with the rest of the codebase.
+       PI range markers are already removed by _isUnsafeNode. */
+    if (SAFE_FOR_XML && lcName === 'patchsrc') {
       return false;
     }
-    if (lcName === 'for' && lcTag !== 'label' && lcTag !== 'output') {
+    if (SAFE_FOR_XML && lcName === 'for' && lcTag !== 'label' && lcTag !== 'output') {
       return false;
     }
     /* Make sure attribute cannot clobber */

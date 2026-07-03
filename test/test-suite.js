@@ -259,13 +259,14 @@
     // Declarative Partial Updates — patch-directive attributes
     // https://github.com/WICG/declarative-partial-updates/blob/main/patching-explainer.md
     //
-    // The proposal lets a `<template for="...">` teleport / range-replace
-    // content into a pre-existing element (by id or marker name) and lets
-    // `patchsrc` fetch remote markup (script-loading equivalent for CSP).
-    // The patch is applied on connection/stream — AFTER a parse-time
-    // sanitizer has run over a detached fragment — so these attributes must
-    // never survive sanitization. Processing-instruction range markers are
-    // already dropped by _isUnsafeNode; these tests also lock that in.
+    // <template for="..."> teleports / range-replaces content into a
+    // pre-existing element (by id or marker name); patchsrc fetches remote
+    // markup (script-loading equivalent for CSP). Patches apply on
+    // connection/stream — AFTER a parse-time sanitizer has run over a detached
+    // fragment — so these must never survive sanitization. PI range markers are
+    // already dropped by _isUnsafeNode; removal is gated on SAFE_FOR_XML. Each
+    // test uses a fresh instance so a persistent setConfig left by an earlier
+    // test cannot suppress _parseConfig and swallow the per-call config.
     // =======================================================================
 
     QUnit.module('Declarative partial updates');
@@ -273,24 +274,26 @@
     QUnit.test(
       'for teleport directive is stripped on non-label/output',
       (assert) => {
+        const purify = DOMPurify(window);
         assert.equal(
-          DOMPurify.sanitize('<div for="account-panel">x</div>'),
+          purify.sanitize('<div for="account-panel">x</div>'),
           '<div>x</div>'
         );
         assert.equal(
-          DOMPurify.sanitize('<section for="cart#total">$0.00</section>'),
+          purify.sanitize('<section for="cart#total">$0.00</section>'),
           '<section>$0.00</section>'
         );
       }
     );
 
     QUnit.test('for is preserved on label and output', (assert) => {
+      const purify = DOMPurify(window);
       assert.equal(
-        DOMPurify.sanitize('<label for="email">Email</label>'),
+        purify.sanitize('<label for="email">Email</label>'),
         '<label for="email">Email</label>'
       );
       assert.equal(
-        DOMPurify.sanitize('<output for="a b">42</output>', {
+        purify.sanitize('<output for="a b">42</output>', {
           ADD_TAGS: ['output'],
         }),
         '<output for="a b">42</output>'
@@ -300,13 +303,11 @@
     QUnit.test(
       'template[for] loses its patch directive when template is allowed',
       (assert) => {
+        const purify = DOMPurify(window);
         assert.contains(
-          DOMPurify.sanitize(
-            '<template for="account-panel"><b>x</b></template>',
-            {
-              ADD_TAGS: ['template'],
-            }
-          ),
+          purify.sanitize('<template for="account-panel"><b>x</b></template>', {
+            ADD_TAGS: ['template'],
+          }),
           ['<template><b>x</b></template>', '<template></template>', ''],
           'template survives but the `for` patch directive does not'
         );
@@ -314,8 +315,9 @@
     );
 
     QUnit.test('patchsrc is stripped even when explicitly added', (assert) => {
+      const purify = DOMPurify(window);
       assert.equal(
-        DOMPurify.sanitize('<div patchsrc="//evil.example/p">x</div>', {
+        purify.sanitize('<div patchsrc="//evil.example/p">x</div>', {
           ADD_ATTR: ['patchsrc'],
         }),
         '<div>x</div>'
@@ -323,15 +325,34 @@
     });
 
     QUnit.test('processing-instruction range markers are removed', (assert) => {
+      const purify = DOMPurify(window);
       assert.equal(
-        DOMPurify.sanitize('<section><?start name="g">hi<?end></section>'),
+        purify.sanitize('<section><?start name="g">hi<?end></section>'),
         '<section>hi</section>'
       );
       assert.equal(
-        DOMPurify.sanitize('<ul><li>a</li><?marker name="m"><li>b</li></ul>'),
+        purify.sanitize('<ul><li>a</li><?marker name="m"><li>b</li></ul>'),
         '<ul><li>a</li><li>b</li></ul>'
       );
     });
+
+    QUnit.test(
+      'SAFE_FOR_XML=false is the escape hatch for patch attributes',
+      (assert) => {
+        const purify = DOMPurify(window);
+        assert.equal(
+          purify.sanitize('<div for="target">x</div>', { SAFE_FOR_XML: false }),
+          '<div for="target">x</div>'
+        );
+        assert.equal(
+          purify.sanitize('<div patchsrc="//e">x</div>', {
+            ADD_ATTR: ['patchsrc'],
+            SAFE_FOR_XML: false,
+          }),
+          '<div patchsrc="//e">x</div>'
+        );
+      }
+    );
 
     // =======================================================================
     // Config: ALLOW_DATA_ATTR
