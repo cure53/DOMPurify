@@ -1626,6 +1626,24 @@
       if (FORBID_ATTR[lcName]) {
         return false;
       }
+      /* Reject declarative-partial-updates patch-linkage attributes
+         (https://github.com/WICG/declarative-partial-updates). These turn a
+         surviving element into an out-of-band DOM-mutation primitive that a
+         parse-time sanitizer cannot model: the patch is applied on connection/
+         stream, after sanitization has already run over a detached fragment.
+         `for` is legitimate only on <label>/<output>; anywhere else (notably
+         <template for>) it links the element to a patch target and teleports or
+         removes an arbitrary DOM range by id/marker name. `patchsrc` fetches
+         remote markup and is treated as a script-loading mechanism (CSP). Gated
+         on SAFE_FOR_XML so the removal groups with the other structural-threat
+         checks and stays overridable, consistent with the rest of the codebase.
+         PI range markers are already removed by _isUnsafeNode. */
+      if (SAFE_FOR_XML && lcName === 'patchsrc') {
+        return false;
+      }
+      if (SAFE_FOR_XML && lcName === 'for' && lcTag !== 'label' && lcTag !== 'output') {
+        return false;
+      }
       /* Make sure attribute cannot clobber */
       if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
         return false;
