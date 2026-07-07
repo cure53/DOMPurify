@@ -1553,9 +1553,15 @@ function createDOMPurify() {
    * @param currentNode to check for permission to exist
    * @return true if node was killed, false if left alive
    */
-  const _sanitizeElements = function _sanitizeElements(currentNode) {
+  // eslint-disable-next-line complexity
+  const _sanitizeElements = function _sanitizeElements(currentNode, root) {
     /* Execute a hook if present */
     _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
+    /* A hook may have detached the node — treat it as removed (see the
+       detached-node comment after the uponSanitizeElement hook below). */
+    if (currentNode !== root && getParentNode(currentNode) === null) {
+      return true;
+    }
     /* Check if element is clobbered or can clobber */
     if (_isClobbered(currentNode)) {
       _forceRemove(currentNode);
@@ -1568,6 +1574,24 @@ function createDOMPurify() {
       tagName,
       allowedTags: ALLOWED_TAGS
     });
+    /* A hook may have detached the node from the tree — a long-standing
+       user pattern (issue #469; draw.io-style foreignObject filtering).
+       Per the cached, unclobberable parentNode getter the node is
+       genuinely out of the tree, so it can reach neither the serialized
+       output nor an IN_PLACE live tree; treat it as removed and stop
+       processing it. Without this guard, the unsafe-node / namespace
+       checks below would call _forceRemove on a parentless node and hit
+       the REPORT-3 fail-closed throw — which exists for nodes DOMPurify
+       wants gone but *cannot* detach (clobbered / parentless roots), the
+       opposite of a node that is already safely gone. The walk root is
+       exempt: a detached IN_PLACE root is legitimate input and must still
+       be fully sanitized, and a kill-decision on it must keep hitting the
+       REPORT-3 throw. Nodes detached by hooks are the hook's
+       responsibility: they are not recorded in DOMPurify.removed and are
+       not neutralized by the post-walk IN_PLACE pass. */
+    if (currentNode !== root && getParentNode(currentNode) === null) {
+      return true;
+    }
     /* Remove mXSS vectors, processing instructions and risky comments */
     if (_isUnsafeNode(currentNode, tagName)) {
       _forceRemove(currentNode);
@@ -1849,7 +1873,7 @@ function createDOMPurify() {
       /* Execute a hook if present */
       _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
       /* Sanitize tags and elements */
-      _sanitizeElements(shadowNode);
+      _sanitizeElements(shadowNode, fragment);
       /* Check attributes next */
       _sanitizeAttributes(shadowNode);
       /* Deep shadow DOM detected.
@@ -2115,7 +2139,8 @@ function createDOMPurify() {
       _forceRemove(body.firstChild);
     }
     /* Get node iterator */
-    const nodeIterator = _createNodeIterator(inPlace ? dirty : body);
+    const walkRoot = inPlace ? dirty : body;
+    const nodeIterator = _createNodeIterator(walkRoot);
     /* Now start iterating over the created document.
        The walk runs inside an exception barrier (campaign-3 F2): a re-entrant
        engine/custom-element mutation can detach a node mid-walk so
@@ -2128,7 +2153,7 @@ function createDOMPurify() {
     try {
       while (currentNode = nodeIterator.nextNode()) {
         /* Sanitize tags and elements */
-        _sanitizeElements(currentNode);
+        _sanitizeElements(currentNode, walkRoot);
         /* Check attributes next */
         _sanitizeAttributes(currentNode);
         /* Shadow DOM detected, sanitize it.

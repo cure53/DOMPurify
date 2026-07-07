@@ -3255,6 +3255,53 @@
     QUnit.module('Hooks — addHook / removeHook');
 
     QUnit.test(
+      'uponSanitizeElement hook may detach the current node; it is treated as removed (issue #469 pattern, foreignObject filtering)',
+      (assert) => {
+        // A hook that removes the current node via parentNode.removeChild()
+        // must not trip the REPORT-3 parentless-node throw in _forceRemove:
+        // the throw exists for nodes DOMPurify wants gone but cannot detach,
+        // not for nodes a hook has already safely detached.
+        DOMPurify.addHook('uponSanitizeElement', (node) => {
+          if (node.nodeName === 'foreignObject' && node.parentNode) {
+            node.parentNode.removeChild(node);
+          }
+        });
+        const clean = DOMPurify.sanitize(
+          '<svg><switch><foreignObject><div>content</div></foreignObject></switch></svg>',
+          {
+            ADD_TAGS: ['foreignObject'],
+            USE_PROFILES: { svg: true, html: true },
+          }
+        );
+        assert.equal(clean, '<svg><switch></switch></svg>');
+        assert.notOk(
+          DOMPurify.removed.some(
+            (entry) =>
+              entry.element && entry.element.nodeName === 'foreignObject'
+          ),
+          'hook-detached nodes are not claimed in DOMPurify.removed'
+        );
+        DOMPurify.removeHooks('uponSanitizeElement');
+      }
+    );
+
+    QUnit.test(
+      'beforeSanitizeElements hook may detach the current node; it is treated as removed',
+      (assert) => {
+        DOMPurify.addHook('beforeSanitizeElements', (node) => {
+          if (node.nodeName === 'ARTICLE' && node.parentNode) {
+            node.parentNode.removeChild(node);
+          }
+        });
+        assert.equal(
+          DOMPurify.sanitize('<div><article><b>x</b></article><i>y</i></div>'),
+          '<div><i>y</i></div>'
+        );
+        DOMPurify.removeHooks('beforeSanitizeElements');
+      }
+    );
+
+    QUnit.test(
       'hook can add allowed tags / attributes on the fly',
       (assert) => {
         DOMPurify.addHook('uponSanitizeElement', (node, data) => {
