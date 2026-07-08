@@ -1573,6 +1573,155 @@
       }
     });
 
+    // =====================================================================
+    // Fail-closed teardown must de-arm removed nodes on EVERY exit path,
+    // not just a clean return. The success-path DOMPurify.removed loop
+    // strips on* handlers off detached subtrees so a queued resource event
+    // (e.g. an already-loading <img onerror>) cannot fire in page scope
+    // after sanitize hands control back. A throw mid-teardown must uphold
+    // the same invariant: a detached-but-armed original that outlives the
+    // throw fires its handler after the caller's catch yields.
+    //
+    // We assert the *attribute* is gone, not that an event fires: the strip
+    // is what neutralises the queued event, it is deterministic, and it is
+    // observable in engines that never load resources (jsdom/happy-dom).
+    // The <img> carries no `src` for the same reason the tests above avoid
+    // it — a real load would fire onerror and pollute window.xssed.
+    // =====================================================================
+
+    QUnit.test(
+      'mid-walk abort de-arms the detached tail (custom-element reaction)',
+      (assert) => {
+        // A page-registered custom element mutates the live tree during its
+        // disconnectedCallback while DOMPurify is removing nodes, so
+        // _forceRemove hits a parentless node and throws mid-walk. The tail
+        // <img> is not reached before the abort; the catch-path teardown
+        // must still strip its handler before rethrowing.
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+        if (!window.customElements.get('inplace-abort-surgeon')) {
+          window.customElements.define(
+            'inplace-abort-surgeon',
+            class extends window.HTMLElement {
+              disconnectedCallback() {
+                const w = document.querySelector('inplace-abort-wrapper');
+                if (w) {
+                  w.remove();
+                }
+              }
+            }
+          );
+        }
+
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<inplace-abort-wrapper><inplace-abort-surgeon>' +
+          '</inplace-abort-surgeon></inplace-abort-wrapper>' +
+          '<img id="tail" onerror="alert(1)">';
+        // Must be connected: disconnectedCallback only fires on a node that
+        // was actually in a document.
+        document.body.appendChild(root);
+        const tail = root.querySelector('#tail');
+
+        let threw = false;
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+        } catch (_) {
+          threw = true;
+        }
+
+        // Whether or not the reaction managed to abort the walk in this
+        // engine, the tail must never survive with a live handler.
+        assert.strictEqual(
+          tail.getAttribute('onerror'),
+          null,
+          threw
+            ? 'onerror stripped from detached tail after mid-walk throw'
+            : 'onerror stripped from tail (walk completed cleanly here)'
+        );
+
+        root.remove();
+        window.xssed = false;
+      }
+    );
+
+    QUnit.test(
+      'forbidden-root preflight throw de-arms live descendants',
+      (assert) => {
+        // The early IN_PLACE preflight rejects a forbidden root before the
+        // main walk runs. On a live root that throw must not hand the caller
+        // back an un-neutralised armed descendant. No clobbering needed, so
+        // this reproduces the preflight-throw gap deterministically in every
+        // engine.
+        const root = document.createElement('div');
+        root.innerHTML = '<img id="tail" onerror="alert(1)">';
+        document.body.appendChild(root);
+        const tail = root.querySelector('#tail');
+
+        assert.throws(
+          () =>
+            DOMPurify.sanitize(root, {
+              IN_PLACE: true,
+              FORBID_TAGS: ['div'],
+            }),
+          /forbidden/i,
+          'forbidden IN_PLACE root throws at preflight'
+        );
+        assert.strictEqual(
+          tail.getAttribute('onerror'),
+          null,
+          'onerror stripped from descendant before preflight throw'
+        );
+
+        root.remove();
+        window.xssed = false;
+      }
+    );
+
+    QUnit.test(
+      'clobbered-form preflight throw de-arms live descendants',
+      (assert) => {
+        // The reported Path 2. A clobbered <form> root is rejected at
+        // preflight; in clobbering-capable engines that throw must first
+        // neutralise the form's non-clobbered descendants (the armed <img>).
+        // In engines without form named-property clobbering (jsdom) the root
+        // is not flagged, sanitizes normally, and must still drop handlers.
+        const root = document.createElement('form');
+        root.innerHTML =
+          '<input name="nodeName"><input name="childNodes">' +
+          '<img id="tail" onerror="alert(1)">' +
+          '<a id="lnk" href="javascript:alert(2)">x</a>';
+        document.body.appendChild(root);
+        const tail = root.querySelector('#tail');
+
+        const clobbers = typeof root.nodeName !== 'string';
+        if (clobbers) {
+          assert.throws(
+            () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+            /clobbered|forbidden/i,
+            'clobbered IN_PLACE root throws at preflight'
+          );
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'onerror stripped from descendant before clobber throw'
+          );
+        } else {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'onerror stripped on the non-clobbering success path'
+          );
+        }
+
+        root.remove();
+        window.xssed = false;
+      }
+    );
+
     QUnit.test(
       'setConfig({IN_PLACE}) is not disabled by an intervening string call (REPORT-2)',
       (assert) => {
