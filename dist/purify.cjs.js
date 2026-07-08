@@ -1108,6 +1108,13 @@ function createDOMPurify() {
    * @param root the in-place root to empty
    */
   const _neutralizeRoot = function _neutralizeRoot(root) {
+    /* Strip every disallowed attribute (on* handlers included) off the whole
+       subtree BEFORE detaching anything. Detaching first would hand back
+       handler-bearing originals (e.g. an already-loading `<img onerror>`)
+       whose queued resource event still fires in page scope after we throw.
+       Clobber-safe reads; a doomed clobbered node's own attributes are
+       irrelevant while its non-clobbered descendants are reached and scrubbed. */
+    _neutralizeSubtree(root);
     const childNodes = getChildNodes(root);
     if (childNodes) {
       const snapshot = [];
@@ -2073,6 +2080,9 @@ function createDOMPurify() {
       if (typeof nn === 'string') {
         const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+          /* Fail closed on a live root: neutralize handlers/children before
+             throwing, exactly as the mid-walk abort path does. */
+          _neutralizeRoot(dirty);
           throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
         }
       }
@@ -2087,6 +2097,10 @@ function createDOMPurify() {
          the application unsanitized. Refuse to sanitize such a root
          the same way we refuse a forbidden tag. GHSA-r47g-fvhr-h676. */
       if (_isClobbered(dirty)) {
+        /* Fail closed on a live clobbered root before throwing.
+           _neutralizeRoot's reads are clobber-safe (cached getters); the
+           form's non-clobbered descendants, e.g. an armed <img>, are scrubbed. */
+        _neutralizeRoot(dirty);
         throw typeErrorCreate('root node is clobbered and cannot be sanitized in-place');
       }
       /* Sanitize attached shadow roots before the main iterator runs.
@@ -2167,6 +2181,14 @@ function createDOMPurify() {
     } catch (error) {
       if (inPlace) {
         _neutralizeRoot(dirty);
+        /* Nodes _forceRemove'd earlier in the aborted walk are already
+           detached from the root, so _neutralizeRoot's subtree pass does not
+           reach them. Defuse them too, mirroring the success-path loop below. */
+        arrayForEach(DOMPurify.removed, entry => {
+          if (entry.element) {
+            _neutralizeSubtree(entry.element);
+          }
+        });
       }
       throw error;
     }
