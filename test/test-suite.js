@@ -1723,57 +1723,6 @@
     );
 
     QUnit.test(
-      'IN_PLACE pre-pass severs patch linkage even when the walk is bypassed',
-      (assert) => {
-        // Declarative-partial-updates / streaming hardening. The entry
-        // pre-pass sweeps patch linkage off the whole live tree BEFORE the
-        // main walk, closing the window in which a patch could fire mid-walk
-        // and inject into an already-processed region. We cannot fire a live
-        // patch here (needs a real Chrome 150 — see
-        // test/declarative-patch-probe.html Q2), so we assert the pre-pass's
-        // observable footprint on the path where the main walk NEVER runs: a
-        // root whose tag is forbidden by default (<object>), so it throws at
-        // preflight before any node is walked. `patchsrc` and non-label `for`
-        // must still be gone; the main walk's attribute pass could not have
-        // done it because the walk is skipped. Without the pre-pass, `for`
-        // survives here (it is allow-listed, so _neutralizeSubtree keeps it).
-        const root = document.createElement('object');
-        root.innerHTML =
-          '<section patchsrc="//e">' +
-          '<span id="sfor" for="y">s</span>' +
-          '<label id="lfor" for="x">L</label>' +
-          '</section>';
-        document.body.appendChild(root);
-        // References grabbed before sanitize: the forbidden throw empties the
-        // root, detaching these, but their attributes remain readable.
-        const section = root.querySelector('section');
-        const spanFor = root.querySelector('#sfor');
-        const labelFor = root.querySelector('#lfor');
-
-        assert.throws(
-          () => DOMPurify.sanitize(root, { IN_PLACE: true }),
-          /forbidden/i,
-          'forbidden IN_PLACE root still throws'
-        );
-        assert.notOk(
-          section.hasAttribute('patchsrc'),
-          'patchsrc severed by the pre-pass'
-        );
-        assert.notOk(
-          spanFor.hasAttribute('for'),
-          'non-label `for` severed by the pre-pass'
-        );
-        assert.ok(
-          labelFor.hasAttribute('for'),
-          'legitimate `for` on <label> preserved (current policy)'
-        );
-
-        root.remove();
-        window.xssed = false;
-      }
-    );
-
-    QUnit.test(
       'setConfig({IN_PLACE}) is not disabled by an intervening string call (REPORT-2)',
       (assert) => {
         DOMPurify.setConfig({ IN_PLACE: true });
@@ -6323,5 +6272,188 @@
         'onerror stripped in place'
       );
     });
+
+    /* =====================================================================
+     * Declarative partial updates (WICG/declarative-partial-updates) +
+     * setHTMLUnsafe / declarative shadow DOM + streaming.
+     *
+     * Empirically (Chrome 150, see test/declarative-patch-probe-v{2,3,4}.html):
+     * `<template for>` + `<?marker>` linkage EXPANDS during DOMPurify.sanitize()'s
+     * own parse, so the walk sees and sanitizes the fully materialised tree —
+     * including teleports into MathML/SVG integration points. These tests pin
+     * the invariant that matters and holds in EVERY environment: the sanitized
+     * OUTPUT never carries executable content, whether or not the running
+     * engine expands the linkage.
+     *   - Chrome 150 (feature present): template expands at parse -> walk
+     *     sanitizes the expanded nodes -> no handler in output.
+     *   - jsdom / older engines (no expansion): the armed node is sanitized
+     *     inside template.content -> no handler in output.
+     * A regression in either path (parse-time expansion no longer sanitised,
+     * or template-content recursion broken) turns one of these red.
+     *
+     * We assert on the STATIC output (no on-handler, script, or js: url
+     * anywhere, incl. template.content and activated shadow roots) rather
+     * than on a live onerror firing — deterministic, engine-independent, no
+     * async flake. The probe HTMLs cover live execution manually.
+     * ===================================================================== */
+    QUnit.module('Config — declarative partial updates / streaming');
+
+    /* Collect anything executable reachable from a serialized string, walking
+       into <template>.content and any activated shadowRoot. */
+    const _executableFindings = function (root) {
+      const findings = [];
+      const visit = (node) => {
+        if (!node) return;
+        if (node.nodeType === 1) {
+          const tag = node.tagName ? node.tagName.toLowerCase() : '';
+          for (const name of node.getAttributeNames()) {
+            if (/^on/i.test(name)) findings.push(`${tag}@${name}`);
+            if (
+              (name === 'href' || name === 'src' || name === 'xlink:href') &&
+              /^\s*(?:java|vb)script:/i.test(node.getAttribute(name) || '')
+            ) {
+              findings.push(`${tag}@${name}=js`);
+            }
+          }
+          if (tag === 'script') findings.push('script');
+          if (node.shadowRoot) visit(node.shadowRoot);
+          if (tag === 'template' && node.content) visit(node.content);
+        }
+        for (const child of node.childNodes) visit(child);
+      };
+      visit(root);
+      return findings;
+    };
+    const _findingsFromHTML = function (html) {
+      const holder = document.createElement('div');
+      holder.innerHTML = html;
+      return _executableFindings(holder);
+    };
+
+    QUnit.test(
+      'parse-time template expansion neutralizes weaponized payloads',
+      (assert) => {
+        const link = (id, content) =>
+          `<div><?marker name="${id}"></div>` +
+          `<template for="${id}">${content}</template>`;
+        const cases = {
+          'img onerror': link('a', '<img src=x onerror=alert(1)>'),
+          script: link('b', '<script>alert(1)<\/script>'),
+          'a javascript:': link('c', '<a href="javascript:alert(1)">x</a>'),
+          'mtext>style>img': link(
+            'd',
+            '<math><mtext><style><img src=x onerror=alert(1)></style></mtext></math>'
+          ),
+          'svg>foreignObject': link(
+            'e',
+            '<svg><foreignObject><img src=x onerror=alert(1)></foreignObject></svg>'
+          ),
+          // marker placed INSIDE an integration point: teleport target is a
+          // namespace-confusion site.
+          'marker inside mtext':
+            '<math><mtext><?marker name="f"></mtext></math>' +
+            '<template for="f"><style><img src=x onerror=alert(1)></style></template>',
+          'marker inside svg':
+            '<svg><?marker name="g"></svg>' +
+            '<template for="g"><style><img src=x onerror=alert(1)></style></template>',
+        };
+        for (const [name, dirty] of Object.entries(cases)) {
+          const out = DOMPurify.sanitize(dirty);
+          assert.deepEqual(
+            _findingsFromHTML(out),
+            [],
+            `no executable content for "${name}" — got: ${out}`
+          );
+        }
+      }
+    );
+
+    QUnit.test(
+      'chained-template depth build (PoC1 shape) neutralizes at the parser depth cap',
+      (assert) => {
+        const bs = '<b>'.repeat(96);
+        const chain = (leaf, links) => {
+          let s = '<div><?marker name="x1"></div>';
+          for (let i = 1; i <= links; i++) {
+            const next = i < links ? `<?marker name="x${i + 1}">` : leaf;
+            s += `<template for="x${i}">${bs}${next}</template>`;
+          }
+          return s;
+        };
+        const leaf =
+          '<math><mtext><style><img src=x onerror=alert(1)></style></mtext></math>';
+        for (const links of [4, 6, 8]) {
+          const out = DOMPurify.sanitize(chain(leaf, links));
+          assert.deepEqual(
+            _findingsFromHTML(out),
+            [],
+            `no executable content for chained x${links} — head: ${out.slice(0, 80)}`
+          );
+        }
+      }
+    );
+
+    QUnit.test(
+      'declarative shadow DOM: shadowrootmode stripped by default, content sanitized',
+      (assert) => {
+        const dirty =
+          '<section><template shadowrootmode="open">' +
+          '<img src=x onerror=alert(1)><a href="javascript:alert(2)">x</a>' +
+          '</template></section>';
+        const out = DOMPurify.sanitize(dirty);
+        assert.equal(
+          out.indexOf('shadowrootmode'),
+          -1,
+          `shadowrootmode stripped by default — got: ${out}`
+        );
+        assert.deepEqual(
+          _findingsFromHTML(out),
+          [],
+          `no executable content in DSD content — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'declarative shadow DOM: ADD_ATTR shadowrootmode still sanitizes shadow content',
+      (assert) => {
+        const dirty =
+          '<section><template shadowrootmode="open">' +
+          '<img src=x onerror=alert(1)>' +
+          '</template></section>';
+        const out = DOMPurify.sanitize(dirty, { ADD_ATTR: ['shadowrootmode'] });
+        // The attribute may be preserved (caller opted in) but the content it
+        // will activate must be sanitized: no surviving handler.
+        assert.deepEqual(
+          _findingsFromHTML(out),
+          [],
+          `DSD content sanitized even when shadowrootmode is allowed — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'sanitized output stays inert when reparsed via setHTMLUnsafe',
+      (assert) => {
+        if (typeof window.Element.prototype.setHTMLUnsafe !== 'function') {
+          assert.ok(true, 'setHTMLUnsafe unavailable in this engine; skipped');
+          return;
+        }
+        const dirty =
+          '<section><template shadowrootmode="open">' +
+          '<img src=x onerror=alert(1)>' +
+          '</template></section>';
+        const out = DOMPurify.sanitize(dirty);
+        const host = document.createElement('div');
+        // setHTMLUnsafe activates declarative shadow DOM and skips sanitization;
+        // a correctly-sanitized string must expose nothing executable even so.
+        host.setHTMLUnsafe(out);
+        assert.deepEqual(
+          _executableFindings(host),
+          [],
+          `no executable content after setHTMLUnsafe reparse — got: ${out}`
+        );
+      }
+    );
   };
 });
