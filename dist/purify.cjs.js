@@ -1243,6 +1243,82 @@ function createDOMPurify() {
     }
   };
   /**
+   * _neutralizePatchLinkage
+   *
+   * IN_PLACE entry pre-pass (declarative-partial-updates / streaming
+   * hardening, https://github.com/WICG/declarative-partial-updates).
+   *
+   * The main walk strips patch linkage (`for`/`patchsrc`) and removes range
+   * markers (PIs / markup comments) node-by-node, in document order, AS it
+   * reaches each node. On a live in-place root that leaves a window: from the
+   * moment the root is connected until the walk arrives at a given node, that
+   * node's linkage is live. A patch applied on connection/stream can fire as
+   * a microtask during the walk and inject or teleport an unsanitized DOM
+   * range into a region the iterator has already passed and will not revisit,
+   * so the post-return "tree is sanitized" contract is violated. Sweep the
+   * whole tree once up front and sever every linkage before the walk begins,
+   * closing that window.
+   *
+   * This CANNOT undo a patch that already fired before sanitize ran — that is
+   * the irreducible "do not IN_PLACE a live-connected attacker tree" caveat —
+   * but it closes everything from sanitize-start onward. Gated on SAFE_FOR_XML
+   * to group with the rest of the declarative-partial-updates handling and
+   * stay overridable, consistent with the codebase.
+   *
+   * Clobber-safe traversal (cached childNodes getter); per-node try/catch so a
+   * clobbered root cannot defeat the sweep of its non-clobbered descendants.
+   *
+   * NOTE (pending real-Chrome confirmation, see test/declarative-patch-probe
+   * .html Q1): this mirrors the existing policy of keeping `for` on
+   * <label>/<output>. If the shipping feature can drive a patch through a
+   * surviving `for`-on-label/output + `id` pair, this pre-pass and the
+   * attribute check at _isBasicCustomElement's caller must additionally drop
+   * that pair on the IN_PLACE path. Left as-is until the taxonomy is verified.
+   *
+   * @param root the in-place root to sweep
+   */
+  const _neutralizePatchLinkage = function _neutralizePatchLinkage(root) {
+    if (!SAFE_FOR_XML) {
+      return;
+    }
+    const stack = [root];
+    while (stack.length > 0) {
+      const node = stack.pop();
+      const nodeType = getNodeType ? getNodeType(node) : node.nodeType;
+      /* Remove range markers (the target side of a patch linkage): every
+         processing instruction, and any markup-bearing comment. */
+      if (nodeType === NODE_TYPE.processingInstruction || nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, node.data)) {
+        try {
+          remove(node);
+        } catch (_) {
+          /* Best-effort */
+        }
+        continue;
+      }
+      /* Strip patch-source attributes (the source side) off elements. */
+      if (nodeType === NODE_TYPE.element) {
+        const element = node;
+        const lcTag = transformCaseFunc(getNodeName ? getNodeName(node) : node.nodeName);
+        try {
+          if (element.hasAttribute && element.hasAttribute('patchsrc')) {
+            element.removeAttribute('patchsrc');
+          }
+          if (element.hasAttribute && element.hasAttribute('for') && lcTag !== 'label' && lcTag !== 'output') {
+            element.removeAttribute('for');
+          }
+        } catch (_) {
+          /* Clobbered removeAttribute/hasAttribute on a doomed node — ignore */
+        }
+      }
+      const childNodes = getChildNodes(node);
+      if (childNodes) {
+        for (let i = childNodes.length - 1; i >= 0; --i) {
+          stack.push(childNodes[i]);
+        }
+      }
+    }
+  };
+  /**
    * _initDocument
    *
    * @param dirty - a string of dirty markup
@@ -1654,17 +1730,26 @@ function createDOMPurify() {
       return false;
     }
     /* Reject declarative-partial-updates patch-linkage attributes
-       (https://github.com/WICG/declarative-partial-updates). These turn a
-       surviving element into an out-of-band DOM-mutation primitive that a
-       parse-time sanitizer cannot model: the patch is applied on connection/
-       stream, after sanitization has already run over a detached fragment.
-       `for` is legitimate only on <label>/<output>; anywhere else (notably
-       <template for>) it links the element to a patch target and teleports or
-       removes an arbitrary DOM range by id/marker name. `patchsrc` fetches
-       remote markup and is treated as a script-loading mechanism (CSP). Gated
-       on SAFE_FOR_XML so the removal groups with the other structural-threat
-       checks and stays overridable, consistent with the rest of the codebase.
-       PI range markers are already removed by _isUnsafeNode. */
+       (https://github.com/WICG/declarative-partial-updates).
+            Empirical note (Chrome 150, verified — see
+       test/declarative-patch-probe-v3.html): expansion is NOT applied after
+       sanitization. For the string path it fires during sanitize()'s own
+       parse, so the walk sees and sanitizes the fully materialized expanded
+       tree — teleports into MathML/SVG integration points included; a
+       weaponized `<template for>`->`<img onerror>` comes back with the handler
+       stripped. For the IN_PLACE path it fires on connection, before the walk.
+       Either way DOMPurify is NOT blind to the patch.
+            This removal is therefore defense-in-depth rather than the sole barrier:
+       it prevents live linkage from surviving into the OUTPUT and re-expanding
+       in the caller's context, and keeps behaviour deterministic if a future
+       engine defers expansion. `for` is legitimate only on <label>/<output>;
+       anywhere else (notably <template for>) it links the element to a patch
+       target and teleports or removes an arbitrary DOM range by id/marker name.
+       `patchsrc` fetches remote markup and is treated as a script-loading
+       mechanism (CSP). Gated on SAFE_FOR_XML so the removal groups with the
+       other structural-threat checks and stays overridable, consistent with
+       the rest of the codebase. PI range markers are already removed by
+       _isUnsafeNode. */
     if (SAFE_FOR_XML && lcName === 'patchsrc') {
       return false;
     }
@@ -2071,6 +2156,11 @@ function createDOMPurify() {
        keep using and whose return value they ignore — unsanitized. REPORT-2. */
     const inPlace = IN_PLACE && typeof dirty !== 'string' && _isNode(dirty);
     if (inPlace) {
+      /* Declarative-partial-updates / streaming pre-pass: sever every patch
+         linkage across the live tree BEFORE the walk, so no patch can fire
+         mid-walk and inject into an already-processed region. Runs first, so
+         it also covers the forbidden/clobbered roots that throw below. */
+      _neutralizePatchLinkage(dirty);
       /* Do some early pre-sanitization to avoid unsafe root nodes.
          Read nodeName through the cached prototype getter — a clobbering
          child named "nodeName" on the form root would otherwise shadow

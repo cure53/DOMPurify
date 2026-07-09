@@ -1723,6 +1723,57 @@
     );
 
     QUnit.test(
+      'IN_PLACE pre-pass severs patch linkage even when the walk is bypassed',
+      (assert) => {
+        // Declarative-partial-updates / streaming hardening. The entry
+        // pre-pass sweeps patch linkage off the whole live tree BEFORE the
+        // main walk, closing the window in which a patch could fire mid-walk
+        // and inject into an already-processed region. We cannot fire a live
+        // patch here (needs a real Chrome 150 — see
+        // test/declarative-patch-probe.html Q2), so we assert the pre-pass's
+        // observable footprint on the path where the main walk NEVER runs: a
+        // root whose tag is forbidden by default (<object>), so it throws at
+        // preflight before any node is walked. `patchsrc` and non-label `for`
+        // must still be gone; the main walk's attribute pass could not have
+        // done it because the walk is skipped. Without the pre-pass, `for`
+        // survives here (it is allow-listed, so _neutralizeSubtree keeps it).
+        const root = document.createElement('object');
+        root.innerHTML =
+          '<section patchsrc="//e">' +
+          '<span id="sfor" for="y">s</span>' +
+          '<label id="lfor" for="x">L</label>' +
+          '</section>';
+        document.body.appendChild(root);
+        // References grabbed before sanitize: the forbidden throw empties the
+        // root, detaching these, but their attributes remain readable.
+        const section = root.querySelector('section');
+        const spanFor = root.querySelector('#sfor');
+        const labelFor = root.querySelector('#lfor');
+
+        assert.throws(
+          () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+          /forbidden/i,
+          'forbidden IN_PLACE root still throws'
+        );
+        assert.notOk(
+          section.hasAttribute('patchsrc'),
+          'patchsrc severed by the pre-pass'
+        );
+        assert.notOk(
+          spanFor.hasAttribute('for'),
+          'non-label `for` severed by the pre-pass'
+        );
+        assert.ok(
+          labelFor.hasAttribute('for'),
+          'legitimate `for` on <label> preserved (current policy)'
+        );
+
+        root.remove();
+        window.xssed = false;
+      }
+    );
+
+    QUnit.test(
       'setConfig({IN_PLACE}) is not disabled by an intervening string call (REPORT-2)',
       (assert) => {
         DOMPurify.setConfig({ IN_PLACE: true });
