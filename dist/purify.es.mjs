@@ -1566,9 +1566,15 @@ function createDOMPurify() {
   /**
    * Handle a node whose tag is forbidden or not allowlisted: keep
    * allowed custom elements (false return exits _sanitizeElements
-   * early - namespace/fallback checks and the afterSanitizeElements
-   * hook are intentionally skipped for kept custom elements), else
-   * hoist content per KEEP_CONTENT and remove.
+   * early - the namespace and fallback-tag removal checks are
+   * intentionally skipped for kept custom elements), else hoist
+   * content per KEEP_CONTENT and remove.
+   *
+   * A kept custom element is the ONLY case in which this function
+   * returns false, so the caller uses that return value to run the
+   * afterSanitizeElements hook on the kept element and keep the
+   * element-hook lifecycle consistent with normal allowlisted
+   * elements (GHSA-c2j3-45gr-mqc4).
    *
    * @param currentNode the disallowed node
    * @param tagName the node's transformCaseFunc'd tag name
@@ -1680,7 +1686,22 @@ function createDOMPurify() {
     }
     /* Remove element if anything forbids its presence */
     if (FORBID_TAGS[tagName] || !(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && !ALLOWED_TAGS[tagName]) {
-      return _sanitizeDisallowedNode(currentNode, tagName);
+      const removed = _sanitizeDisallowedNode(currentNode, tagName);
+      /* A false return means the node is a custom element kept via
+         CUSTOM_ELEMENT_HANDLING - the only keep path through
+         _sanitizeDisallowedNode. Run afterSanitizeElements on it so the
+         element-hook lifecycle matches normal allowlisted elements: a
+         security policy applied in this hook (e.g. stripping an attribute
+         from every surviving element) must not silently skip kept custom
+         elements (GHSA-c2j3-45gr-mqc4). This mirrors the normal-element
+         tail below - the hook runs, then the walker's subsequent
+         _sanitizeAttributes pass sanitizes the element's attributes. The
+         deliberately skipped namespace and fallback-tag removal checks stay
+         skipped; they are removal decisions, not the hook contract. */
+      if (removed === false) {
+        _executeHooks(hooks.afterSanitizeElements, currentNode, null);
+      }
+      return removed;
     }
     /* Check whether element has a valid namespace.
        Realm-safe check (GHSA-hpcv-96wg-7vj8): use the cached Node.prototype
