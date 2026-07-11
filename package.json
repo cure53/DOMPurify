@@ -154,7 +154,7 @@
   },
   "name": "dompurify",
   "description": "DOMPurify is a DOM-only, super-fast, uber-tolerant XSS sanitizer for HTML, MathML and SVG. It runs as JavaScript and works in all modern browsers, as well as in Node.js (via jsdom). DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not.",
-  "version": "3.4.11",
+  "version": "3.4.12",
   "directories": {
     "test": "test"
   },
