@@ -256,6 +256,105 @@
     });
 
     // =======================================================================
+    // Declarative Partial Updates — patch-directive attributes
+    // https://github.com/WICG/declarative-partial-updates/blob/main/patching-explainer.md
+    //
+    // <template for="..."> teleports / range-replaces content into a
+    // pre-existing element (by id or marker name); patchsrc fetches remote
+    // markup (script-loading equivalent for CSP). Patches apply on
+    // connection/stream — AFTER a parse-time sanitizer has run over a detached
+    // fragment — so these must never survive sanitization. PI range markers are
+    // already dropped by _isUnsafeNode; removal is gated on SAFE_FOR_XML. Each
+    // test uses a fresh instance so a persistent setConfig left by an earlier
+    // test cannot suppress _parseConfig and swallow the per-call config.
+    // =======================================================================
+
+    QUnit.module('Declarative partial updates');
+
+    QUnit.test(
+      'for teleport directive is stripped on non-label/output',
+      (assert) => {
+        const purify = DOMPurify(window);
+        assert.equal(
+          purify.sanitize('<div for="account-panel">x</div>'),
+          '<div>x</div>'
+        );
+        assert.equal(
+          purify.sanitize('<section for="cart#total">$0.00</section>'),
+          '<section>$0.00</section>'
+        );
+      }
+    );
+
+    QUnit.test('for is preserved on label and output', (assert) => {
+      const purify = DOMPurify(window);
+      assert.equal(
+        purify.sanitize('<label for="email">Email</label>'),
+        '<label for="email">Email</label>'
+      );
+      assert.equal(
+        purify.sanitize('<output for="a b">42</output>', {
+          ADD_TAGS: ['output'],
+        }),
+        '<output for="a b">42</output>'
+      );
+    });
+
+    QUnit.test(
+      'template[for] loses its patch directive when template is allowed',
+      (assert) => {
+        const purify = DOMPurify(window);
+        assert.contains(
+          purify.sanitize('<template for="account-panel"><b>x</b></template>', {
+            ADD_TAGS: ['template'],
+          }),
+          ['<template><b>x</b></template>', '<template></template>', ''],
+          'template survives but the `for` patch directive does not'
+        );
+      }
+    );
+
+    QUnit.test('patchsrc is stripped even when explicitly added', (assert) => {
+      const purify = DOMPurify(window);
+      assert.equal(
+        purify.sanitize('<div patchsrc="//evil.example/p">x</div>', {
+          ADD_ATTR: ['patchsrc'],
+        }),
+        '<div>x</div>'
+      );
+    });
+
+    QUnit.test('processing-instruction range markers are removed', (assert) => {
+      const purify = DOMPurify(window);
+      assert.equal(
+        purify.sanitize('<section><?start name="g">hi<?end></section>'),
+        '<section>hi</section>'
+      );
+      assert.equal(
+        purify.sanitize('<ul><li>a</li><?marker name="m"><li>b</li></ul>'),
+        '<ul><li>a</li><li>b</li></ul>'
+      );
+    });
+
+    QUnit.test(
+      'SAFE_FOR_XML=false is the escape hatch for patch attributes',
+      (assert) => {
+        const purify = DOMPurify(window);
+        assert.equal(
+          purify.sanitize('<div for="target">x</div>', { SAFE_FOR_XML: false }),
+          '<div for="target">x</div>'
+        );
+        assert.equal(
+          purify.sanitize('<div patchsrc="//e">x</div>', {
+            ADD_ATTR: ['patchsrc'],
+            SAFE_FOR_XML: false,
+          }),
+          '<div patchsrc="//e">x</div>'
+        );
+      }
+    );
+
+    // =======================================================================
     // Config: ALLOW_DATA_ATTR
     // =======================================================================
 
@@ -1474,6 +1573,155 @@
       }
     });
 
+    // =====================================================================
+    // Fail-closed teardown must de-arm removed nodes on EVERY exit path,
+    // not just a clean return. The success-path DOMPurify.removed loop
+    // strips on* handlers off detached subtrees so a queued resource event
+    // (e.g. an already-loading <img onerror>) cannot fire in page scope
+    // after sanitize hands control back. A throw mid-teardown must uphold
+    // the same invariant: a detached-but-armed original that outlives the
+    // throw fires its handler after the caller's catch yields.
+    //
+    // We assert the *attribute* is gone, not that an event fires: the strip
+    // is what neutralises the queued event, it is deterministic, and it is
+    // observable in engines that never load resources (jsdom/happy-dom).
+    // The <img> carries no `src` for the same reason the tests above avoid
+    // it — a real load would fire onerror and pollute window.xssed.
+    // =====================================================================
+
+    QUnit.test(
+      'mid-walk abort de-arms the detached tail (custom-element reaction)',
+      (assert) => {
+        // A page-registered custom element mutates the live tree during its
+        // disconnectedCallback while DOMPurify is removing nodes, so
+        // _forceRemove hits a parentless node and throws mid-walk. The tail
+        // <img> is not reached before the abort; the catch-path teardown
+        // must still strip its handler before rethrowing.
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+        if (!window.customElements.get('inplace-abort-surgeon')) {
+          window.customElements.define(
+            'inplace-abort-surgeon',
+            class extends window.HTMLElement {
+              disconnectedCallback() {
+                const w = document.querySelector('inplace-abort-wrapper');
+                if (w) {
+                  w.remove();
+                }
+              }
+            }
+          );
+        }
+
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<inplace-abort-wrapper><inplace-abort-surgeon>' +
+          '</inplace-abort-surgeon></inplace-abort-wrapper>' +
+          '<img id="tail" onerror="alert(1)">';
+        // Must be connected: disconnectedCallback only fires on a node that
+        // was actually in a document.
+        document.body.appendChild(root);
+        const tail = root.querySelector('#tail');
+
+        let threw = false;
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+        } catch (_) {
+          threw = true;
+        }
+
+        // Whether or not the reaction managed to abort the walk in this
+        // engine, the tail must never survive with a live handler.
+        assert.strictEqual(
+          tail.getAttribute('onerror'),
+          null,
+          threw
+            ? 'onerror stripped from detached tail after mid-walk throw'
+            : 'onerror stripped from tail (walk completed cleanly here)'
+        );
+
+        root.remove();
+        window.xssed = false;
+      }
+    );
+
+    QUnit.test(
+      'forbidden-root preflight throw de-arms live descendants',
+      (assert) => {
+        // The early IN_PLACE preflight rejects a forbidden root before the
+        // main walk runs. On a live root that throw must not hand the caller
+        // back an un-neutralised armed descendant. No clobbering needed, so
+        // this reproduces the preflight-throw gap deterministically in every
+        // engine.
+        const root = document.createElement('div');
+        root.innerHTML = '<img id="tail" onerror="alert(1)">';
+        document.body.appendChild(root);
+        const tail = root.querySelector('#tail');
+
+        assert.throws(
+          () =>
+            DOMPurify.sanitize(root, {
+              IN_PLACE: true,
+              FORBID_TAGS: ['div'],
+            }),
+          /forbidden/i,
+          'forbidden IN_PLACE root throws at preflight'
+        );
+        assert.strictEqual(
+          tail.getAttribute('onerror'),
+          null,
+          'onerror stripped from descendant before preflight throw'
+        );
+
+        root.remove();
+        window.xssed = false;
+      }
+    );
+
+    QUnit.test(
+      'clobbered-form preflight throw de-arms live descendants',
+      (assert) => {
+        // The reported Path 2. A clobbered <form> root is rejected at
+        // preflight; in clobbering-capable engines that throw must first
+        // neutralise the form's non-clobbered descendants (the armed <img>).
+        // In engines without form named-property clobbering (jsdom) the root
+        // is not flagged, sanitizes normally, and must still drop handlers.
+        const root = document.createElement('form');
+        root.innerHTML =
+          '<input name="nodeName"><input name="childNodes">' +
+          '<img id="tail" onerror="alert(1)">' +
+          '<a id="lnk" href="javascript:alert(2)">x</a>';
+        document.body.appendChild(root);
+        const tail = root.querySelector('#tail');
+
+        const clobbers = typeof root.nodeName !== 'string';
+        if (clobbers) {
+          assert.throws(
+            () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+            /clobbered|forbidden/i,
+            'clobbered IN_PLACE root throws at preflight'
+          );
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'onerror stripped from descendant before clobber throw'
+          );
+        } else {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'onerror stripped on the non-clobbering success path'
+          );
+        }
+
+        root.remove();
+        window.xssed = false;
+      }
+    );
+
     QUnit.test(
       'setConfig({IN_PLACE}) is not disabled by an intervening string call (REPORT-2)',
       (assert) => {
@@ -1906,6 +2154,77 @@
         );
       });
     });
+
+    // Regression: GHSA-c2j3-45gr-mqc4. A custom element kept via
+    // CUSTOM_ELEMENT_HANDLING must run through afterSanitizeElements just
+    // like a normal allowlisted element, so a security policy layered in
+    // that hook is not silently skipped for kept custom elements.
+    QUnit.test(
+      'afterSanitizeElements fires on kept custom elements',
+      (assert) => {
+        const seen = [];
+        DOMPurify.addHook('afterSanitizeElements', (node) => {
+          if (node.tagName) {
+            seen.push(node.tagName.toLowerCase());
+          }
+        });
+        DOMPurify.sanitize('<x-keep>a</x-keep><div>b</div>', {
+          CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^x-/ },
+        });
+        DOMPurify.removeAllHooks();
+        assert.ok(
+          seen.includes('x-keep'),
+          `hook must fire on kept custom element, saw: ${seen.join(',')}`
+        );
+        assert.ok(seen.includes('div'), 'hook still fires on normal element');
+      }
+    );
+
+    QUnit.test(
+      'afterSanitizeElements policy applies uniformly to custom elements',
+      (assert) => {
+        DOMPurify.addHook('afterSanitizeElements', (node) => {
+          if (node.hasAttribute && node.hasAttribute('data-bio')) {
+            node.removeAttribute('data-bio');
+          }
+        });
+        const clean = DOMPurify.sanitize(
+          '<div data-bio="x"></div><x-bio data-bio="x"></x-bio>',
+          { CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^x-/ } }
+        );
+        DOMPurify.removeAllHooks();
+        assert.equal(clean, '<div></div><x-bio></x-bio>');
+      }
+    );
+
+    QUnit.test(
+      'afterSanitizeElements can remove a kept custom element',
+      (assert) => {
+        DOMPurify.addHook('afterSanitizeElements', (node) => {
+          if (node.tagName && node.tagName.toLowerCase() === 'x-evil') {
+            node.remove();
+          }
+        });
+        const clean = DOMPurify.sanitize('<x-evil>a</x-evil><x-ok>b</x-ok>', {
+          CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^x-/ },
+        });
+        DOMPurify.removeAllHooks();
+        assert.equal(clean, '<x-ok>b</x-ok>');
+      }
+    );
+
+    QUnit.test(
+      'kept custom element attributes are still sanitized (contract intact)',
+      (assert) => {
+        const clean = DOMPurify.sanitize(
+          '<x-a onclick="alert(1)" href="javascript:alert(1)"><img src=x onerror=alert(1)></x-a>',
+          { CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^x-/ } }
+        );
+        assert.notOk(/onclick/i.test(clean), 'event handler stripped');
+        assert.notOk(/javascript:/i.test(clean), 'javascript: URI stripped');
+        assert.notOk(/onerror/i.test(clean), 'child payload sanitized');
+      }
+    );
 
     // =======================================================================
     // Config: ALLOW_ARIA_ATTR (#198)
@@ -3154,6 +3473,53 @@
     // =======================================================================
 
     QUnit.module('Hooks — addHook / removeHook');
+
+    QUnit.test(
+      'uponSanitizeElement hook may detach the current node; it is treated as removed (issue #469 pattern, foreignObject filtering)',
+      (assert) => {
+        // A hook that removes the current node via parentNode.removeChild()
+        // must not trip the REPORT-3 parentless-node throw in _forceRemove:
+        // the throw exists for nodes DOMPurify wants gone but cannot detach,
+        // not for nodes a hook has already safely detached.
+        DOMPurify.addHook('uponSanitizeElement', (node) => {
+          if (node.nodeName === 'foreignObject' && node.parentNode) {
+            node.parentNode.removeChild(node);
+          }
+        });
+        const clean = DOMPurify.sanitize(
+          '<svg><switch><foreignObject><div>content</div></foreignObject></switch></svg>',
+          {
+            ADD_TAGS: ['foreignObject'],
+            USE_PROFILES: { svg: true, html: true },
+          }
+        );
+        assert.equal(clean, '<svg><switch></switch></svg>');
+        assert.notOk(
+          DOMPurify.removed.some(
+            (entry) =>
+              entry.element && entry.element.nodeName === 'foreignObject'
+          ),
+          'hook-detached nodes are not claimed in DOMPurify.removed'
+        );
+        DOMPurify.removeHooks('uponSanitizeElement');
+      }
+    );
+
+    QUnit.test(
+      'beforeSanitizeElements hook may detach the current node; it is treated as removed',
+      (assert) => {
+        DOMPurify.addHook('beforeSanitizeElements', (node) => {
+          if (node.nodeName === 'ARTICLE' && node.parentNode) {
+            node.parentNode.removeChild(node);
+          }
+        });
+        assert.equal(
+          DOMPurify.sanitize('<div><article><b>x</b></article><i>y</i></div>'),
+          '<div><i>y</i></div>'
+        );
+        DOMPurify.removeHooks('beforeSanitizeElements');
+      }
+    );
 
     QUnit.test(
       'hook can add allowed tags / attributes on the fly',
@@ -5977,5 +6343,188 @@
         'onerror stripped in place'
       );
     });
+
+    /* =====================================================================
+     * Declarative partial updates (WICG/declarative-partial-updates) +
+     * setHTMLUnsafe / declarative shadow DOM + streaming.
+     *
+     * Empirically (Chrome 150, see test/declarative-patch-probe-v{2,3,4}.html):
+     * `<template for>` + `<?marker>` linkage EXPANDS during DOMPurify.sanitize()'s
+     * own parse, so the walk sees and sanitizes the fully materialised tree —
+     * including teleports into MathML/SVG integration points. These tests pin
+     * the invariant that matters and holds in EVERY environment: the sanitized
+     * OUTPUT never carries executable content, whether or not the running
+     * engine expands the linkage.
+     *   - Chrome 150 (feature present): template expands at parse -> walk
+     *     sanitizes the expanded nodes -> no handler in output.
+     *   - jsdom / older engines (no expansion): the armed node is sanitized
+     *     inside template.content -> no handler in output.
+     * A regression in either path (parse-time expansion no longer sanitised,
+     * or template-content recursion broken) turns one of these red.
+     *
+     * We assert on the STATIC output (no on-handler, script, or js: url
+     * anywhere, incl. template.content and activated shadow roots) rather
+     * than on a live onerror firing — deterministic, engine-independent, no
+     * async flake. The probe HTMLs cover live execution manually.
+     * ===================================================================== */
+    QUnit.module('Config — declarative partial updates / streaming');
+
+    /* Collect anything executable reachable from a serialized string, walking
+       into <template>.content and any activated shadowRoot. */
+    const _executableFindings = function (root) {
+      const findings = [];
+      const visit = (node) => {
+        if (!node) return;
+        if (node.nodeType === 1) {
+          const tag = node.tagName ? node.tagName.toLowerCase() : '';
+          for (const name of node.getAttributeNames()) {
+            if (/^on/i.test(name)) findings.push(`${tag}@${name}`);
+            if (
+              (name === 'href' || name === 'src' || name === 'xlink:href') &&
+              /^\s*(?:java|vb)script:/i.test(node.getAttribute(name) || '')
+            ) {
+              findings.push(`${tag}@${name}=js`);
+            }
+          }
+          if (tag === 'script') findings.push('script');
+          if (node.shadowRoot) visit(node.shadowRoot);
+          if (tag === 'template' && node.content) visit(node.content);
+        }
+        for (const child of node.childNodes) visit(child);
+      };
+      visit(root);
+      return findings;
+    };
+    const _findingsFromHTML = function (html) {
+      const holder = document.createElement('div');
+      holder.innerHTML = html;
+      return _executableFindings(holder);
+    };
+
+    QUnit.test(
+      'parse-time template expansion neutralizes weaponized payloads',
+      (assert) => {
+        const link = (id, content) =>
+          `<div><?marker name="${id}"></div>` +
+          `<template for="${id}">${content}</template>`;
+        const cases = {
+          'img onerror': link('a', '<img src=x onerror=alert(1)>'),
+          script: link('b', '<script>alert(1)<\/script>'),
+          'a javascript:': link('c', '<a href="javascript:alert(1)">x</a>'),
+          'mtext>style>img': link(
+            'd',
+            '<math><mtext><style><img src=x onerror=alert(1)></style></mtext></math>'
+          ),
+          'svg>foreignObject': link(
+            'e',
+            '<svg><foreignObject><img src=x onerror=alert(1)></foreignObject></svg>'
+          ),
+          // marker placed INSIDE an integration point: teleport target is a
+          // namespace-confusion site.
+          'marker inside mtext':
+            '<math><mtext><?marker name="f"></mtext></math>' +
+            '<template for="f"><style><img src=x onerror=alert(1)></style></template>',
+          'marker inside svg':
+            '<svg><?marker name="g"></svg>' +
+            '<template for="g"><style><img src=x onerror=alert(1)></style></template>',
+        };
+        for (const [name, dirty] of Object.entries(cases)) {
+          const out = DOMPurify.sanitize(dirty);
+          assert.deepEqual(
+            _findingsFromHTML(out),
+            [],
+            `no executable content for "${name}" — got: ${out}`
+          );
+        }
+      }
+    );
+
+    QUnit.test(
+      'chained-template depth build (PoC1 shape) neutralizes at the parser depth cap',
+      (assert) => {
+        const bs = '<b>'.repeat(96);
+        const chain = (leaf, links) => {
+          let s = '<div><?marker name="x1"></div>';
+          for (let i = 1; i <= links; i++) {
+            const next = i < links ? `<?marker name="x${i + 1}">` : leaf;
+            s += `<template for="x${i}">${bs}${next}</template>`;
+          }
+          return s;
+        };
+        const leaf =
+          '<math><mtext><style><img src=x onerror=alert(1)></style></mtext></math>';
+        for (const links of [4, 6, 8]) {
+          const out = DOMPurify.sanitize(chain(leaf, links));
+          assert.deepEqual(
+            _findingsFromHTML(out),
+            [],
+            `no executable content for chained x${links} — head: ${out.slice(0, 80)}`
+          );
+        }
+      }
+    );
+
+    QUnit.test(
+      'declarative shadow DOM: shadowrootmode stripped by default, content sanitized',
+      (assert) => {
+        const dirty =
+          '<section><template shadowrootmode="open">' +
+          '<img src=x onerror=alert(1)><a href="javascript:alert(2)">x</a>' +
+          '</template></section>';
+        const out = DOMPurify.sanitize(dirty);
+        assert.equal(
+          out.indexOf('shadowrootmode'),
+          -1,
+          `shadowrootmode stripped by default — got: ${out}`
+        );
+        assert.deepEqual(
+          _findingsFromHTML(out),
+          [],
+          `no executable content in DSD content — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'declarative shadow DOM: ADD_ATTR shadowrootmode still sanitizes shadow content',
+      (assert) => {
+        const dirty =
+          '<section><template shadowrootmode="open">' +
+          '<img src=x onerror=alert(1)>' +
+          '</template></section>';
+        const out = DOMPurify.sanitize(dirty, { ADD_ATTR: ['shadowrootmode'] });
+        // The attribute may be preserved (caller opted in) but the content it
+        // will activate must be sanitized: no surviving handler.
+        assert.deepEqual(
+          _findingsFromHTML(out),
+          [],
+          `DSD content sanitized even when shadowrootmode is allowed — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'sanitized output stays inert when reparsed via setHTMLUnsafe',
+      (assert) => {
+        if (typeof window.Element.prototype.setHTMLUnsafe !== 'function') {
+          assert.ok(true, 'setHTMLUnsafe unavailable in this engine; skipped');
+          return;
+        }
+        const dirty =
+          '<section><template shadowrootmode="open">' +
+          '<img src=x onerror=alert(1)>' +
+          '</template></section>';
+        const out = DOMPurify.sanitize(dirty);
+        const host = document.createElement('div');
+        // setHTMLUnsafe activates declarative shadow DOM and skips sanitization;
+        // a correctly-sanitized string must expose nothing executable even so.
+        host.setHTMLUnsafe(out);
+        assert.deepEqual(
+          _executableFindings(host),
+          [],
+          `no executable content after setHTMLUnsafe reparse — got: ${out}`
+        );
+      }
+    );
   };
 });
