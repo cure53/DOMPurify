@@ -25,6 +25,16 @@ export default [
       "expected": "<svg><defs><filter id=\"f1\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"15\"></feGaussianBlur></filter></defs><rect width=\"90\" height=\"90\" stroke=\"green\" stroke-width=\"3\" fill=\"yellow\" filter=\"url(#f1)\"></rect></svg>"
      },
   {
+      "title": "Keep the SVG dominant-baseline presentation attribute (see #1525)",
+      "payload": "<svg><text dominant-baseline=\"middle\">x</text></svg>",
+      "expected": "<svg><text dominant-baseline=\"middle\">x</text></svg>"
+  },
+  {
+      "title": "Keep the SVG text-orientation presentation attribute (see #1525)",
+      "payload": "<svg><text text-orientation=\"upright\">y</text></svg>",
+      "expected": "<svg><text text-orientation=\"upright\">y</text></svg>"
+  },
+  {
       "title": "safe usage of URI-like attribute values (see #135)",
       "payload": "<b href=\"javascript:alert(1)\" title=\"javascript:alert(2)\"></b>",
       "expected": "<b title=\"javascript:alert(2)\"></b>"

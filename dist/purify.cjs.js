@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.4.11 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.11/LICENSE */
+/*! @license DOMPurify 3.4.12 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.12/LICENSE */
 
 'use strict';
 
@@ -313,7 +313,7 @@ const mathMlDisallowed = freeze(['maction', 'maligngroup', 'malignmark', 'mlongd
 const text = freeze(['#text']);
 
 const html = freeze(['accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete', 'autopictureinpicture', 'autoplay', 'background', 'bgcolor', 'border', 'capture', 'cellpadding', 'cellspacing', 'checked', 'cite', 'class', 'clear', 'color', 'cols', 'colspan', 'command', 'commandfor', 'controls', 'controlslist', 'coords', 'crossorigin', 'datetime', 'decoding', 'default', 'dir', 'disabled', 'disablepictureinpicture', 'disableremoteplayback', 'download', 'draggable', 'enctype', 'enterkeyhint', 'exportparts', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href', 'hreflang', 'id', 'inert', 'inputmode', 'integrity', 'ismap', 'kind', 'label', 'lang', 'list', 'loading', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min', 'minlength', 'multiple', 'muted', 'name', 'nonce', 'noshade', 'novalidate', 'nowrap', 'open', 'optimum', 'part', 'pattern', 'placeholder', 'playsinline', 'popover', 'popovertarget', 'popovertargetaction', 'poster', 'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required', 'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope', 'selected', 'shape', 'size', 'sizes', 'slot', 'span', 'srclang', 'start', 'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'title', 'translate', 'type', 'usemap', 'valign', 'value', 'width', 'wrap', 'xmlns']);
-const svg = freeze(['accent-height', 'accumulate', 'additive', 'alignment-baseline', 'amplitude', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clippathunits', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dur', 'edgemode', 'elevation', 'end', 'exponent', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'filterunits', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'intercept', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'mask-type', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'primitiveunits', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'slope', 'specularconstant', 'specularexponent', 'spreadmethod', 'startoffset', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'systemlanguage', 'tabindex', 'tablevalues', 'targetx', 'targety', 'transform', 'transform-origin', 'text-anchor', 'text-decoration', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'version', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan']);
+const svg = freeze(['accent-height', 'accumulate', 'additive', 'alignment-baseline', 'amplitude', 'ascent', 'attributename', 'attributetype', 'azimuth', 'basefrequency', 'baseline-shift', 'begin', 'bias', 'by', 'class', 'clip', 'clippathunits', 'clip-path', 'clip-rule', 'color', 'color-interpolation', 'color-interpolation-filters', 'color-profile', 'color-rendering', 'cx', 'cy', 'd', 'dx', 'dy', 'diffuseconstant', 'direction', 'display', 'divisor', 'dominant-baseline', 'dur', 'edgemode', 'elevation', 'end', 'exponent', 'fill', 'fill-opacity', 'fill-rule', 'filter', 'filterunits', 'flood-color', 'flood-opacity', 'font-family', 'font-size', 'font-size-adjust', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'fx', 'fy', 'g1', 'g2', 'glyph-name', 'glyphref', 'gradientunits', 'gradienttransform', 'height', 'href', 'id', 'image-rendering', 'in', 'in2', 'intercept', 'k', 'k1', 'k2', 'k3', 'k4', 'kerning', 'keypoints', 'keysplines', 'keytimes', 'lang', 'lengthadjust', 'letter-spacing', 'kernelmatrix', 'kernelunitlength', 'lighting-color', 'local', 'marker-end', 'marker-mid', 'marker-start', 'markerheight', 'markerunits', 'markerwidth', 'maskcontentunits', 'maskunits', 'max', 'mask', 'mask-type', 'media', 'method', 'mode', 'min', 'name', 'numoctaves', 'offset', 'operator', 'opacity', 'order', 'orient', 'orientation', 'origin', 'overflow', 'paint-order', 'path', 'pathlength', 'patterncontentunits', 'patterntransform', 'patternunits', 'points', 'preservealpha', 'preserveaspectratio', 'primitiveunits', 'r', 'rx', 'ry', 'radius', 'refx', 'refy', 'repeatcount', 'repeatdur', 'restart', 'result', 'rotate', 'scale', 'seed', 'shape-rendering', 'slope', 'specularconstant', 'specularexponent', 'spreadmethod', 'startoffset', 'stddeviation', 'stitchtiles', 'stop-color', 'stop-opacity', 'stroke-dasharray', 'stroke-dashoffset', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-opacity', 'stroke', 'stroke-width', 'style', 'surfacescale', 'systemlanguage', 'tabindex', 'tablevalues', 'targetx', 'targety', 'transform', 'transform-origin', 'text-anchor', 'text-decoration', 'text-orientation', 'text-rendering', 'textlength', 'type', 'u1', 'u2', 'unicode', 'values', 'viewbox', 'visibility', 'version', 'vert-adv-y', 'vert-origin-x', 'vert-origin-y', 'width', 'word-spacing', 'wrap', 'writing-mode', 'xchannelselector', 'ychannelselector', 'x', 'x1', 'x2', 'xmlns', 'y', 'y1', 'y2', 'z', 'zoomandpan']);
 const mathMl = freeze(['accent', 'accentunder', 'align', 'bevelled', 'close', 'columnalign', 'columnlines', 'columnspacing', 'columnspan', 'denomalign', 'depth', 'dir', 'display', 'displaystyle', 'encoding', 'fence', 'frame', 'height', 'href', 'id', 'largeop', 'length', 'linethickness', 'lquote', 'lspace', 'mathbackground', 'mathcolor', 'mathsize', 'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'notation', 'numalign', 'open', 'rowalign', 'rowlines', 'rowspacing', 'rowspan', 'rspace', 'rquote', 'scriptlevel', 'scriptminsize', 'scriptsizemultiplier', 'selection', 'separator', 'separators', 'stretchy', 'subscriptshift', 'supscriptshift', 'symmetric', 'voffset', 'width', 'xmlns']);
 const xml = freeze(['xlink:href', 'xml:id', 'xlink:title', 'xml:space', 'xmlns:xlink']);
 
@@ -426,7 +426,7 @@ const _resolveSetOption = function _resolveSetOption(cfg, key, fallback, options
 function createDOMPurify() {
   let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
   const DOMPurify = root => createDOMPurify(root);
-  DOMPurify.version = '3.4.11';
+  DOMPurify.version = '3.4.12';
   DOMPurify.removed = [];
   if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
     // Not running in a browser, provide a factory function
@@ -1108,6 +1108,13 @@ function createDOMPurify() {
    * @param root the in-place root to empty
    */
   const _neutralizeRoot = function _neutralizeRoot(root) {
+    /* Strip every disallowed attribute (on* handlers included) off the whole
+       subtree BEFORE detaching anything. Detaching first would hand back
+       handler-bearing originals (e.g. an already-loading `<img onerror>`)
+       whose queued resource event still fires in page scope after we throw.
+       Clobber-safe reads; a doomed clobbered node's own attributes are
+       irrelevant while its non-clobbered descendants are reached and scrubbed. */
+    _neutralizeSubtree(root);
     const childNodes = getChildNodes(root);
     if (childNodes) {
       const snapshot = [];
@@ -1226,6 +1233,82 @@ function createDOMPurify() {
       const nodeType = getNodeType ? getNodeType(node) : node.nodeType;
       if (nodeType === NODE_TYPE.element) {
         _stripDisallowedAttributes(node);
+      }
+      const childNodes = getChildNodes(node);
+      if (childNodes) {
+        for (let i = childNodes.length - 1; i >= 0; --i) {
+          stack.push(childNodes[i]);
+        }
+      }
+    }
+  };
+  /**
+   * _neutralizePatchLinkage
+   *
+   * IN_PLACE entry pre-pass (declarative-partial-updates / streaming
+   * hardening, https://github.com/WICG/declarative-partial-updates).
+   *
+   * The main walk strips patch linkage (`for`/`patchsrc`) and removes range
+   * markers (PIs / markup comments) node-by-node, in document order, AS it
+   * reaches each node. On a live in-place root that leaves a window: from the
+   * moment the root is connected until the walk arrives at a given node, that
+   * node's linkage is live. A patch applied on connection/stream can fire as
+   * a microtask during the walk and inject or teleport an unsanitized DOM
+   * range into a region the iterator has already passed and will not revisit,
+   * so the post-return "tree is sanitized" contract is violated. Sweep the
+   * whole tree once up front and sever every linkage before the walk begins,
+   * closing that window.
+   *
+   * This CANNOT undo a patch that already fired before sanitize ran — that is
+   * the irreducible "do not IN_PLACE a live-connected attacker tree" caveat —
+   * but it closes everything from sanitize-start onward. Gated on SAFE_FOR_XML
+   * to group with the rest of the declarative-partial-updates handling and
+   * stay overridable, consistent with the codebase.
+   *
+   * Clobber-safe traversal (cached childNodes getter); per-node try/catch so a
+   * clobbered root cannot defeat the sweep of its non-clobbered descendants.
+   *
+   * NOTE (pending real-Chrome confirmation, see test/declarative-patch-probe
+   * .html Q1): this mirrors the existing policy of keeping `for` on
+   * <label>/<output>. If the shipping feature can drive a patch through a
+   * surviving `for`-on-label/output + `id` pair, this pre-pass and the
+   * attribute check at _isBasicCustomElement's caller must additionally drop
+   * that pair on the IN_PLACE path. Left as-is until the taxonomy is verified.
+   *
+   * @param root the in-place root to sweep
+   */
+  const _neutralizePatchLinkage = function _neutralizePatchLinkage(root) {
+    if (!SAFE_FOR_XML) {
+      return;
+    }
+    const stack = [root];
+    while (stack.length > 0) {
+      const node = stack.pop();
+      const nodeType = getNodeType ? getNodeType(node) : node.nodeType;
+      /* Remove range markers (the target side of a patch linkage): every
+         processing instruction, and any markup-bearing comment. */
+      if (nodeType === NODE_TYPE.processingInstruction || nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, node.data)) {
+        try {
+          remove(node);
+        } catch (_) {
+          /* Best-effort */
+        }
+        continue;
+      }
+      /* Strip patch-source attributes (the source side) off elements. */
+      if (nodeType === NODE_TYPE.element) {
+        const element = node;
+        const lcTag = transformCaseFunc(getNodeName ? getNodeName(node) : node.nodeName);
+        try {
+          if (element.hasAttribute && element.hasAttribute('patchsrc')) {
+            element.removeAttribute('patchsrc');
+          }
+          if (element.hasAttribute && element.hasAttribute('for') && lcTag !== 'label' && lcTag !== 'output') {
+            element.removeAttribute('for');
+          }
+        } catch (_) {
+          /* Clobbered removeAttribute/hasAttribute on a doomed node — ignore */
+        }
       }
       const childNodes = getChildNodes(node);
       if (childNodes) {
@@ -1485,9 +1568,15 @@ function createDOMPurify() {
   /**
    * Handle a node whose tag is forbidden or not allowlisted: keep
    * allowed custom elements (false return exits _sanitizeElements
-   * early - namespace/fallback checks and the afterSanitizeElements
-   * hook are intentionally skipped for kept custom elements), else
-   * hoist content per KEEP_CONTENT and remove.
+   * early - the namespace and fallback-tag removal checks are
+   * intentionally skipped for kept custom elements), else hoist
+   * content per KEEP_CONTENT and remove.
+   *
+   * A kept custom element is the ONLY case in which this function
+   * returns false, so the caller uses that return value to run the
+   * afterSanitizeElements hook on the kept element and keep the
+   * element-hook lifecycle consistent with normal allowlisted
+   * elements (GHSA-c2j3-45gr-mqc4).
    *
    * @param currentNode the disallowed node
    * @param tagName the node's transformCaseFunc'd tag name
@@ -1553,9 +1642,15 @@ function createDOMPurify() {
    * @param currentNode to check for permission to exist
    * @return true if node was killed, false if left alive
    */
-  const _sanitizeElements = function _sanitizeElements(currentNode) {
+  // eslint-disable-next-line complexity
+  const _sanitizeElements = function _sanitizeElements(currentNode, root) {
     /* Execute a hook if present */
     _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
+    /* A hook may have detached the node — treat it as removed (see the
+       detached-node comment after the uponSanitizeElement hook below). */
+    if (currentNode !== root && getParentNode(currentNode) === null) {
+      return true;
+    }
     /* Check if element is clobbered or can clobber */
     if (_isClobbered(currentNode)) {
       _forceRemove(currentNode);
@@ -1568,6 +1663,24 @@ function createDOMPurify() {
       tagName,
       allowedTags: ALLOWED_TAGS
     });
+    /* A hook may have detached the node from the tree — a long-standing
+       user pattern (issue #469; draw.io-style foreignObject filtering).
+       Per the cached, unclobberable parentNode getter the node is
+       genuinely out of the tree, so it can reach neither the serialized
+       output nor an IN_PLACE live tree; treat it as removed and stop
+       processing it. Without this guard, the unsafe-node / namespace
+       checks below would call _forceRemove on a parentless node and hit
+       the REPORT-3 fail-closed throw — which exists for nodes DOMPurify
+       wants gone but *cannot* detach (clobbered / parentless roots), the
+       opposite of a node that is already safely gone. The walk root is
+       exempt: a detached IN_PLACE root is legitimate input and must still
+       be fully sanitized, and a kill-decision on it must keep hitting the
+       REPORT-3 throw. Nodes detached by hooks are the hook's
+       responsibility: they are not recorded in DOMPurify.removed and are
+       not neutralized by the post-walk IN_PLACE pass. */
+    if (currentNode !== root && getParentNode(currentNode) === null) {
+      return true;
+    }
     /* Remove mXSS vectors, processing instructions and risky comments */
     if (_isUnsafeNode(currentNode, tagName)) {
       _forceRemove(currentNode);
@@ -1575,7 +1688,22 @@ function createDOMPurify() {
     }
     /* Remove element if anything forbids its presence */
     if (FORBID_TAGS[tagName] || !(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && !ALLOWED_TAGS[tagName]) {
-      return _sanitizeDisallowedNode(currentNode, tagName);
+      const removed = _sanitizeDisallowedNode(currentNode, tagName);
+      /* A false return means the node is a custom element kept via
+         CUSTOM_ELEMENT_HANDLING - the only keep path through
+         _sanitizeDisallowedNode. Run afterSanitizeElements on it so the
+         element-hook lifecycle matches normal allowlisted elements: a
+         security policy applied in this hook (e.g. stripping an attribute
+         from every surviving element) must not silently skip kept custom
+         elements (GHSA-c2j3-45gr-mqc4). This mirrors the normal-element
+         tail below - the hook runs, then the walker's subsequent
+         _sanitizeAttributes pass sanitizes the element's attributes. The
+         deliberately skipped namespace and fallback-tag removal checks stay
+         skipped; they are removal decisions, not the hook contract. */
+      if (removed === false) {
+        _executeHooks(hooks.afterSanitizeElements, currentNode, null);
+      }
+      return removed;
     }
     /* Check whether element has a valid namespace.
        Realm-safe check (GHSA-hpcv-96wg-7vj8): use the cached Node.prototype
@@ -1620,6 +1748,33 @@ function createDOMPurify() {
   const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
     /* FORBID_ATTR must always win, even if ADD_ATTR predicate would allow it */
     if (FORBID_ATTR[lcName]) {
+      return false;
+    }
+    /* Reject declarative-partial-updates patch-linkage attributes
+       (https://github.com/WICG/declarative-partial-updates).
+            Empirical note (Chrome 150, verified — see
+       test/declarative-patch-probe-v3.html): expansion is NOT applied after
+       sanitization. For the string path it fires during sanitize()'s own
+       parse, so the walk sees and sanitizes the fully materialized expanded
+       tree — teleports into MathML/SVG integration points included; a
+       weaponized `<template for>`->`<img onerror>` comes back with the handler
+       stripped. For the IN_PLACE path it fires on connection, before the walk.
+       Either way DOMPurify is NOT blind to the patch.
+            This removal is therefore defense-in-depth rather than the sole barrier:
+       it prevents live linkage from surviving into the OUTPUT and re-expanding
+       in the caller's context, and keeps behaviour deterministic if a future
+       engine defers expansion. `for` is legitimate only on <label>/<output>;
+       anywhere else (notably <template for>) it links the element to a patch
+       target and teleports or removes an arbitrary DOM range by id/marker name.
+       `patchsrc` fetches remote markup and is treated as a script-loading
+       mechanism (CSP). Gated on SAFE_FOR_XML so the removal groups with the
+       other structural-threat checks and stays overridable, consistent with
+       the rest of the codebase. PI range markers are already removed by
+       _isUnsafeNode. */
+    if (SAFE_FOR_XML && lcName === 'patchsrc') {
+      return false;
+    }
+    if (SAFE_FOR_XML && lcName === 'for' && lcTag !== 'label' && lcTag !== 'output') {
       return false;
     }
     /* Make sure attribute cannot clobber */
@@ -1831,7 +1986,7 @@ function createDOMPurify() {
       /* Execute a hook if present */
       _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
       /* Sanitize tags and elements */
-      _sanitizeElements(shadowNode);
+      _sanitizeElements(shadowNode, fragment);
       /* Check attributes next */
       _sanitizeAttributes(shadowNode);
       /* Deep shadow DOM detected.
@@ -2022,6 +2177,11 @@ function createDOMPurify() {
        keep using and whose return value they ignore — unsanitized. REPORT-2. */
     const inPlace = IN_PLACE && typeof dirty !== 'string' && _isNode(dirty);
     if (inPlace) {
+      /* Declarative-partial-updates / streaming pre-pass: sever every patch
+         linkage across the live tree BEFORE the walk, so no patch can fire
+         mid-walk and inject into an already-processed region. Runs first, so
+         it also covers the forbidden/clobbered roots that throw below. */
+      _neutralizePatchLinkage(dirty);
       /* Do some early pre-sanitization to avoid unsafe root nodes.
          Read nodeName through the cached prototype getter — a clobbering
          child named "nodeName" on the form root would otherwise shadow
@@ -2031,6 +2191,9 @@ function createDOMPurify() {
       if (typeof nn === 'string') {
         const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+          /* Fail closed on a live root: neutralize handlers/children before
+             throwing, exactly as the mid-walk abort path does. */
+          _neutralizeRoot(dirty);
           throw typeErrorCreate('root node is forbidden and cannot be sanitized in-place');
         }
       }
@@ -2045,6 +2208,10 @@ function createDOMPurify() {
          the application unsanitized. Refuse to sanitize such a root
          the same way we refuse a forbidden tag. GHSA-r47g-fvhr-h676. */
       if (_isClobbered(dirty)) {
+        /* Fail closed on a live clobbered root before throwing.
+           _neutralizeRoot's reads are clobber-safe (cached getters); the
+           form's non-clobbered descendants, e.g. an armed <img>, are scrubbed. */
+        _neutralizeRoot(dirty);
         throw typeErrorCreate('root node is clobbered and cannot be sanitized in-place');
       }
       /* Sanitize attached shadow roots before the main iterator runs.
@@ -2097,7 +2264,8 @@ function createDOMPurify() {
       _forceRemove(body.firstChild);
     }
     /* Get node iterator */
-    const nodeIterator = _createNodeIterator(inPlace ? dirty : body);
+    const walkRoot = inPlace ? dirty : body;
+    const nodeIterator = _createNodeIterator(walkRoot);
     /* Now start iterating over the created document.
        The walk runs inside an exception barrier (campaign-3 F2): a re-entrant
        engine/custom-element mutation can detach a node mid-walk so
@@ -2110,7 +2278,7 @@ function createDOMPurify() {
     try {
       while (currentNode = nodeIterator.nextNode()) {
         /* Sanitize tags and elements */
-        _sanitizeElements(currentNode);
+        _sanitizeElements(currentNode, walkRoot);
         /* Check attributes next */
         _sanitizeAttributes(currentNode);
         /* Shadow DOM detected, sanitize it.
@@ -2124,6 +2292,14 @@ function createDOMPurify() {
     } catch (error) {
       if (inPlace) {
         _neutralizeRoot(dirty);
+        /* Nodes _forceRemove'd earlier in the aborted walk are already
+           detached from the root, so _neutralizeRoot's subtree pass does not
+           reach them. Defuse them too, mirroring the success-path loop below. */
+        arrayForEach(DOMPurify.removed, entry => {
+          if (entry.element) {
+            _neutralizeSubtree(entry.element);
+          }
+        });
       }
       throw error;
     }

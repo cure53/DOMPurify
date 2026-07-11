@@ -1188,6 +1188,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param root the in-place root to empty
    */
   const _neutralizeRoot = function (root: Node): void {
+    /* Strip every disallowed attribute (on* handlers included) off the whole
+       subtree BEFORE detaching anything. Detaching first would hand back
+       handler-bearing originals (e.g. an already-loading `<img onerror>`)
+       whose queued resource event still fires in page scope after we throw.
+       Clobber-safe reads; a doomed clobbered node's own attributes are
+       irrelevant while its non-clobbered descendants are reached and scrubbed. */
+    _neutralizeSubtree(root);
+
     const childNodes = getChildNodes(root);
     if (childNodes) {
       const snapshot: Node[] = [];
@@ -1316,6 +1324,100 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       if (nodeType === NODE_TYPE.element) {
         _stripDisallowedAttributes(node as Element);
+      }
+
+      const childNodes = getChildNodes(node);
+      if (childNodes) {
+        for (let i = childNodes.length - 1; i >= 0; --i) {
+          stack.push(childNodes[i]);
+        }
+      }
+    }
+  };
+
+  /**
+   * _neutralizePatchLinkage
+   *
+   * IN_PLACE entry pre-pass (declarative-partial-updates / streaming
+   * hardening, https://github.com/WICG/declarative-partial-updates).
+   *
+   * The main walk strips patch linkage (`for`/`patchsrc`) and removes range
+   * markers (PIs / markup comments) node-by-node, in document order, AS it
+   * reaches each node. On a live in-place root that leaves a window: from the
+   * moment the root is connected until the walk arrives at a given node, that
+   * node's linkage is live. A patch applied on connection/stream can fire as
+   * a microtask during the walk and inject or teleport an unsanitized DOM
+   * range into a region the iterator has already passed and will not revisit,
+   * so the post-return "tree is sanitized" contract is violated. Sweep the
+   * whole tree once up front and sever every linkage before the walk begins,
+   * closing that window.
+   *
+   * This CANNOT undo a patch that already fired before sanitize ran — that is
+   * the irreducible "do not IN_PLACE a live-connected attacker tree" caveat —
+   * but it closes everything from sanitize-start onward. Gated on SAFE_FOR_XML
+   * to group with the rest of the declarative-partial-updates handling and
+   * stay overridable, consistent with the codebase.
+   *
+   * Clobber-safe traversal (cached childNodes getter); per-node try/catch so a
+   * clobbered root cannot defeat the sweep of its non-clobbered descendants.
+   *
+   * NOTE (pending real-Chrome confirmation, see test/declarative-patch-probe
+   * .html Q1): this mirrors the existing policy of keeping `for` on
+   * <label>/<output>. If the shipping feature can drive a patch through a
+   * surviving `for`-on-label/output + `id` pair, this pre-pass and the
+   * attribute check at _isBasicCustomElement's caller must additionally drop
+   * that pair on the IN_PLACE path. Left as-is until the taxonomy is verified.
+   *
+   * @param root the in-place root to sweep
+   */
+  const _neutralizePatchLinkage = function (root: Node): void {
+    if (!SAFE_FOR_XML) {
+      return;
+    }
+
+    const stack: Node[] = [root];
+    while (stack.length > 0) {
+      const node = stack.pop();
+      const nodeType = getNodeType ? getNodeType(node) : (node as any).nodeType;
+
+      /* Remove range markers (the target side of a patch linkage): every
+         processing instruction, and any markup-bearing comment. */
+      if (
+        nodeType === NODE_TYPE.processingInstruction ||
+        (nodeType === NODE_TYPE.comment &&
+          regExpTest(EXPRESSIONS.COMMENT_MARKUP_PROBE, (node as any).data))
+      ) {
+        try {
+          remove(node);
+        } catch (_) {
+          /* Best-effort */
+        }
+
+        continue;
+      }
+
+      /* Strip patch-source attributes (the source side) off elements. */
+      if (nodeType === NODE_TYPE.element) {
+        const element = node as Element;
+        const lcTag = transformCaseFunc(
+          getNodeName ? getNodeName(node) : (node as any).nodeName
+        );
+        try {
+          if (element.hasAttribute && element.hasAttribute('patchsrc')) {
+            element.removeAttribute('patchsrc');
+          }
+
+          if (
+            element.hasAttribute &&
+            element.hasAttribute('for') &&
+            lcTag !== 'label' &&
+            lcTag !== 'output'
+          ) {
+            element.removeAttribute('for');
+          }
+        } catch (_) {
+          /* Clobbered removeAttribute/hasAttribute on a doomed node — ignore */
+        }
       }
 
       const childNodes = getChildNodes(node);
@@ -1661,9 +1763,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * Handle a node whose tag is forbidden or not allowlisted: keep
    * allowed custom elements (false return exits _sanitizeElements
-   * early - namespace/fallback checks and the afterSanitizeElements
-   * hook are intentionally skipped for kept custom elements), else
-   * hoist content per KEEP_CONTENT and remove.
+   * early - the namespace and fallback-tag removal checks are
+   * intentionally skipped for kept custom elements), else hoist
+   * content per KEEP_CONTENT and remove.
+   *
+   * A kept custom element is the ONLY case in which this function
+   * returns false, so the caller uses that return value to run the
+   * afterSanitizeElements hook on the kept element and keep the
+   * element-hook lifecycle consistent with normal allowlisted
+   * elements (GHSA-c2j3-45gr-mqc4).
    *
    * @param currentNode the disallowed node
    * @param tagName the node's transformCaseFunc'd tag name
@@ -1748,9 +1856,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param currentNode to check for permission to exist
    * @return true if node was killed, false if left alive
    */
-  const _sanitizeElements = function (currentNode: any): boolean {
+  // eslint-disable-next-line complexity
+  const _sanitizeElements = function (currentNode: any, root: Node): boolean {
     /* Execute a hook if present */
     _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
+
+    /* A hook may have detached the node — treat it as removed (see the
+       detached-node comment after the uponSanitizeElement hook below). */
+    if (currentNode !== root && getParentNode(currentNode) === null) {
+      return true;
+    }
 
     /* Check if element is clobbered or can clobber */
     if (_isClobbered(currentNode)) {
@@ -1769,6 +1884,25 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       allowedTags: ALLOWED_TAGS,
     });
 
+    /* A hook may have detached the node from the tree — a long-standing
+       user pattern (issue #469; draw.io-style foreignObject filtering).
+       Per the cached, unclobberable parentNode getter the node is
+       genuinely out of the tree, so it can reach neither the serialized
+       output nor an IN_PLACE live tree; treat it as removed and stop
+       processing it. Without this guard, the unsafe-node / namespace
+       checks below would call _forceRemove on a parentless node and hit
+       the REPORT-3 fail-closed throw — which exists for nodes DOMPurify
+       wants gone but *cannot* detach (clobbered / parentless roots), the
+       opposite of a node that is already safely gone. The walk root is
+       exempt: a detached IN_PLACE root is legitimate input and must still
+       be fully sanitized, and a kill-decision on it must keep hitting the
+       REPORT-3 throw. Nodes detached by hooks are the hook's
+       responsibility: they are not recorded in DOMPurify.removed and are
+       not neutralized by the post-walk IN_PLACE pass. */
+    if (currentNode !== root && getParentNode(currentNode) === null) {
+      return true;
+    }
+
     /* Remove mXSS vectors, processing instructions and risky comments */
     if (_isUnsafeNode(currentNode, tagName)) {
       _forceRemove(currentNode);
@@ -1784,7 +1918,24 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       ) &&
         !ALLOWED_TAGS[tagName])
     ) {
-      return _sanitizeDisallowedNode(currentNode, tagName);
+      const removed = _sanitizeDisallowedNode(currentNode, tagName);
+
+      /* A false return means the node is a custom element kept via
+         CUSTOM_ELEMENT_HANDLING - the only keep path through
+         _sanitizeDisallowedNode. Run afterSanitizeElements on it so the
+         element-hook lifecycle matches normal allowlisted elements: a
+         security policy applied in this hook (e.g. stripping an attribute
+         from every surviving element) must not silently skip kept custom
+         elements (GHSA-c2j3-45gr-mqc4). This mirrors the normal-element
+         tail below - the hook runs, then the walker's subsequent
+         _sanitizeAttributes pass sanitizes the element's attributes. The
+         deliberately skipped namespace and fallback-tag removal checks stay
+         skipped; they are removal decisions, not the hook contract. */
+      if (removed === false) {
+        _executeHooks(hooks.afterSanitizeElements, currentNode, null);
+      }
+
+      return removed;
     }
 
     /* Check whether element has a valid namespace.
@@ -1843,6 +1994,42 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   ): boolean {
     /* FORBID_ATTR must always win, even if ADD_ATTR predicate would allow it */
     if (FORBID_ATTR[lcName]) {
+      return false;
+    }
+
+    /* Reject declarative-partial-updates patch-linkage attributes
+       (https://github.com/WICG/declarative-partial-updates).
+
+       Empirical note (Chrome 150, verified — see
+       test/declarative-patch-probe-v3.html): expansion is NOT applied after
+       sanitization. For the string path it fires during sanitize()'s own
+       parse, so the walk sees and sanitizes the fully materialized expanded
+       tree — teleports into MathML/SVG integration points included; a
+       weaponized `<template for>`->`<img onerror>` comes back with the handler
+       stripped. For the IN_PLACE path it fires on connection, before the walk.
+       Either way DOMPurify is NOT blind to the patch.
+
+       This removal is therefore defense-in-depth rather than the sole barrier:
+       it prevents live linkage from surviving into the OUTPUT and re-expanding
+       in the caller's context, and keeps behaviour deterministic if a future
+       engine defers expansion. `for` is legitimate only on <label>/<output>;
+       anywhere else (notably <template for>) it links the element to a patch
+       target and teleports or removes an arbitrary DOM range by id/marker name.
+       `patchsrc` fetches remote markup and is treated as a script-loading
+       mechanism (CSP). Gated on SAFE_FOR_XML so the removal groups with the
+       other structural-threat checks and stays overridable, consistent with
+       the rest of the codebase. PI range markers are already removed by
+       _isUnsafeNode. */
+    if (SAFE_FOR_XML && lcName === 'patchsrc') {
+      return false;
+    }
+
+    if (
+      SAFE_FOR_XML &&
+      lcName === 'for' &&
+      lcTag !== 'label' &&
+      lcTag !== 'output'
+    ) {
       return false;
     }
 
@@ -2185,7 +2372,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
 
       /* Sanitize tags and elements */
-      _sanitizeElements(shadowNode);
+      _sanitizeElements(shadowNode, fragment);
 
       /* Check attributes next */
       _sanitizeAttributes(shadowNode);
@@ -2391,6 +2578,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     const inPlace = IN_PLACE && typeof dirty !== 'string' && _isNode(dirty);
 
     if (inPlace) {
+      /* Declarative-partial-updates / streaming pre-pass: sever every patch
+         linkage across the live tree BEFORE the walk, so no patch can fire
+         mid-walk and inject into an already-processed region. Runs first, so
+         it also covers the forbidden/clobbered roots that throw below. */
+      _neutralizePatchLinkage(dirty as Node);
+
       /* Do some early pre-sanitization to avoid unsafe root nodes.
          Read nodeName through the cached prototype getter — a clobbering
          child named "nodeName" on the form root would otherwise shadow
@@ -2402,6 +2595,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       if (typeof nn === 'string') {
         const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
+          /* Fail closed on a live root: neutralize handlers/children before
+             throwing, exactly as the mid-walk abort path does. */
+          _neutralizeRoot(dirty as Node);
+
           throw typeErrorCreate(
             'root node is forbidden and cannot be sanitized in-place'
           );
@@ -2419,6 +2616,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
          the application unsanitized. Refuse to sanitize such a root
          the same way we refuse a forbidden tag. GHSA-r47g-fvhr-h676. */
       if (_isClobbered(dirty as Element)) {
+        /* Fail closed on a live clobbered root before throwing.
+           _neutralizeRoot's reads are clobber-safe (cached getters); the
+           form's non-clobbered descendants, e.g. an armed <img>, are scrubbed. */
+        _neutralizeRoot(dirty as Node);
+
         throw typeErrorCreate(
           'root node is clobbered and cannot be sanitized in-place'
         );
@@ -2489,7 +2691,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Get node iterator */
-    const nodeIterator = _createNodeIterator(inPlace ? dirty : body);
+    const walkRoot: Node = inPlace ? (dirty as Node) : body;
+    const nodeIterator = _createNodeIterator(walkRoot);
 
     /* Now start iterating over the created document.
        The walk runs inside an exception barrier (campaign-3 F2): a re-entrant
@@ -2503,7 +2706,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     try {
       while ((currentNode = nodeIterator.nextNode())) {
         /* Sanitize tags and elements */
-        _sanitizeElements(currentNode);
+        _sanitizeElements(currentNode, walkRoot);
 
         /* Check attributes next */
         _sanitizeAttributes(currentNode);
@@ -2519,6 +2722,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     } catch (error) {
       if (inPlace) {
         _neutralizeRoot(dirty as Node);
+        /* Nodes _forceRemove'd earlier in the aborted walk are already
+           detached from the root, so _neutralizeRoot's subtree pass does not
+           reach them. Defuse them too, mirroring the success-path loop below. */
+        arrayForEach(DOMPurify.removed, (entry) => {
+          if (entry.element) {
+            _neutralizeSubtree(entry.element as Node);
+          }
+        });
       }
 
       throw error;
