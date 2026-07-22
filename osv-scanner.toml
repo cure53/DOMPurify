@@ -2,6 +2,8 @@
 #
 # Scope: suppresses advisories present in package-lock that come from
 # development / test / CI tooling, not the shipped DOMPurify runtime artifact.
+# DOMPurify declares no runtime dependencies at all, so nothing suppressed
+# here can reach a consumer of the published package.
 #
 # ignoreUntil is set to a one-year horizon so suppressions get re-evaluated
 # annually instead of indefinitely. When updating, check whether the
@@ -16,3 +18,20 @@
 #   - GHSA-7mvr-c777-76hp (Playwright): fixed in 1.55.1; root tree is on 1.61.0.
 #     The legacy-browser harness pins 1.30-1.50.1 on purpose and keeps its own
 #     suppression at test/legacy-playwright/osv-scanner.toml.
+#
+# 2026-07: the two entries below are STOPGAPS, not verdicts. Both advisories
+#   already have published fixes that the current dependency ranges accept,
+#   and `npm update js-yaml brace-expansion` moves the tree to
+#   1.1.16 / 2.1.2 / 5.0.7 and 4.3.0 with the build and jsdom suite green.
+#   Per the policy above, drop both entries once that lockfile refresh lands
+#   rather than carrying them to the expiry date.
+
+[[IgnoredVulns]]
+id = "GHSA-3jxr-9vmj-r5cp"
+ignoreUntil = 2027-07-22
+reason = "brace-expansion (CVE-2026-13149): exponential-time expansion of consecutive non-expanding {} groups, availability-only. Dev-only path - reached via eslint / xo / test tooling, resolving to 1.1.14, 1.1.15, 2.1.1 and 5.0.6. DOMPurify ships no runtime dependencies, so this is absent from the published artifact, and CI only ever expands repo-owned glob patterns, never attacker-controlled input. Fixed in 1.1.16 / 2.1.2 / 5.0.7."
+
+[[IgnoredVulns]]
+id = "GHSA-52cp-r559-cp3m"
+ignoreUntil = 2027-07-22
+reason = "js-yaml (CVE-2026-59869): quadratic CPU time on a chain of mappings using merge keys, availability-only. Dev-only path - pulled in by eslint / cosmiconfig / nyc config loading at 4.2.0 (package.json already pins an override of ^4.2.0, which admits the fix). Only repo-owned config files are parsed, never untrusted YAML, and it is absent from the published artifact. Fixed in 4.3.0, and in 3.15.0 on the 3.x line."
