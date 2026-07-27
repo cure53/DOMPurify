@@ -19,12 +19,19 @@
 #     The legacy-browser harness pins 1.30-1.50.1 on purpose and keeps its own
 #     suppression at test/legacy-playwright/osv-scanner.toml.
 #
-# 2026-07: the two entries below are STOPGAPS, not verdicts. Both advisories
-#   already have published fixes that the current dependency ranges accept,
-#   and `npm update js-yaml brace-expansion` moves the tree to
-#   1.1.16 / 2.1.2 / 5.0.7 and 4.3.0 with the build and jsdom suite green.
-#   Per the policy above, drop both entries once that lockfile refresh lands
-#   rather than carrying them to the expiry date.
+# 2026-07: the first two entries below are STOPGAPS. Both advisories have
+#   published fixes the current ranges accept, and `npm update js-yaml
+#   brace-expansion` moves the tree to 1.1.16 / 2.1.2 / 5.0.8 and 4.3.0 with the
+#   build and jsdom suite green. Per the policy above, drop those two once that
+#   lockfile refresh lands rather than carrying them to the expiry date.
+#
+#   The third entry (GHSA-mh99-v99m-4gvg) is different and is NOT cleared by a
+#   refresh: its only fix is on the 5.x line (5.0.8). The top-level
+#   brace-expansion updates to 5.0.8 and clears, but the transitive 1.x / 2.x
+#   copies pulled in by eslint / typescript-estree / test-exclude top out at
+#   1.1.16 / 2.1.2 - both below 5.0.8, with no in-line backport - so they stay
+#   flagged until those parents adopt brace-expansion 5.x (or the copies are
+#   deduped out). Drop this entry then, not on a version bump of the dep alone.
 
 [[IgnoredVulns]]
 id = "GHSA-3jxr-9vmj-r5cp"
@@ -35,3 +42,8 @@ reason = "brace-expansion (CVE-2026-13149): exponential-time expansion of consec
 id = "GHSA-52cp-r559-cp3m"
 ignoreUntil = 2027-07-22
 reason = "js-yaml (CVE-2026-59869): quadratic CPU time on a chain of mappings using merge keys, availability-only. Dev-only path - pulled in by eslint / cosmiconfig / nyc config loading at 4.2.0 (package.json already pins an override of ^4.2.0, which admits the fix). Only repo-owned config files are parsed, never untrusted YAML, and it is absent from the published artifact. Fixed in 4.3.0, and in 3.15.0 on the 3.x line."
+
+[[IgnoredVulns]]
+id = "GHSA-mh99-v99m-4gvg"
+ignoreUntil = 2027-07-22
+reason = "brace-expansion (CVE-2026-14257): unbounded expansion length causing an out-of-memory process crash, availability-only (CVSS 7.5). OSV range is [0, 5.0.8) with the fix on the 5.x line only. Dev-only path - the top-level copy updates to 5.0.8 and clears, but the transitive 1.1.16 / 2.1.2 copies (eslint / typescript-estree / test-exclude) have no in-line backport and stay below 5.0.8 until those parents adopt brace-expansion 5.x. DOMPurify ships no runtime dependencies, so this is absent from the published artifact, and CI only ever expands repo-owned glob patterns, never attacker-controlled input."
