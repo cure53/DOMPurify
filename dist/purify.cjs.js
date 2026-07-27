@@ -1582,7 +1582,7 @@ function createDOMPurify() {
    * @param tagName the node's transformCaseFunc'd tag name
    * @return true if the node was removed, false if kept
    */
-  const _sanitizeDisallowedNode = function _sanitizeDisallowedNode(currentNode, tagName) {
+  const _sanitizeDisallowedNode = function _sanitizeDisallowedNode(currentNode, tagName, root) {
     /* Check if we have a custom element to handle */
     if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
       if (CUSTOM_ELEMENT_HANDLING.tagNameCheck instanceof RegExp && regExpTest(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) {
@@ -1605,27 +1605,26 @@ function createDOMPurify() {
       const childNodes = getChildNodes(currentNode);
       if (childNodes && parentNode) {
         const childCount = childNodes.length;
-        /* In-place: hoist the *original* children so the iterator visits
-             and sanitises them through the same allowlist pass as every other
-             node. The caller built the tree in the live document, so the
-             originals carry already-queued resource events (`<img onerror>`,
-             `<video>`/`<audio>` error, lazy/`onload`, …); cloning would leave
-             those originals detached but still armed, firing in page scope
-             while the returned tree looked clean. Moving is safe in-place: the
-             root is pre-validated as an allowed tag and so is never the node
-             being removed, which keeps `parentNode` inside the iterator root
-             and the relocated child inside the serialised tree.
-                      Otherwise (string / DOM-copy paths): clone. The iterator is rooted
-             at — and the result serialised from — `body`, so a restrictive
-             ALLOWED_TAGS that removes `body` itself must leave its content in
-             place, which only cloning does; and those paths parse into an
-             inert document, so their discarded originals never had a queued
-             event to neutralise.
+        /* Hoist by moving each child up one level rather than deep-cloning
+             it. Moving transfers every descendant exactly once, so a chain of
+             nested disallowed elements costs O(n) instead of the O(n^2) that
+             re-cloning the shrinking subtree at each level produced; it also
+             empties the removed original, so `DOMPurify.removed` no longer
+             pins whole subtrees. Moving preserves the in-place guarantee too:
+             an original carrying already-queued resource events (`<img
+             onerror>`, `<video>`/`<audio>` error, lazy/`onload`, …) is
+             relocated and sanitised rather than left detached but still armed.
+                      The sole case that must clone is removing the walk root itself.
+             The result is serialised from the root's subtree, so a restrictive
+             ALLOWED_TAGS that strips the root (`body` on the string path) must
+             leave the content inside it, which only cloning does. In IN_PLACE
+             the root is pre-validated as an allowed tag and so is never removed
+             here, so that path always takes the move branch.
                       `childNodes` is live; a tail-to-head walk keeps `childNodes[i]`
              valid whether we move (drops the trailing entry) or clone (leaves
              the list intact). */
         for (let i = childCount - 1; i >= 0; --i) {
-          const hoisted = IN_PLACE ? childNodes[i] : cloneNode(childNodes[i], true);
+          const hoisted = currentNode === root ? cloneNode(childNodes[i], true) : childNodes[i];
           parentNode.insertBefore(hoisted, getNextSibling(currentNode));
         }
       }
@@ -1688,7 +1687,7 @@ function createDOMPurify() {
     }
     /* Remove element if anything forbids its presence */
     if (FORBID_TAGS[tagName] || !(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && !ALLOWED_TAGS[tagName]) {
-      const removed = _sanitizeDisallowedNode(currentNode, tagName);
+      const removed = _sanitizeDisallowedNode(currentNode, tagName, root);
       /* A false return means the node is a custom element kept via
          CUSTOM_ELEMENT_HANDLING - the only keep path through
          _sanitizeDisallowedNode. Run afterSanitizeElements on it so the
