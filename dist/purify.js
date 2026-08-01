@@ -1649,9 +1649,14 @@
     const _sanitizeElements = function _sanitizeElements(currentNode, root) {
       /* Execute a hook if present */
       _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
-      /* A hook may have detached the node — treat it as removed (see the
-         detached-node comment after the uponSanitizeElement hook below). */
+      /* A hook may have detached the node - treat it as removed (see the
+         detached-node comment after the uponSanitizeElement hook below). On
+         the IN_PLACE path, neutralize the detached subtree first so a queued
+         resource handler on it cannot fire in page scope after we return. */
       if (currentNode !== root && getParentNode(currentNode) === null) {
+        if (IN_PLACE) {
+          _neutralizeSubtree(currentNode);
+        }
         return true;
       }
       /* Check if element is clobbered or can clobber */
@@ -1678,10 +1683,22 @@
          opposite of a node that is already safely gone. The walk root is
          exempt: a detached IN_PLACE root is legitimate input and must still
          be fully sanitized, and a kill-decision on it must keep hitting the
-         REPORT-3 throw. Nodes detached by hooks are the hook's
-         responsibility: they are not recorded in DOMPurify.removed and are
-         not neutralized by the post-walk IN_PLACE pass. */
+         REPORT-3 throw. Nodes detached by hooks stay the hook's
+         responsibility for placement: they are not recorded in
+         DOMPurify.removed, so the post-walk IN_PLACE pass (which iterates
+         DOMPurify.removed) does not reach them. But a hook-detached subtree
+         can still hold a queued resource-event handler - e.g. an <img onload>
+         that began loading when the caller built the live tree - which fires
+         in page scope after sanitize returns even though the handler never
+         reached the returned tree. That is the audit-5 F1 hazard, and the
+         documented node.remove() hook pattern walks straight into it. So on
+         the IN_PLACE path we neutralize the detached subtree inline here,
+         stripping its non-allow-listed attributes before returning, exactly
+         as the post-walk pass does for _forceRemove'd subtrees. */
       if (currentNode !== root && getParentNode(currentNode) === null) {
+        if (IN_PLACE) {
+          _neutralizeSubtree(currentNode);
+        }
         return true;
       }
       /* Remove mXSS vectors, processing instructions and risky comments */
