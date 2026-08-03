@@ -213,6 +213,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
   const getNodeName =
     Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
+  const getOwnerDocument =
+    Node && Node.prototype
+      ? lookupGetter(Node.prototype, 'ownerDocument')
+      : null;
 
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
@@ -1509,8 +1513,18 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @return The created NodeIterator
    */
   const _createNodeIterator = function (root: Node): NodeIterator {
+    /* Read ownerDocument through the cached Node.prototype getter, never the
+       direct property. HTMLFormElement has [LegacyOverrideBuiltIns], so a
+       clobbering child (<input name="ownerDocument"> or a form-associated
+       external input) shadows the prototype getter and makes a direct read
+       return that <input>. createNodeIterator.call(<input>, ...) then throws
+       "Illegal invocation", and on the IN_PLACE path that throw lands before
+       the walk's fail-closed barrier - leaving the caller's live tree, with
+       any already-armed handler in it, un-neutralized. The cached getter
+       returns the real Document regardless of the clobber. */
+    const doc = getOwnerDocument ? getOwnerDocument(root) : root.ownerDocument;
     return createNodeIterator.call(
-      root.ownerDocument || root,
+      doc || root,
       root,
       // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT |
@@ -1558,8 +1572,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    */
   const _scrubTemplateExpressions = function (node: Element): void {
     node.normalize();
+    /* Clobber-safe ownerDocument read, same reasoning as _createNodeIterator:
+       under SAFE_FOR_TEMPLATES this runs on the live IN_PLACE root, which may
+       carry a form-named-getter override of ownerDocument. */
+    const doc = getOwnerDocument ? getOwnerDocument(node) : node.ownerDocument;
     const walker = createNodeIterator.call(
-      node.ownerDocument || node,
+      doc || node,
       node,
       // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_TEXT |
@@ -1779,7 +1797,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    */
   const _sanitizeDisallowedNode = function (
     currentNode: any,
-    tagName: string
+    tagName: string,
+    root: Node
   ): boolean {
     /* Check if we have a custom element to handle */
     if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName)) {
@@ -1813,31 +1832,31 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       if (childNodes && parentNode) {
         const childCount = childNodes.length;
 
-        /* In-place: hoist the *original* children so the iterator visits
-             and sanitises them through the same allowlist pass as every other
-             node. The caller built the tree in the live document, so the
-             originals carry already-queued resource events (`<img onerror>`,
-             `<video>`/`<audio>` error, lazy/`onload`, …); cloning would leave
-             those originals detached but still armed, firing in page scope
-             while the returned tree looked clean. Moving is safe in-place: the
-             root is pre-validated as an allowed tag and so is never the node
-             being removed, which keeps `parentNode` inside the iterator root
-             and the relocated child inside the serialised tree.
+        /* Hoist by moving each child up one level rather than deep-cloning
+             it. Moving transfers every descendant exactly once, so a chain of
+             nested disallowed elements costs O(n) instead of the O(n^2) that
+             re-cloning the shrinking subtree at each level produced; it also
+             empties the removed original, so `DOMPurify.removed` no longer
+             pins whole subtrees. Moving preserves the in-place guarantee too:
+             an original carrying already-queued resource events (`<img
+             onerror>`, `<video>`/`<audio>` error, lazy/`onload`, …) is
+             relocated and sanitised rather than left detached but still armed.
 
-             Otherwise (string / DOM-copy paths): clone. The iterator is rooted
-             at — and the result serialised from — `body`, so a restrictive
-             ALLOWED_TAGS that removes `body` itself must leave its content in
-             place, which only cloning does; and those paths parse into an
-             inert document, so their discarded originals never had a queued
-             event to neutralise.
+             The sole case that must clone is removing the walk root itself.
+             The result is serialised from the root's subtree, so a restrictive
+             ALLOWED_TAGS that strips the root (`body` on the string path) must
+             leave the content inside it, which only cloning does. In IN_PLACE
+             the root is pre-validated as an allowed tag and so is never removed
+             here, so that path always takes the move branch.
 
              `childNodes` is live; a tail-to-head walk keeps `childNodes[i]`
              valid whether we move (drops the trailing entry) or clone (leaves
              the list intact). */
         for (let i = childCount - 1; i >= 0; --i) {
-          const hoisted = IN_PLACE
-            ? childNodes[i]
-            : cloneNode(childNodes[i], true);
+          const hoisted =
+            currentNode === root
+              ? cloneNode(childNodes[i], true)
+              : childNodes[i];
           parentNode.insertBefore(hoisted, getNextSibling(currentNode));
         }
       }
@@ -1845,6 +1864,33 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     _forceRemove(currentNode);
     return true;
+  };
+
+  /**
+   * Fork a hook-mutable allowlist off its shared binding the first time a
+   * (possibly lazily-installed) uponSanitize* hook is about to see it, so the
+   * hook cannot widen the per-instance default or the setConfig binding by
+   * reference and leak past the call. Returns the set unchanged once it is
+   * already call-local, so repeated calls across elements are idempotent.
+   *
+   * @param hookList the uponSanitize* hook array for this event
+   * @param set the current ALLOWED_TAGS / ALLOWED_ATTR binding
+   * @param defaultSet the per-instance DEFAULT_ALLOWED_* constant
+   * @param setConfigSet the captured setConfig() binding, or null
+   * @return a call-local clone if a hook is present and set is still shared,
+   *   else set unchanged
+   */
+  const _forkSharedAllowlist = function <T extends Record<string, any>>(
+    hookList: unknown[],
+    set: T,
+    defaultSet: T,
+    setConfigSet: T | null
+  ): T {
+    if (hookList.length === 0) {
+      return set;
+    }
+
+    return set === defaultSet || set === setConfigSet ? clone(set) : set;
   };
 
   /**
@@ -1861,9 +1907,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Execute a hook if present */
     _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
 
-    /* A hook may have detached the node — treat it as removed (see the
-       detached-node comment after the uponSanitizeElement hook below). */
+    /* A hook may have detached the node - treat it as removed (see the
+       detached-node comment after the uponSanitizeElement hook below). On
+       the IN_PLACE path, neutralize the detached subtree first so a queued
+       resource handler on it cannot fire in page scope after we return. */
     if (currentNode !== root && getParentNode(currentNode) === null) {
+      if (IN_PLACE) {
+        _neutralizeSubtree(currentNode);
+      }
+
       return true;
     }
 
@@ -1876,6 +1928,18 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Now let's check the element's type and name */
     const tagName = transformCaseFunc(
       getNodeName ? getNodeName(currentNode) : currentNode.nodeName
+    );
+
+    /* Close the pre-walk clone-guard's timing gap: an uponSanitizeElement
+       hook may have been installed after that guard sampled the hook arrays
+       (e.g. lazily from beforeSanitizeElements), leaving ALLOWED_TAGS still
+       aliasing a shared binding that a widening hook would mutate by
+       reference. Fork it before exposing it to the hook. */
+    ALLOWED_TAGS = _forkSharedAllowlist(
+      hooks.uponSanitizeElement,
+      ALLOWED_TAGS,
+      DEFAULT_ALLOWED_TAGS,
+      SET_CONFIG_ALLOWED_TAGS
     );
 
     /* Execute a hook if present */
@@ -1896,10 +1960,23 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
        opposite of a node that is already safely gone. The walk root is
        exempt: a detached IN_PLACE root is legitimate input and must still
        be fully sanitized, and a kill-decision on it must keep hitting the
-       REPORT-3 throw. Nodes detached by hooks are the hook's
-       responsibility: they are not recorded in DOMPurify.removed and are
-       not neutralized by the post-walk IN_PLACE pass. */
+       REPORT-3 throw. Nodes detached by hooks stay the hook's
+       responsibility for placement: they are not recorded in
+       DOMPurify.removed, so the post-walk IN_PLACE pass (which iterates
+       DOMPurify.removed) does not reach them. But a hook-detached subtree
+       can still hold a queued resource-event handler - e.g. an <img onload>
+       that began loading when the caller built the live tree - which fires
+       in page scope after sanitize returns even though the handler never
+       reached the returned tree. That is the audit-5 F1 hazard, and the
+       documented node.remove() hook pattern walks straight into it. So on
+       the IN_PLACE path we neutralize the detached subtree inline here,
+       stripping its non-allow-listed attributes before returning, exactly
+       as the post-walk pass does for _forceRemove'd subtrees. */
     if (currentNode !== root && getParentNode(currentNode) === null) {
+      if (IN_PLACE) {
+        _neutralizeSubtree(currentNode);
+      }
+
       return true;
     }
 
@@ -1918,7 +1995,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       ) &&
         !ALLOWED_TAGS[tagName])
     ) {
-      const removed = _sanitizeDisallowedNode(currentNode, tagName);
+      const removed = _sanitizeDisallowedNode(currentNode, tagName, root);
 
       /* A false return means the node is a custom element kept via
          CUSTOM_ELEMENT_HANDLING - the only keep path through
@@ -2249,6 +2326,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (!attributes || _isClobbered(currentNode)) {
       return;
     }
+
+    /* Same lazy-install guard as uponSanitizeElement (see there): fork the
+       attribute allowlist off its shared binding before a hook can see it. */
+    ALLOWED_ATTR = _forkSharedAllowlist(
+      hooks.uponSanitizeAttribute,
+      ALLOWED_ATTR,
+      DEFAULT_ALLOWED_ATTR,
+      SET_CONFIG_ALLOWED_ATTR
+    );
 
     const hookEvent = {
       attrName: '',
@@ -2692,18 +2778,21 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Get node iterator */
     const walkRoot: Node = inPlace ? (dirty as Node) : body;
-    const nodeIterator = _createNodeIterator(walkRoot);
 
     /* Now start iterating over the created document.
        The walk runs inside an exception barrier (campaign-3 F2): a re-entrant
        engine/custom-element mutation can detach a node mid-walk so
        `_forceRemove`'s parentless guard throws, aborting the loop. Without the
        barrier the caller's in-place tree would be left half-sanitized with the
-       unvisited tail still armed. On any throw we fail closed — strip the
-       in-place root bare — then rethrow so the existing throw contract is
-       preserved. (String/DOM-copy paths never return the partial body, so the
-       propagating throw is already fail-closed there.) */
+       unvisited tail still armed. _createNodeIterator itself is inside the
+       barrier too: constructing the iterator dereferences the root's document,
+       and any failure there (e.g. an exotic/clobbered root) must still fail
+       closed rather than skip the neutralize. On any throw we fail closed -
+       strip the in-place root bare - then rethrow so the existing throw
+       contract is preserved. (String/DOM-copy paths never return the partial
+       body, so the propagating throw is already fail-closed there.) */
     try {
+      const nodeIterator = _createNodeIterator(walkRoot);
       while ((currentNode = nodeIterator.nextNode())) {
         /* Sanitize tags and elements */
         _sanitizeElements(currentNode, walkRoot);
