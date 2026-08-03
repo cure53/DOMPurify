@@ -1573,6 +1573,85 @@
       }
     });
 
+    QUnit.test(
+      'IN_PLACE: a clobbered ownerDocument does not skip the fail-closed scrub',
+      (assert) => {
+        // HTMLFormElement has [LegacyOverrideBuiltIns], so a child
+        // <input name="ownerDocument"> (or a form-associated external input)
+        // shadows Node.prototype.ownerDocument and a direct form.ownerDocument
+        // read returns that <input>. The iterator was built with
+        // createNodeIterator.call(root.ownerDocument, ...), which then threw
+        // "Illegal invocation" before the walk's fail-closed barrier, leaving
+        // an armed descendant un-neutralized in the caller's live tree.
+        // jsdom/happy-dom do not implement the form named-getter override, so
+        // we reproduce it faithfully: an own accessor shadowing the prototype
+        // getter is exactly what [LegacyOverrideBuiltIns] surfaces.
+        const root = document.createElement('form');
+        const img = document.createElement('img');
+        img.setAttribute('onerror', 'alert(1)'); // no src: assert the attr, not a load
+        root.appendChild(img);
+        document.body.appendChild(root);
+
+        const fake = document.createElement('input');
+        Object.defineProperty(root, 'ownerDocument', {
+          get() {
+            return fake;
+          },
+          configurable: true,
+        });
+        assert.strictEqual(
+          root.ownerDocument,
+          fake,
+          'precondition: ownerDocument read is clobbered'
+        );
+
+        // The security invariant holds whether the call returns or fails
+        // closed by throwing: the armed handler must be gone either way.
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+        } catch (_) {
+          /* a fail-closed throw is acceptable, as long as the scrub ran */
+        }
+
+        assert.strictEqual(
+          img.getAttribute('onerror'),
+          null,
+          'armed on* handler stripped despite the ownerDocument clobber'
+        );
+
+        delete root.ownerDocument;
+        root.remove();
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: form with a natural ownerDocument-clobbering child stays safe',
+      (assert) => {
+        // The real-vector form of the test above. In a clobbering-capable
+        // engine the named child makes root.ownerDocument return the input;
+        // in jsdom/happy-dom it does not, and the branch just documents that.
+        // Either way, no on* handler may survive.
+        const root = document.createElement('form');
+        root.innerHTML = '<input name="ownerDocument"><img onerror="alert(1)">';
+        document.body.appendChild(root);
+
+        const clobbers = root.ownerDocument !== document;
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+        } catch (_) {
+          /* fail-closed throw acceptable */
+        }
+
+        assert.notOk(
+          /onerror/i.test(root.outerHTML),
+          clobbers
+            ? 'clobbering engine: on-handler stripped'
+            : 'non-clobbering engine: on-handler stripped'
+        );
+        root.remove();
+      }
+    );
+
     // =====================================================================
     // Fail-closed teardown must de-arm removed nodes on EVERY exit path,
     // not just a clean return. The success-path DOMPurify.removed loop

@@ -461,6 +461,7 @@
     const getAttributes = lookupGetter(ElementPrototype, 'attributes');
     const getNodeType = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeType') : null;
     const getNodeName = Node && Node.prototype ? lookupGetter(Node.prototype, 'nodeName') : null;
+    const getOwnerDocument = Node && Node.prototype ? lookupGetter(Node.prototype, 'ownerDocument') : null;
     // As per issue #47, the web-components registry is inherited by a
     // new document created via createHTMLDocument. As per the spec
     // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
@@ -1379,7 +1380,17 @@
      * @return The created NodeIterator
      */
     const _createNodeIterator = function _createNodeIterator(root) {
-      return createNodeIterator.call(root.ownerDocument || root, root,
+      /* Read ownerDocument through the cached Node.prototype getter, never the
+         direct property. HTMLFormElement has [LegacyOverrideBuiltIns], so a
+         clobbering child (<input name="ownerDocument"> or a form-associated
+         external input) shadows the prototype getter and makes a direct read
+         return that <input>. createNodeIterator.call(<input>, ...) then throws
+         "Illegal invocation", and on the IN_PLACE path that throw lands before
+         the walk's fail-closed barrier - leaving the caller's live tree, with
+         any already-armed handler in it, un-neutralized. The cached getter
+         returns the real Document regardless of the clobber. */
+      const doc = getOwnerDocument ? getOwnerDocument(root) : root.ownerDocument;
+      return createNodeIterator.call(doc || root, root,
       // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
     };
@@ -1419,7 +1430,11 @@
     const _scrubTemplateExpressions2 = function _scrubTemplateExpressions(node) {
       var _node$querySelectorAl;
       node.normalize();
-      const walker = createNodeIterator.call(node.ownerDocument || node, node,
+      /* Clobber-safe ownerDocument read, same reasoning as _createNodeIterator:
+         under SAFE_FOR_TEMPLATES this runs on the live IN_PLACE root, which may
+         carry a form-named-getter override of ownerDocument. */
+      const doc = getOwnerDocument ? getOwnerDocument(node) : node.ownerDocument;
+      const walker = createNodeIterator.call(doc || node, node,
       // eslint-disable-next-line no-bitwise
       NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_CDATA_SECTION | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
       let currentNode = walker.nextNode();
@@ -1637,6 +1652,26 @@
       return true;
     };
     /**
+     * Fork a hook-mutable allowlist off its shared binding the first time a
+     * (possibly lazily-installed) uponSanitize* hook is about to see it, so the
+     * hook cannot widen the per-instance default or the setConfig binding by
+     * reference and leak past the call. Returns the set unchanged once it is
+     * already call-local, so repeated calls across elements are idempotent.
+     *
+     * @param hookList the uponSanitize* hook array for this event
+     * @param set the current ALLOWED_TAGS / ALLOWED_ATTR binding
+     * @param defaultSet the per-instance DEFAULT_ALLOWED_* constant
+     * @param setConfigSet the captured setConfig() binding, or null
+     * @return a call-local clone if a hook is present and set is still shared,
+     *   else set unchanged
+     */
+    const _forkSharedAllowlist = function _forkSharedAllowlist(hookList, set, defaultSet, setConfigSet) {
+      if (hookList.length === 0) {
+        return set;
+      }
+      return set === defaultSet || set === setConfigSet ? clone(set) : set;
+    };
+    /**
      * _sanitizeElements
      *
      * @protect nodeName
@@ -1666,6 +1701,12 @@
       }
       /* Now let's check the element's type and name */
       const tagName = transformCaseFunc(getNodeName ? getNodeName(currentNode) : currentNode.nodeName);
+      /* Close the pre-walk clone-guard's timing gap: an uponSanitizeElement
+         hook may have been installed after that guard sampled the hook arrays
+         (e.g. lazily from beforeSanitizeElements), leaving ALLOWED_TAGS still
+         aliasing a shared binding that a widening hook would mutate by
+         reference. Fork it before exposing it to the hook. */
+      ALLOWED_TAGS = _forkSharedAllowlist(hooks.uponSanitizeElement, ALLOWED_TAGS, DEFAULT_ALLOWED_TAGS, SET_CONFIG_ALLOWED_TAGS);
       /* Execute a hook if present */
       _executeHooks(hooks.uponSanitizeElement, currentNode, {
         tagName,
@@ -1913,6 +1954,9 @@
       if (!attributes || _isClobbered(currentNode)) {
         return;
       }
+      /* Same lazy-install guard as uponSanitizeElement (see there): fork the
+         attribute allowlist off its shared binding before a hook can see it. */
+      ALLOWED_ATTR = _forkSharedAllowlist(hooks.uponSanitizeAttribute, ALLOWED_ATTR, DEFAULT_ALLOWED_ATTR, SET_CONFIG_ALLOWED_ATTR);
       const hookEvent = {
         attrName: '',
         attrValue: '',
@@ -2285,17 +2329,20 @@
       }
       /* Get node iterator */
       const walkRoot = inPlace ? dirty : body;
-      const nodeIterator = _createNodeIterator(walkRoot);
       /* Now start iterating over the created document.
          The walk runs inside an exception barrier (campaign-3 F2): a re-entrant
          engine/custom-element mutation can detach a node mid-walk so
          `_forceRemove`'s parentless guard throws, aborting the loop. Without the
          barrier the caller's in-place tree would be left half-sanitized with the
-         unvisited tail still armed. On any throw we fail closed — strip the
-         in-place root bare — then rethrow so the existing throw contract is
-         preserved. (String/DOM-copy paths never return the partial body, so the
-         propagating throw is already fail-closed there.) */
+         unvisited tail still armed. _createNodeIterator itself is inside the
+         barrier too: constructing the iterator dereferences the root's document,
+         and any failure there (e.g. an exotic/clobbered root) must still fail
+         closed rather than skip the neutralize. On any throw we fail closed -
+         strip the in-place root bare - then rethrow so the existing throw
+         contract is preserved. (String/DOM-copy paths never return the partial
+         body, so the propagating throw is already fail-closed there.) */
       try {
+        const nodeIterator = _createNodeIterator(walkRoot);
         while (currentNode = nodeIterator.nextNode()) {
           /* Sanitize tags and elements */
           _sanitizeElements(currentNode, walkRoot);
