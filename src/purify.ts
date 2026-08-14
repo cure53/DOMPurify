@@ -65,6 +65,27 @@ const NODE_TYPE = {
   notation: 12, // Deprecated
 };
 
+/* HTML-namespace elements whose child text nodes are serialized *literally*
+   (unescaped) by the HTML fragment-serialization algorithm. If such an element
+   carries an element child - a tree the HTML parser can never build, but the
+   DOM API and an XML/XHTML parse can - the text after that child is emitted raw,
+   so `</tag><img onerror=…>` in a text node breaks out of the element on
+   reparse. `noscript`/`noembed`/`noframes` are additionally covered by the
+   FALLBACK_TAG_CLOSE check and `script` is never allow-listed, but they are
+   kept here so the guard matches the serializer's own list exactly. */
+const LITERAL_TEXT_ELEMENTS = freeze(
+  addToSet({}, [
+    'style',
+    'script',
+    'xmp',
+    'iframe',
+    'noembed',
+    'noframes',
+    'plaintext',
+    'noscript',
+  ])
+);
+
 const getGlobal = function (): WindowLike {
   return typeof window === 'undefined' ? null : window;
 };
@@ -1234,23 +1255,52 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * _removeAttribute
    *
+   * Name-based getAttributeNode()/removeAttribute() ASCII-lowercase their
+   * lookup key for HTML elements in an HTML document, so they silently miss an
+   * attribute whose stored qualified name still contains uppercase ASCII
+   * letters. That happens when the node came from a case-preserving source
+   * (an XML/XHTML document imported via importNode(), or createAttributeNS()),
+   * where e.g. `ONERROR` survives the walk: the policy check lowercases to
+   * `onerror` and rejects it, but `removeAttribute('ONERROR')` looks up
+   * `onerror` and finds nothing. Remove the exact Attr node instead, which is
+   * case- and namespace-exact, and fall back to name-based removal only when
+   * the caller could not supply the node.
+   *
    * @param name an Attribute name
    * @param element a DOM node
+   * @param attr the exact Attr node to remove, when the caller has it
    */
-  const _removeAttribute = function (name: string, element: Element): void {
-    try {
-      arrayPush(DOMPurify.removed, {
-        attribute: element.getAttributeNode(name),
-        from: element,
-      });
-    } catch (_) {
-      arrayPush(DOMPurify.removed, {
-        attribute: null,
-        from: element,
-      });
+  const _removeAttribute = function (
+    name: string,
+    element: Element,
+    attr?: Attr | null
+  ): void {
+    if (!attr) {
+      try {
+        attr = element.getAttributeNode(name);
+      } catch (_) {
+        attr = null;
+      }
     }
 
-    element.removeAttribute(name);
+    arrayPush(DOMPurify.removed, {
+      attribute: attr || null,
+      from: element,
+    });
+
+    try {
+      if (attr) {
+        element.removeAttributeNode(attr);
+      } else {
+        element.removeAttribute(name);
+      }
+    } catch (_) {
+      /* Clobbered or already-detached node - best-effort fall back to a
+         name-based removal so the "is" handling below still runs. */
+      try {
+        element.removeAttribute(name);
+      } catch (_) {}
+    }
 
     // We void attribute values for unremovable "is" attributes
     if (name === 'is') {
@@ -1751,11 +1801,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
-    /* Remove risky CSS construction leading to mXSS */
+    /* Remove rawtext/literal-text elements that carry an element child, which
+       is the mXSS shape rule 1 above cannot see (rule 1 self-disables once
+       there is an element child). The serializer emits these elements' text
+       children unescaped, so a `</tag>`-bearing text sibling of the element
+       child breaks the element open on reparse. Previously this only covered
+       `style`; every element in LITERAL_TEXT_ELEMENTS has the same
+       literal-text serialization and is equally affected. */
     if (
       SAFE_FOR_XML &&
       currentNode.namespaceURI === HTML_NAMESPACE &&
-      tagName === 'style' &&
+      LITERAL_TEXT_ELEMENTS[tagName] &&
       _isNode(currentNode.firstElementChild)
     ) {
       return true;
@@ -2372,7 +2428,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         stringIndexOf(value, SANITIZE_NAMED_PROPS_PREFIX) !== 0
       ) {
         // Remove the attribute with this value
-        _removeAttribute(name, currentNode);
+        _removeAttribute(name, currentNode, attr);
         // Prefix the value and later re-create the attribute with the sanitized value
         value = SANITIZE_NAMED_PROPS_PREFIX + value;
       }
@@ -2387,13 +2443,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
           value
         )
       ) {
-        _removeAttribute(name, currentNode);
+        _removeAttribute(name, currentNode, attr);
         continue;
       }
 
       /* Make sure we cannot easily use animated hrefs, even if animations are allowed */
       if (lcName === 'attributename' && stringMatch(value, 'href')) {
-        _removeAttribute(name, currentNode);
+        _removeAttribute(name, currentNode, attr);
         continue;
       }
 
@@ -2404,7 +2460,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
-        _removeAttribute(name, currentNode);
+        _removeAttribute(name, currentNode, attr);
         continue;
       }
 
@@ -2413,7 +2469,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         !ALLOW_SELF_CLOSE_IN_ATTR &&
         regExpTest(EXPRESSIONS.SELF_CLOSING_TAG, value)
       ) {
-        _removeAttribute(name, currentNode);
+        _removeAttribute(name, currentNode, attr);
         continue;
       }
 
@@ -2424,7 +2480,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       /* Is `value` valid for this attribute? */
       if (!_isValidAttribute(lcTag, lcName, value)) {
-        _removeAttribute(name, currentNode);
+        _removeAttribute(name, currentNode, attr);
         continue;
       }
 
