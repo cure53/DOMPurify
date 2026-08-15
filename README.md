@@ -496,6 +496,14 @@ DOMPurify.addHook(
 );
 ```
 
+### A note on calling sanitize() from a hook
+
+`DOMPurify.sanitize()` is not re-entrant. Please do not call it from inside a hook, or from a configuration callback such as `CUSTOM_ELEMENT_HANDLING.tagNameCheck` or `attributeNameCheck`. Those callbacks run in the middle of an active sanitizer pass.
+
+A nested `sanitize()` call re-reads the configuration handed to it and, in doing so, replaces the configuration the outer pass is still using. The rest of the outer document is then sanitized against the nested call's configuration instead of yours. Since the nested call typically runs with the default configuration, a strict `ALLOWED_TAGS` allow-list can silently widen back to the default one part-way through a document, with no error and no warning.
+
+If you need to sanitize nested markup, for example an HTML fragment carried inside an attribute value, you have two safe options. Either set your configuration once with `DOMPurify.setConfig` instead of passing it per call, since a persistent configuration is shared by the nested call and stays in effect for the whole pass; or collect the fragments during the hook and sanitize them with a separate `sanitize()` call after the outer one has returned.
+
 ## Removed Configuration
 
 | Option          | Since | Note                     |
