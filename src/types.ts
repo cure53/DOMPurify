@@ -254,13 +254,10 @@ export interface RemovedAttribute {
 }
 
 type BasicHookName =
-  | 'beforeSanitizeElements'
-  | 'afterSanitizeElements'
-  | 'uponSanitizeShadowNode';
+  'beforeSanitizeElements' | 'afterSanitizeElements' | 'uponSanitizeShadowNode';
 type ElementHookName = 'beforeSanitizeAttributes' | 'afterSanitizeAttributes';
 type DocumentFragmentHookName =
-  | 'beforeSanitizeShadowDOM'
-  | 'afterSanitizeShadowDOM';
+  'beforeSanitizeShadowDOM' | 'afterSanitizeShadowDOM';
 type UponSanitizeElementHookName = 'uponSanitizeElement';
 type UponSanitizeAttributeHookName = 'uponSanitizeAttribute';
 
