@@ -66,25 +66,46 @@ const NODE_TYPE = {
 };
 
 /* HTML-namespace elements whose child text nodes are serialized *literally*
-   (unescaped) by the HTML fragment-serialization algorithm. If such an element
-   carries an element child - a tree the HTML parser can never build, but the
-   DOM API and an XML/XHTML parse can - the text after that child is emitted raw,
-   so `</tag><img onerror=…>` in a text node breaks out of the element on
-   reparse. `noscript`/`noembed`/`noframes` are additionally covered by the
-   FALLBACK_TAG_CLOSE check and `script` is never allow-listed, but they are
-   kept here so the guard matches the serializer's own list exactly. */
-const LITERAL_TEXT_ELEMENTS = freeze(
-  addToSet({}, [
-    'style',
-    'script',
-    'xmp',
-    'iframe',
-    'noembed',
-    'noframes',
-    'plaintext',
-    'noscript',
-  ])
-);
+   (unescaped) by the HTML fragment-serialization algorithm. Two reparse-mXSS
+   shapes ride on that literal serialization:
+     (a) an element child - a tree the HTML parser can never build, but the DOM
+         API and an XML/XHTML parse can - after which a `</tag>`-bearing text
+         sibling breaks the element open on reparse; and
+     (b) text-only content that already carries the element's OWN end tag, e.g.
+         `<style>...</style><img onerror=x>` built as a node, which the literal
+         serializer emits verbatim for the HTML parser to re-open.
+   Shape (a) is handled by the firstElementChild branch in _isUnsafeNode; shape
+   (b) by the LITERAL_TEXT_CLOSE probe. Both read textContent (the raw-serialized
+   form for these elements) rather than innerHTML, because an XML/XHTML working
+   document serializes innerHTML with `<` escaped, which silently blinds the
+   innerHTML-based probes (rule 1's second probe and FALLBACK_TAG_CLOSE) there.
+   `script` is never allow-listed, but is kept here so the guard matches the
+   serializer's own literal-text list exactly. */
+const LITERAL_TEXT_ELEMENT_NAMES = [
+  'style',
+  'script',
+  'xmp',
+  'iframe',
+  'noembed',
+  'noframes',
+  'plaintext',
+  'noscript',
+];
+const LITERAL_TEXT_ELEMENTS = freeze(addToSet({}, LITERAL_TEXT_ELEMENT_NAMES));
+
+/* Per-element end-tag matcher. On an HTML reparse the ONLY token that
+   terminates a literal-text element's raw content is its own end tag; a foreign
+   literal-text close (e.g. `</xmp>` sitting inside `<style>`) does not break
+   out, so matching is per-element, not a shared alternation. The lookahead
+   requires an HTML tag-name terminator (whitespace, `/` or `>`) so a longer
+   name such as `</styles` is not mistaken for `</style`. */
+const LITERAL_TEXT_CLOSE = (function (): Record<string, RegExp> {
+  const map: Record<string, RegExp> = {};
+  arrayForEach(LITERAL_TEXT_ELEMENT_NAMES, (name) => {
+    map[name] = seal(new RegExp('</' + name + '(?=[\\t\\n\\f\\r />])', 'i'));
+  });
+  return freeze(map);
+})();
 
 const getGlobal = function (): WindowLike {
   return typeof window === 'undefined' ? null : window;
@@ -1197,6 +1218,37 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
+   * _stripAttributeNode
+   *
+   * Remove a single Attr node case/namespace-exactly on an attribute-teardown
+   * path. Name-based removeAttribute() ASCII-lowercases its lookup key for an
+   * HTML element in an HTML document and so silently misses a case-preserved
+   * handler (e.g. `ONERROR` off an XML/XHTML import) - the same defect
+   * _removeAttribute() was fixed for, which a name-based call would reintroduce
+   * on these IN_PLACE teardown paths. Unlike _removeAttribute this does not
+   * record into DOMPurify.removed: the neutralize passes intentionally do not
+   * book-keep. A clobbered/detached node falls back to best-effort name-based
+   * removal.
+   *
+   * @param element the element to strip the attribute from
+   * @param attribute the Attr node to remove
+   * @param name the attribute's name, for the fallback path
+   */
+  const _stripAttributeNode = function (
+    element: Element,
+    attribute: Attr,
+    name: string
+  ): void {
+    try {
+      element.removeAttributeNode(attribute);
+    } catch (_) {
+      try {
+        element.removeAttribute(name);
+      } catch (_) {}
+    }
+  };
+
+  /**
    * _neutralizeRoot
    *
    * Fail-closed teardown of an in-place root after the sanitize walk aborts
@@ -1242,11 +1294,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         const attribute = attributes[i];
         const name = attribute && attribute.name;
         if (typeof name === 'string') {
-          try {
-            (root as Element).removeAttribute(name);
-          } catch (_) {
-            /* Clobbered removeAttribute — ignore (fail-closed best effort) */
-          }
+          _stripAttributeNode(root as Element, attribute, name);
         }
       }
     }
@@ -1339,11 +1387,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         continue;
       }
 
-      try {
-        element.removeAttribute(name);
-      } catch (_) {
-        /* Clobbered removeAttribute on a doomed node — ignore */
-      }
+      _stripAttributeNode(element, attribute, name);
     }
   };
 
@@ -1801,18 +1845,27 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
-    /* Remove rawtext/literal-text elements that carry an element child, which
-       is the mXSS shape rule 1 above cannot see (rule 1 self-disables once
-       there is an element child). The serializer emits these elements' text
-       children unescaped, so a `</tag>`-bearing text sibling of the element
-       child breaks the element open on reparse. Previously this only covered
-       `style`; every element in LITERAL_TEXT_ELEMENTS has the same
-       literal-text serialization and is equally affected. */
+    /* Remove rawtext/literal-text elements whose literal serialization re-opens
+       markup on an HTML reparse. Two shapes, both invisible to rule 1 above
+       (which self-disables once there is an element child, and whose second
+       probe reads the innerHTML an XML/XHTML document serializes escaped):
+         - an element child, after which a `</tag>`-bearing text sibling breaks
+           the element open (the classic node-built shape); and
+         - text-only content that already carries the element's OWN end tag,
+           e.g. `<style>...</style><img onerror=x>`, which the literal serializer
+           emits verbatim for the HTML parser to re-open.
+       Both are checked against textContent (the raw-serialized form for these
+       elements) so detection holds in XML/XHTML mode, where the innerHTML probes
+       and FALLBACK_TAG_CLOSE do not. Previously only `style`-with-element-child
+       was covered; every element in LITERAL_TEXT_ELEMENTS shares this literal
+       serialization and is equally affected. */
     if (
       SAFE_FOR_XML &&
       currentNode.namespaceURI === HTML_NAMESPACE &&
       LITERAL_TEXT_ELEMENTS[tagName] &&
-      _isNode(currentNode.firstElementChild)
+      (_isNode(currentNode.firstElementChild) ||
+        (typeof currentNode.textContent === 'string' &&
+          regExpTest(LITERAL_TEXT_CLOSE[tagName], currentNode.textContent)))
     ) {
       return true;
     }
