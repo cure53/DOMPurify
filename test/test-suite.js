@@ -6789,6 +6789,50 @@
     );
 
     /*
+     * Loose end A - the case-preserving removal must also hold on the IN_PLACE
+     * teardown paths. _stripDisallowedAttributes (per-node scrub of a subtree
+     * leaving the tree) and _neutralizeRoot (fail-closed root teardown) held the
+     * exact Attr node but still removed it by name, reintroducing the same
+     * removeAttribute ASCII-lowercasing miss the walk was fixed for. Both now
+     * remove the Attr node directly (shared _stripAttributeNode helper), so a
+     * case-preserved handler on a node being discarded is scrubbed rather than
+     * left behind for a later reserialize.
+     */
+    QUnit.test(
+      'IN_PLACE teardown scrubs a case-preserved ONERROR on a discarded subtree (loose end A)',
+      (assert) => {
+        const root = document.createElement('div');
+        const wrap = document.createElement('section'); // dropped wholesale
+        const img = document.createElement('img');
+        img.setAttribute('src', 'x');
+        img.setAttributeNS(null, 'ONERROR', 'alert(1)'); // case-preserved
+        img.setAttribute('onmouseover', 'alert(2)'); // lowercase control
+        wrap.appendChild(img);
+        root.appendChild(wrap);
+        document.body.appendChild(root);
+
+        DOMPurify.sanitize(root, {
+          IN_PLACE: true,
+          FORBID_TAGS: ['section'],
+          KEEP_CONTENT: false, // force a wholesale subtree drop -> neutralize
+        });
+
+        assert.notOk(
+          img.hasAttribute('ONERROR'),
+          `uppercase ONERROR must not survive teardown - got: ${img
+            .getAttributeNames()
+            .join()}`
+        );
+        assert.notOk(
+          img.hasAttribute('onmouseover'),
+          'lowercase control handler is still removed on the teardown path'
+        );
+
+        document.body.removeChild(root);
+      }
+    );
+
+    /*
      * Rawtext/literal-text element carrying an element child breaks out on reparse.
      *
      * The HTML serializer emits the text children of style, script, xmp, iframe,
@@ -6866,6 +6910,45 @@
         assert.notOk(
           /onerror/i.test(out),
           `string-input control — got: ${out}`
+        );
+      }
+    );
+
+    /*
+     * Loose end B - the text-only literal-text breakout in an XML working
+     * document. The element-child guard above does not fire on a text-only node,
+     * which then falls to rule 1, whose second probe reads innerHTML. In an
+     * application/xhtml+xml document innerHTML is XML-serialized (`<` escaped),
+     * so that probe - and the innerHTML-based FALLBACK_TAG_CLOSE - can never
+     * match there, leaving `<style>...</style><img onerror=...>` to survive for a
+     * later HTML reserialize. The guard now also probes textContent (the raw
+     * form for these elements) for the element's OWN end tag, which is XML-
+     * agnostic. Reachable by default because <style> is default-allowed. The
+     * `rule 1 leaf` test above is the HTML-mode counterpart; this is the XML one.
+     */
+    QUnit.test(
+      'text-only <style> own-end-tag breakout is blocked in XHTML mode (loose end B)',
+      (assert) => {
+        const out = DOMPurify.sanitize(
+          '<style>&lt;/style&gt;&lt;img src=x onerror=alert(1)&gt;</style>',
+          { PARSER_MEDIA_TYPE: 'application/xhtml+xml' }
+        );
+        assert.notOk(
+          /onerror/i.test(out),
+          `xhtml text-only style breakout must not survive - got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'legitimate <style> is preserved in XHTML mode (loose end B precision)',
+      (assert) => {
+        const out = DOMPurify.sanitize('<style>p{color:red}</style>', {
+          PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+        });
+        assert.ok(
+          /p\{color:red\}/.test(out),
+          `legitimate CSS must survive - got: ${out}`
         );
       }
     );
