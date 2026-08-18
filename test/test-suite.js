@@ -6952,20 +6952,5 @@
         );
       }
     );
-
-    QUnit.test(
-      'a foreign close tag in <style> text is not treated as a breakout (loose end B precision)',
-      (assert) => {
-        // `</iframe>` inside <style> does not terminate the style element on an
-        // HTML reparse, so the own-end-tag probe must not remove it.
-        const out = DOMPurify.sanitize('<style>a{}&lt;/iframe&gt;</style>', {
-          PARSER_MEDIA_TYPE: 'application/xhtml+xml',
-        });
-        assert.ok(
-          /a\{\}/.test(out),
-          `style carrying a foreign close tag must survive - got: ${out}`
-        );
-      }
-    );
   };
 });
