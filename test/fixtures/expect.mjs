@@ -35,6 +35,16 @@ export default [
       "expected": "<svg><text text-orientation=\"upright\">y</text></svg>"
   },
   {
+      "title": "Keep the SVG pointer-events presentation attribute",
+      "payload": "<svg><rect pointer-events=\"none\" width=\"10\" height=\"10\"/></svg>",
+      "expected": "<svg><rect pointer-events=\"none\" width=\"10\" height=\"10\"></rect></svg>"
+  },
+  {
+      "title": "Keep the SVG vector-effect presentation attribute (see #447)",
+      "payload": "<svg><circle vector-effect=\"non-scaling-stroke\" cx=\"0\" cy=\"0\" r=\"30\"/></svg>",
+      "expected": "<svg><circle vector-effect=\"non-scaling-stroke\" cx=\"0\" cy=\"0\" r=\"30\"></circle></svg>"
+  },
+  {
       "title": "safe usage of URI-like attribute values (see #135)",
       "payload": "<b href=\"javascript:alert(1)\" title=\"javascript:alert(2)\"></b>",
       "expected": "<b title=\"javascript:alert(2)\"></b>"
