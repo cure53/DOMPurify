@@ -6664,5 +6664,293 @@
         );
       }
     );
+
+    QUnit.module(
+      'mXSS — DOM-node input (rawtext child + case-preserving attribute)'
+    );
+
+    /*
+     * Uppercase / mixed-case attribute from a case-preserving node survives
+     * default sanitization.
+     *
+     * Attribute names imported from a case-preserving source keep their case on an
+     * HTML element in an HTML document. Two ways to produce such a node: an
+     * XML/XHTML parse whose result is imported via importNode(), or a direct
+     * setAttributeNS(null, 'ONERROR', ...) — the latter needs no XML at all, since
+     * setAttributeNS (unlike setAttribute) does not ASCII-lowercase the name. The
+     * walk lowercases the name for its policy decision and correctly rejects e.g.
+     * `onerror`, but removal was name-based (removeAttribute('ONERROR')), and
+     * removeAttribute ASCII-lowercases only its lookup key — never the stored
+     * qualified name — so the lookup missed and the attribute survived. Reinserted
+     * via innerHTML it lowercases into a live handler. Fix: remove the exact Attr
+     * node (removeAttributeNode), which is case- and namespace-exact. String input
+     * is unaffected (the HTML parser lowercases names before the walk) and is kept
+     * as a control.
+     *
+     * Nodes are built with the DOM API so these run identically under jsdom,
+     * Chromium, Firefox and WebKit; a DOMParser variant is added behind a guard.
+     */
+    QUnit.test(
+      'uppercase event-handler attribute on a node is removed (no XML needed)',
+      (assert) => {
+        const img = document.createElement('img');
+        img.setAttribute('src', 'x');
+        img.setAttributeNS(null, 'ONERROR', 'alert(1)');
+        const wrap = document.createElement('div');
+        wrap.appendChild(img);
+
+        const out = DOMPurify.sanitize(wrap);
+        assert.notOk(
+          /onerror/i.test(out),
+          `uppercase ONERROR must not survive — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test('mixed-case ONCLICK on a node is removed', (assert) => {
+      const a = document.createElement('a');
+      a.setAttribute('href', '#');
+      a.setAttributeNS(null, 'ONCLICK', 'alert(1)');
+      const wrap = document.createElement('div');
+      wrap.appendChild(a);
+
+      const out = DOMPurify.sanitize(wrap);
+      assert.notOk(
+        /onclick/i.test(out),
+        `uppercase ONCLICK must not survive — got: ${out}`
+      );
+    });
+
+    QUnit.test(
+      'uppercase HREF carrying javascript: on a node is removed',
+      (assert) => {
+        const a = document.createElement('a');
+        a.setAttributeNS(null, 'HREF', 'javascript:alert(1)');
+        a.textContent = 'x';
+        const wrap = document.createElement('div');
+        wrap.appendChild(a);
+
+        const out = DOMPurify.sanitize(wrap);
+        assert.notOk(
+          /javascript:/i.test(out),
+          `uppercase HREF=javascript: must not survive — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'lowercase control attribute is still removed (node input)',
+      (assert) => {
+        const img = document.createElement('img');
+        img.setAttribute('src', 'x');
+        img.setAttribute('onerror', 'alert(1)');
+        const wrap = document.createElement('div');
+        wrap.appendChild(img);
+
+        const out = DOMPurify.sanitize(wrap);
+        assert.notOk(
+          /onerror/i.test(out),
+          `lowercase onerror control must not survive — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'uppercase attribute in string input is unaffected (control)',
+      (assert) => {
+        const out = DOMPurify.sanitize('<img src=x ONERROR=alert(1)>');
+        assert.notOk(
+          /onerror/i.test(out),
+          `string-input ONERROR must not survive — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'XHTML-parsed uppercase attribute is removed (DOMParser variant)',
+      (assert) => {
+        if (typeof window.DOMParser !== 'function') {
+          assert.ok(true, 'DOMParser unavailable in this engine; skipped');
+          return;
+        }
+        const xml =
+          '<img xmlns="http://www.w3.org/1999/xhtml" src="x" ONERROR="alert(1)"/>';
+        const node = new window.DOMParser().parseFromString(
+          xml,
+          'application/xhtml+xml'
+        ).documentElement;
+
+        const out = DOMPurify.sanitize(node);
+        assert.notOk(
+          /onerror/i.test(out),
+          `XHTML-origin ONERROR must not survive — got: ${out}`
+        );
+      }
+    );
+
+    /*
+     * Loose end A - the case-preserving removal must also hold on the IN_PLACE
+     * teardown paths. _stripDisallowedAttributes (per-node scrub of a subtree
+     * leaving the tree) and _neutralizeRoot (fail-closed root teardown) held the
+     * exact Attr node but still removed it by name, reintroducing the same
+     * removeAttribute ASCII-lowercasing miss the walk was fixed for. Both now
+     * remove the Attr node directly (shared _stripAttributeNode helper), so a
+     * case-preserved handler on a node being discarded is scrubbed rather than
+     * left behind for a later reserialize.
+     */
+    QUnit.test(
+      'IN_PLACE teardown scrubs a case-preserved ONERROR on a discarded subtree (loose end A)',
+      (assert) => {
+        const root = document.createElement('div');
+        const wrap = document.createElement('section'); // dropped wholesale
+        const img = document.createElement('img');
+        img.setAttribute('src', 'x');
+        img.setAttributeNS(null, 'ONERROR', 'alert(1)'); // case-preserved
+        img.setAttribute('onmouseover', 'alert(2)'); // lowercase control
+        wrap.appendChild(img);
+        root.appendChild(wrap);
+        document.body.appendChild(root);
+
+        DOMPurify.sanitize(root, {
+          IN_PLACE: true,
+          FORBID_TAGS: ['section'],
+          KEEP_CONTENT: false, // force a wholesale subtree drop -> neutralize
+        });
+
+        assert.notOk(
+          img.hasAttribute('ONERROR'),
+          `uppercase ONERROR must not survive teardown - got: ${img
+            .getAttributeNames()
+            .join()}`
+        );
+        assert.notOk(
+          img.hasAttribute('onmouseover'),
+          'lowercase control handler is still removed on the teardown path'
+        );
+
+        document.body.removeChild(root);
+      }
+    );
+
+    /*
+     * Rawtext/literal-text element carrying an element child breaks out on reparse.
+     *
+     * The HTML serializer emits the text children of style, script, xmp, iframe,
+     * noembed, noframes, plaintext and noscript literally (unescaped). The generic
+     * mXSS canary in _isUnsafeNode fires only when the node has NO element child,
+     * so a rawtext element carrying both an element child (a shield that makes
+     * firstElementChild non-null) and a `</tag>`-bearing text sibling slips it. A
+     * second guard covered exactly this shape but only for `style`; it now covers
+     * the whole literal-text set. This tree is unreachable from a string (the HTML
+     * parser only ever puts a single text node inside a rawtext element) but the
+     * DOM API and an XML parse build it, and sanitize(node) accepts it.
+     */
+    function buildRawtextBreakout(tagName) {
+      const el = document.createElement(tagName);
+      el.appendChild(document.createElement('b')); // shield: firstElementChild != null
+      el.appendChild(
+        document.createTextNode(
+          '</' + tagName + '><img src=n onerror=alert(1)>'
+        )
+      );
+      const wrap = document.createElement('div');
+      wrap.appendChild(el);
+      return wrap;
+    }
+
+    QUnit.test(
+      '<style> rawtext element-child breakout is blocked (default config)',
+      (assert) => {
+        const out = DOMPurify.sanitize(buildRawtextBreakout('style'));
+        assert.notOk(/onerror/i.test(out), `style breakout — got: ${out}`);
+      }
+    );
+
+    QUnit.test(
+      '<xmp> rawtext element-child breakout is blocked when allow-listed',
+      (assert) => {
+        const out = DOMPurify.sanitize(buildRawtextBreakout('xmp'), {
+          ADD_TAGS: ['xmp'],
+        });
+        assert.notOk(/onerror/i.test(out), `xmp breakout — got: ${out}`);
+      }
+    );
+
+    QUnit.test(
+      '<iframe> rawtext element-child breakout is blocked when allow-listed',
+      (assert) => {
+        const out = DOMPurify.sanitize(buildRawtextBreakout('iframe'), {
+          ADD_TAGS: ['iframe'],
+        });
+        assert.notOk(/onerror/i.test(out), `iframe breakout — got: ${out}`);
+      }
+    );
+
+    QUnit.test(
+      'rawtext leaf without element child is still blocked (rule 1)',
+      (assert) => {
+        const el = document.createElement('xmp');
+        el.appendChild(
+          document.createTextNode('</xmp><img src=n onerror=alert(1)>')
+        );
+        const wrap = document.createElement('div');
+        wrap.appendChild(el);
+        const out = DOMPurify.sanitize(wrap, { ADD_TAGS: ['xmp'] });
+        assert.notOk(/onerror/i.test(out), `xmp leaf breakout — got: ${out}`);
+      }
+    );
+
+    QUnit.test(
+      'equivalent rawtext string input is unaffected (control)',
+      (assert) => {
+        const out = DOMPurify.sanitize(
+          '<xmp><b>x</b></xmp><img src=n onerror=alert(1)>',
+          { ADD_TAGS: ['xmp'] }
+        );
+        assert.notOk(
+          /onerror/i.test(out),
+          `string-input control — got: ${out}`
+        );
+      }
+    );
+
+    /*
+     * Loose end B - the text-only literal-text breakout in an XML working
+     * document. The element-child guard above does not fire on a text-only node,
+     * which then falls to rule 1, whose second probe reads innerHTML. In an
+     * application/xhtml+xml document innerHTML is XML-serialized (`<` escaped),
+     * so that probe - and the innerHTML-based FALLBACK_TAG_CLOSE - can never
+     * match there, leaving `<style>...</style><img onerror=...>` to survive for a
+     * later HTML reserialize. The guard now also probes textContent (the raw
+     * form for these elements) for the element's OWN end tag, which is XML-
+     * agnostic. Reachable by default because <style> is default-allowed. The
+     * `rule 1 leaf` test above is the HTML-mode counterpart; this is the XML one.
+     */
+    QUnit.test(
+      'text-only <style> own-end-tag breakout is blocked in XHTML mode (loose end B)',
+      (assert) => {
+        const out = DOMPurify.sanitize(
+          '<style>&lt;/style&gt;&lt;img src=x onerror=alert(1)&gt;</style>',
+          { PARSER_MEDIA_TYPE: 'application/xhtml+xml' }
+        );
+        assert.notOk(
+          /onerror/i.test(out),
+          `xhtml text-only style breakout must not survive - got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'legitimate <style> is preserved in XHTML mode (loose end B precision)',
+      (assert) => {
+        const out = DOMPurify.sanitize('<style>p{color:red}</style>', {
+          PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+        });
+        assert.ok(
+          /p\{color:red\}/.test(out),
+          `legitimate CSS must survive - got: ${out}`
+        );
+      }
+    );
   };
 });

@@ -6,13 +6,16 @@ Thank you for your interest in contributing to DOMPurify.
 
 A pull request is considered eligible for inclusion only if it satisfies all of the following requirements:
 
-1. **Linter passes**
+1. **Signed commits**
+   - The proposed changes must come from a signed commit.
+
+2. **Linter passes**
    - The proposed changes must satisfy the project's linting requirements.
 
-2. **All tests pass**
+3. **All tests pass**
    - The full test suite must pass without regressions.
 
-3. **Manual review by the core maintainer**
+4. **Manual review by the core maintainer**
    - Every pull request is subject to manual review by the core maintainer.
    - Passing automated checks alone does not guarantee acceptance.
 
