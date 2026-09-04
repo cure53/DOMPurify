@@ -496,6 +496,12 @@ function createDOMPurify() {
   const ElementPrototype = Element.prototype;
   const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
   const remove = lookupGetter(ElementPrototype, 'remove');
+  // Clobber-safe Attr-node removal. On an HTMLFormElement a descendant named
+  // "removeAttributeNode" shadows the prototype method via
+  // [LegacyOverrideBuiltIns], so element.removeAttributeNode(attr) throws.
+  // Calling the cached Element.prototype method with the element as the
+  // receiver removes the exact live Attr node regardless of the shadowing.
+  const removeAttributeNode = lookupGetter(ElementPrototype, 'removeAttributeNode');
   const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
   const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
   const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
@@ -1160,7 +1166,7 @@ function createDOMPurify() {
    */
   const _stripAttributeNode = function _stripAttributeNode(element, attribute, name) {
     try {
-      element.removeAttributeNode(attribute);
+      removeAttributeNode(element, attribute);
     } catch (_) {
       try {
         element.removeAttribute(name);
@@ -1248,13 +1254,18 @@ function createDOMPurify() {
     });
     try {
       if (attr) {
-        element.removeAttributeNode(attr);
+        removeAttributeNode(element, attr);
       } else {
         element.removeAttribute(name);
       }
     } catch (_) {
       /* Clobbered or already-detached node - best-effort fall back to a
-         name-based removal so the "is" handling below still runs. */
+         name-based removal so the "is" handling below still runs. Note this
+         fallback ASCII-lowercases its lookup key in an HTML document and so
+         cannot reach a case-preserved attribute name; the cached
+         removeAttributeNode() above is what removes those, and a clobbered
+         form is already removed wholesale by _isClobbered() before reaching
+         here. */
       try {
         element.removeAttribute(name);
       } catch (_) {}
@@ -1590,7 +1601,17 @@ function createDOMPurify() {
     // makes the direct read diverge from the cached read; a clean form
     // (same-realm OR foreign-realm) has both reads pointing at the same
     // canonical NamedNodeMap.
-    element.attributes !== getAttributes(element) || typeof element.removeAttribute !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function' ||
+    element.attributes !== getAttributes(element) || typeof element.removeAttribute !== 'function' ||
+    // A form descendant named "removeAttributeNode" or "getAttributeNode"
+    // shadows these Attr-node methods via [LegacyOverrideBuiltIns].
+    // _removeAttribute() / _stripAttributeNode() reach for
+    // element.removeAttributeNode(attr) first; when it is shadowed the call
+    // throws and the name-based fallback element.removeAttribute(name)
+    // ASCII-lowercases its lookup key in an HTML document, silently missing
+    // a case-preserved event-handler attribute (e.g. an ONANIMATIONSTART
+    // that reached the sanitizer through an XML/XHTML parse). Flag the form
+    // so it is removed wholesale, exactly as for the other shadowed methods.
+    typeof element.removeAttributeNode !== 'function' || typeof element.getAttributeNode !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function' ||
     // NodeType clobbering probe. Cached Node.prototype.nodeType getter
     // returns the integer 1 for any Element regardless of realm; direct
     // read on a clobbered form (e.g. <input name="nodeType">) returns

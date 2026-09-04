@@ -1652,6 +1652,43 @@
       }
     );
 
+    QUnit.test(
+      'form with a removeAttributeNode-clobbering child cannot smuggle a case-preserved ON* handler',
+      (assert) => {
+        // Regression for the removeAttributeNode clobber bypass. A named
+        // child shadows form.removeAttributeNode via [LegacyOverrideBuiltIns],
+        // so _removeAttribute()'s exact-Attr removal throws and the name-based
+        // fallback removeAttribute(name) ASCII-lowercases its lookup key in an
+        // HTML document, silently missing a case-preserved ONANIMATIONSTART.
+        // An XML/XHTML parse + importNode is what preserves the attribute case;
+        // HTML parsing would lowercase it and defuse the vector, so the input
+        // must come through the XML path. In a clobbering-capable engine the
+        // named child shadows the method; in jsdom/happy-dom it does not, and
+        // the branch just documents that. Either way, no ON* may survive.
+        const xhtml =
+          '<div xmlns="http://www.w3.org/1999/xhtml">' +
+          '<form ONANIMATIONSTART="window.__clobberPoc=1">' +
+          '<input name="removeAttributeNode"/>' +
+          '</form></div>';
+        const parsed = new window.DOMParser().parseFromString(
+          xhtml,
+          'application/xhtml+xml'
+        );
+        const node = document.importNode(parsed.documentElement, true);
+        const form = node.querySelector('form');
+        const clobbers = typeof form.removeAttributeNode !== 'function';
+
+        const clean = DOMPurify.sanitize(node);
+
+        assert.notOk(
+          /onanimationstart/i.test(clean),
+          clobbers
+            ? 'clobbering engine: case-preserved ON* handler stripped'
+            : 'non-clobbering engine: case-preserved ON* handler stripped'
+        );
+      }
+    );
+
     // =====================================================================
     // Fail-closed teardown must de-arm removed nodes on EVERY exit path,
     // not just a clean return. The success-path DOMPurify.removed loop
