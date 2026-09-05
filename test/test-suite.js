@@ -1551,6 +1551,101 @@
       }
     );
 
+    QUnit.test(
+      'SO-003: fragment input with a child shadow host has its shadow root sanitized',
+      (assert) => {
+        // Regression for SO-003. When the input is a DocumentFragment whose
+        // child is a shadow host, DOMPurify's internal appendChild() moves the
+        // fragment's children into its working body and empties the fragment.
+        // The attached-shadow traversal must run from that body, not from the
+        // now-empty fragment, or the child host's open shadow root is never
+        // inspected and a rejected handler survives in the returned DOM.
+        let supportsClonable = false;
+        try {
+          const probeHost = document.createElement('div');
+          probeHost.attachShadow({ mode: 'open', clonable: true }).innerHTML =
+            '<span>x</span>';
+          const imported = document.importNode(probeHost, true);
+          supportsClonable = !!(
+            imported.shadowRoot && imported.shadowRoot.querySelector('span')
+          );
+        } catch (_) {}
+
+        if (!supportsClonable) {
+          assert.ok(
+            true,
+            'environment does not support clonable shadow roots; skipping'
+          );
+          return;
+        }
+
+        const host = document.createElement('div');
+        host.attachShadow({ mode: 'open', clonable: true }).append(
+          (() => {
+            const a = document.createElement('a');
+            a.id = 'poc';
+            a.setAttribute('href', 'javascript:alert(1)');
+            return a;
+          })()
+        );
+
+        // Wrap the host inside a DocumentFragment - this is the SO-003 shape.
+        const fragment = document.createDocumentFragment();
+        fragment.append(host);
+
+        const out = DOMPurify.sanitize(fragment, { RETURN_DOM_FRAGMENT: true });
+        const returnedHost = out.querySelector('div');
+        assert.ok(
+          returnedHost &&
+            returnedHost.shadowRoot instanceof window.DocumentFragment,
+          'cloned shadow root present on returned host'
+        );
+        const a = returnedHost.shadowRoot.querySelector('#poc');
+        assert.ok(
+          !a || a.getAttribute('href') === null,
+          'javascript: href inside the child host shadow was sanitized: ' +
+            (a ? a.outerHTML : '(link removed)')
+        );
+      }
+    );
+
+    QUnit.test(
+      'SO-001: an unrelated attribute writeback does not drop a subtree cleanup record',
+      (assert) => {
+        // Regression for SO-001. A <style> with an element child is force-
+        // removed (mXSS rule) and recorded for the IN_PLACE handler-
+        // neutralization pass. Trimming the unrelated `title` on that style
+        // triggers _setAttributeValue(), whose pop must NOT consume the STYLE
+        // subtree record - otherwise the detached <details ontoggle> keeps its
+        // handler after sanitization.
+        const dirty = document.createElement('div');
+        const style = document.createElement('style');
+        const details = document.createElement('details');
+        style.setAttribute('title', ' normalized '); // surrounding spaces -> trim writeback
+        details.setAttribute('ontoggle', 'window.__so001 = 1');
+        details.setAttribute('open', '');
+        style.appendChild(details);
+        dirty.appendChild(style);
+        document.body.appendChild(dirty);
+
+        DOMPurify.sanitize(dirty, { IN_PLACE: true });
+
+        assert.notOk(
+          details.hasAttribute('ontoggle'),
+          'ontoggle stripped from the detached subtree by the cleanup pass'
+        );
+        const recordedStyle = DOMPurify.removed.some(
+          (entry) => entry.element && entry.element.nodeName === 'STYLE'
+        );
+        assert.ok(
+          recordedStyle,
+          'STYLE subtree cleanup record was preserved through the writeback'
+        );
+
+        dirty.remove();
+      }
+    );
+
     QUnit.test('handles DOM-clobbered nodeName safely', (assert) => {
       const root = document.createElement('form');
       root.innerHTML =

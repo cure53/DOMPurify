@@ -2462,22 +2462,32 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /**
    * Write a modified attribute value back onto the element. On
    * success, re-probe for clobbering introduced by the new value and
-   * remove the element when found; otherwise pop the removal entry
-   * recorded by the earlier _removeAttribute (long-standing pairing
-   * with the SANITIZE_NAMED_PROPS path - do not "fix" casually). On
+   * remove the element when found; otherwise, when this writeback is the
+   * recreate half of the SANITIZE_NAMED_PROPS remove-and-recreate, pop the
+   * removal entry that path recorded so it does not show as removed. On
    * failure, remove the attribute instead.
+   *
+   * Returns true only on a clean write (the value was set and the new value
+   * introduced no clobbering). The caller uses that, together with its own
+   * knowledge of whether this attribute pushed a DOMPurify.removed record, to
+   * decide whether to pop that record. The pop must happen ONLY for the
+   * named-prop remove-and-recreate; popping on any other value change (trim,
+   * template scrubbing, Trusted Types) would consume an unrelated _forceRemove
+   * subtree-cleanup record and let that detached subtree keep a live event
+   * handler through the IN_PLACE neutralization pass (SO-001).
    *
    * @param currentNode the element carrying the attribute
    * @param name the attribute name as present on the element
    * @param namespaceURI the attribute's namespace, if any
    * @param value the new attribute value
+   * @return true if the value was written without introducing clobbering
    */
   const _setAttributeValue = function (
     currentNode: Element,
     name: string,
     namespaceURI: string | null,
     value: string
-  ): void {
+  ): boolean {
     try {
       if (namespaceURI) {
         currentNode.setAttributeNS(namespaceURI, name, value);
@@ -2488,11 +2498,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       if (_isClobbered(currentNode)) {
         _forceRemove(currentNode);
-      } else {
-        arrayPop(DOMPurify.removed);
+        return false;
       }
+
+      return true;
     } catch (_) {
       _removeAttribute(name, currentNode);
+      return false;
     }
   };
 
@@ -2506,6 +2518,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    *
    * @param currentNode to sanitize
    */
+  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function (currentNode: Element): void {
     /* Execute a hook if present */
     _executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
@@ -2545,6 +2558,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       const initValue = attrValue;
       let value = name === 'value' ? initValue : stringTrim(initValue);
 
+      /* Tracks whether this specific attribute pushed a DOMPurify.removed
+         record that a later _setAttributeValue() writeback is expected to pop
+         back off (the SANITIZE_NAMED_PROPS remove-and-recreate below is the
+         only path that does). A value that merely changed via trim, template
+         scrubbing, or Trusted Types pushes no such record, so its writeback
+         must NOT pop — otherwise it consumes an unrelated _forceRemove subtree
+         record and that detached subtree escapes the IN_PLACE handler-
+         neutralization pass (SO-001). */
+      let recreatedNamedProp = false;
+
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
       hookEvent.attrValue = value;
@@ -2565,6 +2588,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _removeAttribute(name, currentNode, attr);
         // Prefix the value and later re-create the attribute with the sanitized value
         value = SANITIZE_NAMED_PROPS_PREFIX + value;
+        // This attribute owns the record just pushed; its recreate writeback
+        // is the one allowed to pop it back off.
+        recreatedNamedProp = true;
       }
       // Else: already prefixed, leave the attribute alone — the prefix is
       // itself the clobbering protection, and re-applying it is incorrect.
@@ -2623,7 +2649,20 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       /* Handle invalid data-* attribute set by try-catching it */
       if (value !== initValue) {
-        _setAttributeValue(currentNode, name, namespaceURI, value);
+        const cleanWrite = _setAttributeValue(
+          currentNode,
+          name,
+          namespaceURI,
+          value
+        );
+
+        /* Only the named-prop remove-and-recreate owns a DOMPurify.removed
+           record to pop; a plain trim/template/Trusted-Types writeback owns
+           none, so popping here would drop an unrelated subtree's cleanup
+           record (SO-001). */
+        if (cleanWrite && recreatedNamedProp) {
+          arrayPop(DOMPurify.removed);
+        }
       }
     }
 
@@ -2931,8 +2970,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
          them before the main iterator runs, since the iterator does not
          descend into shadow trees. The walk routes every read through a
          cached prototype getter so clobbering descendants on a form root
-         cannot hide a shadow host from this pass. */
-      _sanitizeAttachedShadowRoots(importedNode);
+         cannot hide a shadow host from this pass.
+
+         Traverse from `body`, not `importedNode`: when importedNode is a
+         DocumentFragment, the appendChild() above moves its children into
+         `body` and leaves the fragment empty, so walking importedNode would
+         scan nothing and miss every attached shadow host now under `body`
+         (SO-003). In the BODY/HTML branches `body === importedNode`, so this
+         is equivalent there; in the element branch `body` contains the
+         appended element and its descendants. `body` covers all three. */
+      _sanitizeAttachedShadowRoots(body);
     } else {
       /* Exit directly if we have nothing to do */
       if (
