@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.4.14 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.14/LICENSE */
+/*! @license DOMPurify 3.4.15 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.15/LICENSE */
 
 function _arrayLikeToArray(r, a) {
   (null == a || a > r.length) && (a = r.length);
@@ -470,7 +470,7 @@ const _resolveObjectOption = function _resolveObjectOption(cfg, key, makeFallbac
 function createDOMPurify() {
   let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
   const DOMPurify = root => createDOMPurify(root);
-  DOMPurify.version = '3.4.14';
+  DOMPurify.version = '3.4.15';
   DOMPurify.removed = [];
   if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
     // Not running in a browser, provide a factory function
@@ -494,6 +494,12 @@ function createDOMPurify() {
   const ElementPrototype = Element.prototype;
   const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
   const remove = lookupGetter(ElementPrototype, 'remove');
+  // Clobber-safe Attr-node removal. On an HTMLFormElement a descendant named
+  // "removeAttributeNode" shadows the prototype method via
+  // [LegacyOverrideBuiltIns], so element.removeAttributeNode(attr) throws.
+  // Calling the cached Element.prototype method with the element as the
+  // receiver removes the exact live Attr node regardless of the shadowing.
+  const removeAttributeNode = lookupGetter(ElementPrototype, 'removeAttributeNode');
   const getNextSibling = lookupGetter(ElementPrototype, 'nextSibling');
   const getChildNodes = lookupGetter(ElementPrototype, 'childNodes');
   const getParentNode = lookupGetter(ElementPrototype, 'parentNode');
@@ -1158,7 +1164,7 @@ function createDOMPurify() {
    */
   const _stripAttributeNode = function _stripAttributeNode(element, attribute, name) {
     try {
-      element.removeAttributeNode(attribute);
+      removeAttributeNode(element, attribute);
     } catch (_) {
       try {
         element.removeAttribute(name);
@@ -1246,13 +1252,18 @@ function createDOMPurify() {
     });
     try {
       if (attr) {
-        element.removeAttributeNode(attr);
+        removeAttributeNode(element, attr);
       } else {
         element.removeAttribute(name);
       }
     } catch (_) {
       /* Clobbered or already-detached node - best-effort fall back to a
-         name-based removal so the "is" handling below still runs. */
+         name-based removal so the "is" handling below still runs. Note this
+         fallback ASCII-lowercases its lookup key in an HTML document and so
+         cannot reach a case-preserved attribute name; the cached
+         removeAttributeNode() above is what removes those, and a clobbered
+         form is already removed wholesale by _isClobbered() before reaching
+         here. */
       try {
         element.removeAttribute(name);
       } catch (_) {}
@@ -1588,7 +1599,17 @@ function createDOMPurify() {
     // makes the direct read diverge from the cached read; a clean form
     // (same-realm OR foreign-realm) has both reads pointing at the same
     // canonical NamedNodeMap.
-    element.attributes !== getAttributes(element) || typeof element.removeAttribute !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function' ||
+    element.attributes !== getAttributes(element) || typeof element.removeAttribute !== 'function' ||
+    // A form descendant named "removeAttributeNode" or "getAttributeNode"
+    // shadows these Attr-node methods via [LegacyOverrideBuiltIns].
+    // _removeAttribute() / _stripAttributeNode() reach for
+    // element.removeAttributeNode(attr) first; when it is shadowed the call
+    // throws and the name-based fallback element.removeAttribute(name)
+    // ASCII-lowercases its lookup key in an HTML document, silently missing
+    // a case-preserved event-handler attribute (e.g. an ONANIMATIONSTART
+    // that reached the sanitizer through an XML/XHTML parse). Flag the form
+    // so it is removed wholesale, exactly as for the other shadowed methods.
+    typeof element.removeAttributeNode !== 'function' || typeof element.getAttributeNode !== 'function' || typeof element.setAttribute !== 'function' || typeof element.namespaceURI !== 'string' || typeof element.insertBefore !== 'function' || typeof element.hasChildNodes !== 'function' ||
     // NodeType clobbering probe. Cached Node.prototype.nodeType getter
     // returns the integer 1 for any Element regardless of realm; direct
     // read on a clobbered form (e.g. <input name="nodeType">) returns
@@ -2079,15 +2100,25 @@ function createDOMPurify() {
   /**
    * Write a modified attribute value back onto the element. On
    * success, re-probe for clobbering introduced by the new value and
-   * remove the element when found; otherwise pop the removal entry
-   * recorded by the earlier _removeAttribute (long-standing pairing
-   * with the SANITIZE_NAMED_PROPS path - do not "fix" casually). On
+   * remove the element when found; otherwise, when this writeback is the
+   * recreate half of the SANITIZE_NAMED_PROPS remove-and-recreate, pop the
+   * removal entry that path recorded so it does not show as removed. On
    * failure, remove the attribute instead.
+   *
+   * Returns true only on a clean write (the value was set and the new value
+   * introduced no clobbering). The caller uses that, together with its own
+   * knowledge of whether this attribute pushed a DOMPurify.removed record, to
+   * decide whether to pop that record. The pop must happen ONLY for the
+   * named-prop remove-and-recreate; popping on any other value change (trim,
+   * template scrubbing, Trusted Types) would consume an unrelated _forceRemove
+   * subtree-cleanup record and let that detached subtree keep a live event
+   * handler through the IN_PLACE neutralization pass (SO-001).
    *
    * @param currentNode the element carrying the attribute
    * @param name the attribute name as present on the element
    * @param namespaceURI the attribute's namespace, if any
    * @param value the new attribute value
+   * @return true if the value was written without introducing clobbering
    */
   const _setAttributeValue = function _setAttributeValue(currentNode, name, namespaceURI, value) {
     try {
@@ -2099,11 +2130,12 @@ function createDOMPurify() {
       }
       if (_isClobbered(currentNode)) {
         _forceRemove(currentNode);
-      } else {
-        arrayPop(DOMPurify.removed);
+        return false;
       }
+      return true;
     } catch (_) {
       _removeAttribute(name, currentNode);
+      return false;
     }
   };
   /**
@@ -2116,6 +2148,7 @@ function createDOMPurify() {
    *
    * @param currentNode to sanitize
    */
+  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
     /* Execute a hook if present */
     _executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
@@ -2145,6 +2178,15 @@ function createDOMPurify() {
       const lcName = transformCaseFunc(name);
       const initValue = attrValue;
       let value = name === 'value' ? initValue : stringTrim(initValue);
+      /* Tracks whether this specific attribute pushed a DOMPurify.removed
+         record that a later _setAttributeValue() writeback is expected to pop
+         back off (the SANITIZE_NAMED_PROPS remove-and-recreate below is the
+         only path that does). A value that merely changed via trim, template
+         scrubbing, or Trusted Types pushes no such record, so its writeback
+         must NOT pop — otherwise it consumes an unrelated _forceRemove subtree
+         record and that detached subtree escapes the IN_PLACE handler-
+         neutralization pass (SO-001). */
+      let recreatedNamedProp = false;
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
       hookEvent.attrValue = value;
@@ -2160,6 +2202,9 @@ function createDOMPurify() {
         _removeAttribute(name, currentNode, attr);
         // Prefix the value and later re-create the attribute with the sanitized value
         value = SANITIZE_NAMED_PROPS_PREFIX + value;
+        // This attribute owns the record just pushed; its recreate writeback
+        // is the one allowed to pop it back off.
+        recreatedNamedProp = true;
       }
       // Else: already prefixed, leave the attribute alone — the prefix is
       // itself the clobbering protection, and re-applying it is incorrect.
@@ -2200,7 +2245,14 @@ function createDOMPurify() {
       value = _applyTrustedTypesToAttribute(lcTag, lcName, namespaceURI, value);
       /* Handle invalid data-* attribute set by try-catching it */
       if (value !== initValue) {
-        _setAttributeValue(currentNode, name, namespaceURI, value);
+        const cleanWrite = _setAttributeValue(currentNode, name, namespaceURI, value);
+        /* Only the named-prop remove-and-recreate owns a DOMPurify.removed
+           record to pop; a plain trim/template/Trusted-Types writeback owns
+           none, so popping here would drop an unrelated subtree's cleanup
+           record (SO-001). */
+        if (cleanWrite && recreatedNamedProp) {
+          arrayPop(DOMPurify.removed);
+        }
       }
     }
     /* Execute a hook if present */
@@ -2476,8 +2528,15 @@ function createDOMPurify() {
          them before the main iterator runs, since the iterator does not
          descend into shadow trees. The walk routes every read through a
          cached prototype getter so clobbering descendants on a form root
-         cannot hide a shadow host from this pass. */
-      _sanitizeAttachedShadowRoots(importedNode);
+         cannot hide a shadow host from this pass.
+                Traverse from `body`, not `importedNode`: when importedNode is a
+         DocumentFragment, the appendChild() above moves its children into
+         `body` and leaves the fragment empty, so walking importedNode would
+         scan nothing and miss every attached shadow host now under `body`
+         (SO-003). In the BODY/HTML branches `body === importedNode`, so this
+         is equivalent there; in the element branch `body` contains the
+         appended element and its descendants. `body` covers all three. */
+      _sanitizeAttachedShadowRoots(body);
     } else {
       /* Exit directly if we have nothing to do */
       if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT &&
