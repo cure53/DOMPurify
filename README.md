@@ -81,6 +81,10 @@ const clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 
 Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_, you might easily **void the effects of sanitization**. If you feed the sanitized markup to another library _after_ sanitization, please be certain that the library doesn't mess around with the HTML on its own. See the [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model) for safe-usage recipes and the tags/attributes worth thinking twice about, and [Attack Classes & Bypass History](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History) for why post-processing and changing the markup context defeat sanitization.
 
+### What about passing a DOM node instead of a string?
+
+`DOMPurify.sanitize()` also accepts a DOM node (an `Element`, `DocumentFragment` or `Document`). Since 3.4.14 that path is hardened for nodes that did not come out of the HTML parser: a node built with the DOM API or parsed as XML/XHTML (for example via `DOMParser` with `application/xhtml+xml` and `importNode()`) can carry case-preserved attribute names such as `ONERROR`, or a rawtext element like `<style>` with an element child or its own end tag inside its text. Both shapes are invisible to a string sanitizer because the HTML parser can never build them, but they break out on reparse. DOMPurify now removes attributes by their exact `Attr` node and treats these literal-text trees as unsafe, so mixing document contexts on the input side is covered. It remains your job not to mix contexts on the *output* side, see the paragraph above.
+
 ### Okay, makes sense, let's move on
 
 After sanitizing your markup, you can also have a look at the property `DOMPurify.removed` and find out, what elements and attributes were thrown out. Please **do not use** this property for making any security critical decisions. This is just a little helper for curious minds.
@@ -376,10 +380,12 @@ const clean = DOMPurify.sanitize(dirty, { ALLOW_UNKNOWN_PROTOCOLS: true });
 
 // allow specific protocol handlers in URL attributes via regex (default is false, be careful, XSS risk)
 // by default only (protocol-)relative URLs, http, https, ftp, ftps, tel, mailto, callto, sms, cid, xmpp and matrix are allowed.
-// Default RegExp: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
+// Default RegExp: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
+// The example below extends the default with one additional scheme (sftp).
+// Keep the pattern linear-time: it runs against attacker-controlled values.
 const clean = DOMPurify.sanitize(dirty, {
   ALLOWED_URI_REGEXP:
-    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    /^(?:(?:(?:f|ht)tps?|sftp|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
 });
 ```
 
@@ -461,6 +467,13 @@ dirty.setAttribute('href', 'javascript:alert(1)');
 const clean = DOMPurify.sanitize(dirty, { IN_PLACE: true }); // see https://github.com/cure53/DOMPurify/issues/288 for more info
 ```
 
+A few things to know about `IN_PLACE`:
+
+- The root node you pass in must itself be an allowed tag and must not be DOM-clobbered (for example a `<form>` with a child named `nodeName` or `ownerDocument`). If it is, DOMPurify strips the root's subtree of every non-allow-listed attribute and then throws a `TypeError`, so a rejected root is never handed back armed.
+- If anything throws mid-walk, the same fail-closed neutralization runs over the root and over every subtree already detached during that walk before the error propagates.
+- Nodes that a hook detaches from the tree (a common pattern, see [Hooks](#hooks)) are treated as removed. In `IN_PLACE` mode their subtree is neutralized inline, so an `<img onload>` that was already loading when you built the live tree cannot fire after `sanitize()` returns.
+- DOMPurify cannot undo engine mutations that already fired *before* `sanitize()` was called (a patch applied on connection, a `selectedcontent` re-clone, and so on). Sanitize attacker-controlled trees before connecting them to the live document, not after.
+
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
 
 ## Persistent Configuration
@@ -495,6 +508,13 @@ DOMPurify.addHook(
   }
 );
 ```
+
+### Hook behavior worth knowing
+
+- **Detaching a node from a hook is supported.** If a `beforeSanitizeElements` or `uponSanitizeElement` hook removes the current node from the tree (for example `node.remove()` to drop a `foreignObject`), DOMPurify treats the node as removed and stops processing it. Such nodes are not recorded in `DOMPurify.removed`. In `IN_PLACE` mode the detached subtree is still neutralized (since 3.4.13), because a live node may carry an already-queued resource event.
+- **`afterSanitizeElements` runs for kept custom elements, too.** Since 3.4.12, an element admitted via `CUSTOM_ELEMENT_HANDLING.tagNameCheck` goes through `afterSanitizeElements` exactly like an allow-listed element, so a policy applied in that hook (for example stripping an attribute from every surviving element) cannot silently skip custom elements ([GHSA-c2j3-45gr-mqc4](https://github.com/cure53/DOMPurify/security/advisories/GHSA-c2j3-45gr-mqc4)).
+- **Prefer `hookEvent.keepAttr` / `forceKeepAttr` over writing to `hookEvent.allowedAttributes` or `allowedTags`.** The per-node flags cannot leak. Writes to the allow-list objects are isolated per call, including when the hook is installed lazily from inside another hook and when a persistent config from `setConfig()` is active ([GHSA-cmwh-pvxp-8882](https://github.com/cure53/DOMPurify/security/advisories/GHSA-cmwh-pvxp-8882)), but they remain the sharper tool.
+- **`afterSanitize*` hooks run after validation.** Whatever you write there is not re-checked. Put attacker-influenced values through `uponSanitize*` hooks instead.
 
 ### A note on calling `sanitize()` from a hook
 
