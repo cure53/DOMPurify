@@ -3064,12 +3064,37 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
          move-hoist covers only disallowed-tag KEEP_CONTENT removals; strip the
          non-allow-listed attributes off every other removed subtree (clobber,
          mXSS, namespace, comments, KEEP_CONTENT:false, …) so those handlers are
-         cancelled before any event can fire. Runs synchronously, pre-return. */
+         cancelled before any event can fire. Runs synchronously, pre-return.
+
+         The same pass also detects the one shape the attribute strip cannot
+         make safe: the in-place ROOT was itself force-removed during the walk
+         (a rawtext root killed by the LITERAL_TEXT_CLOSE probe, a clobbered
+         root, an mXSS-canary root, …). Such a root is detached and, for a
+         rawtext element, still carries a literal `</tag>`-bearing text payload
+         that `_neutralizeSubtree`'s attribute-only strip does not touch, so
+         re-serialising and re-parsing the returned node re-opens the markup.
+         There is no safe node to hand back, so fail closed - identical in
+         spirit to the parentless-root throw in `_forceRemove` and the
+         clobbered-root throw at the IN_PLACE entry. Covers every present and
+         future root-kill reason in one check, on both the attribute and text
+         axes. */
+      let rootWasRemoved = false;
       arrayForEach(DOMPurify.removed, (entry) => {
         if (entry.element) {
+          if (entry.element === dirty) {
+            rootWasRemoved = true;
+          }
+
           _neutralizeSubtree(entry.element as Node);
         }
       });
+
+      if (rootWasRemoved) {
+        throw typeErrorCreate(
+          'a node selected for removal could not be safely returned; ' +
+            'refusing to sanitize in place'
+        );
+      }
 
       if (SAFE_FOR_TEMPLATES) {
         _scrubTemplateExpressions(dirty as Element);
