@@ -83,7 +83,7 @@ Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_,
 
 ### What about passing a DOM node instead of a string?
 
-`DOMPurify.sanitize()` also accepts a DOM node (an `Element`, `DocumentFragment` or `Document`). Since 3.4.14 that path is hardened for nodes that did not come out of the HTML parser: a node built with the DOM API or parsed as XML/XHTML (for example via `DOMParser` with `application/xhtml+xml` and `importNode()`) can carry case-preserved attribute names such as `ONERROR`, or a rawtext element like `<style>` with an element child or its own end tag inside its text. Both shapes are invisible to a string sanitizer because the HTML parser can never build them, but they break out on reparse. DOMPurify now removes attributes by their exact `Attr` node and treats these literal-text trees as unsafe, so mixing document contexts on the input side is covered. It remains your job not to mix contexts on the *output* side, see the paragraph above.
+`DOMPurify.sanitize()` also accepts a DOM node (an `Element`, `DocumentFragment` or `Document`). Since 3.4.14 that path is hardened for nodes that did not come out of the HTML parser: a node built with the DOM API or parsed as XML/XHTML (for example via `DOMParser` with `application/xhtml+xml` and `importNode()`) can carry case-preserved attribute names such as `ONERROR`, or a rawtext element like `<style>` with an element child or its own end tag inside its text. Both shapes are invisible to a string sanitizer because the HTML parser can never build them, but they break out on reparse. DOMPurify now removes attributes by their exact `Attr` node and treats these literal-text trees as unsafe, so mixing document contexts on the input side is covered. It remains your job not to mix contexts on the _output_ side, see the paragraph above.
 
 ### Okay, makes sense, let's move on
 
@@ -472,7 +472,7 @@ A few things to know about `IN_PLACE`:
 - The root node you pass in must itself be an allowed tag and must not be DOM-clobbered (for example a `<form>` with a child named `nodeName` or `ownerDocument`). If it is, DOMPurify strips the root's subtree of every non-allow-listed attribute and then throws a `TypeError`, so a rejected root is never handed back armed.
 - If anything throws mid-walk, the same fail-closed neutralization runs over the root and over every subtree already detached during that walk before the error propagates.
 - Nodes that a hook detaches from the tree (a common pattern, see [Hooks](#hooks)) are treated as removed. In `IN_PLACE` mode their subtree is neutralized inline, so an `<img onload>` that was already loading when you built the live tree cannot fire after `sanitize()` returns.
-- DOMPurify cannot undo engine mutations that already fired *before* `sanitize()` was called (a patch applied on connection, a `selectedcontent` re-clone, and so on). Sanitize attacker-controlled trees before connecting them to the live document, not after.
+- DOMPurify cannot undo engine mutations that already fired _before_ `sanitize()` was called (a patch applied on connection, a `selectedcontent` re-clone, and so on). Sanitize attacker-controlled trees before connecting them to the live document, not after.
 
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
 
