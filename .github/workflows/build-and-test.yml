@@ -15,6 +15,10 @@ permissions:
 jobs:
   install:
     runs-on: ubuntu-latest
+    # The BrowserStack run (21.x on push) normally finishes in under 10
+    # minutes. A hung BrowserStack session or tunnel otherwise keeps the
+    # job alive until GitHub's 6h hard limit, so fail fast instead.
+    timeout-minutes: 30
     permissions:
       contents: read
     strategy:
