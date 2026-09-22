@@ -17,6 +17,7 @@ const commonOutputConfig = {
   sourcemap: true,
   banner: license,
   exports: 'default',
+  sourcemapExcludeSources: true,
 };
 
 // The source is ESM, so it has always executed in strict mode, and Rollup put
@@ -51,6 +52,8 @@ const bundleOutputs = {
     ...useStrict,
     file: pkg.production,
     format: 'umd',
+    // Oxc's minifier defaults to `esnext` and would re-introduce `||=` / `?.`
+    // into code Babel already down-levelled for the `.babelrc` browsers.
     minify: { compress: { target: 'es2015' } },
   },
   es: { ...commonOutputConfig, file: pkg.module, format: 'es' },
