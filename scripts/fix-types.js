@@ -5,7 +5,7 @@ const path = require('node:path');
 
 (async () => {
   // Note that this script is intended to run on the type declaration file that is
-  // output by Rollup, and not the type declaration file generated from TypeScript.
+  // output by Rolldown, and not the type declaration file generated from TypeScript.
   await fixCjsTypes(path.resolve(__dirname, '../dist/purify.cjs.d.ts'));
 })().catch((ex) => {
   console.error(ex);
