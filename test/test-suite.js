@@ -2082,10 +2082,17 @@
     // returns, a descendant that was already loading keeps its queued on*
     // handler and fires in page scope after sanitize returns, even though the
     // returned tree is clean. Same shape as the F1 tests above: onerror with
-    // no src, assert the attribute is gone. Covers both element hooks.
+    // no src, assert the attribute is gone. Covers every per-node hook site
+    // that can detach the node: the original before/upon element sites and
+    // the afterSanitizeElements / beforeSanitizeAttributes /
+    // afterSanitizeAttributes sites the first fix left open (the after*
+    // hooks are the documented place for node.remove() policies).
     [
       { hook: 'uponSanitizeElement', label: 'uponSanitizeElement' },
       { hook: 'beforeSanitizeElements', label: 'beforeSanitizeElements' },
+      { hook: 'afterSanitizeElements', label: 'afterSanitizeElements' },
+      { hook: 'beforeSanitizeAttributes', label: 'beforeSanitizeAttributes' },
+      { hook: 'afterSanitizeAttributes', label: 'afterSanitizeAttributes' },
     ].forEach(({ hook, label }) => {
       QUnit.test(
         'IN_PLACE: ' +
@@ -2132,6 +2139,45 @@
         }
       );
     });
+
+    // The afterSanitizeElements site that runs on a custom element kept via
+    // CUSTOM_ELEMENT_HANDLING (GHSA-c2j3-45gr-mqc4) is a separate hook site
+    // from the normal-element tail and needs the same detach re-check.
+    QUnit.test(
+      'IN_PLACE: afterSanitizeElements node.remove() on a kept custom element neutralizes the detached subtree',
+      (assert) => {
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<x-wrap><img id="tail" onerror="alert(1)"></x-wrap><div>safe</div>';
+        const tail = root.querySelector('#tail');
+
+        DOMPurify.addHook('afterSanitizeElements', (node) => {
+          if (node.nodeName === 'X-WRAP') {
+            node.remove();
+          }
+        });
+
+        try {
+          const ret = DOMPurify.sanitize(root, {
+            IN_PLACE: true,
+            CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^x-/ },
+          });
+
+          assert.equal(ret, root, 'returns the same in-place node');
+          assert.notOk(
+            ret.querySelector('x-wrap, #tail'),
+            'detached subtree is absent from the returned tree'
+          );
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'on* handler stripped from the hook-detached descendant'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeElements');
+        }
+      }
+    );
 
     // =======================================================================
     // Config: FORBID_TAGS / FORBID_ATTR
