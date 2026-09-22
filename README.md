@@ -546,7 +546,7 @@ We support `npm` officially. GitHub Actions workflow is configured to install de
 
 #### Scripts
 
-We use ESLint via `xo` as part of our pre-commit workflow to help ensure code consistency. In addition, we use [Prettier](https://github.com/prettier/prettier) for source and Markdown formatting, and `/dist` assets are built through `rollup`.
+We use ESLint via `xo` as part of our pre-commit workflow to help ensure code consistency. In addition, we use [Prettier](https://github.com/prettier/prettier) for source and Markdown formatting, and `/dist` assets are built through `rolldown`.
 
 These are our npm scripts:
 
@@ -567,7 +567,7 @@ These are our npm scripts:
   - `npm run format:md` to only format Markdown files
 - `npm run build` to build type declarations and distribution bundles, then fix and clean up generated types
   - `npm run build:types` to only emit TypeScript declaration files
-  - `npm run build:rollup` to build all Rollup bundles
+  - `npm run build:rolldown` to build all Rolldown bundles
   - `npm run build:umd` to only build an unminified UMD bundle
   - `npm run build:umd:min` to only build a minified UMD bundle
   - `npm run build:es` to only build the ES module bundle
