@@ -27,7 +27,6 @@ const commonOutputConfig = {
 // script strict and leaking that to anything concatenated after it. `intro`
 const useStrict = { intro: "'use strict';" };
 
-
 const bundleOutputs = {
   umd: {
     ...commonOutputConfig,
