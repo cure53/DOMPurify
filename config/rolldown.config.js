@@ -27,18 +27,6 @@ const commonOutputConfig = {
 // script strict and leaking that to anything concatenated after it. `intro`
 const useStrict = { intro: "'use strict';" };
 
-// 🔧 Plugin to strip named type exports from .d.ts for CommonJS
-const stripNamedTypeExports = () => ({
-  name: 'strip-named-type-exports',
-  transform(code, id) {
-    if (id.endsWith('.d.ts')) {
-      return {
-        code: code.replace(/^export\s+\{\s*type[\s\S]+?^\};\s*$/gm, ''),
-        map: null,
-      };
-    }
-  },
-});
 
 const bundleOutputs = {
   umd: {
@@ -102,7 +90,5 @@ module.exports = target
       // ESM type declarations
       declarations(pkg.module.replace(/\.mjs$/, '.d.mts')),
       // CJS type declarations with named export stripping
-      declarations(pkg.main.replace(/\.js$/, '.d.ts'), [
-        stripNamedTypeExports(),
-      ]),
+      declarations(pkg.main.replace(/\.js$/, '.d.ts')),
     ];
