@@ -439,7 +439,6 @@ type WindowLike = Pick<typeof globalThis, 'DocumentFragment' | 'HTMLTemplateElem
   MozNamedAttrMap?: typeof window.NamedNodeMap;
 } & Pick<TrustedTypesWindow, 'trustedTypes'>;
 declare const _default: DOMPurify;
-export { _default as default };
 export type { Config, DOMPurify, DocumentFragmentHook, ElementHook, HookName, NodeHook, RemovedAttribute, RemovedElement, UponSanitizeAttributeHook, UponSanitizeAttributeHookEvent, UponSanitizeElementHook, UponSanitizeElementHookEvent, WindowLike };
 // @ts-ignore
 export = _default;

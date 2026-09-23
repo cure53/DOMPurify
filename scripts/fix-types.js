@@ -5,8 +5,7 @@ const path = require('node:path');
 
 (async () => {
   // Note that this script is intended to run on the type declaration files that
-  // are output by Rolldown, and not the type declaration files generated from
-  // TypeScript.
+  // are output by Rolldown, and not the type declaration files generated from TypeScript.
   await fixEsmTypes(path.resolve(__dirname, '../dist/purify.es.d.mts'));
   await fixCjsTypes(path.resolve(__dirname, '../dist/purify.cjs.d.ts'));
 })().catch((ex) => {
@@ -18,14 +17,12 @@ const path = require('node:path');
  * Rewrites bundled export statements that use inline `type` modifiers into a
  * plain value export plus a type-only export:
  *
- *   export { type Config, _default as default };
- *     ->  export { _default as default };
- *         export type { Config };
+ *   export { type Config, ... };
+ *     ->  export type { Config, ... };
  *
  * The inline form requires TypeScript 4.5, so emitting it narrows the range of
- * TypeScript versions that can consume the package - it is what caused the
- * `',' expected` build failures in cure53/DOMPurify#1118. The split form has
- * worked since TypeScript 3.8 and describes exactly the same type surface.
+ * TypeScript versions that can consume the package - it is what caused the `',' expected` build failures in [cure53/DOMPurify#1118](https://github.com/cure53/DOMPurify/issues/1118).
+ * The split form has worked since TypeScript 3.8 and describes exactly the same type surface.
  * @param {string} types
  * @returns {string}
  */
@@ -70,15 +67,15 @@ async function fixCjsTypes(fileName) {
     // 1. Read the generated type file
     let types = await fs.readFile(fileName, { encoding: 'utf-8' });
 
-    // 2. Split any inline `type` export specifiers so older TypeScript versions
-    // can still parse the declarations.
-    let fixed = rewriteInlineTypeExports(types);
-
-    // 3. Remove the ESM-style default exports.
+    // 2. Remove the ESM-style default exports.
     // We use Regex to handle the variation your compiler is producing.
-    fixed = fixed
+    let fixed = types
       .replace(/export default _default;/g, '')
       .replace(/, _default as default/g, '');
+
+    // 3. Split any inline `type` export specifiers so older TypeScript versions
+    // can still parse the declarations.
+    fixed = rewriteInlineTypeExports(fixed);
 
     // 4. Append the CommonJS-friendly export.
     // This is the "fix" that allows require('dompurify') to work with TS.
