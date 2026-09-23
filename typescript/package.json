@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "dompurify": "file:.."
+    "dompurify": "file:..",
+    "typescript-4.4": "npm:typescript@4.4"
   }
 }
