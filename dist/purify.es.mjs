@@ -2038,7 +2038,10 @@ function createDOMPurify() {
 		}
 		if (FORBID_TAGS[tagName] || !(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && !ALLOWED_TAGS[tagName]) {
 			const removed = _sanitizeDisallowedNode(currentNode, tagName, root);
-			if (removed === false) _executeHooks(hooks.afterSanitizeElements, currentNode, null);
+			if (removed === false) {
+				_executeHooks(hooks.afterSanitizeElements, currentNode, null);
+				if (_handleHookDetachedNode(currentNode, root)) return true;
+			}
 			return removed;
 		}
 		if (_readNodeType(currentNode) === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {
@@ -2057,7 +2060,7 @@ function createDOMPurify() {
 			}
 		}
 		_executeHooks(hooks.afterSanitizeElements, currentNode, null);
-		return false;
+		return _handleHookDetachedNode(currentNode, root);
 	};
 	/**
 	* _isValidAttribute
@@ -2167,9 +2170,11 @@ function createDOMPurify() {
 	* @protect setAttribute
 	*
 	* @param currentNode to sanitize
+	* @param root the current walk root
 	*/
-	const _sanitizeAttributes = function _sanitizeAttributes(currentNode) {
+	const _sanitizeAttributes = function _sanitizeAttributes(currentNode, root) {
 		_executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
+		if (_handleHookDetachedNode(currentNode, root)) return;
 		const attributes = currentNode.attributes;
 		if (!attributes || _isClobbered(currentNode)) return;
 		ALLOWED_ATTR = _forkSharedAllowlist(hooks.uponSanitizeAttribute, ALLOWED_ATTR, DEFAULT_ALLOWED_ATTR, SET_CONFIG_ALLOWED_ATTR);
@@ -2228,6 +2233,7 @@ function createDOMPurify() {
 			}
 		}
 		_executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
+		_handleHookDetachedNode(currentNode, root);
 	};
 	/**
 	* _sanitizeShadowDOM
@@ -2241,7 +2247,7 @@ function createDOMPurify() {
 		while (shadowNode = shadowIterator.nextNode()) {
 			_executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
 			_sanitizeElements(shadowNode, fragment);
-			_sanitizeAttributes(shadowNode);
+			_sanitizeAttributes(shadowNode, fragment);
 			if (_isDocumentFragment(shadowNode.content)) _sanitizeShadowDOM2(shadowNode.content);
 			if (_readNodeType(shadowNode) === NODE_TYPE.element) {
 				const innerSr = getShadowRoot(shadowNode);
@@ -2371,7 +2377,7 @@ function createDOMPurify() {
 			const nodeIterator = _createNodeIterator(walkRoot);
 			while (currentNode = nodeIterator.nextNode()) {
 				_sanitizeElements(currentNode, walkRoot);
-				_sanitizeAttributes(currentNode);
+				_sanitizeAttributes(currentNode, walkRoot);
 				if (_isDocumentFragment(currentNode.content)) _sanitizeShadowDOM2(currentNode.content);
 			}
 		} catch (error) {
