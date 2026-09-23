@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.4.15 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.15/LICENSE */
+/*! @license DOMPurify 3.4.16 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.16/LICENSE */
 (function(global, factory) {
 	typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define([], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.DOMPurify = factory());
 })(this, function() {
@@ -1052,7 +1052,7 @@
 	function createDOMPurify() {
 		let window = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : getGlobal();
 		const DOMPurify = (root) => createDOMPurify(root);
-		DOMPurify.version = "3.4.15";
+		DOMPurify.version = "3.4.16";
 		DOMPurify.removed = [];
 		if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
 			DOMPurify.isSupported = false;
