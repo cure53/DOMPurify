@@ -37,38 +37,74 @@ async function run() {
 }
 
 /**
+ * Loads the TypeScript compiler a project asks for.
+ *
+ * A project pins an older release by naming it in the `typescript` field of
+ * its own `package.json`; the release itself is installed under an npm alias
+ * in this directory's `package.json`. Everything else compiles with the
+ * version the repository develops against.
+ * @param {string} directory The project directory.
+ * @returns {Promise<typeof ts>} The compiler to use.
+ */
+async function loadCompiler(directory) {
+  let manifest = path.join(directory, 'package.json');
+  let contents;
+
+  try {
+    contents = await fs.readFile(manifest, { encoding: 'utf8' });
+  } catch (ex) {
+    if (ex.code === 'ENOENT') {
+      return ts;
+    }
+
+    throw ex;
+  }
+
+  let pinned = JSON.parse(contents).typescript;
+
+  return pinned ? require(pinned) : ts;
+}
+
+/**
  * Verifies that a TypeScript project compiles.
  * @param {string} name The name of the project.
  * @param {string} directory The project directory.
  * @returns {Promise<void>}
  */
 async function verify(name, directory) {
-  let line = `  ${name}...`;
+  let compiler = await loadCompiler(directory);
+  let label =
+    compiler === ts ? name : `${name} (TypeScript ${compiler.version})`;
+  let line = `  ${label}...`;
   process.stdout.write(line);
 
-  let diagnostics = await compile(path.join(directory, 'tsconfig.json'));
+  let diagnostics = await compile(
+    compiler,
+    path.join(directory, 'tsconfig.json')
+  );
   let success = diagnostics.length === 0;
   let report = `\x1b${success ? '[32m✔' : '[31mX'}\x1b[0m`;
 
   if (process.stdout.isTTY) {
-    process.stdout.write(`\x1b[${line.length}D${report} ${name}   \n`);
+    process.stdout.write(`\x1b[${line.length}D${report} ${label}   \n`);
   } else {
     process.stdout.write(` ${report}\n`);
   }
 
   if (!success) {
-    printDiagnostics(diagnostics);
+    printDiagnostics(compiler, diagnostics);
     process.exitCode = 1;
   }
 }
 
 /**
  * Compiles a TypeScript project.
+ * @param {typeof ts} compiler The TypeScript compiler to use.
  * @param {string} configFileName The file name of the TypeScript config file.
  * @returns {Promise<ts.Diagnostic[]>} The diagnostics produced.
  */
-async function compile(configFileName) {
-  let jsonParseResult = ts.parseConfigFileTextToJson(
+async function compile(compiler, configFileName) {
+  let jsonParseResult = compiler.parseConfigFileTextToJson(
     configFileName,
     await fs.readFile(configFileName, { encoding: 'utf8' })
   );
@@ -77,30 +113,31 @@ async function compile(configFileName) {
     return [jsonParseResult.error];
   }
 
-  let config = ts.parseJsonConfigFileContent(
+  let config = compiler.parseJsonConfigFileContent(
     jsonParseResult.config,
-    ts.sys,
+    compiler.sys,
     path.dirname(configFileName)
   );
   if (config.errors.length > 0) {
     return config.errors;
   }
 
-  let program = ts.createProgram(config.fileNames, config.options);
+  let program = compiler.createProgram(config.fileNames, config.options);
   let emitResult = program.emit(
     undefined,
     // Do not emit anything.
     () => undefined
   );
 
-  return ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
+  return compiler.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
 }
 
 /**
  * Prints the diagnostics to stdout.
+ * @param {typeof ts} compiler The TypeScript compiler that produced them.
  * @param {ts.Diagnostic[]} diagnostics The diagnostics to report.
  */
-function printDiagnostics(diagnostics) {
+function printDiagnostics(compiler, diagnostics) {
   diagnostics.forEach((diagnostic) => {
     let message = '';
 
@@ -115,7 +152,8 @@ function printDiagnostics(diagnostics) {
     }
 
     message +=
-      ': ' + ts.flattenDiagnosticMessageText(diagnostic.messageText, '    \n');
+      ': ' +
+      compiler.flattenDiagnosticMessageText(diagnostic.messageText, '    \n');
 
     process.stdout.write(`\x1b[30m    ${message}\x1b[0m\n`);
   });
