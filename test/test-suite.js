@@ -1072,6 +1072,79 @@
     );
 
     QUnit.test(
+      'IN_PLACE strips boundary-spanning expressions in a template inside a shadow root',
+      (assert) => {
+        // The shadow-walk scrub is non-recursive; template content inside a
+        // shadow root must still be scrubbed by its own _sanitizeShadowDOM
+        // call. The light-DOM scrub cannot reach it (querySelectorAll does not
+        // enter shadow roots).
+        const host = document.createElement('div');
+        const root = host.attachShadow({ mode: 'open' });
+        const tmpl = document.createElement('template');
+        root.appendChild(tmpl);
+        tmpl.content.appendChild(document.createTextNode('$'));
+        tmpl.content.appendChild(document.createElement('object'));
+        tmpl.content.appendChild(document.createTextNode('{alert(1)}'));
+
+        DOMPurify.sanitize(host, {
+          SAFE_FOR_TEMPLATES: true,
+          IN_PLACE: true,
+        });
+        const kept = host.shadowRoot.querySelector('template');
+        const text = kept ? kept.content.textContent : '';
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(text),
+          'merged expression should be scrubbed in template content inside a shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'template-expression scrub work stays linear in template nesting depth',
+      (assert) => {
+        // Every nested <template>.content is walked by its own
+        // _sanitizeShadowDOM call. If that walk's post-scrub also recursed
+        // into descendant templates, each fragment would be rescrubbed once
+        // per ancestor (n(n+1)/2 normalize() calls; seconds of CPU for a
+        // ~20KB payload). Count normalize() calls instead of timing, so the
+        // assertion is deterministic across engines.
+        const depth = 60;
+        const dirty =
+          '<div>' +
+          '<template>'.repeat(depth) +
+          'x' +
+          '</template>'.repeat(depth) +
+          '</div>';
+        const proto = window.Node.prototype;
+        const originalNormalize = proto.normalize;
+        let calls = 0;
+        proto.normalize = function () {
+          calls++;
+          return originalNormalize.call(this);
+        };
+
+        try {
+          DOMPurify.sanitize(dirty, { SAFE_FOR_TEMPLATES: true });
+          DOMPurify.sanitize(dirty, {
+            SAFE_FOR_TEMPLATES: true,
+            RETURN_DOM: true,
+          });
+        } finally {
+          proto.normalize = originalNormalize;
+        }
+
+        assert.ok(
+          calls <= 4 * (depth + 1),
+          'normalize() called ' +
+            calls +
+            ' times for depth ' +
+            depth +
+            '; expected linear growth'
+        );
+      }
+    );
+
+    QUnit.test(
       'greedy-scrub of stray close marker prevents URL bypass',
       (assert) => {
         // After scrubbing {{}}, a lazy regex would leave }} behind, which
