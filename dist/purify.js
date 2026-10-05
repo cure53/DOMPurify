@@ -2261,6 +2261,7 @@
 					}
 				}
 			}
+			if (SAFE_FOR_TEMPLATES) _scrubTemplateExpressions2(fragment);
 			_executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
 		};
 		/**

@@ -1011,6 +1011,67 @@
     );
 
     QUnit.test(
+      'IN_PLACE strips boundary-spanning expressions inside an attached shadow root',
+      (assert) => {
+        // Same split-expression bug class as the CVE-2026-41239 light-DOM
+        // tests above, but the halves live in an attached shadow root.
+        // _sanitizeShadowDOM strips expressions per text node during its
+        // walk, but the post-walk normalize-and-rescrub (_scrubTemplateExpressions)
+        // historically ran only on the light-DOM root (`dirty` / `body`):
+        // NodeIterator does not descend into shadow trees and normalize()
+        // does not merge text across the shadow boundary, so a '${...}' split
+        // by a removed <object> separator reconstituted on
+        // shadowRoot.textContent and would be interpolated by a downstream
+        // template engine. The shadow walk now runs the same post-walk scrub.
+        const host = document.createElement('div');
+        const root = host.attachShadow({ mode: 'open' });
+        root.appendChild(document.createTextNode('$'));
+        // <object> is not in the default ALLOWED_TAGS; its removal leaves the
+        // surrounding text nodes adjacent.
+        root.appendChild(document.createElement('object'));
+        root.appendChild(document.createTextNode('{alert(1)}'));
+
+        DOMPurify.sanitize(host, {
+          SAFE_FOR_TEMPLATES: true,
+          IN_PLACE: true,
+        });
+        host.shadowRoot.normalize();
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(host.shadowRoot.textContent),
+          'merged template-literal expression should be scrubbed in shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE strips boundary-spanning expressions inside a NESTED shadow root',
+      (assert) => {
+        // The post-walk scrub must reach shadow roots nested inside other
+        // shadow roots, each of which is walked by its own recursive
+        // _sanitizeShadowDOM call.
+        const host = document.createElement('div');
+        const outer = host.attachShadow({ mode: 'open' });
+        const section = document.createElement('section');
+        outer.appendChild(section);
+        const inner = section.attachShadow({ mode: 'open' });
+        inner.appendChild(document.createTextNode('$'));
+        inner.appendChild(document.createElement('object'));
+        inner.appendChild(document.createTextNode('{alert(1)}'));
+
+        DOMPurify.sanitize(host, {
+          SAFE_FOR_TEMPLATES: true,
+          IN_PLACE: true,
+        });
+        const innerRoot = host.shadowRoot.querySelector('section').shadowRoot;
+        innerRoot.normalize();
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(innerRoot.textContent),
+          'merged expression should be scrubbed in nested shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
       'greedy-scrub of stray close marker prevents URL bypass',
       (assert) => {
         // After scrubbing {{}}, a lazy regex would leave }} behind, which

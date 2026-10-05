@@ -2751,6 +2751,26 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     }
 
+    /* Post-walk template-expression safety net, mirroring the light-DOM
+       passes on `dirty` / `body`. The per-node strip above (via
+       _sanitizeElements) only sees each text node in isolation, so an
+       expression split across text siblings by a disallowed separator element
+       (e.g. `$` <object> `{alert(1)}`) survives: each fragment matches no
+       delimiter regex on its own, and once the separator is removed the
+       fragments become adjacent and serialize as one complete expression.
+       The light-DOM net catches exactly this, but NodeIterator does not
+       descend into shadow trees and node.normalize() does not merge text
+       across the shadow boundary, so the fragments were never re-examined as
+       a merged unit. normalize() here (inside _scrubTemplateExpressions)
+       merges them and re-strips. Runs once per shadow fragment, so nested
+       shadow roots - each walked by its own _sanitizeShadowDOM call above -
+       are covered too. Gated on SAFE_FOR_TEMPLATES like the light-DOM passes,
+       and placed before the afterSanitizeShadowDOM hook so that hook observes
+       the finalized fragment. */
+    if (SAFE_FOR_TEMPLATES) {
+      _scrubTemplateExpressions(fragment as unknown as Element);
+    }
+
     /* Execute a hook if present */
     _executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
   };
