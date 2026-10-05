@@ -1715,6 +1715,36 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param node The root element whose character data should be scrubbed.
    */
   const _scrubTemplateExpressions = function (node: Element): void {
+    _scrubOwnCharacterData(node);
+
+    // NodeIterator does not descend into <template>.content per the DOM spec,
+    // so we must explicitly recurse into each template's content fragment,
+    // mirroring the approach used by _sanitizeShadowDOM.
+    const templates = node.querySelectorAll?.('template');
+    if (templates) {
+      arrayForEach(templates, (tmpl: HTMLTemplateElement) => {
+        if (_isDocumentFragment(tmpl.content)) {
+          _scrubTemplateExpressions(tmpl.content as unknown as Element);
+        }
+      });
+    }
+  };
+
+  /**
+   * _scrubOwnCharacterData
+   *
+   * Non-recursive core of _scrubTemplateExpressions: normalize `node` and
+   * strip template expressions from its own character data only. Does not
+   * enter <template>.content or attached shadow roots (NodeIterator never
+   * does). Used by _sanitizeShadowDOM, where every nested template content
+   * and shadow root is already walked - and therefore scrubbed - by its own
+   * recursive _sanitizeShadowDOM call; recursing here as well would rescrub
+   * each nested fragment once per ancestor, which is quadratic in nesting
+   * depth.
+   *
+   * @param node The root whose own character data should be scrubbed.
+   */
+  const _scrubOwnCharacterData = function (node: Element): void {
     node.normalize();
     /* Clobber-safe ownerDocument read, same reasoning as _createNodeIterator:
        under SAFE_FOR_TEMPLATES this runs on the live IN_PLACE root, which may
@@ -1735,18 +1765,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     while (currentNode) {
       currentNode.data = _stripTemplateExpressions(currentNode.data);
       currentNode = walker.nextNode() as CharacterData | null;
-    }
-
-    // NodeIterator does not descend into <template>.content per the DOM spec,
-    // so we must explicitly recurse into each template's content fragment,
-    // mirroring the approach used by _sanitizeShadowDOM.
-    const templates = node.querySelectorAll?.('template');
-    if (templates) {
-      arrayForEach(templates, (tmpl: HTMLTemplateElement) => {
-        if (_isDocumentFragment(tmpl.content)) {
-          _scrubTemplateExpressions(tmpl.content as unknown as Element);
-        }
-      });
     }
   };
 
@@ -2749,6 +2767,28 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
           _sanitizeShadowDOM(innerSr);
         }
       }
+    }
+
+    /* Post-walk template-expression safety net, mirroring the light-DOM
+       passes on `dirty` / `body`. The per-node strip above (via
+       _sanitizeElements) only sees each text node in isolation, so an
+       expression split across text siblings by a disallowed separator element
+       (e.g. `$` <object> `{alert(1)}`) survives: each fragment matches no
+       delimiter regex on its own, and once the separator is removed the
+       fragments become adjacent and serialize as one complete expression.
+       The light-DOM net catches exactly this, but NodeIterator does not
+       descend into shadow trees and node.normalize() does not merge text
+       across the shadow boundary, so the fragments were never re-examined as
+       a merged unit. normalize() here (inside _scrubTemplateExpressions)
+       merges them and re-strips. Deliberately the non-recursive variant: each
+       nested shadow root and template content is walked by its own
+       _sanitizeShadowDOM call above and scrubbed there, so every fragment is
+       scrubbed exactly once (the recursive variant would make this quadratic
+       in nesting depth). Gated on SAFE_FOR_TEMPLATES like the light-DOM
+       passes, and placed before the afterSanitizeShadowDOM hook so that hook
+       observes the finalized fragment. */
+    if (SAFE_FOR_TEMPLATES) {
+      _scrubOwnCharacterData(fragment as unknown as Element);
     }
 
     /* Execute a hook if present */

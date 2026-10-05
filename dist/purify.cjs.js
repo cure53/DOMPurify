@@ -1811,6 +1811,27 @@ function createDOMPurify() {
 	*/
 	const _scrubTemplateExpressions2 = function _scrubTemplateExpressions(node) {
 		var _node$querySelectorAl;
+		_scrubOwnCharacterData(node);
+		const templates = (_node$querySelectorAl = node.querySelectorAll) === null || _node$querySelectorAl === void 0 ? void 0 : _node$querySelectorAl.call(node, "template");
+		if (templates) arrayForEach(templates, (tmpl) => {
+			if (_isDocumentFragment(tmpl.content)) _scrubTemplateExpressions2(tmpl.content);
+		});
+	};
+	/**
+	* _scrubOwnCharacterData
+	*
+	* Non-recursive core of _scrubTemplateExpressions: normalize `node` and
+	* strip template expressions from its own character data only. Does not
+	* enter <template>.content or attached shadow roots (NodeIterator never
+	* does). Used by _sanitizeShadowDOM, where every nested template content
+	* and shadow root is already walked - and therefore scrubbed - by its own
+	* recursive _sanitizeShadowDOM call; recursing here as well would rescrub
+	* each nested fragment once per ancestor, which is quadratic in nesting
+	* depth.
+	*
+	* @param node The root whose own character data should be scrubbed.
+	*/
+	const _scrubOwnCharacterData = function _scrubOwnCharacterData(node) {
 		node.normalize();
 		const doc = getOwnerDocument ? getOwnerDocument(node) : node.ownerDocument;
 		const walker = createNodeIterator.call(doc || node, node, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_CDATA_SECTION | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
@@ -1819,10 +1840,6 @@ function createDOMPurify() {
 			currentNode.data = _stripTemplateExpressions(currentNode.data);
 			currentNode = walker.nextNode();
 		}
-		const templates = (_node$querySelectorAl = node.querySelectorAll) === null || _node$querySelectorAl === void 0 ? void 0 : _node$querySelectorAl.call(node, "template");
-		if (templates) arrayForEach(templates, (tmpl) => {
-			if (_isDocumentFragment(tmpl.content)) _scrubTemplateExpressions2(tmpl.content);
-		});
 	};
 	/**
 	* _isClobbered
@@ -2258,6 +2275,7 @@ function createDOMPurify() {
 				}
 			}
 		}
+		if (SAFE_FOR_TEMPLATES) _scrubOwnCharacterData(fragment);
 		_executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
 	};
 	/**
