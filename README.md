@@ -554,6 +554,7 @@ These are our npm scripts:
 - `npm run test` to lint the sources, run tests through jsdom, and run browser tests in Chromium via Playwright
   - `npm run test:jsdom` to only run tests through jsdom
   - `npm run test:happydom` to run the suite through happy-dom (an unsupported environment; kept as a robustness check, not a compatibility promise)
+  - `npm run test:purify-edge` to run the suite through [purify-edge](https://github.com/anzal1/purify-edge), a third-party parse5-based window (an unsupported environment; kept as a compatibility check, not a promise of support). The XSS sink tests run in a second pass, with jsdom as the sink
   - `npm run test:browser` to only run tests through Playwright
   - `npm run test:browser:legacy` to run the suite on older browser engines (point `PW_MODULE` at a pinned old Playwright install; see `.github/workflows/legacy-browsers.yml`)
   - `npm run test:ci` to run the CI test flow for jsdom and Playwright
