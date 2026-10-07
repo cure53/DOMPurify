@@ -99,6 +99,8 @@ Why? Because older versions of _jsdom_ are known to be buggy in ways that result
 
 Please also be aware that tools like [happy-dom](https://github.com/capricorn86/happy-dom) exist but **are not considered safe** at this point. Combining DOMPurify with _happy-dom_ is currently not recommended and will likely lead to XSS. For background on why the server-side DOM you choose is part of your trusted computing base, see [Attack Classes & Bypass History](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History).
 
+On runtimes where _jsdom_ cannot run, such as Cloudflare Workers or Vercel Edge, [purify-edge](https://github.com/anzal1/purify-edge) is a third-party project that runs an unmodified DOMPurify on a parse5-based window. Our test suite can be run against it with `npm run test:purify-edge` as a compatibility check. It is not maintained by us, and a passing run is neither an endorsement nor a security guarantee.
+
 Other than that, you are fine to use DOMPurify on the server. Probably. This really depends on _jsdom_ or whatever DOM you utilize server-side. If you can live with that, this is how you get it to work:
 
 ```bash
@@ -554,6 +556,7 @@ These are our npm scripts:
 - `npm run test` to lint the sources, run tests through jsdom, and run browser tests in Chromium via Playwright
   - `npm run test:jsdom` to only run tests through jsdom
   - `npm run test:happydom` to run the suite through happy-dom (an unsupported environment; kept as a robustness check, not a compatibility promise)
+  - `npm run test:purify-edge` to run the suite through [purify-edge](https://github.com/anzal1/purify-edge), a third-party parse5-based window (an unsupported environment; kept as a compatibility check, not a promise of support). The XSS sink tests run in a second pass, with jsdom as the sink
   - `npm run test:browser` to only run tests through Playwright
   - `npm run test:browser:legacy` to run the suite on older browser engines (point `PW_MODULE` at a pinned old Playwright install; see `.github/workflows/legacy-browsers.yml`)
   - `npm run test:ci` to run the CI test flow for jsdom and Playwright
