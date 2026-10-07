@@ -2313,6 +2313,445 @@
       }
     );
 
+    // The inline neutralize above only notices a hook detaching the node it
+    // was called for. A hook that detaches some OTHER node - the current
+    // node's parent or a further ancestor, a sibling the walk has not reached
+    // yet, an unrelated not-yet-visited subtree, or a subtree it moves out of
+    // the root - takes that subtree out of the walker's reach unsanitized,
+    // and it is not in DOMPurify.removed either (GHSA-mrv2-3pqr-j5jr,
+    // incomplete fix for GHSA-p98j-92pf-mc4p). The IN_PLACE exit now
+    // neutralizes every element that was under the root when sanitize()
+    // started and is no longer under it, whatever detached it. Same shape as
+    // the tests above: onerror without src, assert the attribute is gone.
+    [
+      'uponSanitizeElement',
+      'beforeSanitizeElements',
+      'afterSanitizeElements',
+      'beforeSanitizeAttributes',
+      'afterSanitizeAttributes',
+    ].forEach((hook) => {
+      QUnit.test(
+        'IN_PLACE: ' +
+          hook +
+          ' detaching a node other than its own neutralizes it (GHSA-mrv2)',
+        (assert) => {
+          const elsewhere = document.createElement('div');
+          // Element references are captured up front rather than read via
+          // nextElementSibling, which not every DOM implementation provides.
+          const shapes = {
+            parent: (refs) => refs.figure.remove(),
+            ancestor: (refs) => refs.section.remove(),
+            'later sibling': (refs) => refs.tail.remove(),
+            'unvisited subtree': (refs) => refs.far.remove(),
+            'moved out of root': (refs) => elsewhere.appendChild(refs.figure),
+          };
+
+          Object.keys(shapes).forEach((shape) => {
+            const root = document.createElement('div');
+            root.innerHTML =
+              '<section><figure><i></i>' +
+              '<img id="tail" onerror="alert(1)"></figure></section>' +
+              '<p>ok</p>' +
+              '<aside id="far"><img id="far-tail" onerror="alert(2)"></aside>';
+            const refs = {
+              section: root.querySelector('section'),
+              figure: root.querySelector('figure'),
+              tail: root.querySelector('#tail'),
+              far: root.querySelector('#far'),
+            };
+            const tail = refs.tail;
+            const farTail = root.querySelector('#far-tail');
+            let fired = false;
+
+            DOMPurify.addHook(hook, (node) => {
+              if (!fired && node.nodeName === 'I') {
+                fired = true;
+                shapes[shape](refs);
+              }
+            });
+
+            try {
+              DOMPurify.sanitize(root, { IN_PLACE: true });
+              assert.ok(fired, shape + ': hook ran');
+              assert.strictEqual(
+                tail.getAttribute('onerror'),
+                null,
+                shape + ': handler stripped from #tail'
+              );
+              assert.strictEqual(
+                farTail.getAttribute('onerror'),
+                null,
+                shape + ': handler stripped from #far-tail'
+              );
+            } finally {
+              DOMPurify.removeHook(hook);
+            }
+          });
+        }
+      );
+    });
+
+    QUnit.test(
+      'IN_PLACE: uponSanitizeShadowNode detaching a sibling neutralizes it (GHSA-mrv2)',
+      (assert) => {
+        const root = document.createElement('div');
+        if (typeof root.attachShadow !== 'function') {
+          assert.ok(true, 'no shadow DOM in this engine; skipping');
+          return;
+        }
+
+        const shadow = root.attachShadow({ mode: 'open' });
+        shadow.innerHTML =
+          '<i></i><b><img id="tail" onerror="alert(1)"></b><p>ok</p>';
+        const tail = shadow.querySelector('#tail');
+        const sibling = shadow.querySelector('b');
+
+        DOMPurify.addHook('uponSanitizeShadowNode', (node) => {
+          if (node.nodeName === 'I' && sibling.parentNode) {
+            sibling.remove();
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the shadow sibling a hook detached'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeShadowNode');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a custom element reaction detaching a sibling neutralizes it, no hook involved (GHSA-mrv2)',
+      (assert) => {
+        // DOMPurify's own removeAttribute('onclick') on an allowed custom
+        // element runs the page's attributeChangedCallback synchronously,
+        // which detaches the next sibling before the walk reaches it.
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+
+        if (!window.customElements.get('inplace-sibling-surgeon')) {
+          window.customElements.define(
+            'inplace-sibling-surgeon',
+            class extends window.HTMLElement {
+              static get observedAttributes() {
+                return ['onclick'];
+              }
+
+              attributeChangedCallback(name, oldValue, newValue) {
+                if (newValue === null && this.nextElementSibling) {
+                  this.nextElementSibling.remove();
+                }
+              }
+            }
+          );
+        }
+
+        const root = document.createElement('div');
+        // Connected, so the element is upgraded and its reactions run.
+        document.body.appendChild(root);
+        root.innerHTML =
+          '<inplace-sibling-surgeon onclick="x"></inplace-sibling-surgeon>' +
+          '<b><img id="tail" onerror="alert(1)"></b>';
+        const tail = root.querySelector('#tail');
+
+        try {
+          DOMPurify.sanitize(root, {
+            IN_PLACE: true,
+            CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^inplace-/ },
+          });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the sibling a reaction detached'
+          );
+        } finally {
+          root.remove();
+          window.xssed = false;
+        }
+      }
+    );
+
+    QUnit.test(
+      "IN_PLACE: a node another node's hook detached is neutralized on the abort path too (GHSA-mrv2)",
+      (assert) => {
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<figure><i></i><img id="tail" onerror="alert(1)"></figure><p>ok</p>';
+        const tail = root.querySelector('#tail');
+
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.nodeName === 'I') {
+            node.parentNode.remove();
+            throw new Error('hook failure after detaching');
+          }
+        });
+
+        try {
+          assert.throws(
+            () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+            /hook failure after detaching/,
+            'the hook error propagates'
+          );
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped before the rethrow'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
+    // The walker only moves forward. A node that a hook or a page
+    // custom-element reaction moves from a not-yet-visited position to one
+    // the walker already passed is never visited, and since it is still
+    // under the root, the escaped-node pass above does not touch it either:
+    // it used to stay in the RETURNED tree with its handlers, URLs and
+    // disallowed tags intact. The IN_PLACE walk now re-walks every node of
+    // the caller's original tree that is still under the root but was never
+    // processed, until nothing is pending.
+    QUnit.test(
+      'IN_PLACE: a node a hook moves behind the walker is still sanitized',
+      (assert) => {
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<p>a</p><i></i>' +
+          '<span id="later"><img id="tail" onerror="alert(1)">' +
+          '<a id="link" href="javascript:alert(2)">x</a>' +
+          '<iframe srcdoc="x"></iframe></span>';
+        const later = root.querySelector('#later');
+        const tail = root.querySelector('#tail');
+        const link = root.querySelector('#link');
+
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.nodeName === 'I') {
+            root.insertBefore(later, root.firstChild);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.equal(root.firstChild, later, 'the moved node stays put');
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the moved subtree'
+          );
+          assert.strictEqual(
+            link.getAttribute('href'),
+            null,
+            'javascript: URL stripped from the moved subtree'
+          );
+          assert.notOk(
+            root.querySelector('iframe'),
+            'disallowed element removed from the moved subtree'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a node an uponSanitizeShadowNode hook moves behind the shadow walker is still sanitized',
+      (assert) => {
+        const root = document.createElement('div');
+        if (typeof root.attachShadow !== 'function') {
+          assert.ok(true, 'no shadow DOM in this engine; skipping');
+          return;
+        }
+
+        const shadow = root.attachShadow({ mode: 'open' });
+        shadow.innerHTML =
+          '<p>a</p><i></i><span><img id="tail" onerror="alert(1)"></span>';
+        const span = shadow.querySelector('span');
+        const tail = shadow.querySelector('#tail');
+
+        DOMPurify.addHook('uponSanitizeShadowNode', (node) => {
+          if (node.nodeName === 'I') {
+            shadow.insertBefore(span, shadow.firstChild);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the moved shadow subtree'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeShadowNode');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a custom element reaction moving a sibling behind the walker is still sanitized, no hook involved',
+      (assert) => {
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+
+        if (!window.customElements.get('inplace-sibling-hoister')) {
+          window.customElements.define(
+            'inplace-sibling-hoister',
+            class extends window.HTMLElement {
+              static get observedAttributes() {
+                return ['onclick'];
+              }
+
+              attributeChangedCallback(name, oldValue, newValue) {
+                const next = this.nextSibling;
+                if (newValue === null && next) {
+                  this.parentNode.insertBefore(next, this);
+                }
+              }
+            }
+          );
+        }
+
+        const root = document.createElement('div');
+        document.body.appendChild(root);
+        root.innerHTML =
+          '<inplace-sibling-hoister onclick="x"></inplace-sibling-hoister>' +
+          '<b><img id="tail" onerror="alert(1)"></b>';
+        const tail = root.querySelector('#tail');
+
+        try {
+          DOMPurify.sanitize(root, {
+            IN_PLACE: true,
+            CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^inplace-/ },
+          });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the sibling the reaction moved'
+          );
+        } finally {
+          root.remove();
+          window.xssed = false;
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: nodes a hook creates behind the walker are left alone',
+      (assert) => {
+        // Only the caller's original nodes are re-walked; content a hook
+        // inserts itself stays the hook's responsibility, as before.
+        const root = document.createElement('div');
+        root.innerHTML = '<p>a</p><i></i>';
+
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.nodeName === 'I') {
+            const mark = document.createElement('mark');
+            mark.setAttribute('data-from-hook', '1');
+            mark.setAttribute('onclick', 'trusted()');
+            root.insertBefore(mark, root.firstChild);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          const mark = root.querySelector('mark');
+          assert.ok(mark, 'hook-created node kept');
+          assert.equal(
+            mark.getAttribute('onclick'),
+            'trusted()',
+            'hook-created node not re-sanitized'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a DocumentFragment root is rejected with the forbidden-root error, content neutralized',
+      (assert) => {
+        const fragment = document.createDocumentFragment();
+        const holder = document.createElement('div');
+        holder.innerHTML = '<img id="tail" onerror="alert(1)"><b>x</b>';
+        const tail = holder.querySelector('#tail');
+        while (holder.firstChild) {
+          fragment.appendChild(holder.firstChild);
+        }
+
+        assert.throws(
+          () => DOMPurify.sanitize(fragment, { IN_PLACE: true }),
+          /root node is forbidden/,
+          'intended TypeError, not "Illegal invocation"'
+        );
+        assert.strictEqual(
+          tail.getAttribute('onerror'),
+          null,
+          'handler stripped before the throw'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a tree that keeps changing behind the walker fails closed',
+      (assert) => {
+        // A hook that, for every node it sees, moves one node it has not seen
+        // behind the walker roughly halves the pending set per round, so
+        // 2000 nodes need more rounds than the cap allows.
+        const root = document.createElement('div');
+        root.innerHTML = new Array(2001).join(
+          '<b><img onerror="alert(1)"></b>'
+        );
+        const imgs = root.querySelectorAll('img');
+        const seen = [];
+
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.nodeName !== 'B') {
+            return;
+          }
+
+          seen.push(node);
+          for (
+            let child = root.lastChild;
+            child;
+            child = child.previousSibling
+          ) {
+            if (seen.indexOf(child) === -1) {
+              root.insertBefore(child, root.firstChild);
+              break;
+            }
+          }
+        });
+
+        try {
+          assert.throws(
+            () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+            /kept changing/,
+            'refuses to return a tree that will not settle'
+          );
+          assert.equal(root.childNodes.length, 0, 'root stripped bare');
+          let armed = 0;
+          for (let i = 0; i < imgs.length; i++) {
+            if (imgs[i].getAttribute('onerror') !== null) {
+              armed++;
+            }
+          }
+
+          assert.equal(armed, 0, 'no handler left armed anywhere');
+        } finally {
+          DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
     // =======================================================================
     // Config: FORBID_TAGS / FORBID_ATTR
     // =======================================================================
