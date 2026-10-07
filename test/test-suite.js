@@ -2060,6 +2060,55 @@
     );
 
     QUnit.test(
+      'IN_PLACE removal of a connected custom element runs its disconnectedCallback',
+      (assert) => {
+        // Precondition for the two custom-element mid-walk-abort tests: they
+        // only assert that no handler survives, which also holds when the
+        // reaction never runs, so on a DOM without disconnectedCallback support
+        // they pass without exercising the abort path. This pins that removing
+        // a connected custom element during an IN_PLACE walk does run its
+        // reaction, once, before sanitize() returns.
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+        let disconnected = 0;
+        if (!window.customElements.get('inplace-reaction-probe')) {
+          window.customElements.define(
+            'inplace-reaction-probe',
+            class extends window.HTMLElement {
+              disconnectedCallback() {
+                disconnected++;
+              }
+            }
+          );
+        }
+
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<inplace-reaction-probe></inplace-reaction-probe><b>x</b>';
+        // Must be connected: disconnectedCallback only fires on a node that
+        // was actually in a document.
+        document.body.appendChild(root);
+
+        DOMPurify.sanitize(root, { IN_PLACE: true });
+
+        assert.strictEqual(
+          root.innerHTML,
+          '<b>x</b>',
+          'custom element removed from the live tree'
+        );
+        assert.strictEqual(
+          disconnected,
+          1,
+          'disconnectedCallback ran once during removal'
+        );
+
+        root.remove();
+      }
+    );
+
+    QUnit.test(
       'forbidden-root preflight throw de-arms live descendants',
       (assert) => {
         // The early IN_PLACE preflight rejects a forbidden root before the
@@ -7580,6 +7629,43 @@
         assert.notOk(
           /onerror/i.test(out),
           `string-input ONERROR must not survive — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'case-preserved attribute is removed as the exact Attr node, not by name',
+      (assert) => {
+        // The removal fix above only matters in a DOM that follows the spec:
+        // on an HTML element in an HTML document, name-based lookups
+        // ASCII-lowercase the key and so miss a case-preserved stored name. A
+        // DOM that lowercases nothing lets a name-based removal succeed and
+        // hides a regression. Check that premise, then that DOMPurify removed
+        // the exact Attr node (IN_PLACE keeps the original node observable).
+        const img = document.createElement('img');
+        img.setAttribute('src', 'x');
+        img.setAttributeNS(null, 'ONERROR', 'alert(1)');
+        const attr = img.attributes[1];
+        assert.strictEqual(attr.name, 'ONERROR', 'stored name keeps its case');
+        assert.strictEqual(
+          img.getAttribute('ONERROR'),
+          null,
+          'name-based lookup lowercases its key and misses it'
+        );
+        const wrap = document.createElement('div');
+        wrap.appendChild(img);
+
+        DOMPurify.sanitize(wrap, { IN_PLACE: true });
+
+        assert.strictEqual(
+          img.attributes.length,
+          1,
+          'only the src attribute is left on the node'
+        );
+        assert.strictEqual(
+          DOMPurify.removed[0] && DOMPurify.removed[0].attribute,
+          attr,
+          'the exact Attr node was removed'
         );
       }
     );
