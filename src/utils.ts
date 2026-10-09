@@ -46,6 +46,10 @@ const arraySlice = unapply(Array.prototype.slice);
 const arraySplice = unapply(Array.prototype.splice);
 const arrayIsArray = Array.isArray;
 
+const setCreate = unconstruct(Set) as () => Set<unknown>;
+const setAdd = unapply(Set.prototype.add);
+const setHas = unapply(Set.prototype.has);
+
 const stringToLowerCase = unapply(String.prototype.toLowerCase);
 const stringToString = unapply(String.prototype.toString);
 const stringMatch = unapply(String.prototype.match);
@@ -317,6 +321,9 @@ export {
   objectToString,
   // RegExp
   regExpTest,
+  setAdd,
+  setCreate,
+  setHas,
   isRegex,
   // String
   stringIndexOf,

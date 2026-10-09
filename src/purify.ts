@@ -22,6 +22,9 @@ import {
   stringIndexOf,
   stringTrim,
   regExpTest,
+  setAdd,
+  setCreate,
+  setHas,
   isRegex,
   typeErrorCreate,
   lookupGetter,
@@ -575,6 +578,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /* If a `Node` is passed to sanitize(), then performs sanitization in-place instead
    * of importing it into a new Document and returning a sanitized copy */
   let IN_PLACE = false;
+
+  /* IN_PLACE only, set for the duration of one call's walks: every node
+     _sanitizeElements has processed. Lets _sanitizeUnvisitedNodes find nodes
+     a hook or reaction moved behind the walker. Null outside IN_PLACE. */
+  let IN_PLACE_VISITED: Set<unknown> | null = null;
 
   /* Allow usage of profiles like html, svg and mathMl */
   let USE_PROFILES: UseProfilesConfig | false = {};
@@ -1310,7 +1318,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       });
     }
 
-    const attributes = getAttributes(root);
+    /* Only elements have attributes. A non-element root (a DocumentFragment
+       or ShadowRoot passed to IN_PLACE, rejected as a forbidden root) would
+       make the Element-prototype getter throw "Illegal invocation" here,
+       replacing the intended "root node is forbidden" TypeError. */
+    const attributes =
+      _readNodeType(root) === NODE_TYPE.element ? getAttributes(root) : null;
     if (attributes) {
       for (let i = attributes.length - 1; i >= 0; --i) {
         const attribute = attributes[i];
@@ -1457,6 +1470,224 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
           stack.push(childNodes[i]);
         }
       }
+    }
+  };
+
+  /**
+   * _collectLiveNodes
+   *
+   * Every node reachable from `root`, in document order: its light-DOM
+   * subtree plus the subtrees of open attached shadow roots, recursively
+   * (each ShadowRoot is listed right after its host, then its content).
+   * <template>.content is not entered - its nodes live in an inert document
+   * and neither fetch resources nor run handlers. Closed shadow roots are not
+   * reachable from script at all. Iterative and clobber-safe (cached
+   * getters), like _sanitizeAttachedShadowRoots, so a deep or clobbering
+   * tree can neither overflow the call stack nor hide a subtree.
+   *
+   * @param root the in-place root
+   * @return the nodes, root first
+   */
+  const _collectLiveNodes = function (root: Node): Node[] {
+    const nodes: Node[] = [];
+    const stack: Node[] = [root];
+
+    while (stack.length > 0) {
+      const node = stack.pop();
+      nodes.push(node);
+
+      /* Pushed first, so processed after the host's light children. */
+      if (_readNodeType(node) === NODE_TYPE.element) {
+        const shadowRoot = getShadowRoot(node);
+        if (_isDocumentFragment(shadowRoot)) {
+          stack.push(shadowRoot);
+        }
+      }
+
+      const childNodes = getChildNodes(node);
+      if (childNodes) {
+        for (let i = childNodes.length - 1; i >= 0; --i) {
+          stack.push(childNodes[i]);
+        }
+      }
+    }
+
+    return nodes;
+  };
+
+  /**
+   * _neutralizeEscapedElements
+   *
+   * IN_PLACE completion of the audit-5 F1 invariant, keyed on the tree
+   * rather than on DOMPurify.removed: every element that was under the root
+   * when sanitize() started, and is no longer under it now, has its
+   * non-allow-listed attributes stripped before sanitize() returns or
+   * rethrows.
+   *
+   * DOMPurify.removed only lists what DOMPurify itself removed, and
+   * _handleHookDetachedNode only notices a hook detaching the node it was
+   * called for. Anything else that leaves the tree mid-walk - a hook
+   * removing the current node's parent/ancestor or a not-yet-visited
+   * sibling, a hook moving a subtree out of the root, an
+   * uponSanitizeShadowNode hook, or a page custom element's
+   * attributeChangedCallback reacting to one of our own removeAttribute
+   * calls - takes its subtree out of the walker's reach unsanitized, and a
+   * handler there (an <img onerror> that started loading when the caller
+   * built the live tree) fires in page scope after we return. Comparing a
+   * snapshot taken before any hook or reaction could run against what is
+   * still reachable covers every such route at once, including ones not
+   * yet thought of.
+   *
+   * Strips per element rather than per detached subtree: each descendant of
+   * an escaped subtree is itself in the snapshot, so this stays linear in
+   * tree size. Elements DOMPurify removed are stripped a second time, which
+   * is idempotent.
+   *
+   * @param root the in-place root
+   * @param before the root's nodes, collected before the walk
+   */
+  const _neutralizeEscapedElements = function (
+    root: Node,
+    before: Node[]
+  ): void {
+    const reachable = setCreate();
+    arrayForEach(_collectLiveNodes(root), (node: Node) => {
+      if (_readNodeType(node) === NODE_TYPE.element) {
+        setAdd(reachable, node);
+      }
+    });
+    arrayForEach(before, (node: Node) => {
+      if (
+        _readNodeType(node) === NODE_TYPE.element &&
+        !setHas(reachable, node)
+      ) {
+        _stripDisallowedAttributes(node as Element);
+      }
+    });
+  };
+
+  /* Upper bound on _sanitizeUnvisitedNodes rounds; see there. */
+  const MAX_UNVISITED_ROUNDS = 8;
+
+  /**
+   * _sanitizeUnvisitedNodes
+   *
+   * IN_PLACE completion of the walk itself. A NodeIterator only moves
+   * forward, so a node that a hook or a page custom-element reaction moves
+   * from a not-yet-visited position to one the walker has already passed
+   * (`root.insertBefore(later, root.firstChild)`, an attributeChangedCallback
+   * reordering its siblings, ...) is never visited: it stays in the returned
+   * tree with its handlers, URLs and disallowed tags intact. It is still
+   * under the root, so _neutralizeEscapedElements does not touch it either.
+   *
+   * After the main walk, every node that was under the root when sanitize()
+   * started, is still under it (light DOM or an open shadow root), and was
+   * never processed, gets the normal per-node treatment, hooks included, in
+   * document order. Nodes a hook created are left alone, as before: only the
+   * snapshot (the caller's, i.e. potentially attacker-built, nodes) is
+   * re-walked. Sanitizing can run hooks that move nodes again, so this loops
+   * until nothing is pending, and fails closed (throws into the walk's
+   * exception barrier, which strips the root bare) if the tree is still
+   * changing after MAX_UNVISITED_ROUNDS rounds.
+   *
+   * @param root the in-place root
+   * @param before the root's nodes, collected before the walk
+   */
+  const _sanitizeUnvisitedNodes = function (root: Node, before: Node[]): void {
+    const visited = IN_PLACE_VISITED;
+    /* Built on first need only: in the common case (nothing moved) every
+       live node is in `visited` and the snapshot set is never consulted. */
+    let original: Set<unknown> | null = null;
+    const getOriginal = (): Set<unknown> => {
+      if (!original) {
+        original = setCreate();
+        arrayForEach(before, (beforeNode: Node) => {
+          setAdd(original, beforeNode);
+        });
+      }
+
+      return original;
+    };
+
+    for (let round = 0; ; round++) {
+      const live = _collectLiveNodes(root);
+      const containers: Node[] = [root];
+      let pending = false;
+
+      arrayForEach(live, (node: Node) => {
+        if (_readNodeType(node) === NODE_TYPE.documentFragment) {
+          /* An open shadow root reached from a host under the root. */
+          arrayPush(containers, node);
+        } else if (!pending && !setHas(visited, node)) {
+          pending = setHas(getOriginal(), node);
+        }
+      });
+
+      if (!pending) {
+        return;
+      }
+
+      if (round >= MAX_UNVISITED_ROUNDS) {
+        throw typeErrorCreate(
+          'the tree kept changing during in-place sanitization; ' +
+            'refusing to return it'
+        );
+      }
+
+      arrayForEach(containers, (container: Node, index: number) => {
+        _sanitizeUnvisitedIn(container, index > 0, root, getOriginal());
+      });
+    }
+  };
+
+  /**
+   * _sanitizeUnvisitedIn
+   *
+   * One _sanitizeUnvisitedNodes pass over one container (the root, or an
+   * open shadow root under it): the main walk's per-node treatment, applied
+   * only to snapshot nodes not yet processed.
+   *
+   * @param container the root or an open shadow root
+   * @param inShadow whether container is a shadow root
+   * @param root the in-place root
+   * @param original the root's nodes collected before the walk, as a set
+   */
+  const _sanitizeUnvisitedIn = function (
+    container: Node,
+    inShadow: boolean,
+    root: Node,
+    original: Set<unknown>
+  ): void {
+    const iterator = _createNodeIterator(container);
+    let node: Node | null;
+    while ((node = iterator.nextNode())) {
+      if (!setHas(original, node) || setHas(IN_PLACE_VISITED, node)) {
+        continue;
+      }
+
+      if (inShadow) {
+        _executeHooks(hooks.uponSanitizeShadowNode, node, null);
+      }
+
+      _sanitizeElements(node, root);
+      _sanitizeAttributes(node as Element, root);
+      if (_isDocumentFragment((node as HTMLTemplateElement).content)) {
+        _sanitizeShadowDOM((node as HTMLTemplateElement).content);
+      }
+    }
+  };
+
+  /**
+   * _markVisited
+   *
+   * IN_PLACE: remember that _sanitizeElements processed `node`
+   * (see _sanitizeUnvisitedNodes). No-op outside IN_PLACE.
+   *
+   * @param node the node being processed
+   */
+  const _markVisited = function (node: Node): void {
+    if (IN_PLACE_VISITED) {
+      setAdd(IN_PLACE_VISITED, node);
     }
   };
 
@@ -2028,7 +2259,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
          path was dead in safe cases and a clobbering surface in unsafe
          ones. Falsy cached results stay falsy; the `if (childNodes &&
          parentNode)` check already gates correctly. */
-    if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+    if (
+      KEEP_CONTENT &&
+      !FORBID_CONTENTS[tagName] &&
+      /* The default list is lowercase, but in application/xhtml+xml mode
+         tagName keeps its case, so `foreignObject` would miss its
+         `foreignobject` entry and have its content hoisted instead of
+         dropped, unlike in HTML mode. Also consult the lowercased name; this
+         can only drop more content, never keep more. */
+      !FORBID_CONTENTS[stringToLowerCase(tagName)]
+    ) {
       const parentNode = getParentNode(currentNode);
       const childNodes = getChildNodes(currentNode);
 
@@ -2112,16 +2352,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * and a kill-decision on it must keep hitting the REPORT-3 throw.
    *
    * Nodes detached by hooks stay the hook's responsibility for placement:
-   * they are not recorded in DOMPurify.removed, so the post-walk IN_PLACE
-   * pass (which iterates DOMPurify.removed) does not reach them. But a
-   * hook-detached subtree can still hold a queued resource-event handler -
-   * e.g. an <img onload> that began loading when the caller built the live
-   * tree - which fires in page scope after sanitize returns even though the
-   * handler never reached the returned tree. That is the audit-5 F1 hazard,
-   * and the documented node.remove() hook pattern walks straight into it.
-   * So on the IN_PLACE path we neutralize the detached subtree inline,
-   * stripping its non-allow-listed attributes before returning, exactly as
-   * the post-walk pass does for _forceRemove'd subtrees.
+   * they are not recorded in DOMPurify.removed. But a hook-detached subtree
+   * can still hold a queued resource-event handler - e.g. an <img onload>
+   * that began loading when the caller built the live tree - which fires in
+   * page scope after sanitize returns even though the handler never reached
+   * the returned tree. That is the audit-5 F1 hazard, and the documented
+   * node.remove() hook pattern walks straight into it. So on the IN_PLACE
+   * path we neutralize the detached subtree inline, stripping its
+   * non-allow-listed attributes. This only sees the node the hook was called
+   * for; a hook that detaches some OTHER node (an ancestor, a later sibling)
+   * is caught by _neutralizeEscapedElements at the end of the call.
    *
    * @param currentNode the node a hook may have detached
    * @param root the current walk root
@@ -2152,6 +2392,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @return true if node was killed, false if left alive
    */
   const _sanitizeElements = function (currentNode: any, root: Node): boolean {
+    /* IN_PLACE: remember the node was processed (see _sanitizeUnvisitedNodes). */
+    _markVisited(currentNode);
+
     /* Execute a hook if present */
     _executeHooks(hooks.beforeSanitizeElements, currentNode, null);
 
@@ -2652,8 +2895,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         continue;
       }
 
-      /* Make sure we cannot easily use animated hrefs, even if animations are allowed */
-      if (lcName === 'attributename' && stringMatch(value, 'href')) {
+      /* Make sure we cannot easily use animated hrefs, even if animations are
+         allowed. Compared case-insensitively on purpose: in
+         application/xhtml+xml mode lcName keeps its case, and the real SVG
+         attribute is spelled attributeName, which 'attributename' would
+         never match (GHSA-c6gr-qvv4-5v3f). In XHTML a lowercase
+         `attributename` is not the SMIL attribute, so also stripping it
+         there costs nothing. */
+      if (
+        stringToLowerCase(name) === 'attributename' &&
+        stringMatch(value, 'href')
+      ) {
         _removeAttribute(name, currentNode, attr);
         continue;
       }
@@ -2960,6 +3212,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
        sanitized copy while leaving the caller's node — which in-place callers
        keep using and whose return value they ignore — unsanitized. REPORT-2. */
     const inPlace = IN_PLACE && typeof dirty !== 'string' && _isNode(dirty);
+    /* IN_PLACE only: the root's nodes before any hook or custom-element
+       reaction can run, for _neutralizeEscapedElements and
+       _sanitizeUnvisitedNodes; and the visit-tracking state of any outer
+       sanitize() call this one may be nested in, restored on every exit. */
+    let inPlaceNodes: Node[] = [];
+    const outerVisited = IN_PLACE_VISITED;
 
     if (inPlace) {
       /* Declarative-partial-updates / streaming pre-pass: sever every patch
@@ -3008,6 +3266,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         );
       }
 
+      /* Snapshot the root's nodes now: the root pre-flight above runs no
+         hooks, and everything from the shadow pre-pass on can detach or move
+         nodes (hooks, custom-element reactions). See
+         _neutralizeEscapedElements and _sanitizeUnvisitedNodes. Visit
+         tracking starts here too, so the shadow pre-pass is recorded. */
+      inPlaceNodes = _collectLiveNodes(dirty as Node);
+      IN_PLACE_VISITED = setCreate();
+
       /* Sanitize attached shadow roots before the main iterator runs.
          The iterator does not descend into shadow trees. Same fail-closed
          barrier as the main walk (campaign-3 F2): a custom-element reaction
@@ -3016,7 +3282,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       try {
         _sanitizeAttachedShadowRoots(dirty as Node);
       } catch (error) {
+        IN_PLACE_VISITED = outerVisited;
         _neutralizeRoot(dirty as Node);
+        _neutralizeEscapedElements(dirty as Node, inPlaceNodes);
 
         throw error;
       }
@@ -3112,8 +3380,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
           _sanitizeShadowDOM(currentNode.content);
         }
       }
+
+      /* Nodes a hook or reaction moved behind the walker were never
+         visited; sanitize them before returning. Inside the barrier, so a
+         failure (or a tree that will not stop changing) fails closed. */
+      if (inPlace) {
+        _sanitizeUnvisitedNodes(dirty as Node, inPlaceNodes);
+        IN_PLACE_VISITED = outerVisited;
+      }
     } catch (error) {
       if (inPlace) {
+        IN_PLACE_VISITED = outerVisited;
         _neutralizeRoot(dirty as Node);
         /* Nodes _forceRemove'd earlier in the aborted walk are already
            detached from the root, so _neutralizeRoot's subtree pass does not
@@ -3123,6 +3400,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
             _neutralizeSubtree(entry.element as Node);
           }
         });
+        /* ...and anything that left the root by another route (hooks,
+           custom-element reactions) before the abort. */
+        _neutralizeEscapedElements(dirty as Node, inPlaceNodes);
       }
 
       throw error;
@@ -3160,6 +3440,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
           _neutralizeSubtree(entry.element as Node);
         }
       });
+
+      /* DOMPurify.removed only lists DOMPurify's own removals. Also defuse
+         every element that left the root by any other route during the call
+         - a hook removing an ancestor or a not-yet-visited sibling, a hook
+         moving a subtree out, a page custom element's reaction - which the
+         walk could no longer reach. Before the root-removed throw, so that
+         exit is fail-closed too. */
+      _neutralizeEscapedElements(dirty as Node, inPlaceNodes);
 
       if (rootWasRemoved) {
         throw typeErrorCreate(
