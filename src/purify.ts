@@ -2259,7 +2259,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
          path was dead in safe cases and a clobbering surface in unsafe
          ones. Falsy cached results stay falsy; the `if (childNodes &&
          parentNode)` check already gates correctly. */
-    if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+    if (
+      KEEP_CONTENT &&
+      !FORBID_CONTENTS[tagName] &&
+      /* The default list is lowercase, but in application/xhtml+xml mode
+         tagName keeps its case, so `foreignObject` would miss its
+         `foreignobject` entry and have its content hoisted instead of
+         dropped, unlike in HTML mode. Also consult the lowercased name; this
+         can only drop more content, never keep more. */
+      !FORBID_CONTENTS[stringToLowerCase(tagName)]
+    ) {
       const parentNode = getParentNode(currentNode);
       const childNodes = getChildNodes(currentNode);
 
@@ -2886,8 +2895,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         continue;
       }
 
-      /* Make sure we cannot easily use animated hrefs, even if animations are allowed */
-      if (lcName === 'attributename' && stringMatch(value, 'href')) {
+      /* Make sure we cannot easily use animated hrefs, even if animations are
+         allowed. Compared case-insensitively on purpose: in
+         application/xhtml+xml mode lcName keeps its case, and the real SVG
+         attribute is spelled attributeName, which 'attributename' would
+         never match (GHSA-c6gr-qvv4-5v3f). In XHTML a lowercase
+         `attributename` is not the SMIL attribute, so also stripping it
+         there costs nothing. */
+      if (
+        stringToLowerCase(name) === 'attributename' &&
+        stringMatch(value, 'href')
+      ) {
         _removeAttribute(name, currentNode, attr);
         continue;
       }

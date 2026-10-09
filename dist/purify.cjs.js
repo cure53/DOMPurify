@@ -2119,7 +2119,7 @@ function createDOMPurify() {
 	*/
 	const _sanitizeDisallowedNode = function _sanitizeDisallowedNode(currentNode, tagName, root) {
 		if (!FORBID_TAGS[tagName] && _isBasicCustomElement(tagName) && _matchesNameCheck(CUSTOM_ELEMENT_HANDLING.tagNameCheck, tagName)) return false;
-		if (KEEP_CONTENT && !FORBID_CONTENTS[tagName]) {
+		if (KEEP_CONTENT && !FORBID_CONTENTS[tagName] && !FORBID_CONTENTS[stringToLowerCase(tagName)]) {
 			const parentNode = getParentNode(currentNode);
 			const childNodes = getChildNodes(currentNode);
 			if (childNodes && parentNode) {
@@ -2388,7 +2388,7 @@ function createDOMPurify() {
 				_removeAttribute(name, currentNode, attr);
 				continue;
 			}
-			if (lcName === "attributename" && stringMatch(value, "href")) {
+			if (stringToLowerCase(name) === "attributename" && stringMatch(value, "href")) {
 				_removeAttribute(name, currentNode, attr);
 				continue;
 			}
