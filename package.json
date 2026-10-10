@@ -137,7 +137,7 @@
     "jsdom": "^29.1.1",
     "nyc": "^18.0.0",
     "prettier": "^3.8.4",
-    "purify-edge": "0.1.1",
+    "purify-edge": "0.1.2",
     "qunit": "^3.0.0",
     "qunit-tap": "^1.5.0",
     "rimraf": "^6.0.1",
