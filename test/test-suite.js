@@ -1495,6 +1495,126 @@
 
     QUnit.module('Config — IN_PLACE');
 
+    // Namespace validation reads each node's name and namespace through the
+    // cached prototype getters. A live node can carry own-property overrides
+    // (Object.defineProperty) of tagName / namespaceURI; trusting those let a
+    // namespace-confused node pose as a plain element, or a parent pose as an
+    // integration point. Same root cause as GHSA-x4vx-rjvf-j5p4 (nodeName).
+    QUnit.test(
+      'IN_PLACE: own-property tagName / namespaceURI overrides do not steer namespace validation',
+      (assert) => {
+        const HTML_NS = 'http://www.w3.org/1999/xhtml';
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+        const MATH_NS = 'http://www.w3.org/1998/Math/MathML';
+        const run = (spoof) => {
+          const root = document.createElement('div');
+          // An HTML-namespace <svg> is something no HTML parser produces.
+          const confused = document.createElementNS(HTML_NS, 'svg');
+          spoof(confused);
+          root.appendChild(confused);
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          return root.innerHTML;
+        };
+
+        assert.equal(
+          run(() => {}),
+          '',
+          'control: HTML-namespace <svg> removed'
+        );
+        assert.equal(
+          run((node) =>
+            Object.defineProperty(node, 'tagName', { value: 'DIV' })
+          ),
+          '',
+          'own tagName "DIV" does not hide it'
+        );
+        // Only meaningful where namespaceURI is a prototype getter (browsers,
+        // jsdom). A DOM that stores it as a plain instance property (e.g. the
+        // parse5-based purify-edge window) has no separate "real" namespace:
+        // overriding the property changes the namespace itself.
+        let proto = window.Element && window.Element.prototype;
+        let hasNamespaceGetter = false;
+        while (proto && !hasNamespaceGetter) {
+          const desc = Object.getOwnPropertyDescriptor(proto, 'namespaceURI');
+          hasNamespaceGetter = Boolean(desc && desc.get);
+          proto = Object.getPrototypeOf(proto);
+        }
+
+        if (hasNamespaceGetter) {
+          assert.equal(
+            run((node) =>
+              Object.defineProperty(node, 'namespaceURI', { value: SVG_NS })
+            ),
+            '',
+            'own namespaceURI (SVG) does not hide it'
+          );
+        } else {
+          assert.ok(
+            true,
+            'namespaceURI is not a prototype getter here; skipped'
+          );
+        }
+
+        // <svg> directly under MathML <mrow> is invalid; <mtext> would be a
+        // text integration point.
+        const root = document.createElement('div');
+        const math = document.createElementNS(MATH_NS, 'math');
+        const mrow = document.createElementNS(MATH_NS, 'mrow');
+        Object.defineProperty(mrow, 'tagName', { value: 'mtext' });
+        mrow.appendChild(document.createElementNS(SVG_NS, 'svg'));
+        math.appendChild(mrow);
+        root.appendChild(math);
+        DOMPurify.sanitize(root, { IN_PLACE: true });
+        assert.notOk(
+          root.querySelector('svg'),
+          'a parent posing as <mtext> does not admit an SVG child'
+        );
+      }
+    );
+
+    // In an XML/XHTML document innerHTML escapes "<", which blinds rule 1's
+    // innerHTML probe. A literal-text element sourced from such a document
+    // used to keep markup in its text (e.g. "</style><img onerror>") that the
+    // same input loses in HTML mode, and which breaks out once the output is
+    // placed in another raw-text context. Literal-text elements are now probed
+    // on textContent (their raw serialization) for any markup.
+    QUnit.test(
+      'IN_PLACE: literal-text element from an XHTML document loses markup text like in HTML mode',
+      (assert) => {
+        const parse = (body) =>
+          new window.DOMParser().parseFromString(
+            '<div xmlns="http://www.w3.org/1999/xhtml">' + body + '</div>',
+            'application/xhtml+xml'
+          ).documentElement;
+
+        const noembedRoot = parse(
+          '<noembed>&lt;/style&gt;&lt;img src="x" onerror="alert(1)"/&gt;</noembed>'
+        );
+        DOMPurify.sanitize(noembedRoot, {
+          IN_PLACE: true,
+          ADD_TAGS: ['noembed'],
+        });
+        assert.notOk(
+          noembedRoot.querySelector('noembed'),
+          'noembed with markup text removed (ADD_TAGS)'
+        );
+
+        const styleRoot = parse(
+          '<style>/*&lt;/xmp&gt;&lt;img src="x" onerror="alert(1)"/&gt;*/</style><p>kept</p>'
+        );
+        DOMPurify.sanitize(styleRoot, { IN_PLACE: true });
+        assert.notOk(
+          styleRoot.querySelector('style'),
+          'style with markup text removed (default config)'
+        );
+        assert.ok(styleRoot.querySelector('p'), 'unrelated content kept');
+
+        const cssRoot = parse('<style>a{color:red}</style>');
+        DOMPurify.sanitize(cssRoot, { IN_PLACE: true });
+        assert.ok(cssRoot.querySelector('style'), 'ordinary CSS kept');
+      }
+    );
+
     QUnit.test('returns the input node, mutated', (assert) => {
       const dirty = document.createElement('a');
       dirty.setAttribute('href', 'javascript:alert(1)');
@@ -1525,7 +1645,7 @@
       'throws instead of returning a force-removed rawtext root (mXSS reparse)',
       (assert) => {
         // A <style> passed as the IN_PLACE root whose text content already
-        // carries its own end tag is force-removed by the LITERAL_TEXT_CLOSE
+        // carries its own end tag is force-removed by the literal-text markup
         // probe: its literal serialization ("</style><img ...>") re-opens
         // markup on an HTML reparse. _neutralizeSubtree cancels the attribute
         // axis (the onclick below) but cannot defang rawtext text, so the
@@ -7271,6 +7391,57 @@
       assert.ok(DOMPurify.isValidAttribute('a', 'href', 'https://example.com'));
       assert.notOk(DOMPurify.isValidAttribute('a', 'onclick', 'alert(1)'));
     });
+
+    QUnit.test(
+      'isValidAttribute rejects every value sanitize() strips on value grounds',
+      (assert) => {
+        // The public API used to skip the value checks sanitize() applies, so
+        // it approved values that sanitize() removes.
+        const rejected = [
+          ['img', 'alt', '</xmp><img src=x onerror=alert(1)>'],
+          ['img', 'alt', 'a</style>b'],
+          ['img', 'alt', 'x-->y'],
+          ['animate', 'attributename', 'href'],
+          ['animate', 'attributeName', 'xlink:href'],
+        ];
+        rejected.forEach(([tag, attr, value]) => {
+          assert.notOk(
+            DOMPurify.isValidAttribute(tag, attr, value),
+            `${tag} ${attr}=${JSON.stringify(value)} rejected`
+          );
+          const html = `<${tag} ${attr}="${value.replace(/"/g, '&quot;')}">`;
+          assert.notOk(
+            new RegExp(attr, 'i').test(DOMPurify.sanitize(html)),
+            `and sanitize() strips it too`
+          );
+        });
+
+        assert.ok(
+          DOMPurify.isValidAttribute('img', 'alt', 'a < b > c'),
+          'ordinary text value still valid'
+        );
+        assert.ok(
+          DOMPurify.isValidAttribute('animate', 'attributename', 'opacity'),
+          'non-href attributeName still valid'
+        );
+
+        // The jQuery 3.0 self-closing check is opt-in; isValidAttribute
+        // follows the persistent config like sanitize() does.
+        assert.ok(
+          DOMPurify.isValidAttribute('img', 'alt', '<b/>'),
+          'self-closing pattern allowed by default'
+        );
+        DOMPurify.setConfig({ ALLOW_SELF_CLOSE_IN_ATTR: false });
+        assert.notOk(
+          DOMPurify.isValidAttribute('img', 'alt', '<b/>'),
+          'self-closing pattern rejected with ALLOW_SELF_CLOSE_IN_ATTR: false'
+        );
+        assert.notOk(
+          /alt=/.test(DOMPurify.sanitize('<img alt="<b/>">')),
+          'and sanitize() strips it under the same config'
+        );
+      }
+    );
 
     QUnit.test('addHook ignores a non-function', (assert) => {
       DOMPurify.addHook('uponSanitizeElement', null);

@@ -288,6 +288,34 @@ function lookupGetter<T extends Record<string, any>>(
   return fallbackValue;
 }
 
+/**
+ * Like lookupGetter, but for accessor properties only, and returns null
+ * instead of a null-returning fallback when no getter exists on the chain.
+ * Lets a caller fall back to a direct property read in environments that
+ * lack the getter, where a fallback returning null would be indistinguishable
+ * from a legitimate null value (e.g. namespaceURI of a no-namespace element).
+ *
+ * @param object - The object (usually a prototype) to start the lookup at.
+ * @param prop - The accessor property name.
+ * @returns The unapplied getter, or null if none was found.
+ */
+function lookupAccessor<T extends Record<string, any>>(
+  object: T,
+  prop: string
+): ReturnType<typeof unapply<any>> | null {
+  while (object !== null) {
+    const desc = getOwnPropertyDescriptor(object, prop);
+
+    if (desc) {
+      return desc.get ? unapply(desc.get) : null;
+    }
+
+    object = getPrototypeOf(object);
+  }
+
+  return null;
+}
+
 function isRegex(value: unknown): value is RegExp {
   try {
     regExpTest(value as RegExp, '');
@@ -337,6 +365,7 @@ export {
   // Errors
   typeErrorCreate,
   // Other
+  lookupAccessor,
   lookupGetter,
   addToSet,
   // Reflect

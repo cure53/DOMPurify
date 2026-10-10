@@ -276,6 +276,25 @@
 		}
 		return fallbackValue;
 	}
+	/**
+	* Like lookupGetter, but for accessor properties only, and returns null
+	* instead of a null-returning fallback when no getter exists on the chain.
+	* Lets a caller fall back to a direct property read in environments that
+	* lack the getter, where a fallback returning null would be indistinguishable
+	* from a legitimate null value (e.g. namespaceURI of a no-namespace element).
+	*
+	* @param object - The object (usually a prototype) to start the lookup at.
+	* @param prop - The accessor property name.
+	* @returns The unapplied getter, or null if none was found.
+	*/
+	function lookupAccessor(object, prop) {
+		while (object !== null) {
+			const desc = getOwnPropertyDescriptor(object, prop);
+			if (desc) return desc.get ? unapply(desc.get) : null;
+			object = getPrototypeOf(object);
+		}
+		return null;
+	}
 	function isRegex(value) {
 		try {
 			regExpTest(value, "");
@@ -960,7 +979,7 @@
 		documentFragment: 11,
 		notation: 12
 	};
-	const LITERAL_TEXT_ELEMENT_NAMES = [
+	const LITERAL_TEXT_ELEMENTS = freeze(addToSet({}, [
 		"style",
 		"script",
 		"xmp",
@@ -969,15 +988,7 @@
 		"noframes",
 		"plaintext",
 		"noscript"
-	];
-	const LITERAL_TEXT_ELEMENTS = freeze(addToSet({}, LITERAL_TEXT_ELEMENT_NAMES));
-	const LITERAL_TEXT_CLOSE = function() {
-		const map = {};
-		arrayForEach(LITERAL_TEXT_ELEMENT_NAMES, (name) => {
-			map[name] = seal(new RegExp("</" + name + "(?=[\\t\\n\\f\\r />])", "i"));
-		});
-		return freeze(map);
-	}();
+	]));
 	const getGlobal = function getGlobal() {
 		return typeof window === "undefined" ? null : window;
 	};
@@ -1086,6 +1097,10 @@
 		};
 		const _readNodeName = function _readNodeName(node) {
 			return getNodeName ? getNodeName(node) : node.nodeName;
+		};
+		const getNamespaceURI = lookupAccessor(ElementPrototype, "namespaceURI");
+		const _readNamespaceURI = function _readNamespaceURI(element) {
+			return getNamespaceURI ? getNamespaceURI(element) : element.namespaceURI;
 		};
 		if (typeof HTMLTemplateElement === "function") {
 			const template = document.createElement("template");
@@ -1481,18 +1496,23 @@
 		*  return. Return true otherwise.
 		*/
 		const _checkValidNamespace = function _checkValidNamespace(element) {
-			let parent = getParentNode(element);
-			if (!parent || !parent.tagName) parent = {
-				namespaceURI: NAMESPACE,
-				tagName: "template"
-			};
-			const tagName = stringToLowerCase(element.tagName);
-			const parentTagName = stringToLowerCase(parent.tagName);
-			if (!ALLOWED_NAMESPACES[element.namespaceURI]) return false;
-			if (element.namespaceURI === SVG_NAMESPACE) return _checkSvgNamespace(tagName, parent, parentTagName);
-			if (element.namespaceURI === MATHML_NAMESPACE) return _checkMathMlNamespace(tagName, parent, parentTagName);
-			if (element.namespaceURI === HTML_NAMESPACE) return _checkHtmlNamespace(tagName, parent, parentTagName);
-			if (PARSER_MEDIA_TYPE === "application/xhtml+xml" && ALLOWED_NAMESPACES[element.namespaceURI]) return true;
+			const elementNamespace = _readNamespaceURI(element);
+			const tagName = stringToLowerCase(_readNodeName(element));
+			const parentNode = getParentNode(element);
+			let parent;
+			let parentTagName;
+			if (parentNode && _readNodeType(parentNode) === NODE_TYPE.element) {
+				parent = { namespaceURI: _readNamespaceURI(parentNode) };
+				parentTagName = stringToLowerCase(_readNodeName(parentNode));
+			} else {
+				parent = { namespaceURI: NAMESPACE };
+				parentTagName = "template";
+			}
+			if (!ALLOWED_NAMESPACES[elementNamespace]) return false;
+			if (elementNamespace === SVG_NAMESPACE) return _checkSvgNamespace(tagName, parent, parentTagName);
+			if (elementNamespace === MATHML_NAMESPACE) return _checkMathMlNamespace(tagName, parent, parentTagName);
+			if (elementNamespace === HTML_NAMESPACE) return _checkHtmlNamespace(tagName, parent, parentTagName);
+			if (PARSER_MEDIA_TYPE === "application/xhtml+xml" && ALLOWED_NAMESPACES[elementNamespace]) return true;
 			return false;
 		};
 		/**
@@ -2078,7 +2098,7 @@
 		*/
 		const _isUnsafeNode = function _isUnsafeNode(currentNode, tagName) {
 			if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.innerHTML)) return true;
-			if (SAFE_FOR_XML && currentNode.namespaceURI === HTML_NAMESPACE && LITERAL_TEXT_ELEMENTS[tagName] && (_isNode(currentNode.firstElementChild) || typeof currentNode.textContent === "string" && regExpTest(LITERAL_TEXT_CLOSE[tagName], currentNode.textContent))) return true;
+			if (SAFE_FOR_XML && LITERAL_TEXT_ELEMENTS[tagName] && _readNodeType(currentNode) === NODE_TYPE.element && _readNamespaceURI(currentNode) === HTML_NAMESPACE && (_isNode(currentNode.firstElementChild) || typeof currentNode.textContent === "string" && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent))) return true;
 			if (currentNode.nodeType === NODE_TYPE.processingInstruction) return true;
 			if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, currentNode.data)) return true;
 			return false;
@@ -2344,6 +2364,22 @@
 			}
 		};
 		/**
+		* _isUnsafeAttributeValue
+		*
+		* Value-based attribute checks that the attribute walk applies before any
+		* hook can force-keep an attribute, shared with the public
+		* isValidAttribute() so that it never approves a value sanitize() would
+		* strip.
+		*
+		* @param name the attribute name as found on the node (case preserved)
+		* @param value the attribute value
+		* @returns true if the attribute must be removed because of its value
+		*/
+		const _isUnsafeAttributeValue = function _isUnsafeAttributeValue(name, value) {
+			if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i, value)) return true;
+			return stringToLowerCase(name) === "attributename" && stringMatch(value, "href") !== null;
+		};
+		/**
 		* _sanitizeAttributes
 		*
 		* @protect attributes
@@ -2387,11 +2423,7 @@
 					value = SANITIZE_NAMED_PROPS_PREFIX + value;
 					recreatedNamedProp = true;
 				}
-				if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i, value)) {
-					_removeAttribute(name, currentNode, attr);
-					continue;
-				}
-				if (stringToLowerCase(name) === "attributename" && stringMatch(value, "href")) {
+				if (_isUnsafeAttributeValue(name, value)) {
 					_removeAttribute(name, currentNode, attr);
 					continue;
 				}
@@ -2630,6 +2662,7 @@
 			if (!CONFIG) _parseConfig({});
 			const lcTag = transformCaseFunc(tag);
 			const lcName = transformCaseFunc(attr);
+			if (typeof value === "string" && (_isUnsafeAttributeValue(attr, value) || !ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(SELF_CLOSING_TAG, value))) return false;
 			return _isValidAttribute(lcTag, lcName, value);
 		};
 		DOMPurify.addHook = function(entryPoint, hookFunction) {
