@@ -27,6 +27,7 @@ import {
   setHas,
   isRegex,
   typeErrorCreate,
+  lookupAccessor,
   lookupGetter,
   create,
   objectHasOwnProperty,
@@ -78,10 +79,11 @@ const NODE_TYPE = {
          `<style>...</style><img onerror=x>` built as a node, which the literal
          serializer emits verbatim for the HTML parser to re-open.
    Shape (a) is handled by the firstElementChild branch in _isUnsafeNode; shape
-   (b) by the LITERAL_TEXT_CLOSE probe. Both read textContent (the raw-serialized
-   form for these elements) rather than innerHTML, because an XML/XHTML working
-   document serializes innerHTML with `<` escaped, which silently blinds the
-   innerHTML-based probes (rule 1's second probe and FALLBACK_TAG_CLOSE) there.
+   (b), and any other markup in the text, by the ELEMENT_MARKUP_PROBE branch next
+   to it. Both read textContent (the raw-serialized form for these elements)
+   rather than innerHTML, because an XML/XHTML working document serializes
+   innerHTML with `<` escaped, which silently blinds the innerHTML-based probes
+   (rule 1's second probe and FALLBACK_TAG_CLOSE) there.
    `script` is never allow-listed, but is kept here so the guard matches the
    serializer's own literal-text list exactly. */
 const LITERAL_TEXT_ELEMENT_NAMES = [
@@ -95,20 +97,6 @@ const LITERAL_TEXT_ELEMENT_NAMES = [
   'noscript',
 ];
 const LITERAL_TEXT_ELEMENTS = freeze(addToSet({}, LITERAL_TEXT_ELEMENT_NAMES));
-
-/* Per-element end-tag matcher. On an HTML reparse the ONLY token that
-   terminates a literal-text element's raw content is its own end tag; a foreign
-   literal-text close (e.g. `</xmp>` sitting inside `<style>`) does not break
-   out, so matching is per-element, not a shared alternation. The lookahead
-   requires an HTML tag-name terminator (whitespace, `/` or `>`) so a longer
-   name such as `</styles` is not mistaken for `</style`. */
-const LITERAL_TEXT_CLOSE = (function (): Record<string, RegExp> {
-  const map: Record<string, RegExp> = {};
-  arrayForEach(LITERAL_TEXT_ELEMENT_NAMES, (name) => {
-    map[name] = seal(new RegExp('</' + name + '(?=[\\t\\n\\f\\r />])', 'i'));
-  });
-  return freeze(map);
-})();
 
 const getGlobal = function (): WindowLike {
   return typeof window === 'undefined' ? null : window;
@@ -304,6 +292,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
   const _readNodeName = function (node: Node): string {
     return getNodeName ? getNodeName(node) : (node as any).nodeName;
+  };
+
+  /* Element namespace through the cached Element.prototype getter, so a live
+     node's own-property override (Object.defineProperty) cannot steer
+     namespace decisions; direct read where the getter does not exist. Only
+     call this on Elements - the getter throws on other node types. */
+  const getNamespaceURI = lookupAccessor(ElementPrototype, 'namespaceURI');
+  const _readNamespaceURI = function (element: Element): string | null {
+    return getNamespaceURI
+      ? getNamespaceURI(element)
+      : (element as any).namespaceURI;
   };
 
   // As per issue #47, the web-components registry is inherited by a
@@ -1160,40 +1159,50 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    *  return. Return true otherwise.
    */
   const _checkValidNamespace = function (element: Element): boolean {
-    let parent = getParentNode(element);
+    /* Read names and namespaces through the cached prototype getters, never
+       the instance properties. A live IN_PLACE node can carry own-property
+       overrides of tagName / namespaceURI (Object.defineProperty) that would
+       otherwise steer the classification below: a namespace-confused node
+       posing as a plain HTML element, or a parent posing as an integration
+       point. Same root cause as GHSA-x4vx-rjvf-j5p4 (nodeName); for elements
+       nodeName is the tagName. */
+    const elementNamespace = _readNamespaceURI(element);
+    const tagName = stringToLowerCase(_readNodeName(element));
 
-    // In JSDOM, if we're inside shadow DOM, then parentNode
-    // can be null. We just simulate parent in this case.
-    if (!parent || !parent.tagName) {
-      parent = {
-        namespaceURI: NAMESPACE,
-        tagName: 'template',
-      };
+    // A missing parent (JSDOM inside shadow DOM) or a non-element parent
+    // (DocumentFragment, ShadowRoot, Document) is simulated as a <template>
+    // in the configured namespace, as before.
+    const parentNode = getParentNode(element);
+    let parent: { namespaceURI: string | null };
+    let parentTagName: string;
+    if (parentNode && _readNodeType(parentNode) === NODE_TYPE.element) {
+      parent = { namespaceURI: _readNamespaceURI(parentNode) };
+      parentTagName = stringToLowerCase(_readNodeName(parentNode));
+    } else {
+      parent = { namespaceURI: NAMESPACE };
+      parentTagName = 'template';
     }
 
-    const tagName = stringToLowerCase(element.tagName);
-    const parentTagName = stringToLowerCase(parent.tagName);
-
-    if (!ALLOWED_NAMESPACES[element.namespaceURI]) {
+    if (!ALLOWED_NAMESPACES[elementNamespace]) {
       return false;
     }
 
-    if (element.namespaceURI === SVG_NAMESPACE) {
+    if (elementNamespace === SVG_NAMESPACE) {
       return _checkSvgNamespace(tagName, parent, parentTagName);
     }
 
-    if (element.namespaceURI === MATHML_NAMESPACE) {
+    if (elementNamespace === MATHML_NAMESPACE) {
       return _checkMathMlNamespace(tagName, parent, parentTagName);
     }
 
-    if (element.namespaceURI === HTML_NAMESPACE) {
+    if (elementNamespace === HTML_NAMESPACE) {
       return _checkHtmlNamespace(tagName, parent, parentTagName);
     }
 
     // For XHTML and XML documents that support custom namespaces
     if (
       PARSER_MEDIA_TYPE === 'application/xhtml+xml' &&
-      ALLOWED_NAMESPACES[element.namespaceURI]
+      ALLOWED_NAMESPACES[elementNamespace]
     ) {
       return true;
     }
@@ -2163,14 +2172,31 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
        is why both probes here read textContent instead. Previously only
        `style`-with-element-child was covered; every element in
        LITERAL_TEXT_ELEMENTS shares this literal serialization and is
-       equally affected. */
+       equally affected.
+
+       The text probe is rule 1's ELEMENT_MARKUP_PROBE, not just the element's
+       own end tag. For these elements textContent is exactly what an HTML
+       serializer emits, so in an HTML working document this is the same
+       decision rule 1 already makes there (markup-like text is removed). Only
+       matching the own end tag let an XML/XHTML-sourced literal-text element
+       keep markup such as `</style><img onerror>` that the same input loses in
+       HTML mode, and that breaks out once the output is placed in another
+       raw-text context.
+
+       Namespace through the cached getter (see _checkValidNamespace), and only
+       for Elements: a processing instruction's nodeName is its target, which
+       can collide with a name in LITERAL_TEXT_ELEMENTS. */
     if (
       SAFE_FOR_XML &&
-      currentNode.namespaceURI === HTML_NAMESPACE &&
       LITERAL_TEXT_ELEMENTS[tagName] &&
+      _readNodeType(currentNode) === NODE_TYPE.element &&
+      _readNamespaceURI(currentNode) === HTML_NAMESPACE &&
       (_isNode(currentNode.firstElementChild) ||
         (typeof currentNode.textContent === 'string' &&
-          regExpTest(LITERAL_TEXT_CLOSE[tagName], currentNode.textContent)))
+          regExpTest(
+            EXPRESSIONS.ELEMENT_MARKUP_PROBE,
+            currentNode.textContent
+          )))
     ) {
       return true;
     }
@@ -2785,6 +2811,47 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
+   * _isUnsafeAttributeValue
+   *
+   * Value-based attribute checks that the attribute walk applies before any
+   * hook can force-keep an attribute, shared with the public
+   * isValidAttribute() so that it never approves a value sanitize() would
+   * strip.
+   *
+   * @param name the attribute name as found on the node (case preserved)
+   * @param value the attribute value
+   * @returns true if the attribute must be removed because of its value
+   */
+  const _isUnsafeAttributeValue = function (
+    name: string,
+    value: string
+  ): boolean {
+    /* Work around a security issue with comments inside attributes, and
+       raw-text closers that re-contextualize the value on a later reparse */
+    if (
+      SAFE_FOR_XML &&
+      regExpTest(
+        /((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i,
+        value
+      )
+    ) {
+      return true;
+    }
+
+    /* Make sure we cannot easily use animated hrefs, even if animations are
+       allowed. Compared case-insensitively on purpose: in
+       application/xhtml+xml mode names keep their case, and the real SVG
+       attribute is spelled attributeName, which 'attributename' would
+       never match (GHSA-c6gr-qvv4-5v3f). In XHTML a lowercase
+       `attributename` is not the SMIL attribute, so also stripping it
+       there costs nothing. */
+    return (
+      stringToLowerCase(name) === 'attributename' &&
+      stringMatch(value, 'href') !== null
+    );
+  };
+
+  /**
    * _sanitizeAttributes
    *
    * @protect attributes
@@ -2795,7 +2862,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param currentNode to sanitize
    * @param root the current walk root
    */
-  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function (
     currentNode: Element,
     root: Node
@@ -2883,29 +2949,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       // Else: already prefixed, leave the attribute alone — the prefix is
       // itself the clobbering protection, and re-applying it is incorrect.
 
-      /* Work around a security issue with comments inside attributes */
-      if (
-        SAFE_FOR_XML &&
-        regExpTest(
-          /((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i,
-          value
-        )
-      ) {
-        _removeAttribute(name, currentNode, attr);
-        continue;
-      }
-
-      /* Make sure we cannot easily use animated hrefs, even if animations are
-         allowed. Compared case-insensitively on purpose: in
-         application/xhtml+xml mode lcName keeps its case, and the real SVG
-         attribute is spelled attributeName, which 'attributename' would
-         never match (GHSA-c6gr-qvv4-5v3f). In XHTML a lowercase
-         `attributename` is not the SMIL attribute, so also stripping it
-         there costs nothing. */
-      if (
-        stringToLowerCase(name) === 'attributename' &&
-        stringMatch(value, 'href')
-      ) {
+      /* Value checks that apply regardless of hooks (comment / raw-text
+         closers in the value, animated hrefs); see _isUnsafeAttributeValue. */
+      if (_isUnsafeAttributeValue(name, value)) {
         _removeAttribute(name, currentNode, attr);
         continue;
       }
@@ -3420,7 +3466,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
          The same pass also detects the one shape the attribute strip cannot
          make safe: the in-place ROOT was itself force-removed during the walk
-         (a rawtext root killed by the LITERAL_TEXT_CLOSE probe, a clobbered
+         (a rawtext root killed by the literal-text markup probe, a clobbered
          root, an mXSS-canary root, …). Such a root is detached and, for a
          rawtext element, still carries a literal `</tag>`-bearing text payload
          that `_neutralizeSubtree`'s attribute-only strip does not touch, so
@@ -3548,6 +3594,20 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     const lcTag = transformCaseFunc(tag);
     const lcName = transformCaseFunc(attr);
+
+    /* Apply the same value checks sanitize() applies to an attribute when no
+       hook intervenes, so a value approved here is one sanitize() would also
+       keep: comment / raw-text closers, animated hrefs, and the jQuery 3.0
+       self-closing-tag pattern. */
+    if (
+      typeof value === 'string' &&
+      (_isUnsafeAttributeValue(attr, value) ||
+        (!ALLOW_SELF_CLOSE_IN_ATTR &&
+          regExpTest(EXPRESSIONS.SELF_CLOSING_TAG, value)))
+    ) {
+      return false;
+    }
+
     return _isValidAttribute(lcTag, lcName, value);
   };
 

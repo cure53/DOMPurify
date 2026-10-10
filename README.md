@@ -263,6 +263,10 @@ const clean = DOMPurify.sanitize(dirty, {
 // leave all safe HTML as it is and add <style> elements to block-list
 const clean = DOMPurify.sanitize(dirty, { FORBID_TAGS: ['style'] });
 
+// note: while <table> is allowed, <tbody> is always allowed too and cannot be
+// forbidden - browsers insert it on their own, and forbidding it used to make
+// sanitize() loop (see #365). Forbid 'table' as well to drop tables entirely.
+
 // leave all safe HTML as it is and add style attributes to block-list
 const clean = DOMPurify.sanitize(dirty, { FORBID_ATTR: ['style'] });
 
