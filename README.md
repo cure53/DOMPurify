@@ -99,6 +99,8 @@ Why? Because older versions of _jsdom_ are known to be buggy in ways that result
 
 Please also be aware that tools like [happy-dom](https://github.com/capricorn86/happy-dom) exist but **are not considered safe** at this point. Combining DOMPurify with _happy-dom_ is currently not recommended and will likely lead to XSS. For background on why the server-side DOM you choose is part of your trusted computing base, see [Attack Classes & Bypass History](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History).
 
+On runtimes where _jsdom_ cannot run, such as Cloudflare Workers or Vercel Edge, [purify-edge](https://github.com/anzal1/purify-edge) is a third-party project that runs an unmodified DOMPurify on a parse5-based window. Our test suite can be run against it with `npm run test:purify-edge` as a compatibility check. It is not maintained by us, and a passing run is neither an endorsement nor a security guarantee.
+
 Other than that, you are fine to use DOMPurify on the server. Probably. This really depends on _jsdom_ or whatever DOM you utilize server-side. If you can live with that, this is how you get it to work:
 
 ```bash
@@ -167,7 +169,7 @@ These are just a taste. For the full taxonomy of attack classes these samples co
 
 ## What is supported?
 
-DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` API without any known problems. For the exact set of elements and attributes permitted by default, see the [Default TAGs & ATTRIBUTEs allow-list & blocklist](https://github.com/cure53/DOMPurify/wiki/Default-TAGs-ATTRIBUTEs-allow-list-&-blocklist) wiki page.
+DOMPurify currently supports HTML5, SVG and MathML. DOMPurify per default allows CSS, HTML custom data attributes. DOMPurify also supports the Shadow DOM - and sanitizes DOM templates recursively. That covers open shadow roots only: a closed shadow root cannot be read from script, so DOMPurify can neither see nor sanitize what is inside it. Strings are not affected, because DOMPurify's own parser ignores declarative shadow roots (`<template shadowrootmode>`), but `setHTMLUnsafe()` and `Document.parseHTMLUnsafe()` do not: if you parse untrusted markup with those and then pass the resulting nodes to DOMPurify (`IN_PLACE`, `RETURN_DOM`, `RETURN_DOM_FRAGMENT`), any closed shadow root in that markup comes back unsanitized. Pass untrusted markup to DOMPurify as a string instead. DOMPurify also allows you to sanitize HTML for being used with the jQuery `$()` and `elm.html()` API without any known problems. For the exact set of elements and attributes permitted by default, see the [Default TAGs & ATTRIBUTEs allow-list & blocklist](https://github.com/cure53/DOMPurify/wiki/Default-TAGs-ATTRIBUTEs-allow-list-&-blocklist) wiki page.
 
 ## What about legacy browsers like Internet Explorer?
 
@@ -260,6 +262,10 @@ const clean = DOMPurify.sanitize(dirty, {
 
 // leave all safe HTML as it is and add <style> elements to block-list
 const clean = DOMPurify.sanitize(dirty, { FORBID_TAGS: ['style'] });
+
+// note: while <table> is allowed, <tbody> is always allowed too and cannot be
+// forbidden - browsers insert it on their own, and forbidding it used to make
+// sanitize() loop (see #365). Forbid 'table' as well to drop tables entirely.
 
 // leave all safe HTML as it is and add style attributes to block-list
 const clean = DOMPurify.sanitize(dirty, { FORBID_ATTR: ['style'] });
@@ -471,7 +477,7 @@ A few things to know about `IN_PLACE`:
 
 - The root node you pass in must itself be an allowed tag and must not be DOM-clobbered (for example a `<form>` with a child named `nodeName` or `ownerDocument`). If it is, DOMPurify strips the root's subtree of every non-allow-listed attribute and then throws a `TypeError`, so a rejected root is never handed back armed.
 - If anything throws mid-walk, the same fail-closed neutralization runs over the root and over every subtree already detached during that walk before the error propagates.
-- Nodes that a hook detaches from the tree (a common pattern, see [Hooks](#hooks)) are treated as removed. In `IN_PLACE` mode their subtree is neutralized inline, so an `<img onload>` that was already loading when you built the live tree cannot fire after `sanitize()` returns.
+- Nodes that a hook detaches from the tree (a common pattern, see [Hooks](#hooks)) are treated as removed. In `IN_PLACE` mode, every element that was under the root when `sanitize()` started and is no longer under it when the call ends has its non-allow-listed attributes stripped before `sanitize()` returns or throws, no matter what detached it: a hook removing the node it was called for, its parent or another ancestor, or a node elsewhere in the tree, a hook moving a subtree out of the root, or a custom element reacting to one of DOMPurify's own attribute removals. So an `<img onload>` that was already loading when you built the live tree cannot fire after `sanitize()` returns. Likewise, a node of your tree that a hook or custom element moves to a position the walk has already passed is still sanitized before `sanitize()` returns; if the tree keeps changing that way, DOMPurify strips the root bare and throws instead of returning it.
 - DOMPurify cannot undo engine mutations that already fired _before_ `sanitize()` was called (a patch applied on connection, a `selectedcontent` re-clone, and so on). Sanitize attacker-controlled trees before connecting them to the live document, not after.
 
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
@@ -554,6 +560,7 @@ These are our npm scripts:
 - `npm run test` to lint the sources, run tests through jsdom, and run browser tests in Chromium via Playwright
   - `npm run test:jsdom` to only run tests through jsdom
   - `npm run test:happydom` to run the suite through happy-dom (an unsupported environment; kept as a robustness check, not a compatibility promise)
+  - `npm run test:purify-edge` to run the suite through [purify-edge](https://github.com/anzal1/purify-edge), a third-party parse5-based window (an unsupported environment; kept as a compatibility check, not a promise of support). The XSS sink tests run in a second pass, with jsdom as the sink
   - `npm run test:browser` to only run tests through Playwright
   - `npm run test:browser:legacy` to run the suite on older browser engines (point `PW_MODULE` at a pinned old Playwright install; see `.github/workflows/legacy-browsers.yml`)
   - `npm run test:ci` to run the CI test flow for jsdom and Playwright
