@@ -1011,6 +1011,140 @@
     );
 
     QUnit.test(
+      'IN_PLACE strips boundary-spanning expressions inside an attached shadow root',
+      (assert) => {
+        // Same split-expression bug class as the CVE-2026-41239 light-DOM
+        // tests above, but the halves live in an attached shadow root.
+        // _sanitizeShadowDOM strips expressions per text node during its
+        // walk, but the post-walk normalize-and-rescrub (_scrubTemplateExpressions)
+        // historically ran only on the light-DOM root (`dirty` / `body`):
+        // NodeIterator does not descend into shadow trees and normalize()
+        // does not merge text across the shadow boundary, so a '${...}' split
+        // by a removed <object> separator reconstituted on
+        // shadowRoot.textContent and would be interpolated by a downstream
+        // template engine. The shadow walk now runs the same post-walk scrub.
+        const host = document.createElement('div');
+        const root = host.attachShadow({ mode: 'open' });
+        root.appendChild(document.createTextNode('$'));
+        // <object> is not in the default ALLOWED_TAGS; its removal leaves the
+        // surrounding text nodes adjacent.
+        root.appendChild(document.createElement('object'));
+        root.appendChild(document.createTextNode('{alert(1)}'));
+
+        DOMPurify.sanitize(host, {
+          SAFE_FOR_TEMPLATES: true,
+          IN_PLACE: true,
+        });
+        host.shadowRoot.normalize();
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(host.shadowRoot.textContent),
+          'merged template-literal expression should be scrubbed in shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE strips boundary-spanning expressions inside a NESTED shadow root',
+      (assert) => {
+        // The post-walk scrub must reach shadow roots nested inside other
+        // shadow roots, each of which is walked by its own recursive
+        // _sanitizeShadowDOM call.
+        const host = document.createElement('div');
+        const outer = host.attachShadow({ mode: 'open' });
+        const section = document.createElement('section');
+        outer.appendChild(section);
+        const inner = section.attachShadow({ mode: 'open' });
+        inner.appendChild(document.createTextNode('$'));
+        inner.appendChild(document.createElement('object'));
+        inner.appendChild(document.createTextNode('{alert(1)}'));
+
+        DOMPurify.sanitize(host, {
+          SAFE_FOR_TEMPLATES: true,
+          IN_PLACE: true,
+        });
+        const innerRoot = host.shadowRoot.querySelector('section').shadowRoot;
+        innerRoot.normalize();
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(innerRoot.textContent),
+          'merged expression should be scrubbed in nested shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE strips boundary-spanning expressions in a template inside a shadow root',
+      (assert) => {
+        // The shadow-walk scrub is non-recursive; template content inside a
+        // shadow root must still be scrubbed by its own _sanitizeShadowDOM
+        // call. The light-DOM scrub cannot reach it (querySelectorAll does not
+        // enter shadow roots).
+        const host = document.createElement('div');
+        const root = host.attachShadow({ mode: 'open' });
+        const tmpl = document.createElement('template');
+        root.appendChild(tmpl);
+        tmpl.content.appendChild(document.createTextNode('$'));
+        tmpl.content.appendChild(document.createElement('object'));
+        tmpl.content.appendChild(document.createTextNode('{alert(1)}'));
+
+        DOMPurify.sanitize(host, {
+          SAFE_FOR_TEMPLATES: true,
+          IN_PLACE: true,
+        });
+        const kept = host.shadowRoot.querySelector('template');
+        const text = kept ? kept.content.textContent : '';
+        assert.notOk(
+          /\$\{[\s\S]*\}/.test(text),
+          'merged expression should be scrubbed in template content inside a shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'template-expression scrub work stays linear in template nesting depth',
+      (assert) => {
+        // Every nested <template>.content is walked by its own
+        // _sanitizeShadowDOM call. If that walk's post-scrub also recursed
+        // into descendant templates, each fragment would be rescrubbed once
+        // per ancestor (n(n+1)/2 normalize() calls; seconds of CPU for a
+        // ~20KB payload). Count normalize() calls instead of timing, so the
+        // assertion is deterministic across engines.
+        const depth = 60;
+        const dirty =
+          '<div>' +
+          '<template>'.repeat(depth) +
+          'x' +
+          '</template>'.repeat(depth) +
+          '</div>';
+        const proto = window.Node.prototype;
+        const originalNormalize = proto.normalize;
+        let calls = 0;
+        proto.normalize = function () {
+          calls++;
+          return originalNormalize.call(this);
+        };
+
+        try {
+          DOMPurify.sanitize(dirty, { SAFE_FOR_TEMPLATES: true });
+          DOMPurify.sanitize(dirty, {
+            SAFE_FOR_TEMPLATES: true,
+            RETURN_DOM: true,
+          });
+        } finally {
+          proto.normalize = originalNormalize;
+        }
+
+        assert.ok(
+          calls <= 4 * (depth + 1),
+          'normalize() called ' +
+            calls +
+            ' times for depth ' +
+            depth +
+            '; expected linear growth'
+        );
+      }
+    );
+
+    QUnit.test(
       'greedy-scrub of stray close marker prevents URL bypass',
       (assert) => {
         // After scrubbing {{}}, a lazy regex would leave }} behind, which
@@ -1361,6 +1495,126 @@
 
     QUnit.module('Config — IN_PLACE');
 
+    // Namespace validation reads each node's name and namespace through the
+    // cached prototype getters. A live node can carry own-property overrides
+    // (Object.defineProperty) of tagName / namespaceURI; trusting those let a
+    // namespace-confused node pose as a plain element, or a parent pose as an
+    // integration point. Same root cause as GHSA-x4vx-rjvf-j5p4 (nodeName).
+    QUnit.test(
+      'IN_PLACE: own-property tagName / namespaceURI overrides do not steer namespace validation',
+      (assert) => {
+        const HTML_NS = 'http://www.w3.org/1999/xhtml';
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+        const MATH_NS = 'http://www.w3.org/1998/Math/MathML';
+        const run = (spoof) => {
+          const root = document.createElement('div');
+          // An HTML-namespace <svg> is something no HTML parser produces.
+          const confused = document.createElementNS(HTML_NS, 'svg');
+          spoof(confused);
+          root.appendChild(confused);
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          return root.innerHTML;
+        };
+
+        assert.equal(
+          run(() => {}),
+          '',
+          'control: HTML-namespace <svg> removed'
+        );
+        assert.equal(
+          run((node) =>
+            Object.defineProperty(node, 'tagName', { value: 'DIV' })
+          ),
+          '',
+          'own tagName "DIV" does not hide it'
+        );
+        // Only meaningful where namespaceURI is a prototype getter (browsers,
+        // jsdom). A DOM that stores it as a plain instance property (e.g. the
+        // parse5-based purify-edge window) has no separate "real" namespace:
+        // overriding the property changes the namespace itself.
+        let proto = window.Element && window.Element.prototype;
+        let hasNamespaceGetter = false;
+        while (proto && !hasNamespaceGetter) {
+          const desc = Object.getOwnPropertyDescriptor(proto, 'namespaceURI');
+          hasNamespaceGetter = Boolean(desc && desc.get);
+          proto = Object.getPrototypeOf(proto);
+        }
+
+        if (hasNamespaceGetter) {
+          assert.equal(
+            run((node) =>
+              Object.defineProperty(node, 'namespaceURI', { value: SVG_NS })
+            ),
+            '',
+            'own namespaceURI (SVG) does not hide it'
+          );
+        } else {
+          assert.ok(
+            true,
+            'namespaceURI is not a prototype getter here; skipped'
+          );
+        }
+
+        // <svg> directly under MathML <mrow> is invalid; <mtext> would be a
+        // text integration point.
+        const root = document.createElement('div');
+        const math = document.createElementNS(MATH_NS, 'math');
+        const mrow = document.createElementNS(MATH_NS, 'mrow');
+        Object.defineProperty(mrow, 'tagName', { value: 'mtext' });
+        mrow.appendChild(document.createElementNS(SVG_NS, 'svg'));
+        math.appendChild(mrow);
+        root.appendChild(math);
+        DOMPurify.sanitize(root, { IN_PLACE: true });
+        assert.notOk(
+          root.querySelector('svg'),
+          'a parent posing as <mtext> does not admit an SVG child'
+        );
+      }
+    );
+
+    // In an XML/XHTML document innerHTML escapes "<", which blinds rule 1's
+    // innerHTML probe. A literal-text element sourced from such a document
+    // used to keep markup in its text (e.g. "</style><img onerror>") that the
+    // same input loses in HTML mode, and which breaks out once the output is
+    // placed in another raw-text context. Literal-text elements are now probed
+    // on textContent (their raw serialization) for any markup.
+    QUnit.test(
+      'IN_PLACE: literal-text element from an XHTML document loses markup text like in HTML mode',
+      (assert) => {
+        const parse = (body) =>
+          new window.DOMParser().parseFromString(
+            '<div xmlns="http://www.w3.org/1999/xhtml">' + body + '</div>',
+            'application/xhtml+xml'
+          ).documentElement;
+
+        const noembedRoot = parse(
+          '<noembed>&lt;/style&gt;&lt;img src="x" onerror="alert(1)"/&gt;</noembed>'
+        );
+        DOMPurify.sanitize(noembedRoot, {
+          IN_PLACE: true,
+          ADD_TAGS: ['noembed'],
+        });
+        assert.notOk(
+          noembedRoot.querySelector('noembed'),
+          'noembed with markup text removed (ADD_TAGS)'
+        );
+
+        const styleRoot = parse(
+          '<style>/*&lt;/xmp&gt;&lt;img src="x" onerror="alert(1)"/&gt;*/</style><p>kept</p>'
+        );
+        DOMPurify.sanitize(styleRoot, { IN_PLACE: true });
+        assert.notOk(
+          styleRoot.querySelector('style'),
+          'style with markup text removed (default config)'
+        );
+        assert.ok(styleRoot.querySelector('p'), 'unrelated content kept');
+
+        const cssRoot = parse('<style>a{color:red}</style>');
+        DOMPurify.sanitize(cssRoot, { IN_PLACE: true });
+        assert.ok(cssRoot.querySelector('style'), 'ordinary CSS kept');
+      }
+    );
+
     QUnit.test('returns the input node, mutated', (assert) => {
       const dirty = document.createElement('a');
       dirty.setAttribute('href', 'javascript:alert(1)');
@@ -1391,7 +1645,7 @@
       'throws instead of returning a force-removed rawtext root (mXSS reparse)',
       (assert) => {
         // A <style> passed as the IN_PLACE root whose text content already
-        // carries its own end tag is force-removed by the LITERAL_TEXT_CLOSE
+        // carries its own end tag is force-removed by the literal-text markup
         // probe: its literal serialization ("</style><img ...>") re-opens
         // markup on an HTML reparse. _neutralizeSubtree cancels the attribute
         // axis (the onclick below) but cannot defang rawtext text, so the
@@ -1926,6 +2180,55 @@
     );
 
     QUnit.test(
+      'IN_PLACE removal of a connected custom element runs its disconnectedCallback',
+      (assert) => {
+        // Precondition for the two custom-element mid-walk-abort tests: they
+        // only assert that no handler survives, which also holds when the
+        // reaction never runs, so on a DOM without disconnectedCallback support
+        // they pass without exercising the abort path. This pins that removing
+        // a connected custom element during an IN_PLACE walk does run its
+        // reaction, once, before sanitize() returns.
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+        let disconnected = 0;
+        if (!window.customElements.get('inplace-reaction-probe')) {
+          window.customElements.define(
+            'inplace-reaction-probe',
+            class extends window.HTMLElement {
+              disconnectedCallback() {
+                disconnected++;
+              }
+            }
+          );
+        }
+
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<inplace-reaction-probe></inplace-reaction-probe><b>x</b>';
+        // Must be connected: disconnectedCallback only fires on a node that
+        // was actually in a document.
+        document.body.appendChild(root);
+
+        DOMPurify.sanitize(root, { IN_PLACE: true });
+
+        assert.strictEqual(
+          root.innerHTML,
+          '<b>x</b>',
+          'custom element removed from the live tree'
+        );
+        assert.strictEqual(
+          disconnected,
+          1,
+          'disconnectedCallback ran once during removal'
+        );
+
+        root.remove();
+      }
+    );
+
+    QUnit.test(
       'forbidden-root preflight throw de-arms live descendants',
       (assert) => {
         // The early IN_PLACE preflight rejects a forbidden root before the
@@ -2175,6 +2478,445 @@
           );
         } finally {
           DOMPurify.removeHook('afterSanitizeElements');
+        }
+      }
+    );
+
+    // The inline neutralize above only notices a hook detaching the node it
+    // was called for. A hook that detaches some OTHER node - the current
+    // node's parent or a further ancestor, a sibling the walk has not reached
+    // yet, an unrelated not-yet-visited subtree, or a subtree it moves out of
+    // the root - takes that subtree out of the walker's reach unsanitized,
+    // and it is not in DOMPurify.removed either (GHSA-mrv2-3pqr-j5jr,
+    // incomplete fix for GHSA-p98j-92pf-mc4p). The IN_PLACE exit now
+    // neutralizes every element that was under the root when sanitize()
+    // started and is no longer under it, whatever detached it. Same shape as
+    // the tests above: onerror without src, assert the attribute is gone.
+    [
+      'uponSanitizeElement',
+      'beforeSanitizeElements',
+      'afterSanitizeElements',
+      'beforeSanitizeAttributes',
+      'afterSanitizeAttributes',
+    ].forEach((hook) => {
+      QUnit.test(
+        'IN_PLACE: ' +
+          hook +
+          ' detaching a node other than its own neutralizes it (GHSA-mrv2)',
+        (assert) => {
+          const elsewhere = document.createElement('div');
+          // Element references are captured up front rather than read via
+          // nextElementSibling, which not every DOM implementation provides.
+          const shapes = {
+            parent: (refs) => refs.figure.remove(),
+            ancestor: (refs) => refs.section.remove(),
+            'later sibling': (refs) => refs.tail.remove(),
+            'unvisited subtree': (refs) => refs.far.remove(),
+            'moved out of root': (refs) => elsewhere.appendChild(refs.figure),
+          };
+
+          Object.keys(shapes).forEach((shape) => {
+            const root = document.createElement('div');
+            root.innerHTML =
+              '<section><figure><i></i>' +
+              '<img id="tail" onerror="alert(1)"></figure></section>' +
+              '<p>ok</p>' +
+              '<aside id="far"><img id="far-tail" onerror="alert(2)"></aside>';
+            const refs = {
+              section: root.querySelector('section'),
+              figure: root.querySelector('figure'),
+              tail: root.querySelector('#tail'),
+              far: root.querySelector('#far'),
+            };
+            const tail = refs.tail;
+            const farTail = root.querySelector('#far-tail');
+            let fired = false;
+
+            DOMPurify.addHook(hook, (node) => {
+              if (!fired && node.nodeName === 'I') {
+                fired = true;
+                shapes[shape](refs);
+              }
+            });
+
+            try {
+              DOMPurify.sanitize(root, { IN_PLACE: true });
+              assert.ok(fired, shape + ': hook ran');
+              assert.strictEqual(
+                tail.getAttribute('onerror'),
+                null,
+                shape + ': handler stripped from #tail'
+              );
+              assert.strictEqual(
+                farTail.getAttribute('onerror'),
+                null,
+                shape + ': handler stripped from #far-tail'
+              );
+            } finally {
+              DOMPurify.removeHook(hook);
+            }
+          });
+        }
+      );
+    });
+
+    QUnit.test(
+      'IN_PLACE: uponSanitizeShadowNode detaching a sibling neutralizes it (GHSA-mrv2)',
+      (assert) => {
+        const root = document.createElement('div');
+        if (typeof root.attachShadow !== 'function') {
+          assert.ok(true, 'no shadow DOM in this engine; skipping');
+          return;
+        }
+
+        const shadow = root.attachShadow({ mode: 'open' });
+        shadow.innerHTML =
+          '<i></i><b><img id="tail" onerror="alert(1)"></b><p>ok</p>';
+        const tail = shadow.querySelector('#tail');
+        const sibling = shadow.querySelector('b');
+
+        DOMPurify.addHook('uponSanitizeShadowNode', (node) => {
+          if (node.nodeName === 'I' && sibling.parentNode) {
+            sibling.remove();
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the shadow sibling a hook detached'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeShadowNode');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a custom element reaction detaching a sibling neutralizes it, no hook involved (GHSA-mrv2)',
+      (assert) => {
+        // DOMPurify's own removeAttribute('onclick') on an allowed custom
+        // element runs the page's attributeChangedCallback synchronously,
+        // which detaches the next sibling before the walk reaches it.
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+
+        if (!window.customElements.get('inplace-sibling-surgeon')) {
+          window.customElements.define(
+            'inplace-sibling-surgeon',
+            class extends window.HTMLElement {
+              static get observedAttributes() {
+                return ['onclick'];
+              }
+
+              attributeChangedCallback(name, oldValue, newValue) {
+                if (newValue === null && this.nextElementSibling) {
+                  this.nextElementSibling.remove();
+                }
+              }
+            }
+          );
+        }
+
+        const root = document.createElement('div');
+        // Connected, so the element is upgraded and its reactions run.
+        document.body.appendChild(root);
+        root.innerHTML =
+          '<inplace-sibling-surgeon onclick="x"></inplace-sibling-surgeon>' +
+          '<b><img id="tail" onerror="alert(1)"></b>';
+        const tail = root.querySelector('#tail');
+
+        try {
+          DOMPurify.sanitize(root, {
+            IN_PLACE: true,
+            CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^inplace-/ },
+          });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the sibling a reaction detached'
+          );
+        } finally {
+          root.remove();
+          window.xssed = false;
+        }
+      }
+    );
+
+    QUnit.test(
+      "IN_PLACE: a node another node's hook detached is neutralized on the abort path too (GHSA-mrv2)",
+      (assert) => {
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<figure><i></i><img id="tail" onerror="alert(1)"></figure><p>ok</p>';
+        const tail = root.querySelector('#tail');
+
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.nodeName === 'I') {
+            node.parentNode.remove();
+            throw new Error('hook failure after detaching');
+          }
+        });
+
+        try {
+          assert.throws(
+            () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+            /hook failure after detaching/,
+            'the hook error propagates'
+          );
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped before the rethrow'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
+    // The walker only moves forward. A node that a hook or a page
+    // custom-element reaction moves from a not-yet-visited position to one
+    // the walker already passed is never visited, and since it is still
+    // under the root, the escaped-node pass above does not touch it either:
+    // it used to stay in the RETURNED tree with its handlers, URLs and
+    // disallowed tags intact. The IN_PLACE walk now re-walks every node of
+    // the caller's original tree that is still under the root but was never
+    // processed, until nothing is pending.
+    QUnit.test(
+      'IN_PLACE: a node a hook moves behind the walker is still sanitized',
+      (assert) => {
+        const root = document.createElement('div');
+        root.innerHTML =
+          '<p>a</p><i></i>' +
+          '<span id="later"><img id="tail" onerror="alert(1)">' +
+          '<a id="link" href="javascript:alert(2)">x</a>' +
+          '<iframe srcdoc="x"></iframe></span>';
+        const later = root.querySelector('#later');
+        const tail = root.querySelector('#tail');
+        const link = root.querySelector('#link');
+
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.nodeName === 'I') {
+            root.insertBefore(later, root.firstChild);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.equal(root.firstChild, later, 'the moved node stays put');
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the moved subtree'
+          );
+          assert.strictEqual(
+            link.getAttribute('href'),
+            null,
+            'javascript: URL stripped from the moved subtree'
+          );
+          assert.notOk(
+            root.querySelector('iframe'),
+            'disallowed element removed from the moved subtree'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a node an uponSanitizeShadowNode hook moves behind the shadow walker is still sanitized',
+      (assert) => {
+        const root = document.createElement('div');
+        if (typeof root.attachShadow !== 'function') {
+          assert.ok(true, 'no shadow DOM in this engine; skipping');
+          return;
+        }
+
+        const shadow = root.attachShadow({ mode: 'open' });
+        shadow.innerHTML =
+          '<p>a</p><i></i><span><img id="tail" onerror="alert(1)"></span>';
+        const span = shadow.querySelector('span');
+        const tail = shadow.querySelector('#tail');
+
+        DOMPurify.addHook('uponSanitizeShadowNode', (node) => {
+          if (node.nodeName === 'I') {
+            shadow.insertBefore(span, shadow.firstChild);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the moved shadow subtree'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeShadowNode');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a custom element reaction moving a sibling behind the walker is still sanitized, no hook involved',
+      (assert) => {
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+
+        if (!window.customElements.get('inplace-sibling-hoister')) {
+          window.customElements.define(
+            'inplace-sibling-hoister',
+            class extends window.HTMLElement {
+              static get observedAttributes() {
+                return ['onclick'];
+              }
+
+              attributeChangedCallback(name, oldValue, newValue) {
+                const next = this.nextSibling;
+                if (newValue === null && next) {
+                  this.parentNode.insertBefore(next, this);
+                }
+              }
+            }
+          );
+        }
+
+        const root = document.createElement('div');
+        document.body.appendChild(root);
+        root.innerHTML =
+          '<inplace-sibling-hoister onclick="x"></inplace-sibling-hoister>' +
+          '<b><img id="tail" onerror="alert(1)"></b>';
+        const tail = root.querySelector('#tail');
+
+        try {
+          DOMPurify.sanitize(root, {
+            IN_PLACE: true,
+            CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^inplace-/ },
+          });
+          assert.strictEqual(
+            tail.getAttribute('onerror'),
+            null,
+            'handler stripped from the sibling the reaction moved'
+          );
+        } finally {
+          root.remove();
+          window.xssed = false;
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: nodes a hook creates behind the walker are left alone',
+      (assert) => {
+        // Only the caller's original nodes are re-walked; content a hook
+        // inserts itself stays the hook's responsibility, as before.
+        const root = document.createElement('div');
+        root.innerHTML = '<p>a</p><i></i>';
+
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.nodeName === 'I') {
+            const mark = document.createElement('mark');
+            mark.setAttribute('data-from-hook', '1');
+            mark.setAttribute('onclick', 'trusted()');
+            root.insertBefore(mark, root.firstChild);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          const mark = root.querySelector('mark');
+          assert.ok(mark, 'hook-created node kept');
+          assert.equal(
+            mark.getAttribute('onclick'),
+            'trusted()',
+            'hook-created node not re-sanitized'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a DocumentFragment root is rejected with the forbidden-root error, content neutralized',
+      (assert) => {
+        const fragment = document.createDocumentFragment();
+        const holder = document.createElement('div');
+        holder.innerHTML = '<img id="tail" onerror="alert(1)"><b>x</b>';
+        const tail = holder.querySelector('#tail');
+        while (holder.firstChild) {
+          fragment.appendChild(holder.firstChild);
+        }
+
+        assert.throws(
+          () => DOMPurify.sanitize(fragment, { IN_PLACE: true }),
+          /root node is forbidden/,
+          'intended TypeError, not "Illegal invocation"'
+        );
+        assert.strictEqual(
+          tail.getAttribute('onerror'),
+          null,
+          'handler stripped before the throw'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a tree that keeps changing behind the walker fails closed',
+      (assert) => {
+        // A hook that, for every node it sees, moves one node it has not seen
+        // behind the walker roughly halves the pending set per round, so
+        // 2000 nodes need more rounds than the cap allows.
+        const root = document.createElement('div');
+        root.innerHTML = new Array(2001).join(
+          '<b><img onerror="alert(1)"></b>'
+        );
+        const imgs = root.querySelectorAll('img');
+        const seen = [];
+
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+          if (node.nodeName !== 'B') {
+            return;
+          }
+
+          seen.push(node);
+          for (
+            let child = root.lastChild;
+            child;
+            child = child.previousSibling
+          ) {
+            if (seen.indexOf(child) === -1) {
+              root.insertBefore(child, root.firstChild);
+              break;
+            }
+          }
+        });
+
+        try {
+          assert.throws(
+            () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+            /kept changing/,
+            'refuses to return a tree that will not settle'
+          );
+          assert.equal(root.childNodes.length, 0, 'root stripped bare');
+          let armed = 0;
+          for (let i = 0; i < imgs.length; i++) {
+            if (imgs[i].getAttribute('onerror') !== null) {
+              armed++;
+            }
+          }
+
+          assert.equal(armed, 0, 'no handler left armed anywhere');
+        } finally {
+          DOMPurify.removeHook('afterSanitizeAttributes');
         }
       }
     );
@@ -3517,6 +4259,111 @@
           }),
           expected
         );
+      }
+    );
+
+    // An allowed <animate>/<set> must not be able to retarget a link's href:
+    // attributeName values containing "href" are dropped. In XHTML mode the
+    // attribute name keeps its case (attributeName), so the guard used to
+    // compare it against 'attributename' and never fire; with
+    // values="x;javascript:..." the last list entry passes the URI check and
+    // becomes the link's effective href (GHSA-c6gr-qvv4-5v3f).
+    QUnit.test(
+      'animated href is blocked in every parser mode (attributeName guard)',
+      (assert) => {
+        const svgNs = 'xmlns="http://www.w3.org/2000/svg"';
+        const animate =
+          '<svg ' +
+          svgNs +
+          '><a id="q"><animate attributeName="href" ' +
+          'values="x;javascript:alert(1)" dur="0.01s" fill="freeze"/>' +
+          '<text x="10" y="40">click</text></a></svg>';
+        const set =
+          '<svg ' +
+          svgNs +
+          '><a><set attributeName="href" to="x" fill="freeze"/>' +
+          '<text>click</text></a></svg>';
+        const animAttrs = ['values', 'dur', 'fill', 'x', 'y', 'id', 'to'];
+        const configs = [
+          {
+            label: 'XHTML, camelCase ALLOWED_ATTR',
+            cfg: {
+              PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+              ALLOWED_TAGS: ['svg', 'a', 'animate', 'set', 'text'],
+              ALLOWED_ATTR: ['attributeName'].concat(animAttrs),
+            },
+          },
+          {
+            label: 'XHTML, svg profile + ADD_ATTR',
+            cfg: {
+              PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+              USE_PROFILES: { svg: true },
+              ADD_TAGS: ['animate', 'set'],
+              ADD_ATTR: ['attributeName'].concat(animAttrs),
+            },
+          },
+          {
+            label: 'text/html',
+            cfg: {
+              ALLOWED_TAGS: ['svg', 'a', 'animate', 'set', 'text'],
+              ALLOWED_ATTR: ['attributename'].concat(animAttrs),
+            },
+          },
+        ];
+
+        configs.forEach(({ label, cfg }) => {
+          [animate, set].forEach((dirty) => {
+            const clean = DOMPurify.sanitize(dirty, cfg);
+            assert.notOk(
+              /attributename/i.test(clean),
+              label + ': href-targeting attributeName removed: ' + clean
+            );
+          });
+        });
+      }
+    );
+
+    QUnit.test(
+      'XHTML: attributeName that does not target href is kept',
+      (assert) => {
+        // The guard must not over-strip ordinary SVG animations.
+        const clean = DOMPurify.sanitize(
+          '<svg xmlns="http://www.w3.org/2000/svg"><rect width="10" height="10">' +
+            '<animate attributeName="opacity" values="0;1" dur="1s"/></rect></svg>',
+          {
+            PARSER_MEDIA_TYPE: 'application/xhtml+xml',
+            USE_PROFILES: { svg: true },
+            ADD_TAGS: ['animate'],
+            ADD_ATTR: ['attributeName', 'values', 'dur'],
+          }
+        );
+        assert.ok(
+          /attributeName="opacity"/.test(clean),
+          'non-href animation kept: ' + clean
+        );
+      }
+    );
+
+    QUnit.test(
+      'XHTML: removed <foreignObject> drops its content like in HTML mode',
+      (assert) => {
+        // FORBID_CONTENTS lists `foreignobject`; in XHTML mode the element is
+        // spelled foreignObject, and its content used to be hoisted into the
+        // SVG parent instead of being dropped.
+        const dirty =
+          '<svg xmlns="http://www.w3.org/2000/svg"><foreignObject>' +
+          '<title>hoisted</title><desc>hoisted</desc>' +
+          '</foreignObject></svg>';
+        ['text/html', 'application/xhtml+xml'].forEach((type) => {
+          const clean = DOMPurify.sanitize(dirty, {
+            PARSER_MEDIA_TYPE: type,
+            USE_PROFILES: { svg: true },
+          });
+          assert.notOk(
+            /hoisted/.test(clean),
+            type + ': foreignObject content dropped: ' + clean
+          );
+        });
       }
     );
 
@@ -6545,6 +7392,57 @@
       assert.notOk(DOMPurify.isValidAttribute('a', 'onclick', 'alert(1)'));
     });
 
+    QUnit.test(
+      'isValidAttribute rejects every value sanitize() strips on value grounds',
+      (assert) => {
+        // The public API used to skip the value checks sanitize() applies, so
+        // it approved values that sanitize() removes.
+        const rejected = [
+          ['img', 'alt', '</xmp><img src=x onerror=alert(1)>'],
+          ['img', 'alt', 'a</style>b'],
+          ['img', 'alt', 'x-->y'],
+          ['animate', 'attributename', 'href'],
+          ['animate', 'attributeName', 'xlink:href'],
+        ];
+        rejected.forEach(([tag, attr, value]) => {
+          assert.notOk(
+            DOMPurify.isValidAttribute(tag, attr, value),
+            `${tag} ${attr}=${JSON.stringify(value)} rejected`
+          );
+          const html = `<${tag} ${attr}="${value.replace(/"/g, '&quot;')}">`;
+          assert.notOk(
+            new RegExp(attr, 'i').test(DOMPurify.sanitize(html)),
+            `and sanitize() strips it too`
+          );
+        });
+
+        assert.ok(
+          DOMPurify.isValidAttribute('img', 'alt', 'a < b > c'),
+          'ordinary text value still valid'
+        );
+        assert.ok(
+          DOMPurify.isValidAttribute('animate', 'attributename', 'opacity'),
+          'non-href attributeName still valid'
+        );
+
+        // The jQuery 3.0 self-closing check is opt-in; isValidAttribute
+        // follows the persistent config like sanitize() does.
+        assert.ok(
+          DOMPurify.isValidAttribute('img', 'alt', '<b/>'),
+          'self-closing pattern allowed by default'
+        );
+        DOMPurify.setConfig({ ALLOW_SELF_CLOSE_IN_ATTR: false });
+        assert.notOk(
+          DOMPurify.isValidAttribute('img', 'alt', '<b/>'),
+          'self-closing pattern rejected with ALLOW_SELF_CLOSE_IN_ATTR: false'
+        );
+        assert.notOk(
+          /alt=/.test(DOMPurify.sanitize('<img alt="<b/>">')),
+          'and sanitize() strips it under the same config'
+        );
+      }
+    );
+
     QUnit.test('addHook ignores a non-function', (assert) => {
       DOMPurify.addHook('uponSanitizeElement', null);
       assert.equal(DOMPurify.sanitize('<b>x</b>'), '<b>x</b>');
@@ -7007,6 +7905,43 @@
         assert.notOk(
           /onerror/i.test(out),
           `string-input ONERROR must not survive — got: ${out}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'case-preserved attribute is removed as the exact Attr node, not by name',
+      (assert) => {
+        // The removal fix above only matters in a DOM that follows the spec:
+        // on an HTML element in an HTML document, name-based lookups
+        // ASCII-lowercase the key and so miss a case-preserved stored name. A
+        // DOM that lowercases nothing lets a name-based removal succeed and
+        // hides a regression. Check that premise, then that DOMPurify removed
+        // the exact Attr node (IN_PLACE keeps the original node observable).
+        const img = document.createElement('img');
+        img.setAttribute('src', 'x');
+        img.setAttributeNS(null, 'ONERROR', 'alert(1)');
+        const attr = img.attributes[1];
+        assert.strictEqual(attr.name, 'ONERROR', 'stored name keeps its case');
+        assert.strictEqual(
+          img.getAttribute('ONERROR'),
+          null,
+          'name-based lookup lowercases its key and misses it'
+        );
+        const wrap = document.createElement('div');
+        wrap.appendChild(img);
+
+        DOMPurify.sanitize(wrap, { IN_PLACE: true });
+
+        assert.strictEqual(
+          img.attributes.length,
+          1,
+          'only the src attribute is left on the node'
+        );
+        assert.strictEqual(
+          DOMPurify.removed[0] && DOMPurify.removed[0].attribute,
+          attr,
+          'the exact Attr node was removed'
         );
       }
     );
