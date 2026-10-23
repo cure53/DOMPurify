@@ -179,6 +179,9 @@
   },
   "homepage": "https://github.com/cure53/DOMPurify",
   "overrides": {
-    "js-yaml": "^4.2.0"
+    "js-yaml": "^4.2.0",
+    "purify-edge": {
+      "dompurify": "3.4.17"
+    }
   }
 }
