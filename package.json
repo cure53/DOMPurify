@@ -182,6 +182,20 @@
     "js-yaml": "^4.2.0",
     "purify-edge": {
       "dompurify": "3.4.17"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.3"
+    },
+    "babel-plugin-istanbul": {
+      "glob": "^14.0.3",
+      "minimatch": "^11.0.3"
+    },
+    "nyc": {
+      "glob": "^14.0.3",
+      "minimatch": "^11.0.3"
+    },
+    "rimraf@^6.0.1": {
+      "glob": "^14.0.3"
     }
   }
 }
