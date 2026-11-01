@@ -37,6 +37,15 @@
 #   npm (2024-05), and micromatch 4.0.8 / xo 5.x still depend on ^3.0.3, so
 #   there is no parent upgrade that routes around it either. Drop this entry
 #   once a fixed braces ships and the lockfile picks it up.
+#
+# 2026-11: GHSA-3g3m-2fjr-6pw4 (glob) and GHSA-g3hv-75wg-m249 (minimatch)
+#   fixed via scoped npm overrides: rimraf 6, nyc and babel-plugin-istanbul
+#   now resolve glob 14.0.3 / minimatch 11.0.3, typescript-estree minimatch
+#   11.0.3. flat-cache's glob 7.2.3 is outside the glob range (>= 9.0.0).
+#   The minimatch 3.1.5 copies (eslint 8 via xo 0.60) are suppressed below:
+#   3.x has no optimizationLevel / globparts preprocessing, so the vulnerable
+#   code does not exist there, and 11.x cannot replace 3.x (different export
+#   shape). Drop the entry once xo moves off eslint 8.
 
 [[IgnoredVulns]]
 id = "GHSA-mh99-v99m-4gvg"
@@ -47,3 +56,8 @@ reason = "brace-expansion (CVE-2026-14257): unbounded expansion length causing a
 id = "GHSA-vfj7-8cjw-p6xm"
 ignoreUntil = 2027-10-05
 reason = "braces (CVE-2026-93687): stack exhaustion via deeply nested brace patterns in the recursive AST walkers, availability-only (CVSS 7.5). No fixed version exists: 3.0.3 is both last_affected and the newest npm release, and micromatch ^4.0.8 / xo pin ^3.0.3. Dev-only path - reached only via xo -> micromatch -> braces for lint-time glob matching of repo-owned patterns, never attacker-controlled input. DOMPurify ships no runtime dependencies, so this is absent from the published artifact."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-11-01
+reason = "minimatch (CVE-2026-118764): globparts amplification DoS with optimizationLevel >= 2, availability-only. OSV range is [0, 11.0.1) but the bug lives in the two-phase globparts preprocessing that 3.x does not have. Remaining copies are 3.1.5 under eslint 8 (xo 0.60), dev-only, lint-time matching of repo-owned patterns. All 9.x / 10.x copies are overridden to 11.0.3. DOMPurify ships no runtime dependencies."
