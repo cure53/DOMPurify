@@ -2764,7 +2764,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       forceKeepAttr: undefined,
     };
     let l = attributes.length;
-    const lcTag = transformCaseFunc(currentNode.nodeName);
+    const lcTag = transformCaseFunc(_readNodeName(currentNode));
 
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
