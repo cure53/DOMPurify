@@ -2283,7 +2283,7 @@
 				forceKeepAttr: void 0
 			};
 			let l = attributes.length;
-			const lcTag = transformCaseFunc(currentNode.nodeName);
+			const lcTag = transformCaseFunc(_readNodeName(currentNode));
 			while (l--) {
 				const attr = attributes[l];
 				const name = attr.name, namespaceURI = attr.namespaceURI, attrValue = attr.value;

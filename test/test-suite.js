@@ -1495,6 +1495,26 @@
 
     QUnit.module('Config — IN_PLACE');
 
+    // Attribute checks must key on the real tag, not an own nodeName
+    // override (same root cause as GHSA-x4vx-rjvf-j5p4).
+    QUnit.test(
+      'IN_PLACE: own-property nodeName override does not steer attribute checks',
+      (assert) => {
+        const run = (spoof) => {
+          const a = document.createElement('a');
+          a.setAttribute('href', 'data:text/html;base64,PHN2Zz48L3N2Zz4=');
+          if (spoof) {
+            Object.defineProperty(a, 'nodeName', { get: () => spoof });
+          }
+          DOMPurify.sanitize(a, { IN_PLACE: true });
+          return a.getAttribute('href');
+        };
+
+        assert.equal(run(null), null, 'control: data: href removed');
+        assert.equal(run('IMG'), null, 'nodeName "IMG" does not keep it');
+      }
+    );
+
     // Namespace validation reads each node's name and namespace through the
     // cached prototype getters. A live node can carry own-property overrides
     // (Object.defineProperty) of tagName / namespaceURI; trusting those let a
