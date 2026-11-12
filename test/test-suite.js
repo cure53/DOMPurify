@@ -3425,6 +3425,70 @@
 
     QUnit.module('Config — USE_PROFILES');
 
+    QUnit.test(
+      'warns when allowlist options are combined with profiles',
+      (assert) => {
+        const originalWarn = console.warn;
+        const warnings = [];
+        console.warn = (...args) => warnings.push(args.join(' '));
+
+        try {
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            USE_PROFILES: { html: true },
+            ALLOWED_TAGS: ['b'],
+          });
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            USE_PROFILES: { html: true },
+            ALLOWED_ATTR: ['class'],
+          });
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            USE_PROFILES: { html: true },
+            ALLOWED_TAGS: ['b'],
+            ALLOWED_ATTR: ['class'],
+          });
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            USE_PROFILES: { html: true },
+          });
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            ALLOWED_TAGS: ['b'],
+          });
+        } finally {
+          console.warn = originalWarn;
+        }
+
+        assert.deepEqual(warnings, [
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. Do not use these options together.',
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. Do not use these options together.',
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. Do not use these options together.',
+        ]);
+      }
+    );
+
+    QUnit.test(
+      'warns once when setConfig combines allowlists with profiles',
+      (assert) => {
+        const originalWarn = console.warn;
+        const warnings = [];
+        console.warn = (...args) => warnings.push(args.join(' '));
+
+        try {
+          DOMPurify.setConfig({
+            USE_PROFILES: { html: true },
+            ALLOWED_ATTR: ['class'],
+          });
+          DOMPurify.sanitize('<b class="x">text</b>');
+          DOMPurify.sanitize('<b class="x">text</b>');
+        } finally {
+          DOMPurify.clearConfig();
+          console.warn = originalWarn;
+        }
+
+        assert.deepEqual(warnings, [
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. Do not use these options together.',
+        ]);
+      }
+    );
+
     QUnit.test('html profile toggle', (assert) => {
       assert.equal(
         DOMPurify.sanitize('<h1>HELLO</h1>', { USE_PROFILES: { html: false } }),
