@@ -946,6 +946,7 @@ const xml = freeze([
 const MUSTACHE_EXPR = seal(/{{[\w\W]*|^[\w\W]*}}/g);
 const ERB_EXPR = seal(/<%[\w\W]*|^[\w\W]*%>/g);
 const TMPLIT_EXPR = seal(/\${[\w\W]*/g);
+const TMPL_MARKER_SERIALIZED = seal(/{{|}}|\${|<%|%>|&lt;%|%&gt;/);
 const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/);
 const ARIA_ATTR = seal(/^aria-[\-\w]+$/);
 const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i);
@@ -2482,8 +2483,11 @@ function createDOMPurify() {
 			return returnNode;
 		}
 		let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+		if (SAFE_FOR_TEMPLATES && regExpTest(TMPL_MARKER_SERIALIZED, serializedHTML)) {
+			_scrubOwnCharacterData(body);
+			serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+		}
 		if (WHOLE_DOCUMENT && ALLOWED_TAGS["!doctype"] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) serializedHTML = "<!DOCTYPE " + body.ownerDocument.doctype.name + ">\n" + serializedHTML;
-		if (SAFE_FOR_TEMPLATES) serializedHTML = _stripTemplateExpressions(serializedHTML);
 		return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? _createTrustedHTML(serializedHTML) : serializedHTML;
 	};
 	DOMPurify.setConfig = function() {

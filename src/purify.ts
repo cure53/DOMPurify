@@ -3256,6 +3256,17 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 
+    /* Scrub our tree, not the markup: a regex over markup cuts through
+       tags. Only needed if the output holds a marker pair. Template
+       content was already scrubbed by _sanitizeShadowDOM. */
+    if (
+      SAFE_FOR_TEMPLATES &&
+      regExpTest(EXPRESSIONS.TMPL_MARKER_SERIALIZED, serializedHTML)
+    ) {
+      _scrubOwnCharacterData(body);
+      serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    }
+
     /* Serialize doctype if allowed */
     if (
       WHOLE_DOCUMENT &&
@@ -3267,11 +3278,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     ) {
       serializedHTML =
         '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
-    }
-
-    /* Sanitize final string template-safe */
-    if (SAFE_FOR_TEMPLATES) {
-      serializedHTML = _stripTemplateExpressions(serializedHTML);
     }
 
     return trustedTypesPolicy && RETURN_TRUSTED_TYPE

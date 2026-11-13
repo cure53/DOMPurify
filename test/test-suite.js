@@ -1145,6 +1145,49 @@
     );
 
     QUnit.test(
+      'template scrub does not leave orphaned end tags behind',
+      (assert) => {
+        // A regex over serialized markup used to cut away start tags, the
+        // orphaned end tags then vanished on reparse and {{...}} formed.
+        const clean = DOMPurify.sanitize(
+          "<b><i>}<x></x>}{</i>{constructor.constructor('alert(1)')()}</b>}",
+          { SAFE_FOR_TEMPLATES: true }
+        );
+        const div = document.createElement('div');
+        div.innerHTML = clean;
+        const hits = [];
+        const visit = (node) => {
+          if (node.nodeType === 3 && /\{\{|\}\}/.test(node.data)) {
+            hits.push(node.data);
+          }
+
+          for (const child of node.childNodes) {
+            visit(child);
+          }
+        };
+
+        visit(div);
+        assert.deepEqual(hits, []);
+      }
+    );
+
+    QUnit.test('template scrub does not cut through markup', (assert) => {
+      assert.equal(
+        DOMPurify.sanitize(
+          '<form action="https://example.com/"><input name=q>{<x></x>{</form><p>after</p>',
+          { SAFE_FOR_TEMPLATES: true }
+        ),
+        '<form action="https://example.com/"><input name="q"> </form><p>after</p>'
+      );
+      assert.equal(
+        DOMPurify.sanitize('<p>Hello <b>world</b> {single} brace</p>', {
+          SAFE_FOR_TEMPLATES: true,
+        }),
+        '<p>Hello <b>world</b> {single} brace</p>'
+      );
+    });
+
+    QUnit.test(
       'greedy-scrub of stray close marker prevents URL bypass',
       (assert) => {
         // After scrubbing {{}}, a lazy regex would leave }} behind, which
