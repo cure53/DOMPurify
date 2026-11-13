@@ -241,8 +241,8 @@ const clean = DOMPurify.sanitize(dirty, {
 });
 
 // allow all safe HTML elements but neither SVG nor MathML
-// note that the USE_PROFILES setting will override the ALLOWED_TAGS setting
-// so don't use them together
+// note that the USE_PROFILES setting will override the ALLOWED_TAGS and
+// ALLOWED_ATTR settings, so don't use them together
 const clean = DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
 
 // allow all safe SVG elements and SVG Filters, no HTML or MathML

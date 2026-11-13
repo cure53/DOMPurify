@@ -877,6 +877,18 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Parse profile info */
     if (USE_PROFILES) {
+      if (
+        (objectHasOwnProperty(cfg, 'ALLOWED_TAGS') ||
+          objectHasOwnProperty(cfg, 'ALLOWED_ATTR')) &&
+        typeof console !== 'undefined' &&
+        typeof console.warn === 'function'
+      ) {
+        console.warn(
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. ' +
+            'Do not use these options together.'
+        );
+      }
+
       ALLOWED_TAGS = addToSet({}, TAGS.text);
       ALLOWED_ATTR = create(null);
       if (USE_PROFILES.html === true) {

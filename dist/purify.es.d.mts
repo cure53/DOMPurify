@@ -179,8 +179,8 @@ interface Config {
   /**
    * Controls categories of allowed elements.
    *
-   * Note that the `USE_PROFILES` setting will override the `ALLOWED_TAGS` setting
-   * so don't use them together.
+   * Note that the `USE_PROFILES` setting will override the `ALLOWED_TAGS` and
+   * `ALLOWED_ATTR` settings, so don't use them together.
    */
   USE_PROFILES?: false | UseProfilesConfig | undefined;
   /**
