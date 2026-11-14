@@ -1106,6 +1106,9 @@ function createDOMPurify() {
 			IN_TRUSTED_TYPES_POLICY--;
 		}
 	};
+	const _signOutput = function _signOutput(html) {
+		return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? _createTrustedHTML(html) : html;
+	};
 	const _createTrustedScriptURL = function _createTrustedScriptURL(scriptUrl) {
 		_assertNotInTrustedTypesPolicy();
 		IN_TRUSTED_TYPES_POLICY++;
@@ -1532,12 +1535,7 @@ function createDOMPurify() {
 				remove(child);
 			} catch (_) {}
 		});
-		const attributes = _readNodeType(root) === NODE_TYPE.element ? getAttributes(root) : null;
-		if (attributes) for (let i = attributes.length - 1; i >= 0; --i) {
-			const attribute = attributes[i];
-			const name = attribute && attribute.name;
-			if (typeof name === "string") _stripAttributeNode(root, attribute, name);
-		}
+		if (_readNodeType(root) === NODE_TYPE.element) _stripAttributes(root, false);
 	};
 	/**
 	* Removes an attribute, preferably as its exact Attr node: name-based
@@ -1558,14 +1556,10 @@ function createDOMPurify() {
 			attribute: attr || null,
 			from: element
 		});
-		try {
-			if (attr) removeAttributeNode(element, attr);
-			else element.removeAttribute(name);
-		} catch (_) {
-			try {
-				element.removeAttribute(name);
-			} catch (_) {}
-		}
+		if (attr) _stripAttributeNode(element, attr, name);
+		else try {
+			element.removeAttribute(name);
+		} catch (_) {}
 		if (name === "is") {
 			if (RETURN_DOM || RETURN_DOM_FRAGMENT) try {
 				_forceRemove(element);
@@ -1576,19 +1570,19 @@ function createDOMPurify() {
 		}
 	};
 	/**
-	* Removes every attribute the configuration does not allow. Used to
-	* neutralize nodes discarded from an in-place tree.
+	* Removes an element's attributes without book-keeping. Used to neutralize
+	* nodes discarded from an in-place tree.
 	*
 	* @param element the element to strip
+	* @param keepAllowed whether attributes on the allowlist stay
 	*/
-	const _stripDisallowedAttributes = function _stripDisallowedAttributes(element) {
+	const _stripAttributes = function _stripAttributes(element, keepAllowed) {
 		const attributes = getAttributes(element);
 		if (!attributes) return;
 		for (let i = attributes.length - 1; i >= 0; --i) {
 			const attribute = attributes[i];
 			const name = attribute && attribute.name;
-			if (typeof name !== "string" || ALLOWED_ATTR[transformCaseFunc(name)]) continue;
-			_stripAttributeNode(element, attribute, name);
+			if (typeof name === "string" && !(keepAllowed && ALLOWED_ATTR[transformCaseFunc(name)])) _stripAttributeNode(element, attribute, name);
 		}
 	};
 	/**
@@ -1623,7 +1617,7 @@ function createDOMPurify() {
 	*/
 	const _neutralizeSubtree = function _neutralizeSubtree(root) {
 		_walkTree(root, (node) => {
-			if (_readNodeType(node) === NODE_TYPE.element) _stripDisallowedAttributes(node);
+			if (_readNodeType(node) === NODE_TYPE.element) _stripAttributes(node, true);
 		});
 	};
 	/**
@@ -1654,7 +1648,7 @@ function createDOMPurify() {
 			if (_readNodeType(node) === NODE_TYPE.element) setAdd(reachable, node);
 		});
 		arrayForEach(before, (node) => {
-			if (_readNodeType(node) === NODE_TYPE.element && !setHas(reachable, node)) _stripDisallowedAttributes(node);
+			if (_readNodeType(node) === NODE_TYPE.element && !setHas(reachable, node)) _stripAttributes(node, true);
 		});
 	};
 	/**
@@ -1727,9 +1721,7 @@ function createDOMPurify() {
 		while (node = iterator.nextNode()) {
 			if (!setHas(original, node) || setHas(IN_PLACE_VISITED, node)) continue;
 			if (inShadow) _executeHooks(hooks.uponSanitizeShadowNode, node, null);
-			_sanitizeElements(node, root);
-			_sanitizeAttributes(node, root);
-			if (_isDocumentFragment(node.content)) _sanitizeShadowDOM2(node.content);
+			_sanitizeNode(node, root);
 		}
 	};
 	/**
@@ -1817,14 +1809,18 @@ function createDOMPurify() {
 		return WHOLE_DOCUMENT ? doc.documentElement : body;
 	};
 	/**
-	* Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
+	* Creates a NodeIterator over `root`. ownerDocument is read through the
+	* cached getter: a form child named "ownerDocument" shadows the direct
+	* read and would make createNodeIterator throw.
 	*
-	* @param root The root element or node to start traversing on.
+	* @param root The node to start traversing on.
+	* @param characterDataOnly whether to skip elements
 	* @return The created NodeIterator
 	*/
 	const _createNodeIterator = function _createNodeIterator(root) {
+		let characterDataOnly = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : false;
 		const doc = getOwnerDocument ? getOwnerDocument(root) : root.ownerDocument;
-		return createNodeIterator.call(doc || root, root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
+		return createNodeIterator.call(doc || root, root, (characterDataOnly ? 0 : NodeFilter.SHOW_ELEMENT) | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
 	};
 	/**
 	* Replace template expression syntax (mustache, ERB, template
@@ -1883,8 +1879,7 @@ function createDOMPurify() {
 	*/
 	const _scrubOwnCharacterData = function _scrubOwnCharacterData(node) {
 		node.normalize();
-		const doc = getOwnerDocument ? getOwnerDocument(node) : node.ownerDocument;
-		const walker = createNodeIterator.call(doc || node, node, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_CDATA_SECTION | NodeFilter.SHOW_PROCESSING_INSTRUCTION, null);
+		const walker = _createNodeIterator(node, true);
 		let currentNode = walker.nextNode();
 		while (currentNode) {
 			currentNode.data = _stripTemplateExpressions(currentNode.data);
@@ -1910,42 +1905,26 @@ function createDOMPurify() {
 		return typeof element.nodeName !== "string" || typeof element.textContent !== "string" || typeof element.removeChild !== "function" || element.attributes !== getAttributes(element) || typeof element.removeAttribute !== "function" || typeof element.removeAttributeNode !== "function" || typeof element.getAttributeNode !== "function" || typeof element.setAttribute !== "function" || typeof element.namespaceURI !== "string" || typeof element.insertBefore !== "function" || typeof element.hasChildNodes !== "function" || element.nodeType !== getNodeType(element) || element.childNodes !== getChildNodes(element);
 	};
 	/**
-	* Checks whether the given value is a DocumentFragment from any realm.
+	* Reads nodeType through the cached getter, so the result holds for nodes
+	* from any realm (GHSA-4w3q-35jp-p934) and cannot be clobbered.
 	*
-	* The realm-independent replacement reads `nodeType` through the cached
-	* Node.prototype getter and compares to the DOCUMENT_FRAGMENT_NODE
-	* constant (11). nodeType is a numeric value resolved from the node's
-	* internal slot, identical across realms for the same kind of node.
-	*
-	* @param value object to check
-	* @return true if value is a DocumentFragment-shaped node from any realm
+	* @param value anything
+	* @return the node type, or null if value is not a DOM node
 	*/
-	const _isDocumentFragment = function _isDocumentFragment(value) {
-		if (!getNodeType || typeof value !== "object" || value === null) return false;
+	const _nodeTypeOf = function _nodeTypeOf(value) {
+		if (!getNodeType || typeof value !== "object" || value === null) return null;
 		try {
-			return getNodeType(value) === NODE_TYPE.documentFragment;
+			const nodeType = getNodeType(value);
+			return typeof nodeType === "number" ? nodeType : null;
 		} catch (_) {
-			return false;
+			return null;
 		}
 	};
-	/**
-	* Checks whether the given object is a DOM node, including nodes that
-	* originate from a different window/realm (e.g. an iframe's
-	* contentDocument). The previous `value instanceof Node` check was
-	* realm-bound: nodes from a different window failed it, causing
-	* sanitize() to silently stringify them and reset IN_PLACE to false,
-	* returning the original node unsanitized. See GHSA-4w3q-35jp-p934.
-	*
-	* @param value object to check whether it's a DOM node
-	* @return true if value is a DOM node from any realm
-	*/
+	const _isDocumentFragment = function _isDocumentFragment(value) {
+		return _nodeTypeOf(value) === NODE_TYPE.documentFragment;
+	};
 	const _isNode = function _isNode(value) {
-		if (!getNodeType || typeof value !== "object" || value === null) return false;
-		try {
-			return typeof getNodeType(value) === "number";
-		} catch (_) {
-			return false;
-		}
+		return _nodeTypeOf(value) !== null;
 	};
 	function _executeHooks(hooks, currentNode, data) {
 		if (hooks.length === 0) return;
@@ -1961,13 +1940,14 @@ function createDOMPurify() {
 	*
 	* @param currentNode the node to inspect
 	* @param tagName the node's transformCaseFunc'd tag name
+	* @param nodeType the node's type, read through the cached getter
 	* @return true if the node must be removed
 	*/
-	const _isUnsafeNode = function _isUnsafeNode(currentNode, tagName) {
+	const _isUnsafeNode = function _isUnsafeNode(currentNode, tagName, nodeType) {
 		if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.innerHTML)) return true;
-		if (SAFE_FOR_XML && LITERAL_TEXT_ELEMENTS[tagName] && _readNodeType(currentNode) === NODE_TYPE.element && _readNamespaceURI(currentNode) === HTML_NAMESPACE && (_isNode(currentNode.firstElementChild) || typeof currentNode.textContent === "string" && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent))) return true;
-		if (currentNode.nodeType === NODE_TYPE.processingInstruction) return true;
-		if (SAFE_FOR_XML && currentNode.nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, currentNode.data)) return true;
+		if (SAFE_FOR_XML && LITERAL_TEXT_ELEMENTS[tagName] && nodeType === NODE_TYPE.element && _readNamespaceURI(currentNode) === HTML_NAMESPACE && (_isNode(currentNode.firstElementChild) || typeof currentNode.textContent === "string" && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent))) return true;
+		if (nodeType === NODE_TYPE.processingInstruction) return true;
+		if (SAFE_FOR_XML && nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, currentNode.data)) return true;
 		return false;
 	};
 	/**
@@ -2073,13 +2053,14 @@ function createDOMPurify() {
 			return true;
 		}
 		const tagName = transformCaseFunc(_readNodeName(currentNode));
+		const nodeType = _readNodeType(currentNode);
 		ALLOWED_TAGS = _forkSharedAllowlist(hooks.uponSanitizeElement, ALLOWED_TAGS, DEFAULT_ALLOWED_TAGS, SET_CONFIG_ALLOWED_TAGS);
 		_executeHooks(hooks.uponSanitizeElement, currentNode, {
 			tagName,
 			allowedTags: ALLOWED_TAGS
 		});
 		if (_handleHookDetachedNode(currentNode, root)) return true;
-		if (_isUnsafeNode(currentNode, tagName)) {
+		if (_isUnsafeNode(currentNode, tagName, nodeType)) {
 			_forceRemove(currentNode);
 			return true;
 		}
@@ -2091,7 +2072,7 @@ function createDOMPurify() {
 			}
 			return removed;
 		}
-		if (_readNodeType(currentNode) === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {
+		if (nodeType === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {
 			_forceRemove(currentNode);
 			return true;
 		}
@@ -2099,7 +2080,7 @@ function createDOMPurify() {
 			_forceRemove(currentNode);
 			return true;
 		}
-		if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
+		if (SAFE_FOR_TEMPLATES && nodeType === NODE_TYPE.text) {
 			const content = _stripTemplateExpressions(currentNode.textContent);
 			if (currentNode.textContent !== content) {
 				arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
@@ -2295,6 +2276,18 @@ function createDOMPurify() {
 		_handleHookDetachedNode(currentNode, root);
 	};
 	/**
+	* Sanitizes one node: the node itself, its attributes and, for a
+	* template, its content.
+	*
+	* @param node the node to sanitize
+	* @param root the current walk root
+	*/
+	const _sanitizeNode = function _sanitizeNode(node, root) {
+		_sanitizeElements(node, root);
+		_sanitizeAttributes(node, root);
+		if (_isDocumentFragment(node.content)) _sanitizeShadowDOM2(node.content);
+	};
+	/**
 	* _sanitizeShadowDOM
 	*
 	* @param fragment to iterate over recursively
@@ -2305,9 +2298,7 @@ function createDOMPurify() {
 		_executeHooks(hooks.beforeSanitizeShadowDOM, fragment, null);
 		while (shadowNode = shadowIterator.nextNode()) {
 			_executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
-			_sanitizeElements(shadowNode, fragment);
-			_sanitizeAttributes(shadowNode, fragment);
-			if (_isDocumentFragment(shadowNode.content)) _sanitizeShadowDOM2(shadowNode.content);
+			_sanitizeNode(shadowNode, fragment);
 			if (_readNodeType(shadowNode) === NODE_TYPE.element) {
 				const innerSr = getShadowRoot(shadowNode);
 				if (_isDocumentFragment(innerSr)) {
@@ -2413,7 +2404,7 @@ function createDOMPurify() {
 			else body.appendChild(importedNode);
 			_sanitizeAttachedShadowRoots(body);
 		} else {
-			if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && dirty.indexOf("<") === -1) return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? _createTrustedHTML(dirty) : dirty;
+			if (!RETURN_DOM && !SAFE_FOR_TEMPLATES && !WHOLE_DOCUMENT && dirty.indexOf("<") === -1) return _signOutput(dirty);
 			body = _initDocument(dirty);
 			if (!body) return RETURN_DOM ? null : RETURN_TRUSTED_TYPE ? emptyHTML : "";
 		}
@@ -2422,11 +2413,7 @@ function createDOMPurify() {
 		try {
 			if (inPlace) _sanitizeAttachedShadowRoots(dirty);
 			const nodeIterator = _createNodeIterator(walkRoot);
-			while (currentNode = nodeIterator.nextNode()) {
-				_sanitizeElements(currentNode, walkRoot);
-				_sanitizeAttributes(currentNode, walkRoot);
-				if (_isDocumentFragment(currentNode.content)) _sanitizeShadowDOM2(currentNode.content);
-			}
+			while (currentNode = nodeIterator.nextNode()) _sanitizeNode(currentNode, walkRoot);
 			if (inPlace) _sanitizeUnvisitedNodes(dirty, inPlaceNodes);
 		} catch (error) {
 			if (inPlace) {
@@ -2451,13 +2438,14 @@ function createDOMPurify() {
 			if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmode) returnNode = importNode.call(originalDocument, returnNode, true);
 			return returnNode;
 		}
-		let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+		const serialize = () => WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+		let serializedHTML = serialize();
 		if (SAFE_FOR_TEMPLATES && regExpTest(TMPL_MARKER_SERIALIZED, serializedHTML)) {
 			_scrubOwnCharacterData(body);
-			serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+			serializedHTML = serialize();
 		}
 		if (WHOLE_DOCUMENT && ALLOWED_TAGS["!doctype"] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) serializedHTML = "<!DOCTYPE " + body.ownerDocument.doctype.name + ">\n" + serializedHTML;
-		return trustedTypesPolicy && RETURN_TRUSTED_TYPE ? _createTrustedHTML(serializedHTML) : serializedHTML;
+		return _signOutput(serializedHTML);
 	};
 	DOMPurify.setConfig = function() {
 		let cfg = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};

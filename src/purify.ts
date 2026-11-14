@@ -351,6 +351,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
   };
 
+  /* Sign string output when a policy is active and the caller asked for it */
+  const _signOutput = function (html: string): string {
+    return trustedTypesPolicy && RETURN_TRUSTED_TYPE
+      ? _createTrustedHTML(html)
+      : html;
+  };
+
   const _createTrustedScriptURL = function (scriptUrl: string): string {
     _assertNotInTrustedTypesPolicy();
 
@@ -1267,16 +1274,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     // Only elements have attributes; the root may be a rejected fragment
-    const attributes =
-      _readNodeType(root) === NODE_TYPE.element ? getAttributes(root) : null;
-    if (attributes) {
-      for (let i = attributes.length - 1; i >= 0; --i) {
-        const attribute = attributes[i];
-        const name = attribute && attribute.name;
-        if (typeof name === 'string') {
-          _stripAttributeNode(root as Element, attribute, name);
-        }
-      }
+    if (_readNodeType(root) === NODE_TYPE.element) {
+      _stripAttributes(root as Element, false);
     }
   };
 
@@ -1307,14 +1306,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       from: element,
     });
 
-    try {
-      if (attr) {
-        removeAttributeNode(element, attr);
-      } else {
-        element.removeAttribute(name);
-      }
-    } catch (_) {
-      /* Clobbered or detached node: fall back to name-based removal */
+    if (attr) {
+      _stripAttributeNode(element, attr, name);
+    } else {
       try {
         element.removeAttribute(name);
       } catch (_) {}
@@ -1335,12 +1329,16 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
-   * Removes every attribute the configuration does not allow. Used to
-   * neutralize nodes discarded from an in-place tree.
+   * Removes an element's attributes without book-keeping. Used to neutralize
+   * nodes discarded from an in-place tree.
    *
    * @param element the element to strip
+   * @param keepAllowed whether attributes on the allowlist stay
    */
-  const _stripDisallowedAttributes = function (element: Element): void {
+  const _stripAttributes = function (
+    element: Element,
+    keepAllowed: boolean
+  ): void {
     const attributes = getAttributes(element);
     if (!attributes) {
       return;
@@ -1349,11 +1347,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     for (let i = attributes.length - 1; i >= 0; --i) {
       const attribute = attributes[i];
       const name = attribute && attribute.name;
-      if (typeof name !== 'string' || ALLOWED_ATTR[transformCaseFunc(name)]) {
-        continue;
+      if (
+        typeof name === 'string' &&
+        !(keepAllowed && ALLOWED_ATTR[transformCaseFunc(name)])
+      ) {
+        _stripAttributeNode(element, attribute, name);
       }
-
-      _stripAttributeNode(element, attribute, name);
     }
   };
 
@@ -1405,7 +1404,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const _neutralizeSubtree = function (root: Node): void {
     _walkTree(root, (node) => {
       if (_readNodeType(node) === NODE_TYPE.element) {
-        _stripDisallowedAttributes(node as Element);
+        _stripAttributes(node as Element, true);
       }
     });
   };
@@ -1452,7 +1451,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _readNodeType(node) === NODE_TYPE.element &&
         !setHas(reachable, node)
       ) {
-        _stripDisallowedAttributes(node as Element);
+        _stripAttributes(node as Element, true);
       }
     });
   };
@@ -1559,11 +1558,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _executeHooks(hooks.uponSanitizeShadowNode, node, null);
       }
 
-      _sanitizeElements(node, root);
-      _sanitizeAttributes(node as Element, root);
-      if (_isDocumentFragment((node as HTMLTemplateElement).content)) {
-        _sanitizeShadowDOM((node as HTMLTemplateElement).content);
-      }
+      _sanitizeNode(node, root);
     }
   };
 
@@ -1735,27 +1730,24 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
-   * Creates a NodeIterator object that you can use to traverse filtered lists of nodes or elements in a document.
+   * Creates a NodeIterator over `root`. ownerDocument is read through the
+   * cached getter: a form child named "ownerDocument" shadows the direct
+   * read and would make createNodeIterator throw.
    *
-   * @param root The root element or node to start traversing on.
+   * @param root The node to start traversing on.
+   * @param characterDataOnly whether to skip elements
    * @return The created NodeIterator
    */
-  const _createNodeIterator = function (root: Node): NodeIterator {
-    /* Read ownerDocument through the cached Node.prototype getter, never the
-       direct property. HTMLFormElement has [LegacyOverrideBuiltIns], so a
-       clobbering child (<input name="ownerDocument"> or a form-associated
-       external input) shadows the prototype getter and makes a direct read
-       return that <input>. createNodeIterator.call(<input>, ...) then throws
-       "Illegal invocation", and on the IN_PLACE path that throw lands before
-       the walk's fail-closed barrier - leaving the caller's live tree, with
-       any already-armed handler in it, un-neutralized. The cached getter
-       returns the real Document regardless of the clobber. */
+  const _createNodeIterator = function (
+    root: Node,
+    characterDataOnly = false
+  ): NodeIterator {
     const doc = getOwnerDocument ? getOwnerDocument(root) : root.ownerDocument;
     return createNodeIterator.call(
       doc || root,
       root,
       // eslint-disable-next-line no-bitwise
-      NodeFilter.SHOW_ELEMENT |
+      (characterDataOnly ? 0 : NodeFilter.SHOW_ELEMENT) |
         NodeFilter.SHOW_COMMENT |
         NodeFilter.SHOW_TEXT |
         NodeFilter.SHOW_PROCESSING_INSTRUCTION |
@@ -1830,20 +1822,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    */
   const _scrubOwnCharacterData = function (node: Element): void {
     node.normalize();
-    /* Clobber-safe ownerDocument read, same reasoning as _createNodeIterator:
-       under SAFE_FOR_TEMPLATES this runs on the live IN_PLACE root, which may
-       carry a form-named-getter override of ownerDocument. */
-    const doc = getOwnerDocument ? getOwnerDocument(node) : node.ownerDocument;
-    const walker = createNodeIterator.call(
-      doc || node,
-      node,
-      // eslint-disable-next-line no-bitwise
-      NodeFilter.SHOW_TEXT |
-        NodeFilter.SHOW_COMMENT |
-        NodeFilter.SHOW_CDATA_SECTION |
-        NodeFilter.SHOW_PROCESSING_INSTRUCTION,
-      null
-    );
+    const walker = _createNodeIterator(node, true);
 
     let currentNode = walker.nextNode() as CharacterData | null;
     while (currentNode) {
@@ -1927,49 +1906,31 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
-   * Checks whether the given value is a DocumentFragment from any realm.
+   * Reads nodeType through the cached getter, so the result holds for nodes
+   * from any realm (GHSA-4w3q-35jp-p934) and cannot be clobbered.
    *
-   * The realm-independent replacement reads `nodeType` through the cached
-   * Node.prototype getter and compares to the DOCUMENT_FRAGMENT_NODE
-   * constant (11). nodeType is a numeric value resolved from the node's
-   * internal slot, identical across realms for the same kind of node.
-   *
-   * @param value object to check
-   * @return true if value is a DocumentFragment-shaped node from any realm
+   * @param value anything
+   * @return the node type, or null if value is not a DOM node
    */
-  const _isDocumentFragment = function (value: unknown): boolean {
+  const _nodeTypeOf = function (value: unknown): number | null {
     if (!getNodeType || typeof value !== 'object' || value === null) {
-      return false;
+      return null;
     }
 
     try {
-      return getNodeType(value as Node) === NODE_TYPE.documentFragment;
+      const nodeType = getNodeType(value as Node);
+      return typeof nodeType === 'number' ? nodeType : null;
     } catch (_) {
-      return false;
+      return null;
     }
   };
 
-  /**
-   * Checks whether the given object is a DOM node, including nodes that
-   * originate from a different window/realm (e.g. an iframe's
-   * contentDocument). The previous `value instanceof Node` check was
-   * realm-bound: nodes from a different window failed it, causing
-   * sanitize() to silently stringify them and reset IN_PLACE to false,
-   * returning the original node unsanitized. See GHSA-4w3q-35jp-p934.
-   *
-   * @param value object to check whether it's a DOM node
-   * @return true if value is a DOM node from any realm
-   */
-  const _isNode = function (value: unknown): value is Node {
-    if (!getNodeType || typeof value !== 'object' || value === null) {
-      return false;
-    }
+  const _isDocumentFragment = function (value: unknown): boolean {
+    return _nodeTypeOf(value) === NODE_TYPE.documentFragment;
+  };
 
-    try {
-      return typeof getNodeType(value) === 'number';
-    } catch (_) {
-      return false;
-    }
+  const _isNode = function (value: unknown): value is Node {
+    return _nodeTypeOf(value) !== null;
   };
 
   function _executeHooks<T extends HookFunction>(
@@ -1994,9 +1955,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    *
    * @param currentNode the node to inspect
    * @param tagName the node's transformCaseFunc'd tag name
+   * @param nodeType the node's type, read through the cached getter
    * @return true if the node must be removed
    */
-  const _isUnsafeNode = function (currentNode: any, tagName: string): boolean {
+  const _isUnsafeNode = function (
+    currentNode: any,
+    tagName: string,
+    nodeType: number
+  ): boolean {
     /* Detect mXSS attempts abusing namespace confusion */
     if (
       SAFE_FOR_XML &&
@@ -2033,7 +1999,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (
       SAFE_FOR_XML &&
       LITERAL_TEXT_ELEMENTS[tagName] &&
-      _readNodeType(currentNode) === NODE_TYPE.element &&
+      nodeType === NODE_TYPE.element &&
       _readNamespaceURI(currentNode) === HTML_NAMESPACE &&
       (_isNode(currentNode.firstElementChild) ||
         (typeof currentNode.textContent === 'string' &&
@@ -2046,14 +2012,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Remove any occurrence of processing instructions */
-    if (currentNode.nodeType === NODE_TYPE.processingInstruction) {
+    if (nodeType === NODE_TYPE.processingInstruction) {
       return true;
     }
 
     /* Remove any kind of possibly harmful comments */
     if (
       SAFE_FOR_XML &&
-      currentNode.nodeType === NODE_TYPE.comment &&
+      nodeType === NODE_TYPE.comment &&
       regExpTest(EXPRESSIONS.COMMENT_MARKUP_PROBE, currentNode.data)
     ) {
       return true;
@@ -2260,6 +2226,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Now let's check the element's type and name */
     const tagName = transformCaseFunc(_readNodeName(currentNode));
+    const nodeType = _readNodeType(currentNode);
 
     /* Close the pre-walk clone-guard's timing gap: an uponSanitizeElement
        hook may have been installed after that guard sampled the hook arrays
@@ -2286,7 +2253,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Remove mXSS vectors, processing instructions and risky comments */
-    if (_isUnsafeNode(currentNode, tagName)) {
+    if (_isUnsafeNode(currentNode, tagName, nodeType)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -2334,8 +2301,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
        bound and short-circuits to false for any node minted in a different
        realm — letting a foreign-realm element with a forbidden namespace
        slip past the namespace check entirely. */
-    const nt = _readNodeType(currentNode);
-    if (nt === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {
+    if (nodeType === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -2352,7 +2318,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     /* Sanitize element content to be template-safe */
-    if (SAFE_FOR_TEMPLATES && currentNode.nodeType === NODE_TYPE.text) {
+    if (SAFE_FOR_TEMPLATES && nodeType === NODE_TYPE.text) {
       /* Get the element's text content */
       const content = _stripTemplateExpressions(currentNode.textContent);
 
@@ -2841,6 +2807,22 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   /**
+   * Sanitizes one node: the node itself, its attributes and, for a
+   * template, its content.
+   *
+   * @param node the node to sanitize
+   * @param root the current walk root
+   */
+  const _sanitizeNode = function (node: any, root: Node): void {
+    _sanitizeElements(node, root);
+    _sanitizeAttributes(node, root);
+
+    if (_isDocumentFragment(node.content)) {
+      _sanitizeShadowDOM(node.content);
+    }
+  };
+
+  /**
    * _sanitizeShadowDOM
    *
    * @param fragment to iterate over recursively
@@ -2856,19 +2838,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       /* Execute a hook if present */
       _executeHooks(hooks.uponSanitizeShadowNode, shadowNode, null);
 
-      /* Sanitize tags and elements */
-      _sanitizeElements(shadowNode, fragment);
-
-      /* Check attributes next */
-      _sanitizeAttributes(shadowNode, fragment);
-
-      /* Deep shadow DOM detected.
-         Realm-safe check (GHSA-hpcv-96wg-7vj8): use nodeType against the
-         DOCUMENT_FRAGMENT_NODE constant rather than instanceof, so we
-         recurse into <template>.content from foreign realms too. */
-      if (_isDocumentFragment(shadowNode.content)) {
-        _sanitizeShadowDOM(shadowNode.content);
-      }
+      _sanitizeNode(shadowNode, fragment);
 
       /* An element iterated here may itself host an attached
          shadow root. The default NodeIterator does not enter shadow
@@ -3112,9 +3082,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         // eslint-disable-next-line unicorn/prefer-includes
         dirty.indexOf('<') === -1
       ) {
-        return trustedTypesPolicy && RETURN_TRUSTED_TYPE
-          ? _createTrustedHTML(dirty)
-          : dirty;
+        return _signOutput(dirty);
       }
 
       /* Initialize the document to work on */
@@ -3143,13 +3111,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       const nodeIterator = _createNodeIterator(walkRoot);
       while ((currentNode = nodeIterator.nextNode())) {
-        _sanitizeElements(currentNode, walkRoot);
-        _sanitizeAttributes(currentNode, walkRoot);
-
-        // Template content (realm-safe nodeType check)
-        if (_isDocumentFragment(currentNode.content)) {
-          _sanitizeShadowDOM(currentNode.content);
-        }
+        _sanitizeNode(currentNode, walkRoot);
       }
 
       if (inPlace) {
@@ -3213,7 +3175,9 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return returnNode;
     }
 
-    let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    const serialize = (): string =>
+      WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+    let serializedHTML = serialize();
 
     /* Scrub our tree, not the markup: a regex over markup cuts through
        tags. Only needed if the output holds a marker pair. Template
@@ -3223,7 +3187,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       regExpTest(EXPRESSIONS.TMPL_MARKER_SERIALIZED, serializedHTML)
     ) {
       _scrubOwnCharacterData(body);
-      serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
+      serializedHTML = serialize();
     }
 
     /* Serialize doctype if allowed */
@@ -3239,9 +3203,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         '<!DOCTYPE ' + body.ownerDocument.doctype.name + '>\n' + serializedHTML;
     }
 
-    return trustedTypesPolicy && RETURN_TRUSTED_TYPE
-      ? _createTrustedHTML(serializedHTML)
-      : serializedHTML;
+    return _signOutput(serializedHTML);
   };
 
   DOMPurify.setConfig = function (cfg = {}) {
