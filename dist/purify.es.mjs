@@ -1506,17 +1506,10 @@ function createDOMPurify() {
 		}
 	};
 	/**
-	* _stripAttributeNode
-	*
-	* Remove a single Attr node case/namespace-exactly on an attribute-teardown
-	* path. Name-based removeAttribute() ASCII-lowercases its lookup key for an
-	* HTML element in an HTML document and so silently misses a case-preserved
-	* handler (e.g. `ONERROR` off an XML/XHTML import) - the same defect
-	* _removeAttribute() was fixed for, which a name-based call would reintroduce
-	* on these IN_PLACE teardown paths. Unlike _removeAttribute this does not
-	* record into DOMPurify.removed: the neutralize passes intentionally do not
-	* book-keep. A clobbered/detached node falls back to best-effort name-based
-	* removal.
+	* Removes an Attr node as that exact node, without book-keeping. Name-based
+	* removal lowercases the name in HTML documents and would miss a
+	* case-preserved one such as `ONERROR`, so it is only the fallback for
+	* clobbered or detached nodes.
 	*
 	* @param element the element to strip the attribute from
 	* @param attribute the Attr node to remove
@@ -1764,7 +1757,7 @@ function createDOMPurify() {
 	* and strips linkage attributes. It cannot undo a patch that already fired.
 	*
 	* TODO: if the shipped feature can patch through `for` on <label>/<output>,
-	* drop that pair here too (see test/declarative-patch-probe.html).
+	* drop that pair here too.
 	*
 	* @param root the in-place root to sweep
 	*/
@@ -1848,21 +1841,11 @@ function createDOMPurify() {
 		return value;
 	};
 	/**
-	* Strip template-engine expressions ({{...}}, ${...}, <%...%>) from the
-	* character data of an element subtree. Used as the final safety net for
-	* SAFE_FOR_TEMPLATES on every DOM-returning code path so that expressions
-	* which only form after text-node normalization (e.g. fragments split across
-	* stripped elements) cannot survive into a template-evaluating framework.
-	*
-	* Walks text/comment/CDATA/processing-instruction nodes and mutates `.data`
-	* in place rather than round-tripping through innerHTML. This preserves
-	* descendant node references (important for IN_PLACE callers), avoids a
-	* serialize/reparse cycle, and reads literal character data — which means
-	* `<%...%>` in text content matches the ERB regex against its real bytes
-	* instead of the HTML-entity-escaped form innerHTML would produce.
-	*
-	* Attribute values are not visited here; SAFE_FOR_TEMPLATES handling for
-	* attributes is performed during the per-node `_sanitizeAttributes` pass.
+	* Strips template expressions from the character data under `node`,
+	* template contents included. Runs after the walk, since an expression can
+	* also form when a removed element leaves two text nodes adjacent. Works on
+	* the nodes rather than on markup, which keeps node references intact and
+	* sees `<%` unescaped. Attribute values are handled in _sanitizeAttributes.
 	*
 	* @param node The root element whose character data should be scrubbed.
 	*/
@@ -1875,16 +1858,9 @@ function createDOMPurify() {
 		});
 	};
 	/**
-	* _scrubOwnCharacterData
-	*
-	* Non-recursive core of _scrubTemplateExpressions: normalize `node` and
-	* strip template expressions from its own character data only. Does not
-	* enter <template>.content or attached shadow roots (NodeIterator never
-	* does). Used by _sanitizeShadowDOM, where every nested template content
-	* and shadow root is already walked - and therefore scrubbed - by its own
-	* recursive _sanitizeShadowDOM call; recursing here as well would rescrub
-	* each nested fragment once per ancestor, which is quadratic in nesting
-	* depth.
+	* Normalizes `node` and strips template expressions from its own character
+	* data. Template contents and shadow roots are not entered, their own
+	* _sanitizeShadowDOM call scrubs them.
 	*
 	* @param node The root whose own character data should be scrubbed.
 	*/
@@ -1898,13 +1874,9 @@ function createDOMPurify() {
 		}
 	};
 	/**
-	* _isClobbered
-	*
-	* Detect DOM-clobbering on HTMLFormElement nodes. Form is the only HTML
-	* interface with [LegacyOverrideBuiltIns]; a descendant element with a
-	* `name` attribute matching a prototype property shadows that property
-	* on direct reads. We use this check at the IN_PLACE entry-point and
-	* during attribute sanitization to refuse clobbered forms.
+	* Detects DOM clobbering on a form, the only element whose named children
+	* shadow its own properties. Each probe compares a direct read with what
+	* the property has to be.
 	*
 	* @param element element to check for clobbering attacks
 	* @return true if clobbered, false if safe
@@ -1982,17 +1954,9 @@ function createDOMPurify() {
 		return false;
 	};
 	/**
-	* Handle a node whose tag is forbidden or not allowlisted: keep
-	* allowed custom elements (false return exits _sanitizeElements
-	* early - the namespace and fallback-tag removal checks are
-	* intentionally skipped for kept custom elements), else hoist
-	* content per KEEP_CONTENT and remove.
-	*
-	* A kept custom element is the ONLY case in which this function
-	* returns false, so the caller uses that return value to run the
-	* afterSanitizeElements hook on the kept element and keep the
-	* element-hook lifecycle consistent with normal allowlisted
-	* elements (GHSA-c2j3-45gr-mqc4).
+	* Handles a node whose tag is forbidden or not allowlisted: hoists its
+	* content per KEEP_CONTENT and removes it. The one exception is a custom
+	* element allowed via CUSTOM_ELEMENT_HANDLING, which is kept.
 	*
 	* @param currentNode the disallowed node
 	* @param tagName the node's transformCaseFunc'd tag name
@@ -2015,11 +1979,9 @@ function createDOMPurify() {
 		return true;
 	};
 	/**
-	* Fork a hook-mutable allowlist off its shared binding the first time a
-	* (possibly lazily-installed) uponSanitize* hook is about to see it, so the
-	* hook cannot widen the per-instance default or the setConfig binding by
-	* reference and leak past the call. Returns the set unchanged once it is
-	* already call-local, so repeated calls across elements are idempotent.
+	* Forks an allowlist off its shared binding (the instance default or the
+	* setConfig() capture) before a hook sees it, so a hook's widening stays
+	* within the call. A set that is already call-local is returned as is.
 	*
 	* @param hookList the uponSanitize* hook array for this event
 	* @param set the current ALLOWED_TAGS / ALLOWED_ATTR binding
@@ -2166,21 +2128,8 @@ function createDOMPurify() {
 		return value;
 	};
 	/**
-	* Write a modified attribute value back onto the element. On
-	* success, re-probe for clobbering introduced by the new value and
-	* remove the element when found; otherwise, when this writeback is the
-	* recreate half of the SANITIZE_NAMED_PROPS remove-and-recreate, pop the
-	* removal entry that path recorded so it does not show as removed. On
-	* failure, remove the attribute instead.
-	*
-	* Returns true only on a clean write (the value was set and the new value
-	* introduced no clobbering). The caller uses that, together with its own
-	* knowledge of whether this attribute pushed a DOMPurify.removed record, to
-	* decide whether to pop that record. The pop must happen ONLY for the
-	* named-prop remove-and-recreate; popping on any other value change (trim,
-	* template scrubbing, Trusted Types) would consume an unrelated _forceRemove
-	* subtree-cleanup record and let that detached subtree keep a live event
-	* handler through the IN_PLACE neutralization pass (SO-001).
+	* Writes a changed attribute value back. If the new value clobbers, the
+	* element is removed; if the write fails, the attribute is.
 	*
 	* @param currentNode the element carrying the attribute
 	* @param name the attribute name as present on the element
@@ -2203,12 +2152,9 @@ function createDOMPurify() {
 		}
 	};
 	/**
-	* _isUnsafeAttributeValue
-	*
-	* Value-based attribute checks that the attribute walk applies before any
-	* hook can force-keep an attribute, shared with the public
-	* isValidAttribute() so that it never approves a value sanitize() would
-	* strip.
+	* Value checks that apply before a hook can force-keep an attribute. Also
+	* used by isValidAttribute(), so it never approves a value that sanitize()
+	* would strip.
 	*
 	* @param name the attribute name as found on the node (case preserved)
 	* @param value the attribute value
