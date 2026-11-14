@@ -1027,26 +1027,26 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * Namespace rules for an element in the SVG namespace.
    *
    * @param tagName the element's lowercase tag name
-   * @param parent the (possibly simulated) parent node
+   * @param parentNamespace the (possibly simulated) parent's namespace
    * @param parentTagName the parent's lowercase tag name
    * @returns true if a spec-compliant parser could produce this element
    */
   const _checkSvgNamespace = function (
     tagName: string,
-    parent: { namespaceURI?: string },
+    parentNamespace: string | null,
     parentTagName: string
   ): boolean {
     // The only way to switch from HTML namespace to SVG
     // is via <svg>. If it happens via any other tag, then
     // it should be killed.
-    if (parent.namespaceURI === HTML_NAMESPACE) {
+    if (parentNamespace === HTML_NAMESPACE) {
       return tagName === 'svg';
     }
 
     // The only way to switch from MathML to SVG is via <svg>
     // if the parent is either <annotation-xml> or a MathML
     // text integration point.
-    if (parent.namespaceURI === MATHML_NAMESPACE) {
+    if (parentNamespace === MATHML_NAMESPACE) {
       return (
         tagName === 'svg' &&
         (parentTagName === 'annotation-xml' ||
@@ -1063,25 +1063,25 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * Namespace rules for an element in the MathML namespace.
    *
    * @param tagName the element's lowercase tag name
-   * @param parent the (possibly simulated) parent node
+   * @param parentNamespace the (possibly simulated) parent's namespace
    * @param parentTagName the parent's lowercase tag name
    * @returns true if a spec-compliant parser could produce this element
    */
   const _checkMathMlNamespace = function (
     tagName: string,
-    parent: { namespaceURI?: string },
+    parentNamespace: string | null,
     parentTagName: string
   ): boolean {
     // The only way to switch from HTML namespace to MathML
     // is via <math>. If it happens via any other tag, then
     // it should be killed.
-    if (parent.namespaceURI === HTML_NAMESPACE) {
+    if (parentNamespace === HTML_NAMESPACE) {
       return tagName === 'math';
     }
 
     // The only way to switch from SVG to MathML is via
     // <math> and HTML integration points
-    if (parent.namespaceURI === SVG_NAMESPACE) {
+    if (parentNamespace === SVG_NAMESPACE) {
       return tagName === 'math' && HTML_INTEGRATION_POINTS[parentTagName];
     }
 
@@ -1094,27 +1094,27 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * Namespace rules for an element in the HTML namespace.
    *
    * @param tagName the element's lowercase tag name
-   * @param parent the (possibly simulated) parent node
+   * @param parentNamespace the (possibly simulated) parent's namespace
    * @param parentTagName the parent's lowercase tag name
    * @returns true if a spec-compliant parser could produce this element
    */
   const _checkHtmlNamespace = function (
     tagName: string,
-    parent: { namespaceURI?: string },
+    parentNamespace: string | null,
     parentTagName: string
   ): boolean {
     // The only way to switch from SVG to HTML is via
     // HTML integration points, and from MathML to HTML
     // is via MathML text integration points
     if (
-      parent.namespaceURI === SVG_NAMESPACE &&
+      parentNamespace === SVG_NAMESPACE &&
       !HTML_INTEGRATION_POINTS[parentTagName]
     ) {
       return false;
     }
 
     if (
-      parent.namespaceURI === MATHML_NAMESPACE &&
+      parentNamespace === MATHML_NAMESPACE &&
       !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]
     ) {
       return false;
@@ -1149,14 +1149,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     // (DocumentFragment, ShadowRoot, Document) is simulated as a <template>
     // in the configured namespace, as before.
     const parentNode = getParentNode(element);
-    let parent: { namespaceURI: string | null };
-    let parentTagName: string;
+    let parentNamespace: string | null = NAMESPACE;
+    let parentTagName = 'template';
     if (parentNode && _readNodeType(parentNode) === NODE_TYPE.element) {
-      parent = { namespaceURI: _readNamespaceURI(parentNode) };
+      parentNamespace = _readNamespaceURI(parentNode);
       parentTagName = stringToLowerCase(_readNodeName(parentNode));
-    } else {
-      parent = { namespaceURI: NAMESPACE };
-      parentTagName = 'template';
     }
 
     if (!ALLOWED_NAMESPACES[elementNamespace]) {
@@ -1164,15 +1161,15 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     if (elementNamespace === SVG_NAMESPACE) {
-      return _checkSvgNamespace(tagName, parent, parentTagName);
+      return _checkSvgNamespace(tagName, parentNamespace, parentTagName);
     }
 
     if (elementNamespace === MATHML_NAMESPACE) {
-      return _checkMathMlNamespace(tagName, parent, parentTagName);
+      return _checkMathMlNamespace(tagName, parentNamespace, parentTagName);
     }
 
     if (elementNamespace === HTML_NAMESPACE) {
-      return _checkHtmlNamespace(tagName, parent, parentTagName);
+      return _checkHtmlNamespace(tagName, parentNamespace, parentTagName);
     }
 
     // An allowed custom namespace is only valid in XHTML and XML documents
@@ -1671,7 +1668,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       dirty = '<remove></remove>' + dirty;
     } else {
       /* If FORCE_BODY isn't used, leading whitespace needs to be preserved manually */
-      const matches = stringMatch(dirty, /^[\r\n\t ]+/);
+      const matches = stringMatch(dirty, EXPRESSIONS.LEADING_WHITESPACE);
       leadingWhitespace = matches && matches[0];
     }
 
@@ -1966,6 +1963,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Detect mXSS attempts abusing namespace confusion */
     if (
       SAFE_FOR_XML &&
+      nodeType === NODE_TYPE.element &&
       currentNode.hasChildNodes() &&
       !_isNode(currentNode.firstElementChild) &&
       regExpTest(EXPRESSIONS.ELEMENT_MARKUP_PROBE, currentNode.textContent) &&
@@ -2319,10 +2317,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Sanitize element content to be template-safe */
     if (SAFE_FOR_TEMPLATES && nodeType === NODE_TYPE.text) {
-      /* Get the element's text content */
-      const content = _stripTemplateExpressions(currentNode.textContent);
+      const text = currentNode.textContent;
+      const content = _stripTemplateExpressions(text);
 
-      if (currentNode.textContent !== content) {
+      if (text !== content) {
         arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
         currentNode.textContent = content;
       }
@@ -2448,7 +2446,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Check no script, data or unknown possibly unsafe URI
         unless we know URI values are safe for that attribute */
-    if (regExpTest(IS_ALLOWED_URI, stringReplace(value, ATTR_WHITESPACE, ''))) {
+    const compactValue = stringReplace(value, ATTR_WHITESPACE, '');
+    if (regExpTest(IS_ALLOWED_URI, compactValue)) {
       return true;
     }
 
@@ -2468,7 +2467,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         time, e.g. fb:, spotify: */
     if (
       ALLOW_UNKNOWN_PROTOCOLS &&
-      !regExpTest(IS_SCRIPT_OR_DATA, stringReplace(value, ATTR_WHITESPACE, ''))
+      !regExpTest(IS_SCRIPT_OR_DATA, compactValue)
     ) {
       return true;
     }
@@ -2616,13 +2615,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   ): boolean {
     /* Work around a security issue with comments inside attributes, and
        raw-text closers that re-contextualize the value on a later reparse */
-    if (
-      SAFE_FOR_XML &&
-      regExpTest(
-        /((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i,
-        value
-      )
-    ) {
+    if (SAFE_FOR_XML && regExpTest(EXPRESSIONS.ATTR_VALUE_BREAKOUT, value)) {
       return true;
     }
 
@@ -2635,7 +2628,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
        there costs nothing. */
     return (
       stringToLowerCase(name) === 'attributename' &&
-      stringMatch(value, 'href') !== null
+      stringIndexOf(value, 'href') !== -1
     );
   };
 

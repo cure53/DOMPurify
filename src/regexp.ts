@@ -19,8 +19,13 @@ export const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 
 // Markup-significant character probes used by _sanitizeElements.
 // Shared module-level instances are safe despite the sticky /g flags:
-// unapply() resets lastIndex for RegExp receivers before every call.
+// regExpTest() resets lastIndex before every call.
 export const ELEMENT_MARKUP_PROBE = seal(/<[/\w!]/g);
 export const COMMENT_MARKUP_PROBE = seal(/<[/\w]/g);
 export const FALLBACK_TAG_CLOSE = seal(/<\/no(script|embed|frames)/i);
 export const SELF_CLOSING_TAG = seal(/\/>/i);
+// Comment closers and raw-text end tags inside an attribute value
+export const ATTR_VALUE_BREAKOUT = seal(
+  /((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i
+);
+export const LEADING_WHITESPACE = seal(/^[\r\n\t ]+/);

@@ -66,7 +66,15 @@ const symbolToString =
 const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
 const objectToString = unapply(Object.prototype.toString);
 
-const regExpTest = unapply(RegExp.prototype.test);
+const regExpTestRaw = RegExp.prototype.test;
+/* Shared /g regexes keep state in lastIndex, so reset it before each test */
+const regExpTest = function (regExp: RegExp, value: string): boolean {
+  if (regExp instanceof RegExp) {
+    regExp.lastIndex = 0;
+  }
+
+  return apply(regExpTestRaw, regExp, [value]);
+};
 
 const typeErrorCreate = unconstruct(TypeError);
 
@@ -79,13 +87,7 @@ const typeErrorCreate = unconstruct(TypeError);
 function unapply<T>(
   func: (thisArg: any, ...args: any[]) => T
 ): (thisArg: any, ...args: any[]) => T {
-  return (thisArg: any, ...args: any[]): T => {
-    if (thisArg instanceof RegExp) {
-      thisArg.lastIndex = 0;
-    }
-
-    return apply(func, thisArg, args);
-  };
+  return (thisArg: any, ...args: any[]): T => apply(func, thisArg, args);
 }
 
 /**

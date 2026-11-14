@@ -140,7 +140,11 @@ const bigintToString = typeof BigInt === "undefined" ? null : unapply(BigInt.pro
 const symbolToString = typeof Symbol === "undefined" ? null : unapply(Symbol.prototype.toString);
 const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
 const objectToString = unapply(Object.prototype.toString);
-const regExpTest = unapply(RegExp.prototype.test);
+const regExpTestRaw = RegExp.prototype.test;
+const regExpTest = function regExpTest(regExp, value) {
+	if (regExp instanceof RegExp) regExp.lastIndex = 0;
+	return apply(regExpTestRaw, regExp, [value]);
+};
 const typeErrorCreate = unconstruct(TypeError);
 /**
 * Creates a new function that calls the given function with a specified thisArg and arguments.
@@ -150,7 +154,6 @@ const typeErrorCreate = unconstruct(TypeError);
 */
 function unapply(func) {
 	return function(thisArg) {
-		if (thisArg instanceof RegExp) thisArg.lastIndex = 0;
 		for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) args[_key3 - 1] = arguments[_key3];
 		return apply(func, thisArg, args);
 	};
@@ -958,6 +961,8 @@ const ELEMENT_MARKUP_PROBE = seal(/<[/\w!]/g);
 const COMMENT_MARKUP_PROBE = seal(/<[/\w]/g);
 const FALLBACK_TAG_CLOSE = seal(/<\/no(script|embed|frames)/i);
 const SELF_CLOSING_TAG = seal(/\/>/i);
+const ATTR_VALUE_BREAKOUT = seal(/((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i);
+const LEADING_WHITESPACE = seal(/^[\r\n\t ]+/);
 const NODE_TYPE = {
 	element: 1,
 	text: 3,
@@ -1420,39 +1425,39 @@ function createDOMPurify() {
 	* Namespace rules for an element in the SVG namespace.
 	*
 	* @param tagName the element's lowercase tag name
-	* @param parent the (possibly simulated) parent node
+	* @param parentNamespace the (possibly simulated) parent's namespace
 	* @param parentTagName the parent's lowercase tag name
 	* @returns true if a spec-compliant parser could produce this element
 	*/
-	const _checkSvgNamespace = function _checkSvgNamespace(tagName, parent, parentTagName) {
-		if (parent.namespaceURI === HTML_NAMESPACE) return tagName === "svg";
-		if (parent.namespaceURI === MATHML_NAMESPACE) return tagName === "svg" && (parentTagName === "annotation-xml" || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
+	const _checkSvgNamespace = function _checkSvgNamespace(tagName, parentNamespace, parentTagName) {
+		if (parentNamespace === HTML_NAMESPACE) return tagName === "svg";
+		if (parentNamespace === MATHML_NAMESPACE) return tagName === "svg" && (parentTagName === "annotation-xml" || MATHML_TEXT_INTEGRATION_POINTS[parentTagName]);
 		return Boolean(ALL_SVG_TAGS[tagName]);
 	};
 	/**
 	* Namespace rules for an element in the MathML namespace.
 	*
 	* @param tagName the element's lowercase tag name
-	* @param parent the (possibly simulated) parent node
+	* @param parentNamespace the (possibly simulated) parent's namespace
 	* @param parentTagName the parent's lowercase tag name
 	* @returns true if a spec-compliant parser could produce this element
 	*/
-	const _checkMathMlNamespace = function _checkMathMlNamespace(tagName, parent, parentTagName) {
-		if (parent.namespaceURI === HTML_NAMESPACE) return tagName === "math";
-		if (parent.namespaceURI === SVG_NAMESPACE) return tagName === "math" && HTML_INTEGRATION_POINTS[parentTagName];
+	const _checkMathMlNamespace = function _checkMathMlNamespace(tagName, parentNamespace, parentTagName) {
+		if (parentNamespace === HTML_NAMESPACE) return tagName === "math";
+		if (parentNamespace === SVG_NAMESPACE) return tagName === "math" && HTML_INTEGRATION_POINTS[parentTagName];
 		return Boolean(ALL_MATHML_TAGS[tagName]);
 	};
 	/**
 	* Namespace rules for an element in the HTML namespace.
 	*
 	* @param tagName the element's lowercase tag name
-	* @param parent the (possibly simulated) parent node
+	* @param parentNamespace the (possibly simulated) parent's namespace
 	* @param parentTagName the parent's lowercase tag name
 	* @returns true if a spec-compliant parser could produce this element
 	*/
-	const _checkHtmlNamespace = function _checkHtmlNamespace(tagName, parent, parentTagName) {
-		if (parent.namespaceURI === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS[parentTagName]) return false;
-		if (parent.namespaceURI === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) return false;
+	const _checkHtmlNamespace = function _checkHtmlNamespace(tagName, parentNamespace, parentTagName) {
+		if (parentNamespace === SVG_NAMESPACE && !HTML_INTEGRATION_POINTS[parentTagName]) return false;
+		if (parentNamespace === MATHML_NAMESPACE && !MATHML_TEXT_INTEGRATION_POINTS[parentTagName]) return false;
 		return !ALL_MATHML_TAGS[tagName] && (COMMON_SVG_AND_HTML_ELEMENTS[tagName] || !ALL_SVG_TAGS[tagName]);
 	};
 	/**
@@ -1465,19 +1470,16 @@ function createDOMPurify() {
 		const elementNamespace = _readNamespaceURI(element);
 		const tagName = stringToLowerCase(_readNodeName(element));
 		const parentNode = getParentNode(element);
-		let parent;
-		let parentTagName;
+		let parentNamespace = NAMESPACE;
+		let parentTagName = "template";
 		if (parentNode && _readNodeType(parentNode) === NODE_TYPE.element) {
-			parent = { namespaceURI: _readNamespaceURI(parentNode) };
+			parentNamespace = _readNamespaceURI(parentNode);
 			parentTagName = stringToLowerCase(_readNodeName(parentNode));
-		} else {
-			parent = { namespaceURI: NAMESPACE };
-			parentTagName = "template";
 		}
 		if (!ALLOWED_NAMESPACES[elementNamespace]) return false;
-		if (elementNamespace === SVG_NAMESPACE) return _checkSvgNamespace(tagName, parent, parentTagName);
-		if (elementNamespace === MATHML_NAMESPACE) return _checkMathMlNamespace(tagName, parent, parentTagName);
-		if (elementNamespace === HTML_NAMESPACE) return _checkHtmlNamespace(tagName, parent, parentTagName);
+		if (elementNamespace === SVG_NAMESPACE) return _checkSvgNamespace(tagName, parentNamespace, parentTagName);
+		if (elementNamespace === MATHML_NAMESPACE) return _checkMathMlNamespace(tagName, parentNamespace, parentTagName);
+		if (elementNamespace === HTML_NAMESPACE) return _checkHtmlNamespace(tagName, parentNamespace, parentTagName);
 		return PARSER_MEDIA_TYPE === "application/xhtml+xml";
 	};
 	/**
@@ -1789,7 +1791,7 @@ function createDOMPurify() {
 		let leadingWhitespace = null;
 		if (FORCE_BODY) dirty = "<remove></remove>" + dirty;
 		else {
-			const matches = stringMatch(dirty, /^[\r\n\t ]+/);
+			const matches = stringMatch(dirty, LEADING_WHITESPACE);
 			leadingWhitespace = matches && matches[0];
 		}
 		if (PARSER_MEDIA_TYPE === "application/xhtml+xml" && NAMESPACE === HTML_NAMESPACE) dirty = "<html xmlns=\"http://www.w3.org/1999/xhtml\"><head></head><body>" + dirty + "</body></html>";
@@ -1944,7 +1946,7 @@ function createDOMPurify() {
 	* @return true if the node must be removed
 	*/
 	const _isUnsafeNode = function _isUnsafeNode(currentNode, tagName, nodeType) {
-		if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.innerHTML)) return true;
+		if (SAFE_FOR_XML && nodeType === NODE_TYPE.element && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.innerHTML)) return true;
 		if (SAFE_FOR_XML && LITERAL_TEXT_ELEMENTS[tagName] && nodeType === NODE_TYPE.element && _readNamespaceURI(currentNode) === HTML_NAMESPACE && (_isNode(currentNode.firstElementChild) || typeof currentNode.textContent === "string" && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent))) return true;
 		if (nodeType === NODE_TYPE.processingInstruction) return true;
 		if (SAFE_FOR_XML && nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, currentNode.data)) return true;
@@ -2081,8 +2083,9 @@ function createDOMPurify() {
 			return true;
 		}
 		if (SAFE_FOR_TEMPLATES && nodeType === NODE_TYPE.text) {
-			const content = _stripTemplateExpressions(currentNode.textContent);
-			if (currentNode.textContent !== content) {
+			const text = currentNode.textContent;
+			const content = _stripTemplateExpressions(text);
+			if (text !== content) {
 				arrayPush(DOMPurify.removed, { element: currentNode.cloneNode() });
 				currentNode.textContent = content;
 			}
@@ -2107,9 +2110,10 @@ function createDOMPurify() {
 		if (ALLOW_ARIA_ATTR && regExpTest(ARIA_ATTR$1, lcName)) return true;
 		if (!nameIsPermitted) return _isBasicCustomElement(lcTag) && _matchesNameCheck(CUSTOM_ELEMENT_HANDLING.tagNameCheck, lcTag) && _matchesNameCheck(CUSTOM_ELEMENT_HANDLING.attributeNameCheck, lcName, lcTag) || lcName === "is" && CUSTOM_ELEMENT_HANDLING.allowCustomizedBuiltInElements && _matchesNameCheck(CUSTOM_ELEMENT_HANDLING.tagNameCheck, value);
 		if (URI_SAFE_ATTRIBUTES[lcName]) return true;
-		if (regExpTest(IS_ALLOWED_URI$1, stringReplace(value, ATTR_WHITESPACE$1, ""))) return true;
+		const compactValue = stringReplace(value, ATTR_WHITESPACE$1, "");
+		if (regExpTest(IS_ALLOWED_URI$1, compactValue)) return true;
 		if ((lcName === "src" || lcName === "xlink:href" || lcName === "href") && lcTag !== "script" && stringIndexOf(value, "data:") === 0 && DATA_URI_TAGS[lcTag]) return true;
-		if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA$1, stringReplace(value, ATTR_WHITESPACE$1, ""))) return true;
+		if (ALLOW_UNKNOWN_PROTOCOLS && !regExpTest(IS_SCRIPT_OR_DATA$1, compactValue)) return true;
 		return !value;
 	};
 	const RESERVED_CUSTOM_ELEMENT_NAMES = addToSet({}, [
@@ -2202,8 +2206,8 @@ function createDOMPurify() {
 	* @returns true if the attribute must be removed because of its value
 	*/
 	const _isUnsafeAttributeValue = function _isUnsafeAttributeValue(name, value) {
-		if (SAFE_FOR_XML && regExpTest(/((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i, value)) return true;
-		return stringToLowerCase(name) === "attributename" && stringMatch(value, "href") !== null;
+		if (SAFE_FOR_XML && regExpTest(ATTR_VALUE_BREAKOUT, value)) return true;
+		return stringToLowerCase(name) === "attributename" && stringIndexOf(value, "href") !== -1;
 	};
 	/**
 	* _sanitizeAttributes
