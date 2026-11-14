@@ -964,6 +964,7 @@ const MUSTACHE_EXPR = seal(/{{[\w\W]*|^[\w\W]*}}/g);
 const ERB_EXPR = seal(/<%[\w\W]*|^[\w\W]*%>/g);
 const TMPLIT_EXPR = seal(/\${[\w\W]*/g);
 const TMPL_MARKER = seal(/{{|}}|\${|<%|%>/);
+const NON_WHITESPACE = seal(/[^\t\n\f\r ]/);
 const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/);
 const ARIA_ATTR = seal(/^aria-[\-\w]+$/);
 const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i);
@@ -1857,6 +1858,47 @@ function createDOMPurify() {
 			if (_isDocumentFragment(tmpl.content)) _scrubTemplateExpressions2(tmpl.content);
 		});
 	};
+	const TABLE_STRUCTURE = "table,tbody,thead,tfoot,tr,colgroup";
+	const TABLE_CONTENT = addToSet({}, [
+		"caption",
+		"colgroup",
+		"col",
+		"thead",
+		"tbody",
+		"tfoot",
+		"tr",
+		"td",
+		"th",
+		"style",
+		"script",
+		"template"
+	]);
+	/**
+	* Moves content the HTML parser would foster-parent to where it would put
+	* it: in front of the table. Only a tree the parser did not build, or one
+	* changed after the parse, holds such content. Without this, a reparse
+	* reorders the text and can join fragments that were not neighbours.
+	*
+	* @param root The root whose tables should be checked.
+	*/
+	const _fosterTableContent = function _fosterTableContent(root) {
+		var _root$querySelectorAl;
+		if (PARSER_MEDIA_TYPE === "application/xhtml+xml") return;
+		const structures = (_root$querySelectorAl = root.querySelectorAll) === null || _root$querySelectorAl === void 0 ? void 0 : _root$querySelectorAl.call(root, TABLE_STRUCTURE);
+		if (!structures || structures.length === 0) return;
+		arrayForEach(structures, (structure) => {
+			arrayForEach(arraySlice(getChildNodes(structure)), (child) => {
+				const nodeType = _readNodeType(child);
+				if (!(nodeType === NODE_TYPE.text ? regExpTest(NON_WHITESPACE, child.data) : nodeType === NODE_TYPE.element && !TABLE_CONTENT[stringToLowerCase(_readNodeName(child))])) return;
+				let table = structure;
+				while (table && stringToLowerCase(_readNodeName(table)) !== "table") table = table === root ? null : getParentNode(table);
+				const tableParent = table && table !== root ? getParentNode(table) : null;
+				if (tableParent) try {
+					tableParent.insertBefore(child, table);
+				} catch (_) {}
+			});
+		});
+	};
 	/**
 	* Normalizes `node` and strips template expressions from its own character
 	* data. Template contents and shadow roots are not entered, their own
@@ -1865,6 +1907,7 @@ function createDOMPurify() {
 	* @param node The root whose own character data should be scrubbed.
 	*/
 	const _scrubOwnCharacterData = function _scrubOwnCharacterData(node) {
+		_fosterTableContent(node);
 		node.normalize();
 		const walker = _createNodeIterator(node, true);
 		let previousText = null;

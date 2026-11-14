@@ -5,6 +5,7 @@ export const ERB_EXPR = seal(/<%[\w\W]*|^[\w\W]*%>/g);
 export const TMPLIT_EXPR = seal(/\${[\w\W]*/g);
 // Any marker the three expressions above react to
 export const TMPL_MARKER = seal(/{{|}}|\${|<%|%>/);
+export const NON_WHITESPACE = seal(/[^\t\n\f\r ]/);
 export const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/); // eslint-disable-line no-useless-escape
 export const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
 export const IS_ALLOWED_URI = seal(

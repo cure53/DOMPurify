@@ -1716,6 +1716,72 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
   };
 
+  /* Elements that hold table structure, and what the parser lets them hold */
+  const TABLE_STRUCTURE = 'table,tbody,thead,tfoot,tr,colgroup';
+  const TABLE_CONTENT = addToSet({}, [
+    'caption',
+    'colgroup',
+    'col',
+    'thead',
+    'tbody',
+    'tfoot',
+    'tr',
+    'td',
+    'th',
+    'style',
+    'script',
+    'template',
+  ]);
+
+  /**
+   * Moves content the HTML parser would foster-parent to where it would put
+   * it: in front of the table. Only a tree the parser did not build, or one
+   * changed after the parse, holds such content. Without this, a reparse
+   * reorders the text and can join fragments that were not neighbours.
+   *
+   * @param root The root whose tables should be checked.
+   */
+  const _fosterTableContent = function (root: Element): void {
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+      return;
+    }
+
+    const structures = root.querySelectorAll?.(TABLE_STRUCTURE);
+    if (!structures || structures.length === 0) {
+      return;
+    }
+
+    arrayForEach(structures, (structure: Element) => {
+      arrayForEach(arraySlice(getChildNodes(structure)), (child: Node) => {
+        const nodeType = _readNodeType(child);
+        const misplaced =
+          nodeType === NODE_TYPE.text
+            ? regExpTest(EXPRESSIONS.NON_WHITESPACE, (child as Text).data)
+            : nodeType === NODE_TYPE.element &&
+              !TABLE_CONTENT[stringToLowerCase(_readNodeName(child))];
+        if (!misplaced) {
+          return;
+        }
+
+        let table: Node | null = structure;
+        while (table && stringToLowerCase(_readNodeName(table)) !== 'table') {
+          table = table === root ? null : getParentNode(table);
+        }
+
+        const tableParent =
+          table && table !== root ? getParentNode(table) : null;
+        if (tableParent) {
+          try {
+            // eslint-disable-next-line unicorn/prefer-modern-dom-apis
+            tableParent.insertBefore(child, table);
+          } catch (_) {
+            /* Clobbered parent: leave the node where it is */
+          }
+        }
+      });
+    });
+  };
+
   /**
    * Normalizes `node` and strips template expressions from its own character
    * data. Template contents and shadow roots are not entered, their own
@@ -1724,6 +1790,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param node The root whose own character data should be scrubbed.
    */
   const _scrubOwnCharacterData = function (node: Element): void {
+    _fosterTableContent(node);
     node.normalize();
     const walker = _createNodeIterator(node, true);
     let previousText: CharacterData | null = null;

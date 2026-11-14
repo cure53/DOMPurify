@@ -1215,6 +1215,43 @@
     );
 
     QUnit.test(
+      'template scrub covers text a reparse moves out of a table',
+      (assert) => {
+        // Text directly inside a table is foster-parented on reparse
+        const root = document.createElement('div');
+        const table = root.appendChild(document.createElement('table'));
+        const tbody = document.createElement('tbody');
+        const row = (text) => {
+          const tr = document.createElement('tr');
+          tr.appendChild(document.createElement('td')).textContent = text;
+          return tr;
+        };
+
+        table.appendChild(document.createTextNode('{'));
+        table.appendChild(tbody);
+        tbody.appendChild(row('q'));
+        tbody.appendChild(document.createTextNode('{x}'));
+        tbody.appendChild(row('r'));
+        tbody.appendChild(document.createTextNode('}'));
+
+        const clean = DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true });
+        const div = document.createElement('div');
+        div.innerHTML = clean;
+        assert.notOk(/{{|}}/.test(div.textContent));
+        assert.ok(/q/.test(div.textContent) && /r/.test(div.textContent));
+      }
+    );
+
+    QUnit.test('template scrub leaves a well-formed table alone', (assert) => {
+      const dirty =
+        '<table><caption>{c}</caption><tbody><tr><td>{</td><td>{x}</td></tr></tbody></table>';
+      assert.equal(
+        DOMPurify.sanitize(dirty, { SAFE_FOR_TEMPLATES: true }),
+        '<table><caption>{c}</caption><tbody><tr><td> </td><td>{x}</td></tr></tbody></table>'
+      );
+    });
+
+    QUnit.test(
       'template scrub covers markers split across kept elements',
       (assert) => {
         const config = { SAFE_FOR_TEMPLATES: true };
