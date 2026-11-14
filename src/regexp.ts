@@ -3,6 +3,8 @@ import { seal } from './utils.js';
 export const MUSTACHE_EXPR = seal(/{{[\w\W]*|^[\w\W]*}}/g);
 export const ERB_EXPR = seal(/<%[\w\W]*|^[\w\W]*%>/g);
 export const TMPLIT_EXPR = seal(/\${[\w\W]*/g);
+// A template marker pair as it appears in serialized output
+export const TMPL_MARKER_SERIALIZED = seal(/{{|}}|\${|<%|%>|&lt;%|%&gt;/);
 export const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/); // eslint-disable-line no-useless-escape
 export const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
 export const IS_ALLOWED_URI = seal(
