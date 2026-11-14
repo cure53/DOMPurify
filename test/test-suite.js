@@ -1188,6 +1188,49 @@
     });
 
     QUnit.test(
+      'template scrub catches ERB markers joined by a removed element',
+      (assert) => {
+        const clean = DOMPurify.sanitize(
+          '<p>&lt;<x></x>% name %<x></x>&gt;</p>',
+          { SAFE_FOR_TEMPLATES: true }
+        );
+        const div = document.createElement('div');
+        div.innerHTML = clean;
+        assert.notOk(/<%|%>/.test(div.textContent));
+      }
+    );
+
+    QUnit.test(
+      'a hook-widened allowlist does not carry over via the hook config object',
+      (assert) => {
+        let seenConfig = null;
+        const hook = (node, data, config) => {
+          seenConfig = config;
+          if (data.tagName === 'widen-me') {
+            data.allowedTags.extra = true;
+          }
+        };
+
+        DOMPurify.addHook('uponSanitizeElement', hook);
+        try {
+          assert.equal(
+            DOMPurify.sanitize('<widen-me></widen-me><extra>in</extra>', {
+              ALLOWED_TAGS: ['b'],
+            }),
+            '<extra>in</extra>'
+          );
+          // Passing the config a hook received must parse it afresh
+          assert.equal(
+            DOMPurify.sanitize('<extra>out</extra>', seenConfig),
+            'out'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement', hook);
+        }
+      }
+    );
+
+    QUnit.test(
       'greedy-scrub of stray close marker prevents URL bypass',
       (assert) => {
         // After scrubbing {{}}, a lazy regex would leave }} behind, which
