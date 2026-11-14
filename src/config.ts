@@ -43,7 +43,7 @@ export interface Config {
 
   /**
    * Allow external protocol handlers in URL attributes (default is false, be careful, XSS risk).
-   * By default only `http`, `https`, `ftp`, `ftps`, `tel`, `mailto`, `callto`, `sms`, `cid` and `xmpp` are allowed.
+   * By default only `http`, `https`, `ftp`, `ftps`, `tel`, `mailto`, `callto`, `sms`, `cid`, `xmpp` and `matrix` are allowed.
    */
   ALLOW_UNKNOWN_PROTOCOLS?: boolean | undefined;
 
@@ -75,7 +75,7 @@ export interface Config {
    * Allow specific protocols handlers in URL attributes via regex (be careful, XSS risk).
    * Default RegExp:
    * ```
-   * /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
+   * /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i;
    * ```
    */
   ALLOWED_URI_REGEXP?: RegExp | undefined;
@@ -220,8 +220,8 @@ export interface Config {
   /**
    * Controls categories of allowed elements.
    *
-   * Note that the `USE_PROFILES` setting will override the `ALLOWED_TAGS` setting
-   * so don't use them together.
+   * Note that the `USE_PROFILES` setting will override the `ALLOWED_TAGS` and
+   * `ALLOWED_ATTR` settings, so don't use them together.
    */
   USE_PROFILES?: false | UseProfilesConfig | undefined;
 

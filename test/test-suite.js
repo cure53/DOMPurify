@@ -1145,6 +1145,92 @@
     );
 
     QUnit.test(
+      'template scrub does not leave orphaned end tags behind',
+      (assert) => {
+        // A regex over serialized markup used to cut away start tags, the
+        // orphaned end tags then vanished on reparse and {{...}} formed.
+        const clean = DOMPurify.sanitize(
+          "<b><i>}<x></x>}{</i>{constructor.constructor('alert(1)')()}</b>}",
+          { SAFE_FOR_TEMPLATES: true }
+        );
+        const div = document.createElement('div');
+        div.innerHTML = clean;
+        const hits = [];
+        const visit = (node) => {
+          if (node.nodeType === 3 && /\{\{|\}\}/.test(node.data)) {
+            hits.push(node.data);
+          }
+
+          for (const child of node.childNodes) {
+            visit(child);
+          }
+        };
+
+        visit(div);
+        assert.deepEqual(hits, []);
+      }
+    );
+
+    QUnit.test('template scrub does not cut through markup', (assert) => {
+      assert.equal(
+        DOMPurify.sanitize(
+          '<form action="https://example.com/"><input name=q>{<x></x>{</form><p>after</p>',
+          { SAFE_FOR_TEMPLATES: true }
+        ),
+        '<form action="https://example.com/"><input name="q"> </form><p>after</p>'
+      );
+      assert.equal(
+        DOMPurify.sanitize('<p>Hello <b>world</b> {single} brace</p>', {
+          SAFE_FOR_TEMPLATES: true,
+        }),
+        '<p>Hello <b>world</b> {single} brace</p>'
+      );
+    });
+
+    QUnit.test(
+      'template scrub catches ERB markers joined by a removed element',
+      (assert) => {
+        const clean = DOMPurify.sanitize(
+          '<p>&lt;<x></x>% name %<x></x>&gt;</p>',
+          { SAFE_FOR_TEMPLATES: true }
+        );
+        const div = document.createElement('div');
+        div.innerHTML = clean;
+        assert.notOk(/<%|%>/.test(div.textContent));
+      }
+    );
+
+    QUnit.test(
+      'a hook-widened allowlist does not carry over via the hook config object',
+      (assert) => {
+        let seenConfig = null;
+        const hook = (node, data, config) => {
+          seenConfig = config;
+          if (data.tagName === 'widen-me') {
+            data.allowedTags.extra = true;
+          }
+        };
+
+        DOMPurify.addHook('uponSanitizeElement', hook);
+        try {
+          assert.equal(
+            DOMPurify.sanitize('<widen-me></widen-me><extra>in</extra>', {
+              ALLOWED_TAGS: ['b'],
+            }),
+            '<extra>in</extra>'
+          );
+          // Passing the config a hook received must parse it afresh
+          assert.equal(
+            DOMPurify.sanitize('<extra>out</extra>', seenConfig),
+            'out'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement', hook);
+        }
+      }
+    );
+
+    QUnit.test(
       'greedy-scrub of stray close marker prevents URL bypass',
       (assert) => {
         // After scrubbing {{}}, a lazy regex would leave }} behind, which
@@ -1494,6 +1580,26 @@
     // =======================================================================
 
     QUnit.module('Config — IN_PLACE');
+
+    // Attribute checks must key on the real tag, not an own nodeName
+    // override (same root cause as GHSA-x4vx-rjvf-j5p4).
+    QUnit.test(
+      'IN_PLACE: own-property nodeName override does not steer attribute checks',
+      (assert) => {
+        const run = (spoof) => {
+          const a = document.createElement('a');
+          a.setAttribute('href', 'data:text/html;base64,PHN2Zz48L3N2Zz4=');
+          if (spoof) {
+            Object.defineProperty(a, 'nodeName', { get: () => spoof });
+          }
+          DOMPurify.sanitize(a, { IN_PLACE: true });
+          return a.getAttribute('href');
+        };
+
+        assert.equal(run(null), null, 'control: data: href removed');
+        assert.equal(run('IMG'), null, 'nodeName "IMG" does not keep it');
+      }
+    );
 
     // Namespace validation reads each node's name and namespace through the
     // cached prototype getters. A live node can carry own-property overrides
@@ -3404,6 +3510,70 @@
     // =======================================================================
 
     QUnit.module('Config — USE_PROFILES');
+
+    QUnit.test(
+      'warns when allowlist options are combined with profiles',
+      (assert) => {
+        const originalWarn = console.warn;
+        const warnings = [];
+        console.warn = (...args) => warnings.push(args.join(' '));
+
+        try {
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            USE_PROFILES: { html: true },
+            ALLOWED_TAGS: ['b'],
+          });
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            USE_PROFILES: { html: true },
+            ALLOWED_ATTR: ['class'],
+          });
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            USE_PROFILES: { html: true },
+            ALLOWED_TAGS: ['b'],
+            ALLOWED_ATTR: ['class'],
+          });
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            USE_PROFILES: { html: true },
+          });
+          DOMPurify.sanitize('<b class="x">text</b>', {
+            ALLOWED_TAGS: ['b'],
+          });
+        } finally {
+          console.warn = originalWarn;
+        }
+
+        assert.deepEqual(warnings, [
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. Do not use these options together.',
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. Do not use these options together.',
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. Do not use these options together.',
+        ]);
+      }
+    );
+
+    QUnit.test(
+      'warns once when setConfig combines allowlists with profiles',
+      (assert) => {
+        const originalWarn = console.warn;
+        const warnings = [];
+        console.warn = (...args) => warnings.push(args.join(' '));
+
+        try {
+          DOMPurify.setConfig({
+            USE_PROFILES: { html: true },
+            ALLOWED_ATTR: ['class'],
+          });
+          DOMPurify.sanitize('<b class="x">text</b>');
+          DOMPurify.sanitize('<b class="x">text</b>');
+        } finally {
+          DOMPurify.clearConfig();
+          console.warn = originalWarn;
+        }
+
+        assert.deepEqual(warnings, [
+          'DOMPurify: USE_PROFILES overrides ALLOWED_TAGS and ALLOWED_ATTR. Do not use these options together.',
+        ]);
+      }
+    );
 
     QUnit.test('html profile toggle', (assert) => {
       assert.equal(

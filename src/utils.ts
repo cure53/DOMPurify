@@ -1,5 +1,6 @@
 const {
   entries,
+  keys: objectKeys,
   setPrototypeOf,
   isFrozen,
   getPrototypeOf,
@@ -38,7 +39,6 @@ if (!construct) {
 }
 
 const arrayForEach = unapply(Array.prototype.forEach);
-const arrayIndexOf = unapply(Array.prototype.indexOf);
 const arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
 const arrayPop = unapply(Array.prototype.pop);
 const arrayPush = unapply(Array.prototype.push);
@@ -67,7 +67,15 @@ const symbolToString =
 const objectHasOwnProperty = unapply(Object.prototype.hasOwnProperty);
 const objectToString = unapply(Object.prototype.toString);
 
-const regExpTest = unapply(RegExp.prototype.test);
+const regExpTestRaw = RegExp.prototype.test;
+/* Shared /g regexes keep state in lastIndex, so reset it before each test */
+const regExpTest = function (regExp: RegExp, value: string): boolean {
+  if (regExp instanceof RegExp) {
+    regExp.lastIndex = 0;
+  }
+
+  return apply(regExpTestRaw, regExp, [value]);
+};
 
 const typeErrorCreate = unconstruct(TypeError);
 
@@ -80,13 +88,7 @@ const typeErrorCreate = unconstruct(TypeError);
 function unapply<T>(
   func: (thisArg: any, ...args: any[]) => T
 ): (thisArg: any, ...args: any[]) => T {
-  return (thisArg: any, ...args: any[]): T => {
-    if (thisArg instanceof RegExp) {
-      thisArg.lastIndex = 0;
-    }
-
-    return apply(func, thisArg, args);
-  };
+  return (thisArg: any, ...args: any[]): T => apply(func, thisArg, args);
 }
 
 /**
@@ -194,6 +196,23 @@ function clone<T extends Record<string, any>>(object: T): T {
   }
 
   return newObject;
+}
+
+/**
+ * Copy a flat lookup table
+ *
+ * @param set - The set to copy.
+ * @returns A new prototype-free set with the same entries.
+ */
+function cloneSet<T extends Record<string, any>>(set: T): T {
+  const newSet = create(null);
+  const keys = objectKeys(set);
+  let l = keys.length;
+  while (l--) {
+    newSet[keys[l]] = set[keys[l]];
+  }
+
+  return newSet;
 }
 
 /**
@@ -317,6 +336,11 @@ function lookupAccessor<T extends Record<string, any>>(
 }
 
 function isRegex(value: unknown): value is RegExp {
+  // Skip the try for absent values: a thrown TypeError is slow
+  if (!value) {
+    return false;
+  }
+
   try {
     regExpTest(value as RegExp, '');
     return true;
@@ -328,7 +352,6 @@ function isRegex(value: unknown): value is RegExp {
 export {
   // Array
   arrayForEach,
-  arrayIndexOf,
   arrayIsArray,
   arrayLastIndexOf,
   arrayPop,
@@ -338,15 +361,11 @@ export {
   // Object
   entries,
   freeze,
-  getPrototypeOf,
-  getOwnPropertyDescriptor,
-  isFrozen,
-  setPrototypeOf,
   seal,
   clone,
+  cloneSet,
   create,
   objectHasOwnProperty,
-  objectToString,
   // RegExp
   regExpTest,
   setAdd,
@@ -368,7 +387,4 @@ export {
   lookupAccessor,
   lookupGetter,
   addToSet,
-  // Reflect
-  unapply,
-  unconstruct,
 };
