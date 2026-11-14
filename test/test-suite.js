@@ -1188,6 +1188,57 @@
     });
 
     QUnit.test(
+      'template scrub covers markers split across a nested form',
+      (assert) => {
+        // A reparse drops the inner <form> tag and joins the text around it
+        const dirty = '<form><div>{</form><form>{x}</form>}';
+        const reparsedText = (html) => {
+          const div = document.createElement('div');
+          div.innerHTML = html;
+          return div.textContent;
+        };
+
+        const clean = DOMPurify.sanitize(dirty, { SAFE_FOR_TEMPLATES: true });
+        assert.notOk(/{{|}}/.test(reparsedText(clean)));
+
+        const dom = DOMPurify.sanitize(dirty, {
+          SAFE_FOR_TEMPLATES: true,
+          RETURN_DOM: true,
+        });
+        assert.notOk(/{{|}}/.test(reparsedText(dom.innerHTML)));
+
+        const root = document.createElement('div');
+        root.innerHTML = dirty;
+        DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true, IN_PLACE: true });
+        assert.notOk(/{{|}}/.test(reparsedText(root.innerHTML)));
+      }
+    );
+
+    QUnit.test(
+      'template scrub covers markers split across kept elements',
+      (assert) => {
+        const config = { SAFE_FOR_TEMPLATES: true };
+        assert.equal(
+          DOMPurify.sanitize('<b>{</b><i>{x}</i><b>}</b>', config),
+          '<b> </b><i> </i><b>}</b>'
+        );
+        assert.equal(
+          DOMPurify.sanitize('<b>$</b><i>{x}</i>', config),
+          '<b> </b><i>{x}</i>'
+        );
+        assert.equal(
+          DOMPurify.sanitize('<b>&lt;</b><i>% x %</i><b>&gt;</b>', config),
+          '<b> </b><i> </i><b>&gt;</b>'
+        );
+        // No marker across the boundary, nothing changes
+        assert.equal(
+          DOMPurify.sanitize('<b>{</b> <i>{x}</i> <b>}</b>', config),
+          '<b>{</b> <i>{x}</i> <b>}</b>'
+        );
+      }
+    );
+
+    QUnit.test(
       'template scrub catches ERB markers joined by a removed element',
       (assert) => {
         const clean = DOMPurify.sanitize(

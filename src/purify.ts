@@ -1726,10 +1726,32 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const _scrubOwnCharacterData = function (node: Element): void {
     node.normalize();
     const walker = _createNodeIterator(node, true);
+    let previousText: CharacterData | null = null;
 
     let currentNode = walker.nextNode() as CharacterData | null;
     while (currentNode) {
-      currentNode.data = _stripTemplateExpressions(currentNode.data);
+      let { data } = currentNode;
+      if (regExpTest(EXPRESSIONS.TMPL_MARKER, data)) {
+        data = _stripTemplateExpressions(data);
+        currentNode.data = data;
+      }
+
+      /* A reparse can drop the tags between two text nodes, e.g. those of a
+         nested form. If their boundary completes a marker, scrub the previous
+         text as if the next character belonged to it. */
+      if (data && _readNodeType(currentNode) === NODE_TYPE.text) {
+        if (previousText) {
+          const tail = previousText.data;
+          // eslint-disable-next-line unicorn/prefer-at
+          const boundary = tail[tail.length - 1] + data[0];
+          if (regExpTest(EXPRESSIONS.TMPL_MARKER, boundary)) {
+            previousText.data = _stripTemplateExpressions(tail + data[0]);
+          }
+        }
+
+        previousText = currentNode;
+      }
+
       currentNode = walker.nextNode() as CharacterData | null;
     }
   };
@@ -2860,20 +2882,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return returnNode;
     }
 
-    const serialize = (): string =>
-      WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
-    let serializedHTML = serialize();
-
     /* Scrub our tree, not the markup: a regex over markup cuts through
-       tags. Only needed if the output holds a marker pair. Template
-       content was already scrubbed by _sanitizeShadowDOM. */
-    if (
-      SAFE_FOR_TEMPLATES &&
-      regExpTest(EXPRESSIONS.TMPL_MARKER_SERIALIZED, serializedHTML)
-    ) {
+       tags. Template content was already scrubbed by _sanitizeShadowDOM. */
+    if (SAFE_FOR_TEMPLATES) {
       _scrubOwnCharacterData(body);
-      serializedHTML = serialize();
     }
+
+    let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 
     /* Serialize doctype if allowed */
     if (

@@ -967,7 +967,7 @@
 	const MUSTACHE_EXPR = seal(/{{[\w\W]*|^[\w\W]*}}/g);
 	const ERB_EXPR = seal(/<%[\w\W]*|^[\w\W]*%>/g);
 	const TMPLIT_EXPR = seal(/\${[\w\W]*/g);
-	const TMPL_MARKER_SERIALIZED = seal(/{{|}}|\${|<%|%>|&lt;%|%&gt;/);
+	const TMPL_MARKER = seal(/{{|}}|\${|<%|%>/);
 	const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/);
 	const ARIA_ATTR = seal(/^aria-[\-\w]+$/);
 	const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i);
@@ -1871,9 +1871,22 @@
 		const _scrubOwnCharacterData = function _scrubOwnCharacterData(node) {
 			node.normalize();
 			const walker = _createNodeIterator(node, true);
+			let previousText = null;
 			let currentNode = walker.nextNode();
 			while (currentNode) {
-				currentNode.data = _stripTemplateExpressions(currentNode.data);
+				let data = currentNode.data;
+				if (regExpTest(TMPL_MARKER, data)) {
+					data = _stripTemplateExpressions(data);
+					currentNode.data = data;
+				}
+				if (data && _readNodeType(currentNode) === NODE_TYPE.text) {
+					if (previousText) {
+						const tail = previousText.data;
+						const boundary = tail[tail.length - 1] + data[0];
+						if (regExpTest(TMPL_MARKER, boundary)) previousText.data = _stripTemplateExpressions(tail + data[0]);
+					}
+					previousText = currentNode;
+				}
 				currentNode = walker.nextNode();
 			}
 		};
@@ -2399,12 +2412,8 @@
 				if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmode) returnNode = importNode.call(originalDocument, returnNode, true);
 				return returnNode;
 			}
-			const serialize = () => WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
-			let serializedHTML = serialize();
-			if (SAFE_FOR_TEMPLATES && regExpTest(TMPL_MARKER_SERIALIZED, serializedHTML)) {
-				_scrubOwnCharacterData(body);
-				serializedHTML = serialize();
-			}
+			if (SAFE_FOR_TEMPLATES) _scrubOwnCharacterData(body);
+			let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 			if (WHOLE_DOCUMENT && ALLOWED_TAGS["!doctype"] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) serializedHTML = "<!DOCTYPE " + body.ownerDocument.doctype.name + ">\n" + serializedHTML;
 			return _signOutput(serializedHTML);
 		};
