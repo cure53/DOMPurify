@@ -6,6 +6,7 @@ import * as EXPRESSIONS from './regexp.js';
 import {
   addToSet,
   clone,
+  cloneSet,
   entries,
   freeze,
   seal,
@@ -162,16 +163,13 @@ const _createHooksMap = function (): HooksMap {
 };
 
 /**
- * Resolve a set-valued configuration option: a fresh set built from
- * cfg[key] when it is an own array property (seeded with a clone of
- * options.base when given, case-normalized via options.transform),
- * the fallback set otherwise.
+ * Resolve a set-valued configuration option.
  *
  * @param cfg the cloned, prototype-free configuration object
  * @param key the configuration property to read
  * @param fallback the set to use when the option is absent or not an array
- * @param options transform and optional base set to merge into
- * @returns the resolved set
+ * @param options case transform, and an optional base set to extend a copy of
+ * @returns a fresh set built from cfg[key], or the fallback
  */
 const _resolveSetOption = function (
   cfg: Config,
@@ -184,7 +182,7 @@ const _resolveSetOption = function (
 ): Record<string, boolean> {
   return objectHasOwnProperty(cfg, key) && arrayIsArray(cfg[key])
     ? addToSet(
-        options.base ? clone(options.base) : {},
+        options.base ? cloneSet(options.base) : {},
         cfg[key] as readonly unknown[],
         options.transform
       )
@@ -192,25 +190,20 @@ const _resolveSetOption = function (
 };
 
 /**
- * Resolve an object-valued configuration option: a prototype-free clone
- * of cfg[key] when it is an own, truthy object property, else a fresh
- * fallback built by makeFallback (fresh on every parse, so a previous
- * parse can never leak state into the next one).
+ * Resolve an object-valued configuration option.
  *
  * @param cfg the cloned, prototype-free configuration object
  * @param key the configuration property to read
- * @param makeFallback builds the fallback value when the option is absent
- * @returns the resolved object
+ * @param fallback the read-only value to use when the option is absent
+ * @returns a prototype-free clone of cfg[key], or the fallback
  */
 const _resolveObjectOption = function <T extends Record<string, any>>(
   cfg: Config,
   key: keyof Config,
-  makeFallback: () => T
+  fallback: T
 ): T {
   const value = objectHasOwnProperty(cfg, key) ? cfg[key] : undefined;
-  return value && typeof value === 'object'
-    ? clone(value as T)
-    : makeFallback();
+  return value && typeof value === 'object' ? clone(value as T) : fallback;
 };
 
 function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
@@ -647,17 +640,18 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     stringToString
   );
 
-  const DEFAULT_MATHML_TEXT_INTEGRATION_POINTS = freeze([
-    'mi',
-    'mo',
-    'mn',
-    'ms',
-    'mtext',
-  ]);
+  /* Read-only defaults, shared across parses */
+  const DEFAULT_MATHML_TEXT_INTEGRATION_POINTS = freeze(
+    addToSet({}, ['mi', 'mo', 'mn', 'ms', 'mtext'])
+  );
   let MATHML_TEXT_INTEGRATION_POINTS = null;
 
-  const DEFAULT_HTML_INTEGRATION_POINTS = freeze(['annotation-xml']);
+  const DEFAULT_HTML_INTEGRATION_POINTS = freeze(
+    addToSet({}, ['annotation-xml'])
+  );
   let HTML_INTEGRATION_POINTS = null;
+
+  const DEFAULT_CUSTOM_ELEMENT_HANDLING = freeze(create(null));
 
   // Certain elements are allowed in both SVG and HTML
   // namespace. We need to specify them explicitly
@@ -792,19 +786,19 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     MATHML_TEXT_INTEGRATION_POINTS = _resolveObjectOption(
       cfg,
       'MATHML_TEXT_INTEGRATION_POINTS',
-      () => addToSet({}, DEFAULT_MATHML_TEXT_INTEGRATION_POINTS) // Default built-in map
+      DEFAULT_MATHML_TEXT_INTEGRATION_POINTS
     );
 
     HTML_INTEGRATION_POINTS = _resolveObjectOption(
       cfg,
       'HTML_INTEGRATION_POINTS',
-      () => addToSet({}, DEFAULT_HTML_INTEGRATION_POINTS) // Default built-in map
+      DEFAULT_HTML_INTEGRATION_POINTS
     );
 
     const customElementHandling = _resolveObjectOption(
       cfg,
       'CUSTOM_ELEMENT_HANDLING',
-      () => create(null)
+      DEFAULT_CUSTOM_ELEMENT_HANDLING
     );
 
     CUSTOM_ELEMENT_HANDLING = create(null);
@@ -896,7 +890,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         EXTRA_ELEMENT_HANDLING.tagCheck = cfg.ADD_TAGS;
       } else if (arrayIsArray(cfg.ADD_TAGS)) {
         if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) {
-          ALLOWED_TAGS = clone(ALLOWED_TAGS);
+          ALLOWED_TAGS = cloneSet(ALLOWED_TAGS);
         }
 
         addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
@@ -908,7 +902,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         EXTRA_ELEMENT_HANDLING.attributeCheck = cfg.ADD_ATTR;
       } else if (arrayIsArray(cfg.ADD_ATTR)) {
         if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) {
-          ALLOWED_ATTR = clone(ALLOWED_ATTR);
+          ALLOWED_ATTR = cloneSet(ALLOWED_ATTR);
         }
 
         addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
@@ -920,7 +914,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       arrayIsArray(cfg.ADD_FORBID_CONTENTS)
     ) {
       if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) {
-        FORBID_CONTENTS = clone(FORBID_CONTENTS);
+        FORBID_CONTENTS = cloneSet(FORBID_CONTENTS);
       }
 
       addToSet(FORBID_CONTENTS, cfg.ADD_FORBID_CONTENTS, transformCaseFunc);
@@ -938,7 +932,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Add tbody to ALLOWED_TAGS in case tables are permitted, see #286, #365 */
     if (ALLOWED_TAGS.table) {
-      addToSet(ALLOWED_TAGS, ['tbody']);
+      ALLOWED_TAGS.tbody = true;
       delete FORBID_TAGS.tbody;
     }
 
@@ -2167,7 +2161,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return set;
     }
 
-    return set === defaultSet || set === setConfigSet ? clone(set) : set;
+    return set === defaultSet || set === setConfigSet ? cloneSet(set) : set;
   };
 
   /**
@@ -2226,11 +2220,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     const tagName = transformCaseFunc(_readNodeName(currentNode));
     const nodeType = _readNodeType(currentNode);
 
-    /* Close the pre-walk clone-guard's timing gap: an uponSanitizeElement
-       hook may have been installed after that guard sampled the hook arrays
-       (e.g. lazily from beforeSanitizeElements), leaving ALLOWED_TAGS still
-       aliasing a shared binding that a widening hook would mutate by
-       reference. Fork it before exposing it to the hook. */
+    /* The hook gets ALLOWED_TAGS by reference; fork it off a shared binding
+       first, so widening stays scoped to this call. */
     ALLOWED_TAGS = _forkSharedAllowlist(
       hooks.uponSanitizeElement,
       ALLOWED_TAGS,
@@ -2665,8 +2656,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return;
     }
 
-    /* Same lazy-install guard as uponSanitizeElement (see there): fork the
-       attribute allowlist off its shared binding before a hook can see it. */
+    /* Same as for uponSanitizeElement: fork before a hook can see it. */
     ALLOWED_ATTR = _forkSharedAllowlist(
       hooks.uponSanitizeAttribute,
       ALLOWED_ATTR,
@@ -2967,34 +2957,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     /* Assign config vars */
     if (SET_CONFIG) {
-      /* Persistent setConfig() path: _parseConfig is skipped, so the sets are
-       * not re-derived per call. Restore them from the pristine bindings
-       * captured at setConfig() time so a previous call's hook clone (mutated
-       * below) does not carry over. */
+      /* Persistent setConfig() path: _parseConfig is skipped, so restore the
+       * sets from
+       * the bindings captured at setConfig() time. A hook's fork from a
+       * previous call must not carry over. */
       ALLOWED_TAGS = SET_CONFIG_ALLOWED_TAGS;
       ALLOWED_ATTR = SET_CONFIG_ALLOWED_ATTR;
     } else {
       _parseConfig(cfg);
-    }
-
-    /* Clone the hook-mutable allowlists before the walk whenever an
-     * uponSanitize* hook is registered. The hook event exposes ALLOWED_TAGS
-     * and ALLOWED_ATTR by reference (as allowedTags / allowedAttributes), so
-     * a hook that widens them would otherwise mutate the shared set
-     * permanently: across later calls and across every element. Cloning per
-     * walk keeps documented in-call widening working while scoping it to the
-     * call. A single guard for both config paths - the per-call path rebinds
-     * the sets in _parseConfig each call, the persistent path restores them
-     * from the captured bindings just above - so the two cannot diverge. */
-    if (
-      hooks.uponSanitizeElement.length > 0 ||
-      hooks.uponSanitizeAttribute.length > 0
-    ) {
-      ALLOWED_TAGS = clone(ALLOWED_TAGS);
-    }
-
-    if (hooks.uponSanitizeAttribute.length > 0) {
-      ALLOWED_ATTR = clone(ALLOWED_ATTR);
     }
 
     /* Clean up removed elements */

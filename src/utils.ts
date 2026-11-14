@@ -1,5 +1,6 @@
 const {
   entries,
+  keys: objectKeys,
   setPrototypeOf,
   isFrozen,
   getPrototypeOf,
@@ -198,6 +199,23 @@ function clone<T extends Record<string, any>>(object: T): T {
 }
 
 /**
+ * Copy a flat lookup table
+ *
+ * @param set - The set to copy.
+ * @returns A new prototype-free set with the same entries.
+ */
+function cloneSet<T extends Record<string, any>>(set: T): T {
+  const newSet = create(null);
+  const keys = objectKeys(set);
+  let l = keys.length;
+  while (l--) {
+    newSet[keys[l]] = set[keys[l]];
+  }
+
+  return newSet;
+}
+
+/**
  * Convert non-node values into strings without depending on direct property access.
  *
  * @param value - The value to stringify.
@@ -318,6 +336,11 @@ function lookupAccessor<T extends Record<string, any>>(
 }
 
 function isRegex(value: unknown): value is RegExp {
+  // Skip the try for absent values: a thrown TypeError is slow
+  if (!value) {
+    return false;
+  }
+
   try {
     regExpTest(value as RegExp, '');
     return true;
@@ -340,6 +363,7 @@ export {
   freeze,
   seal,
   clone,
+  cloneSet,
   create,
   objectHasOwnProperty,
   // RegExp

@@ -97,6 +97,7 @@
 		return this._invoke("return", e);
 	};
 	const entries = Object.entries;
+	const objectKeys = Object.keys;
 	const setPrototypeOf = Object.setPrototypeOf;
 	const isFrozen = Object.isFrozen;
 	const getPrototypeOf = Object.getPrototypeOf;
@@ -230,6 +231,19 @@
 		return newObject;
 	}
 	/**
+	* Copy a flat lookup table
+	*
+	* @param set - The set to copy.
+	* @returns A new prototype-free set with the same entries.
+	*/
+	function cloneSet(set) {
+		const newSet = create(null);
+		const keys = objectKeys(set);
+		let l = keys.length;
+		while (l--) newSet[keys[l]] = set[keys[l]];
+		return newSet;
+	}
+	/**
 	* Convert non-node values into strings without depending on direct property access.
 	*
 	* @param value - The value to stringify.
@@ -298,6 +312,7 @@
 		return null;
 	}
 	function isRegex(value) {
+		if (!value) return false;
 		try {
 			regExpTest(value, "");
 			return true;
@@ -1029,34 +1044,28 @@
 		};
 	};
 	/**
-	* Resolve a set-valued configuration option: a fresh set built from
-	* cfg[key] when it is an own array property (seeded with a clone of
-	* options.base when given, case-normalized via options.transform),
-	* the fallback set otherwise.
+	* Resolve a set-valued configuration option.
 	*
 	* @param cfg the cloned, prototype-free configuration object
 	* @param key the configuration property to read
 	* @param fallback the set to use when the option is absent or not an array
-	* @param options transform and optional base set to merge into
-	* @returns the resolved set
+	* @param options case transform, and an optional base set to extend a copy of
+	* @returns a fresh set built from cfg[key], or the fallback
 	*/
 	const _resolveSetOption = function _resolveSetOption(cfg, key, fallback, options) {
-		return objectHasOwnProperty(cfg, key) && arrayIsArray(cfg[key]) ? addToSet(options.base ? clone(options.base) : {}, cfg[key], options.transform) : fallback;
+		return objectHasOwnProperty(cfg, key) && arrayIsArray(cfg[key]) ? addToSet(options.base ? cloneSet(options.base) : {}, cfg[key], options.transform) : fallback;
 	};
 	/**
-	* Resolve an object-valued configuration option: a prototype-free clone
-	* of cfg[key] when it is an own, truthy object property, else a fresh
-	* fallback built by makeFallback (fresh on every parse, so a previous
-	* parse can never leak state into the next one).
+	* Resolve an object-valued configuration option.
 	*
 	* @param cfg the cloned, prototype-free configuration object
 	* @param key the configuration property to read
-	* @param makeFallback builds the fallback value when the option is absent
-	* @returns the resolved object
+	* @param fallback the read-only value to use when the option is absent
+	* @returns a prototype-free clone of cfg[key], or the fallback
 	*/
-	const _resolveObjectOption = function _resolveObjectOption(cfg, key, makeFallback) {
+	const _resolveObjectOption = function _resolveObjectOption(cfg, key, fallback) {
 		const value = objectHasOwnProperty(cfg, key) ? cfg[key] : void 0;
-		return value && typeof value === "object" ? clone(value) : makeFallback();
+		return value && typeof value === "object" ? clone(value) : fallback;
 	};
 	function createDOMPurify() {
 		let window = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : getGlobal();
@@ -1265,16 +1274,17 @@
 			SVG_NAMESPACE,
 			HTML_NAMESPACE
 		], stringToString);
-		const DEFAULT_MATHML_TEXT_INTEGRATION_POINTS = freeze([
+		const DEFAULT_MATHML_TEXT_INTEGRATION_POINTS = freeze(addToSet({}, [
 			"mi",
 			"mo",
 			"mn",
 			"ms",
 			"mtext"
-		]);
+		]));
 		let MATHML_TEXT_INTEGRATION_POINTS = null;
-		const DEFAULT_HTML_INTEGRATION_POINTS = freeze(["annotation-xml"]);
+		const DEFAULT_HTML_INTEGRATION_POINTS = freeze(addToSet({}, ["annotation-xml"]));
 		let HTML_INTEGRATION_POINTS = null;
+		const DEFAULT_CUSTOM_ELEMENT_HANDLING = freeze(create(null));
 		const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
 			"title",
 			"style",
@@ -1334,9 +1344,9 @@
 			IN_PLACE = cfg.IN_PLACE || false;
 			IS_ALLOWED_URI$1 = isRegex(cfg.ALLOWED_URI_REGEXP) ? cfg.ALLOWED_URI_REGEXP : IS_ALLOWED_URI;
 			NAMESPACE = typeof cfg.NAMESPACE === "string" ? cfg.NAMESPACE : HTML_NAMESPACE;
-			MATHML_TEXT_INTEGRATION_POINTS = _resolveObjectOption(cfg, "MATHML_TEXT_INTEGRATION_POINTS", () => addToSet({}, DEFAULT_MATHML_TEXT_INTEGRATION_POINTS));
-			HTML_INTEGRATION_POINTS = _resolveObjectOption(cfg, "HTML_INTEGRATION_POINTS", () => addToSet({}, DEFAULT_HTML_INTEGRATION_POINTS));
-			const customElementHandling = _resolveObjectOption(cfg, "CUSTOM_ELEMENT_HANDLING", () => create(null));
+			MATHML_TEXT_INTEGRATION_POINTS = _resolveObjectOption(cfg, "MATHML_TEXT_INTEGRATION_POINTS", DEFAULT_MATHML_TEXT_INTEGRATION_POINTS);
+			HTML_INTEGRATION_POINTS = _resolveObjectOption(cfg, "HTML_INTEGRATION_POINTS", DEFAULT_HTML_INTEGRATION_POINTS);
+			const customElementHandling = _resolveObjectOption(cfg, "CUSTOM_ELEMENT_HANDLING", DEFAULT_CUSTOM_ELEMENT_HANDLING);
 			CUSTOM_ELEMENT_HANDLING = create(null);
 			if (objectHasOwnProperty(customElementHandling, "tagNameCheck") && isRegexOrFunction(customElementHandling.tagNameCheck)) CUSTOM_ELEMENT_HANDLING.tagNameCheck = customElementHandling.tagNameCheck;
 			if (objectHasOwnProperty(customElementHandling, "attributeNameCheck") && isRegexOrFunction(customElementHandling.attributeNameCheck)) CUSTOM_ELEMENT_HANDLING.attributeNameCheck = customElementHandling.attributeNameCheck;
@@ -1373,19 +1383,19 @@
 			if (objectHasOwnProperty(cfg, "ADD_TAGS")) {
 				if (typeof cfg.ADD_TAGS === "function") EXTRA_ELEMENT_HANDLING.tagCheck = cfg.ADD_TAGS;
 				else if (arrayIsArray(cfg.ADD_TAGS)) {
-					if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) ALLOWED_TAGS = clone(ALLOWED_TAGS);
+					if (ALLOWED_TAGS === DEFAULT_ALLOWED_TAGS) ALLOWED_TAGS = cloneSet(ALLOWED_TAGS);
 					addToSet(ALLOWED_TAGS, cfg.ADD_TAGS, transformCaseFunc);
 				}
 			}
 			if (objectHasOwnProperty(cfg, "ADD_ATTR")) {
 				if (typeof cfg.ADD_ATTR === "function") EXTRA_ELEMENT_HANDLING.attributeCheck = cfg.ADD_ATTR;
 				else if (arrayIsArray(cfg.ADD_ATTR)) {
-					if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) ALLOWED_ATTR = clone(ALLOWED_ATTR);
+					if (ALLOWED_ATTR === DEFAULT_ALLOWED_ATTR) ALLOWED_ATTR = cloneSet(ALLOWED_ATTR);
 					addToSet(ALLOWED_ATTR, cfg.ADD_ATTR, transformCaseFunc);
 				}
 			}
 			if (objectHasOwnProperty(cfg, "ADD_FORBID_CONTENTS") && arrayIsArray(cfg.ADD_FORBID_CONTENTS)) {
-				if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) FORBID_CONTENTS = clone(FORBID_CONTENTS);
+				if (FORBID_CONTENTS === DEFAULT_FORBID_CONTENTS) FORBID_CONTENTS = cloneSet(FORBID_CONTENTS);
 				addToSet(FORBID_CONTENTS, cfg.ADD_FORBID_CONTENTS, transformCaseFunc);
 			}
 			if (KEEP_CONTENT) ALLOWED_TAGS["#text"] = true;
@@ -1395,7 +1405,7 @@
 				"body"
 			]);
 			if (ALLOWED_TAGS.table) {
-				addToSet(ALLOWED_TAGS, ["tbody"]);
+				ALLOWED_TAGS.tbody = true;
 				delete FORBID_TAGS.tbody;
 			}
 			if (cfg.TRUSTED_TYPES_POLICY) {
@@ -2024,7 +2034,7 @@
 		*/
 		const _forkSharedAllowlist = function _forkSharedAllowlist(hookList, set, defaultSet, setConfigSet) {
 			if (hookList.length === 0) return set;
-			return set === defaultSet || set === setConfigSet ? clone(set) : set;
+			return set === defaultSet || set === setConfigSet ? cloneSet(set) : set;
 		};
 		/**
 		* A hook may have detached the node it was called for. If so, treat it as
@@ -2381,8 +2391,6 @@
 				ALLOWED_TAGS = SET_CONFIG_ALLOWED_TAGS;
 				ALLOWED_ATTR = SET_CONFIG_ALLOWED_ATTR;
 			} else _parseConfig(cfg);
-			if (hooks.uponSanitizeElement.length > 0 || hooks.uponSanitizeAttribute.length > 0) ALLOWED_TAGS = clone(ALLOWED_TAGS);
-			if (hooks.uponSanitizeAttribute.length > 0) ALLOWED_ATTR = clone(ALLOWED_ATTR);
 			DOMPurify.removed = [];
 			const inPlace = IN_PLACE && typeof dirty !== "string" && _isNode(dirty);
 			let inPlaceNodes = [];
