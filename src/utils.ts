@@ -38,7 +38,6 @@ if (!construct) {
 }
 
 const arrayForEach = unapply(Array.prototype.forEach);
-const arrayIndexOf = unapply(Array.prototype.indexOf);
 const arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
 const arrayPop = unapply(Array.prototype.pop);
 const arrayPush = unapply(Array.prototype.push);
@@ -328,7 +327,6 @@ function isRegex(value: unknown): value is RegExp {
 export {
   // Array
   arrayForEach,
-  arrayIndexOf,
   arrayIsArray,
   arrayLastIndexOf,
   arrayPop,
@@ -338,15 +336,10 @@ export {
   // Object
   entries,
   freeze,
-  getPrototypeOf,
-  getOwnPropertyDescriptor,
-  isFrozen,
-  setPrototypeOf,
   seal,
   clone,
   create,
   objectHasOwnProperty,
-  objectToString,
   // RegExp
   regExpTest,
   setAdd,
@@ -368,7 +361,4 @@ export {
   lookupAccessor,
   lookupGetter,
   addToSet,
-  // Reflect
-  unapply,
-  unconstruct,
 };

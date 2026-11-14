@@ -57,17 +57,11 @@ declare const VERSION: string;
 // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
 const NODE_TYPE = {
   element: 1,
-  attribute: 2,
   text: 3,
-  cdataSection: 4,
-  entityReference: 5, // Deprecated
-  entityNode: 6, // Deprecated
   processingInstruction: 7,
   comment: 8,
   document: 9,
-  documentType: 10,
   documentFragment: 11,
-  notation: 12, // Deprecated
 };
 
 /* HTML-namespace elements whose child text nodes are serialized *literally*
@@ -245,13 +239,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const currentScript: HTMLScriptElement =
     originalDocument.currentScript as HTMLScriptElement;
   const {
-    DocumentFragment,
     HTMLTemplateElement,
     Node,
     Element,
     NodeFilter,
-    NamedNodeMap = window.NamedNodeMap || (window as any).MozNamedAttrMap,
-    HTMLFormElement,
     DOMParser,
     trustedTypes,
   } = window;
@@ -449,28 +440,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @property {RegExp|Function|null} attributeNameCheck one of [null, regexPattern, predicate]. Default: `null` (disallow any attributes not on the allow list)
    * @property {boolean} allowCustomizedBuiltInElements allow custom elements derived from built-ins if they pass CUSTOM_ELEMENT_HANDLING.tagNameCheck. Default: `false`.
    */
-  let CUSTOM_ELEMENT_HANDLING = Object.seal(
-    create(null, {
-      tagNameCheck: {
-        writable: true,
-        configurable: false,
-        enumerable: true,
-        value: null,
-      },
-      attributeNameCheck: {
-        writable: true,
-        configurable: false,
-        enumerable: true,
-        value: null,
-      },
-      allowCustomizedBuiltInElements: {
-        writable: true,
-        configurable: false,
-        enumerable: true,
-        value: false,
-      },
-    })
-  );
+  let CUSTOM_ELEMENT_HANDLING = null;
 
   /* Explicitly forbidden tags (overrides ALLOWED_TAGS/ADD_TAGS) */
   let FORBID_TAGS = null;
@@ -583,7 +553,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   let IN_PLACE_VISITED: Set<unknown> | null = null;
 
   /* Allow usage of profiles like html, svg and mathMl */
-  let USE_PROFILES: UseProfilesConfig | false = {};
+  let USE_PROFILES: UseProfilesConfig | false = false;
 
   /* Tags to ignore content of when KEEP_CONTENT is true */
   let FORBID_CONTENTS = null;
@@ -677,13 +647,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     'ms',
     'mtext',
   ]);
-  let MATHML_TEXT_INTEGRATION_POINTS = addToSet(
-    {},
-    DEFAULT_MATHML_TEXT_INTEGRATION_POINTS
-  );
+  let MATHML_TEXT_INTEGRATION_POINTS = null;
 
   const DEFAULT_HTML_INTEGRATION_POINTS = freeze(['annotation-xml']);
-  let HTML_INTEGRATION_POINTS = addToSet({}, DEFAULT_HTML_INTEGRATION_POINTS);
+  let HTML_INTEGRATION_POINTS = null;
 
   // Certain elements are allowed in both SVG and HTML
   // namespace. We need to specify them explicitly
@@ -724,10 +691,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    */
   // eslint-disable-next-line complexity
   const _parseConfig = function (cfg: Config = {}): void {
-    if (CONFIG && CONFIG === cfg) {
-      return;
-    }
-
     /* Shield configuration object from tampering */
     if (!cfg || typeof cfg !== 'object') {
       cfg = {};
@@ -785,10 +748,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       DEFAULT_FORBID_CONTENTS,
       { transform: transformCaseFunc }
     );
-    FORBID_TAGS = _resolveSetOption(cfg, 'FORBID_TAGS', clone({}), {
+    FORBID_TAGS = _resolveSetOption(cfg, 'FORBID_TAGS', create(null), {
       transform: transformCaseFunc,
     });
-    FORBID_ATTR = _resolveSetOption(cfg, 'FORBID_ATTR', clone({}), {
+    FORBID_ATTR = _resolveSetOption(cfg, 'FORBID_ATTR', create(null), {
       transform: transformCaseFunc,
     });
     USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES')
@@ -1036,13 +999,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     }
 
-    // Prevent further manipulation of configuration.
-    // Not available in IE8, Safari 5, etc.
-    if (freeze) {
-      freeze(cfg);
-    }
-
-    CONFIG = cfg;
+    // Prevent further manipulation of configuration
+    CONFIG = freeze(cfg);
   };
 
   /* Keep track of all possible SVG and MathML tags
@@ -1210,19 +1168,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return _checkHtmlNamespace(tagName, parent, parentTagName);
     }
 
-    // For XHTML and XML documents that support custom namespaces
-    if (
-      PARSER_MEDIA_TYPE === 'application/xhtml+xml' &&
-      ALLOWED_NAMESPACES[elementNamespace]
-    ) {
-      return true;
-    }
-
-    // The code should never reach this place (this means
-    // that the element somehow got namespace that is not
-    // HTML, SVG, MathML or allowed via ALLOWED_NAMESPACES).
-    // Return false just in case.
-    return false;
+    // An allowed custom namespace is only valid in XHTML and XML documents
+    return PARSER_MEDIA_TYPE === 'application/xhtml+xml';
   };
 
   /**

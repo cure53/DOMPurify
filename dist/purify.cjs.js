@@ -119,7 +119,6 @@ if (!construct) construct = function construct(Func) {
 	return new Func(...args);
 };
 const arrayForEach = unapply(Array.prototype.forEach);
-Array.prototype.indexOf;
 const arrayLastIndexOf = unapply(Array.prototype.lastIndexOf);
 const arrayPop = unapply(Array.prototype.pop);
 const arrayPush = unapply(Array.prototype.push);
@@ -961,17 +960,11 @@ const FALLBACK_TAG_CLOSE = seal(/<\/no(script|embed|frames)/i);
 const SELF_CLOSING_TAG = seal(/\/>/i);
 const NODE_TYPE = {
 	element: 1,
-	attribute: 2,
 	text: 3,
-	cdataSection: 4,
-	entityReference: 5,
-	entityNode: 6,
 	processingInstruction: 7,
 	comment: 8,
 	document: 9,
-	documentType: 10,
-	documentFragment: 11,
-	notation: 12
+	documentFragment: 11
 };
 const LITERAL_TEXT_ELEMENTS = freeze(addToSet({}, [
 	"style",
@@ -1069,11 +1062,7 @@ function createDOMPurify() {
 	let document = window.document;
 	const originalDocument = document;
 	const currentScript = originalDocument.currentScript;
-	window.DocumentFragment;
-	const HTMLTemplateElement = window.HTMLTemplateElement, Node = window.Node, Element = window.Element, NodeFilter = window.NodeFilter;
-	window.NamedNodeMap === void 0 && (window.NamedNodeMap || window.MozNamedAttrMap);
-	window.HTMLFormElement;
-	const DOMParser = window.DOMParser, trustedTypes = window.trustedTypes;
+	const HTMLTemplateElement = window.HTMLTemplateElement, Node = window.Node, Element = window.Element, NodeFilter = window.NodeFilter, DOMParser = window.DOMParser, trustedTypes = window.trustedTypes;
 	const ElementPrototype = Element.prototype;
 	const cloneNode = lookupGetter(ElementPrototype, "cloneNode");
 	const remove = lookupGetter(ElementPrototype, "remove");
@@ -1161,26 +1150,7 @@ function createDOMPurify() {
 		...mathMl,
 		...xml
 	]);
-	let CUSTOM_ELEMENT_HANDLING = Object.seal(create(null, {
-		tagNameCheck: {
-			writable: true,
-			configurable: false,
-			enumerable: true,
-			value: null
-		},
-		attributeNameCheck: {
-			writable: true,
-			configurable: false,
-			enumerable: true,
-			value: null
-		},
-		allowCustomizedBuiltInElements: {
-			writable: true,
-			configurable: false,
-			enumerable: true,
-			value: false
-		}
-	}));
+	let CUSTOM_ELEMENT_HANDLING = null;
 	let FORBID_TAGS = null;
 	let FORBID_ATTR = null;
 	const EXTRA_ELEMENT_HANDLING = Object.seal(create(null, {
@@ -1217,7 +1187,7 @@ function createDOMPurify() {
 	let KEEP_CONTENT = true;
 	let IN_PLACE = false;
 	let IN_PLACE_VISITED = null;
-	let USE_PROFILES = {};
+	let USE_PROFILES = false;
 	let FORBID_CONTENTS = null;
 	const DEFAULT_FORBID_CONTENTS = addToSet({}, [
 		"annotation-xml",
@@ -1291,9 +1261,9 @@ function createDOMPurify() {
 		"ms",
 		"mtext"
 	]);
-	let MATHML_TEXT_INTEGRATION_POINTS = addToSet({}, DEFAULT_MATHML_TEXT_INTEGRATION_POINTS);
+	let MATHML_TEXT_INTEGRATION_POINTS = null;
 	const DEFAULT_HTML_INTEGRATION_POINTS = freeze(["annotation-xml"]);
-	let HTML_INTEGRATION_POINTS = addToSet({}, DEFAULT_HTML_INTEGRATION_POINTS);
+	let HTML_INTEGRATION_POINTS = null;
 	const COMMON_SVG_AND_HTML_ELEMENTS = addToSet({}, [
 		"title",
 		"style",
@@ -1317,7 +1287,6 @@ function createDOMPurify() {
 	*/
 	const _parseConfig = function _parseConfig() {
 		let cfg = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
-		if (CONFIG && CONFIG === cfg) return;
 		if (!cfg || typeof cfg !== "object") cfg = {};
 		cfg = clone(cfg);
 		PARSER_MEDIA_TYPE = SUPPORTED_PARSER_MEDIA_TYPES.indexOf(cfg.PARSER_MEDIA_TYPE) === -1 ? DEFAULT_PARSER_MEDIA_TYPE : cfg.PARSER_MEDIA_TYPE;
@@ -1334,8 +1303,8 @@ function createDOMPurify() {
 			base: DEFAULT_DATA_URI_TAGS
 		});
 		FORBID_CONTENTS = _resolveSetOption(cfg, "FORBID_CONTENTS", DEFAULT_FORBID_CONTENTS, { transform: transformCaseFunc });
-		FORBID_TAGS = _resolveSetOption(cfg, "FORBID_TAGS", clone({}), { transform: transformCaseFunc });
-		FORBID_ATTR = _resolveSetOption(cfg, "FORBID_ATTR", clone({}), { transform: transformCaseFunc });
+		FORBID_TAGS = _resolveSetOption(cfg, "FORBID_TAGS", create(null), { transform: transformCaseFunc });
+		FORBID_ATTR = _resolveSetOption(cfg, "FORBID_ATTR", create(null), { transform: transformCaseFunc });
 		USE_PROFILES = objectHasOwnProperty(cfg, "USE_PROFILES") ? cfg.USE_PROFILES && typeof cfg.USE_PROFILES === "object" ? clone(cfg.USE_PROFILES) : cfg.USE_PROFILES : false;
 		ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false;
 		ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false;
@@ -1436,8 +1405,7 @@ function createDOMPurify() {
 			if (trustedTypesPolicy === void 0) trustedTypesPolicy = _getDefaultTrustedTypesPolicy();
 			if (trustedTypesPolicy && typeof emptyHTML === "string") emptyHTML = _createTrustedHTML("");
 		}
-		if (freeze) freeze(cfg);
-		CONFIG = cfg;
+		CONFIG = freeze(cfg);
 	};
 	const ALL_SVG_TAGS = addToSet({}, [
 		...svg$1,
@@ -1507,8 +1475,7 @@ function createDOMPurify() {
 		if (elementNamespace === SVG_NAMESPACE) return _checkSvgNamespace(tagName, parent, parentTagName);
 		if (elementNamespace === MATHML_NAMESPACE) return _checkMathMlNamespace(tagName, parent, parentTagName);
 		if (elementNamespace === HTML_NAMESPACE) return _checkHtmlNamespace(tagName, parent, parentTagName);
-		if (PARSER_MEDIA_TYPE === "application/xhtml+xml" && ALLOWED_NAMESPACES[elementNamespace]) return true;
-		return false;
+		return PARSER_MEDIA_TYPE === "application/xhtml+xml";
 	};
 	/**
 	* _forceRemove
