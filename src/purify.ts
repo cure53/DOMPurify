@@ -275,6 +275,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       : (element as any).namespaceURI;
   };
 
+  /* Attributes through the cached getter, so an own-property override cannot
+     hide them. Null for non-elements, on which the getter throws. */
+  const _readAttributes = function (node: Node): NamedNodeMap | null {
+    return _readNodeType(node) === NODE_TYPE.element
+      ? getAttributes(node)
+      : null;
+  };
+
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
   // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
@@ -2502,7 +2510,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return;
     }
 
-    const { attributes } = currentNode;
+    const attributes = _readAttributes(currentNode);
 
     /* Check if we have attributes; if not we might have a text node */
     if (!attributes || _isClobbered(currentNode)) {

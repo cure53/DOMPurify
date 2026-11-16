@@ -1689,6 +1689,34 @@
       }
     );
 
+    // The attribute list is read through the cached getter, so an own
+    // attributes override cannot hide what is on the element.
+    QUnit.test(
+      'IN_PLACE: own-property attributes override does not skip attribute checks',
+      (assert) => {
+        const run = (fake, nested) => {
+          const img = document.createElement('img');
+          img.setAttribute('src', 'x');
+          img.setAttribute('onerror', 'alert(1)');
+          if (fake !== false) {
+            Object.defineProperty(img, 'attributes', { get: () => fake });
+          }
+          const root = nested ? document.createElement('div') : img;
+          if (nested) {
+            root.appendChild(img);
+          }
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          return img.hasAttribute('onerror');
+        };
+
+        assert.equal(run(false), false, 'control: onerror removed');
+        assert.equal(run(null), false, 'null does not keep it');
+        assert.equal(run(undefined), false, 'undefined does not keep it');
+        assert.equal(run([]), false, 'empty list does not keep it');
+        assert.equal(run(null, true), false, 'nor on a descendant');
+      }
+    );
+
     // Namespace validation reads each node's name and namespace through the
     // cached prototype getters. A live node can carry own-property overrides
     // (Object.defineProperty) of tagName / namespaceURI; trusting those let a

@@ -1103,6 +1103,9 @@
 		const _readNamespaceURI = function _readNamespaceURI(element) {
 			return getNamespaceURI ? getNamespaceURI(element) : element.namespaceURI;
 		};
+		const _readAttributes = function _readAttributes(node) {
+			return _readNodeType(node) === NODE_TYPE.element ? getAttributes(node) : null;
+		};
 		if (typeof HTMLTemplateElement === "function") {
 			const template = document.createElement("template");
 			if (template.content && template.content.ownerDocument) document = template.content.ownerDocument;
@@ -2238,7 +2241,7 @@
 		const _sanitizeAttributes = function _sanitizeAttributes(currentNode, root) {
 			_executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
 			if (_handleHookDetachedNode(currentNode, root)) return;
-			const attributes = currentNode.attributes;
+			const attributes = _readAttributes(currentNode);
 			if (!attributes || _isClobbered(currentNode)) return;
 			ALLOWED_ATTR = _forkSharedAllowlist(hooks.uponSanitizeAttribute, ALLOWED_ATTR, DEFAULT_ALLOWED_ATTR, SET_CONFIG_ALLOWED_ATTR);
 			const hookEvent = {
