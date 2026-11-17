@@ -275,6 +275,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       : (element as any).namespaceURI;
   };
 
+  /* Attributes through the cached getter, so an own-property override cannot
+     hide them. Null for non-elements, on which the getter throws. */
+  const _readAttributes = function (node: Node): NamedNodeMap | null {
+    return _readNodeType(node) === NODE_TYPE.element
+      ? getAttributes(node)
+      : null;
+  };
+
   // As per issue #47, the web-components registry is inherited by a
   // new document created via createHTMLDocument. As per the spec
   // (http://w3c.github.io/webcomponents/spec/custom/#creating-and-passing-registries)
@@ -1716,6 +1724,72 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
   };
 
+  /* Elements that hold table structure, and what the parser lets them hold */
+  const TABLE_STRUCTURE = 'table,tbody,thead,tfoot,tr,colgroup';
+  const TABLE_CONTENT = addToSet({}, [
+    'caption',
+    'colgroup',
+    'col',
+    'thead',
+    'tbody',
+    'tfoot',
+    'tr',
+    'td',
+    'th',
+    'style',
+    'script',
+    'template',
+  ]);
+
+  /**
+   * Moves content the HTML parser would foster-parent to where it would put
+   * it: in front of the table. Only a tree the parser did not build, or one
+   * changed after the parse, holds such content. Without this, a reparse
+   * reorders the text and can join fragments that were not neighbours.
+   *
+   * @param root The root whose tables should be checked.
+   */
+  const _fosterTableContent = function (root: Element): void {
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+      return;
+    }
+
+    const structures = root.querySelectorAll?.(TABLE_STRUCTURE);
+    if (!structures || structures.length === 0) {
+      return;
+    }
+
+    arrayForEach(structures, (structure: Element) => {
+      arrayForEach(arraySlice(getChildNodes(structure)), (child: Node) => {
+        const nodeType = _readNodeType(child);
+        const misplaced =
+          nodeType === NODE_TYPE.text
+            ? regExpTest(EXPRESSIONS.NON_WHITESPACE, (child as Text).data)
+            : nodeType === NODE_TYPE.element &&
+              !TABLE_CONTENT[stringToLowerCase(_readNodeName(child))];
+        if (!misplaced) {
+          return;
+        }
+
+        let table: Node | null = structure;
+        while (table && stringToLowerCase(_readNodeName(table)) !== 'table') {
+          table = table === root ? null : getParentNode(table);
+        }
+
+        const tableParent =
+          table && table !== root ? getParentNode(table) : null;
+        if (tableParent) {
+          try {
+            // eslint-disable-next-line unicorn/prefer-modern-dom-apis
+            tableParent.insertBefore(child, table);
+          } catch (_) {
+            /* Clobbered parent: leave the node where it is */
+          }
+        }
+      });
+    });
+  };
+
   /**
    * Normalizes `node` and strips template expressions from its own character
    * data. Template contents and shadow roots are not entered, their own
@@ -1724,12 +1798,35 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param node The root whose own character data should be scrubbed.
    */
   const _scrubOwnCharacterData = function (node: Element): void {
+    _fosterTableContent(node);
     node.normalize();
     const walker = _createNodeIterator(node, true);
+    let previousText: CharacterData | null = null;
 
     let currentNode = walker.nextNode() as CharacterData | null;
     while (currentNode) {
-      currentNode.data = _stripTemplateExpressions(currentNode.data);
+      let { data } = currentNode;
+      if (regExpTest(EXPRESSIONS.TMPL_MARKER, data)) {
+        data = _stripTemplateExpressions(data);
+        currentNode.data = data;
+      }
+
+      /* A reparse can drop the tags between two text nodes, e.g. those of a
+         nested form. If their boundary completes a marker, scrub the previous
+         text as if the next character belonged to it. */
+      if (data && _readNodeType(currentNode) === NODE_TYPE.text) {
+        if (previousText) {
+          const tail = previousText.data;
+          // eslint-disable-next-line unicorn/prefer-at
+          const boundary = tail[tail.length - 1] + data[0];
+          if (regExpTest(EXPRESSIONS.TMPL_MARKER, boundary)) {
+            previousText.data = _stripTemplateExpressions(tail + data[0]);
+          }
+        }
+
+        previousText = currentNode;
+      }
+
       currentNode = walker.nextNode() as CharacterData | null;
     }
   };
@@ -2413,7 +2510,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return;
     }
 
-    const { attributes } = currentNode;
+    const attributes = _readAttributes(currentNode);
 
     /* Check if we have attributes; if not we might have a text node */
     if (!attributes || _isClobbered(currentNode)) {
@@ -2860,20 +2957,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return returnNode;
     }
 
-    const serialize = (): string =>
-      WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
-    let serializedHTML = serialize();
-
     /* Scrub our tree, not the markup: a regex over markup cuts through
-       tags. Only needed if the output holds a marker pair. Template
-       content was already scrubbed by _sanitizeShadowDOM. */
-    if (
-      SAFE_FOR_TEMPLATES &&
-      regExpTest(EXPRESSIONS.TMPL_MARKER_SERIALIZED, serializedHTML)
-    ) {
+       tags. Template content was already scrubbed by _sanitizeShadowDOM. */
+    if (SAFE_FOR_TEMPLATES) {
       _scrubOwnCharacterData(body);
-      serializedHTML = serialize();
     }
+
+    let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 
     /* Serialize doctype if allowed */
     if (

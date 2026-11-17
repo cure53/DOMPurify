@@ -963,7 +963,8 @@ const xml = freeze([
 const MUSTACHE_EXPR = seal(/{{[\w\W]*|^[\w\W]*}}/g);
 const ERB_EXPR = seal(/<%[\w\W]*|^[\w\W]*%>/g);
 const TMPLIT_EXPR = seal(/\${[\w\W]*/g);
-const TMPL_MARKER_SERIALIZED = seal(/{{|}}|\${|<%|%>|&lt;%|%&gt;/);
+const TMPL_MARKER = seal(/{{|}}|\${|<%|%>/);
+const NON_WHITESPACE = seal(/[^\t\n\f\r ]/);
 const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/);
 const ARIA_ATTR = seal(/^aria-[\-\w]+$/);
 const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i);
@@ -1097,6 +1098,9 @@ function createDOMPurify() {
 	const getNamespaceURI = lookupAccessor(ElementPrototype, "namespaceURI");
 	const _readNamespaceURI = function _readNamespaceURI(element) {
 		return getNamespaceURI ? getNamespaceURI(element) : element.namespaceURI;
+	};
+	const _readAttributes = function _readAttributes(node) {
+		return _readNodeType(node) === NODE_TYPE.element ? getAttributes(node) : null;
 	};
 	if (typeof HTMLTemplateElement === "function") {
 		const template = document.createElement("template");
@@ -1857,6 +1861,47 @@ function createDOMPurify() {
 			if (_isDocumentFragment(tmpl.content)) _scrubTemplateExpressions2(tmpl.content);
 		});
 	};
+	const TABLE_STRUCTURE = "table,tbody,thead,tfoot,tr,colgroup";
+	const TABLE_CONTENT = addToSet({}, [
+		"caption",
+		"colgroup",
+		"col",
+		"thead",
+		"tbody",
+		"tfoot",
+		"tr",
+		"td",
+		"th",
+		"style",
+		"script",
+		"template"
+	]);
+	/**
+	* Moves content the HTML parser would foster-parent to where it would put
+	* it: in front of the table. Only a tree the parser did not build, or one
+	* changed after the parse, holds such content. Without this, a reparse
+	* reorders the text and can join fragments that were not neighbours.
+	*
+	* @param root The root whose tables should be checked.
+	*/
+	const _fosterTableContent = function _fosterTableContent(root) {
+		var _root$querySelectorAl;
+		if (PARSER_MEDIA_TYPE === "application/xhtml+xml") return;
+		const structures = (_root$querySelectorAl = root.querySelectorAll) === null || _root$querySelectorAl === void 0 ? void 0 : _root$querySelectorAl.call(root, TABLE_STRUCTURE);
+		if (!structures || structures.length === 0) return;
+		arrayForEach(structures, (structure) => {
+			arrayForEach(arraySlice(getChildNodes(structure)), (child) => {
+				const nodeType = _readNodeType(child);
+				if (!(nodeType === NODE_TYPE.text ? regExpTest(NON_WHITESPACE, child.data) : nodeType === NODE_TYPE.element && !TABLE_CONTENT[stringToLowerCase(_readNodeName(child))])) return;
+				let table = structure;
+				while (table && stringToLowerCase(_readNodeName(table)) !== "table") table = table === root ? null : getParentNode(table);
+				const tableParent = table && table !== root ? getParentNode(table) : null;
+				if (tableParent) try {
+					tableParent.insertBefore(child, table);
+				} catch (_) {}
+			});
+		});
+	};
 	/**
 	* Normalizes `node` and strips template expressions from its own character
 	* data. Template contents and shadow roots are not entered, their own
@@ -1865,11 +1910,25 @@ function createDOMPurify() {
 	* @param node The root whose own character data should be scrubbed.
 	*/
 	const _scrubOwnCharacterData = function _scrubOwnCharacterData(node) {
+		_fosterTableContent(node);
 		node.normalize();
 		const walker = _createNodeIterator(node, true);
+		let previousText = null;
 		let currentNode = walker.nextNode();
 		while (currentNode) {
-			currentNode.data = _stripTemplateExpressions(currentNode.data);
+			let data = currentNode.data;
+			if (regExpTest(TMPL_MARKER, data)) {
+				data = _stripTemplateExpressions(data);
+				currentNode.data = data;
+			}
+			if (data && _readNodeType(currentNode) === NODE_TYPE.text) {
+				if (previousText) {
+					const tail = previousText.data;
+					const boundary = tail[tail.length - 1] + data[0];
+					if (regExpTest(TMPL_MARKER, boundary)) previousText.data = _stripTemplateExpressions(tail + data[0]);
+				}
+				previousText = currentNode;
+			}
 			currentNode = walker.nextNode();
 		}
 	};
@@ -2178,7 +2237,7 @@ function createDOMPurify() {
 	const _sanitizeAttributes = function _sanitizeAttributes(currentNode, root) {
 		_executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
 		if (_handleHookDetachedNode(currentNode, root)) return;
-		const attributes = currentNode.attributes;
+		const attributes = _readAttributes(currentNode);
 		if (!attributes || _isClobbered(currentNode)) return;
 		ALLOWED_ATTR = _forkSharedAllowlist(hooks.uponSanitizeAttribute, ALLOWED_ATTR, DEFAULT_ALLOWED_ATTR, SET_CONFIG_ALLOWED_ATTR);
 		const hookEvent = {
@@ -2395,12 +2454,8 @@ function createDOMPurify() {
 			if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmode) returnNode = importNode.call(originalDocument, returnNode, true);
 			return returnNode;
 		}
-		const serialize = () => WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
-		let serializedHTML = serialize();
-		if (SAFE_FOR_TEMPLATES && regExpTest(TMPL_MARKER_SERIALIZED, serializedHTML)) {
-			_scrubOwnCharacterData(body);
-			serializedHTML = serialize();
-		}
+		if (SAFE_FOR_TEMPLATES) _scrubOwnCharacterData(body);
+		let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 		if (WHOLE_DOCUMENT && ALLOWED_TAGS["!doctype"] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) serializedHTML = "<!DOCTYPE " + body.ownerDocument.doctype.name + ">\n" + serializedHTML;
 		return _signOutput(serializedHTML);
 	};

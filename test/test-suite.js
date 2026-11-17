@@ -1188,6 +1188,94 @@
     });
 
     QUnit.test(
+      'template scrub covers markers split across a nested form',
+      (assert) => {
+        // A reparse drops the inner <form> tag and joins the text around it
+        const dirty = '<form><div>{</form><form>{x}</form>}';
+        const reparsedText = (html) => {
+          const div = document.createElement('div');
+          div.innerHTML = html;
+          return div.textContent;
+        };
+
+        const clean = DOMPurify.sanitize(dirty, { SAFE_FOR_TEMPLATES: true });
+        assert.notOk(/{{|}}/.test(reparsedText(clean)));
+
+        const dom = DOMPurify.sanitize(dirty, {
+          SAFE_FOR_TEMPLATES: true,
+          RETURN_DOM: true,
+        });
+        assert.notOk(/{{|}}/.test(reparsedText(dom.innerHTML)));
+
+        const root = document.createElement('div');
+        root.innerHTML = dirty;
+        DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true, IN_PLACE: true });
+        assert.notOk(/{{|}}/.test(reparsedText(root.innerHTML)));
+      }
+    );
+
+    QUnit.test(
+      'template scrub covers text a reparse moves out of a table',
+      (assert) => {
+        // Text directly inside a table is foster-parented on reparse
+        const root = document.createElement('div');
+        const table = root.appendChild(document.createElement('table'));
+        const tbody = document.createElement('tbody');
+        const row = (text) => {
+          const tr = document.createElement('tr');
+          tr.appendChild(document.createElement('td')).textContent = text;
+          return tr;
+        };
+
+        table.appendChild(document.createTextNode('{'));
+        table.appendChild(tbody);
+        tbody.appendChild(row('q'));
+        tbody.appendChild(document.createTextNode('{x}'));
+        tbody.appendChild(row('r'));
+        tbody.appendChild(document.createTextNode('}'));
+
+        const clean = DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true });
+        const div = document.createElement('div');
+        div.innerHTML = clean;
+        assert.notOk(/{{|}}/.test(div.textContent));
+        assert.ok(/q/.test(div.textContent) && /r/.test(div.textContent));
+      }
+    );
+
+    QUnit.test('template scrub leaves a well-formed table alone', (assert) => {
+      const dirty =
+        '<table><caption>{c}</caption><tbody><tr><td>{</td><td>{x}</td></tr></tbody></table>';
+      assert.equal(
+        DOMPurify.sanitize(dirty, { SAFE_FOR_TEMPLATES: true }),
+        '<table><caption>{c}</caption><tbody><tr><td> </td><td>{x}</td></tr></tbody></table>'
+      );
+    });
+
+    QUnit.test(
+      'template scrub covers markers split across kept elements',
+      (assert) => {
+        const config = { SAFE_FOR_TEMPLATES: true };
+        assert.equal(
+          DOMPurify.sanitize('<b>{</b><i>{x}</i><b>}</b>', config),
+          '<b> </b><i> </i><b>}</b>'
+        );
+        assert.equal(
+          DOMPurify.sanitize('<b>$</b><i>{x}</i>', config),
+          '<b> </b><i>{x}</i>'
+        );
+        assert.equal(
+          DOMPurify.sanitize('<b>&lt;</b><i>% x %</i><b>&gt;</b>', config),
+          '<b> </b><i> </i><b>&gt;</b>'
+        );
+        // No marker across the boundary, nothing changes
+        assert.equal(
+          DOMPurify.sanitize('<b>{</b> <i>{x}</i> <b>}</b>', config),
+          '<b>{</b> <i>{x}</i> <b>}</b>'
+        );
+      }
+    );
+
+    QUnit.test(
       'template scrub catches ERB markers joined by a removed element',
       (assert) => {
         const clean = DOMPurify.sanitize(
@@ -1598,6 +1686,34 @@
 
         assert.equal(run(null), null, 'control: data: href removed');
         assert.equal(run('IMG'), null, 'nodeName "IMG" does not keep it');
+      }
+    );
+
+    // The attribute list is read through the cached getter, so an own
+    // attributes override cannot hide what is on the element.
+    QUnit.test(
+      'IN_PLACE: own-property attributes override does not skip attribute checks',
+      (assert) => {
+        const run = (fake, nested) => {
+          const img = document.createElement('img');
+          img.setAttribute('src', 'x');
+          img.setAttribute('onerror', 'alert(1)');
+          if (fake !== false) {
+            Object.defineProperty(img, 'attributes', { get: () => fake });
+          }
+          const root = nested ? document.createElement('div') : img;
+          if (nested) {
+            root.appendChild(img);
+          }
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          return img.hasAttribute('onerror');
+        };
+
+        assert.equal(run(false), false, 'control: onerror removed');
+        assert.equal(run(null), false, 'null does not keep it');
+        assert.equal(run(undefined), false, 'undefined does not keep it');
+        assert.equal(run([]), false, 'empty list does not keep it');
+        assert.equal(run(null, true), false, 'nor on a descendant');
       }
     );
 
