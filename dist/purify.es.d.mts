@@ -141,7 +141,8 @@ interface Config {
    */
   RETURN_DOM_FRAGMENT?: boolean | undefined;
   /**
-   * Return a DOM `HTMLBodyElement` instead of an HTML string (default is false).
+   * Return the sanitized body element instead of an HTML string (default is false).
+   * With `WHOLE_DOCUMENT` or a custom `NAMESPACE` it is the root element.
    */
   RETURN_DOM?: boolean | undefined;
   /**
@@ -263,17 +264,19 @@ interface DOMPurify {
    *
    * @param dirty string or DOM node
    * @param cfg object
-   * @returns Sanitized DOM node.
+   * @returns Sanitized body or root element. Can be null at runtime if
+   * the input cannot be parsed, e.g. malformed XHTML.
    */
   sanitize(dirty: string | Node, cfg: Config & {
     RETURN_DOM: true;
-  }): Node;
+  }): Element;
   /**
    * Provides core sanitation functionality.
    *
    * @param dirty string or DOM node
    * @param cfg object
-   * @returns Sanitized document fragment.
+   * @returns Sanitized document fragment. Can be null at runtime if
+   * the input cannot be parsed, e.g. malformed XHTML.
    */
   sanitize(dirty: string | Node, cfg: Config & {
     RETURN_DOM_FRAGMENT: true;
