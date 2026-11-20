@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const { DEFAULT_EXTENSIONS } = require('@babel/core');
 const babel = require('@rollup/plugin-babel').babel;
 const { dts } = require('rolldown-plugin-dts');
@@ -76,10 +77,11 @@ const bundle = {
 
 const declarations = (file, plugins = []) => ({
   input: './dist/types/purify.d.ts',
-  external: [/^[^.\/]/],
+  // Bare specifiers only. Absolute paths (drive letter on Windows) stay internal.
+  external: (id) => !id.startsWith('.') && !path.isAbsolute(id),
   experimental,
   output: [{ file, format: 'es', banner: license }],
-  plugins: [...plugins, dts({ dtsInput: true })],
+  plugins: [...plugins, dts({ dtsOnly: true })],
 });
 
 module.exports = target
