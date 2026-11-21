@@ -1545,7 +1545,20 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _executeHooks(hooks.uponSanitizeShadowNode, node, null);
       }
 
+      _spendWalkStep();
       _sanitizeNode(node, root);
+    }
+  };
+
+  /**
+   * Counts one node of the in-place walk against IN_PLACE_BUDGET.
+   */
+  const _spendWalkStep = function (): void {
+    if (--IN_PLACE_BUDGET < 0) {
+      throw typeErrorCreate(
+        'the tree kept changing during in-place sanitization; ' +
+          'refusing to return it'
+      );
     }
   };
 
@@ -1592,6 +1605,18 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     if (mapGet(IN_PLACE_RETURNS, node) === undefined) {
       mapSet(IN_PLACE_RETURNS, node, 0);
+    }
+  };
+
+  /**
+   * Forgets that `node` was processed: it was removed or detached. If a hook
+   * or custom element puts it back, _sanitizeUnvisitedNodes handles it again.
+   *
+   * @param node the node that left the tree
+   */
+  const _unmarkVisited = function (node: Node): void {
+    if (IN_PLACE_VISITED) {
+      setDelete(IN_PLACE_VISITED, node);
     }
   };
 
@@ -3025,6 +3050,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       const nodeIterator = _createNodeIterator(walkRoot);
       while ((currentNode = nodeIterator.nextNode())) {
+        if (inPlace) {
+          _spendWalkStep();
+        }
+
         _sanitizeNode(currentNode, walkRoot);
       }
 

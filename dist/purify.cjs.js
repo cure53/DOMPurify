@@ -1773,8 +1773,15 @@ function createDOMPurify() {
 		while (node = iterator.nextNode()) {
 			if (!setHas(original, node) || setHas(IN_PLACE_VISITED, node)) continue;
 			if (inShadow) _executeHooks(hooks.uponSanitizeShadowNode, node, null);
+			_spendWalkStep();
 			_sanitizeNode(node, root);
 		}
+	};
+	/**
+	* Counts one node of the in-place walk against IN_PLACE_BUDGET.
+	*/
+	const _spendWalkStep = function _spendWalkStep() {
+		if (--IN_PLACE_BUDGET < 0) throw typeErrorCreate("the tree kept changing during in-place sanitization; refusing to return it");
 	};
 	/**
 	* Records that _sanitizeElements processed `node`. No-op outside IN_PLACE.
@@ -1800,6 +1807,15 @@ function createDOMPurify() {
 		if (!IN_PLACE_VISITED) return;
 		setDelete(IN_PLACE_VISITED, node);
 		if (mapGet(IN_PLACE_RETURNS, node) === void 0) mapSet(IN_PLACE_RETURNS, node, 0);
+	};
+	/**
+	* Forgets that `node` was processed: it was removed or detached. If a hook
+	* or custom element puts it back, _sanitizeUnvisitedNodes handles it again.
+	*
+	* @param node the node that left the tree
+	*/
+	const _unmarkVisited = function _unmarkVisited(node) {
+		if (IN_PLACE_VISITED) setDelete(IN_PLACE_VISITED, node);
 	};
 	/**
 	* Patch-linkage attributes (declarative partial updates): `patchsrc`
@@ -2513,7 +2529,10 @@ function createDOMPurify() {
 		try {
 			if (inPlace) _sanitizeAttachedShadowRoots(dirty);
 			const nodeIterator = _createNodeIterator(walkRoot);
-			while (currentNode = nodeIterator.nextNode()) _sanitizeNode(currentNode, walkRoot);
+			while (currentNode = nodeIterator.nextNode()) {
+				if (inPlace) _spendWalkStep();
+				_sanitizeNode(currentNode, walkRoot);
+			}
 			if (inPlace) _sanitizeUnvisitedNodes(dirty, inPlaceNodes);
 		} catch (error) {
 			if (inPlace) _failClosed(dirty, inPlaceNodes);
