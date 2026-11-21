@@ -9,6 +9,7 @@ permissions:
 jobs:
   sign:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write   # to attach .sigstore bundles to the release
       id-token: write   # OIDC for keyless signing
@@ -21,7 +22,8 @@ jobs:
           persist-credentials: false
       - uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.0.1
         with:
-          inputs: dist/purify.min.js dist/purify.js
+          # Same four files the SLSA provenance covers.
+          inputs: dist/purify.min.js dist/purify.js dist/purify.cjs.js dist/purify.es.mjs
           # Re-uploads signed artefacts to the release that triggered this run.
           # Without this flag, .sigstore bundles are generated but dropped at
           # job end - the release page gets nothing.

@@ -14,10 +14,9 @@ name: Legacy Browsers
 # Playwright's floor is ~1.10 (Chromium ~89 / Firefox ~85 / WebKit ~14.1, 2021);
 # nothing older is reachable without a grid.
 #
-# Non-blocking by design (continue-on-error): early-warning on push to main, plus
-# weekly drift detection, plus on-demand pre-release pre-flight. It never runs on
-# pull_request, so it is not a required check and does not touch the
-# build-and-test-skip.yml mirroring.
+# Never runs on pull_request and is not a required check, so a failure blocks
+# nothing: it shows up as a failed run on push to main, in the weekly drift run,
+# or in an on-demand pre-release run.
 
 on:
   push:
@@ -48,7 +47,7 @@ jobs:
     # under test (the engine is a downloaded binary), so this costs no coverage.
     # If 22.04 is ever retired, move the oldest rows to a pinned container image.
     runs-on: ubuntu-22.04
-    continue-on-error: true
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false

@@ -83,7 +83,7 @@ policy decision and not an oversight. We will not adopt either.
   attestations).
 - No npm publish token exists as a repository secret. The only sensitive
   secret in the repository is `SCORECARD_TOKEN`, a fine-grained, repo-scoped,
-  time-bounded PAT used by the weekly OpenSSF Scorecard run.
+  time-bounded PAT used by the daily OpenSSF Scorecard run.
 
 ### Verification
 
