@@ -15,7 +15,7 @@ async function run() {
   process.stdout.write(`\x1b[30mInstalling node modules...\x1b[0m\n`);
 
   await new Promise((resolve, reject) => {
-    exec('npm install --no-package-lock', { cwd: __dirname }, (err) => {
+    exec('npm ci --ignore-scripts', { cwd: __dirname }, (err) => {
       if (err) {
         reject(err);
       } else {

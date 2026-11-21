@@ -12,7 +12,7 @@ DOMPurify runs as JavaScript and works in all modern browsers (Safari (10+), Ope
 
 **Note that [DOMPurify v2.5.9](https://github.com/cure53/DOMPurify/releases/tag/2.5.9) is the latest version supporting MSIE. For important security updates compatible with MSIE, please use the [2.x branch](https://github.com/cure53/DOMPurify/tree/2.x).**
 
-Our automated tests cover 9 browser/OS combinations on the current engines (Chromium, Firefox, and WebKit across Ubuntu, macOS, and Windows) on every push, and a separate matrix re-runs the suite on older engine snapshots (back to roughly Chromium 110, Firefox 108 and WebKit 16.4, around three years old) so regressions on outdated browsers get caught too. We also run Node.js v20, v22, v24, v25 and v26 with DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
+Our automated tests cover 9 browser/OS combinations on the current engines (Chromium, Firefox, and WebKit across Ubuntu, macOS, and Windows) on every push to a release branch (pull requests run all three engines on Linux), and a separate matrix re-runs the suite on older engine snapshots (back to roughly Chromium 110, Firefox 108 and WebKit 16.4, around three years old) so regressions on outdated browsers get caught too. We also run Node.js v20, v22, v24 and v26 with DOMPurify on [jsdom](https://github.com/jsdom/jsdom). Older Node versions are known to work as well, but hey... no guarantees.
 
 DOMPurify is written by security people who have vast background in web attacks and XSS. Fear not. For more details please also read about our [Security Goals & Threat Model](https://github.com/cure53/DOMPurify/wiki/Security-Goals-&-Threat-Model). Please, read it. Like, really. And if you enjoy the gory details, the [Attack Classes & Bypass History](https://github.com/cure53/DOMPurify/wiki/Attack-Classes-&-Bypass-History) page catalogs the parser-mutation, namespace, clobbering, and template tricks DOMPurify defends against.
 
@@ -569,7 +569,7 @@ These are our npm scripts:
   - `npm run test:purify-edge` to run the suite through [purify-edge](https://github.com/anzal1/purify-edge), a third-party parse5-based window (an unsupported environment; kept as a compatibility check, not a promise of support). The XSS sink tests run in a second pass, with jsdom as the sink
   - `npm run test:browser` to only run tests through Playwright
   - `npm run test:browser:legacy` to run the suite on older browser engines (point `PW_MODULE` at a pinned old Playwright install; see `.github/workflows/legacy-browsers.yml`)
-  - `npm run test:ci` to run the CI test flow for jsdom and Playwright
+  - `npm run test:ci` to run jsdom and all three Playwright engines in one go
   - `npm run test:fuzz` to run a small fuzzer covering `sanitize()` and CONFIG
 - `npm run bench` to run the jsdom micro-benchmark over the built `dist/purify.cjs` (build first; `--json` and `--compare a.json b.json` support A/B runs across branches - results are directional, confirm user-facing claims in real browsers)
 - `npm run coverage` to build an instrumented bundle, run the jsdom suite, and write a local HTML line/branch coverage report to `coverage/index.html` (jsdom scope only, not run in CI)

@@ -4,10 +4,7 @@ on:
   push:
     branches: [main, 3.x, 2.x]
   pull_request:
-    # Must match 'push' so PRs targeting release branches also get scanned.
-    # The ruleset requires CodeQL as a status check on main, 3.x, and 2.x;
-    # without these in pull_request, PRs to 3.x/2.x would wait forever for
-    # a required check that never fires.
+    # Must match 'push': the ruleset requires CodeQL on all three branches.
     branches: [main, 3.x, 2.x]
   schedule:
     - cron: '0 19 * * 4'
@@ -15,23 +12,26 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   analyze:
     permissions:
-      actions: read          # for github/codeql-action/init to get workflow details
-      contents: read         # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/autobuild to send a status report
+      actions: read          # read workflow details
+      contents: read         # checkout
+      security-events: write # upload results
     name: Analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     strategy:
       fail-fast: false
       matrix:
-        # Override automatic language detection by changing the below list
-        # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
-        language: ['javascript']
-        # Learn more...
-        # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
+        # 'javascript' covers TypeScript too. 'actions' scans the workflows
+        # in .github/ for injection and permission problems.
+        language: ['javascript', 'actions']
 
     steps:
     - name: Harden the runner (Audit all outbound calls)
@@ -43,32 +43,12 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-        # Default fetch-depth is fine. The old 'git checkout HEAD^2' dance
-        # from legacy CodeQL templates is no longer needed - modern
-        # codeql-action handles PR head checkout itself, and under this
-        # repo's linear-history ruleset PRs aren't two-parent merges anyway.
 
-    # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
       with:
-         languages: ${{ matrix.language }}
-
-    # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
-    # If this step fails, then you should remove it and run the build manually (see below)
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
-
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 https://git.io/JvXDl
-
-    # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
-    #    and modify them (or add more) to build your code if your project
-    #    uses a compiled language
-
-    #- run: |
-    #   make bootstrap
-    #   make release
+        languages: ${{ matrix.language }}
+        build-mode: none
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
