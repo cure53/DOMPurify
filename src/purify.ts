@@ -24,6 +24,9 @@ import {
   stringIndexOf,
   stringTrim,
   regExpTest,
+  mapCreate,
+  mapGet,
+  mapSet,
   setAdd,
   setCreate,
   setDelete,
@@ -565,9 +568,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /* IN_PLACE: nodes processed during the current call */
   let IN_PLACE_VISITED: Set<unknown> | null = null;
 
-  /* Nodes the in-place walk may still process. A hook or custom element that
-     keeps putting a removed node back would otherwise keep it running. */
-  let IN_PLACE_BUDGET = 0;
+  /* Nodes the in-place walk saw leave the tree, with how often each one came
+     back. A hook or custom element that keeps putting a removed node back
+     would otherwise keep the walk running. */
+  let IN_PLACE_RETURNS: Map<unknown, number> | null = null;
 
   /* Allow usage of profiles like html, svg and mathMl */
   let USE_PROFILES: UseProfilesConfig | false = false;
@@ -1541,32 +1545,36 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _executeHooks(hooks.uponSanitizeShadowNode, node, null);
       }
 
-      _spendWalkStep();
       _sanitizeNode(node, root);
     }
   };
 
   /**
-   * Counts one node of the in-place walk against IN_PLACE_BUDGET.
+   * Records that _sanitizeElements processed `node`. No-op outside IN_PLACE.
+   * Fails closed when a node that left the tree comes back too often.
+   *
+   * @param node the node being processed
    */
-  const _spendWalkStep = function (): void {
-    if (--IN_PLACE_BUDGET < 0) {
+  const _markVisited = function (node: Node): void {
+    if (!IN_PLACE_VISITED) {
+      return;
+    }
+
+    setAdd(IN_PLACE_VISITED, node);
+
+    const returns = mapGet(IN_PLACE_RETURNS, node);
+    if (returns === undefined) {
+      return;
+    }
+
+    if (returns >= MAX_UNVISITED_ROUNDS) {
       throw typeErrorCreate(
         'the tree kept changing during in-place sanitization; ' +
           'refusing to return it'
       );
     }
-  };
 
-  /**
-   * Records that _sanitizeElements processed `node`. No-op outside IN_PLACE.
-   *
-   * @param node the node being processed
-   */
-  const _markVisited = function (node: Node): void {
-    if (IN_PLACE_VISITED) {
-      setAdd(IN_PLACE_VISITED, node);
-    }
+    mapSet(IN_PLACE_RETURNS, node, returns + 1);
   };
 
   /**
@@ -1576,8 +1584,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param node the node that left the tree
    */
   const _unmarkVisited = function (node: Node): void {
-    if (IN_PLACE_VISITED) {
-      setDelete(IN_PLACE_VISITED, node);
+    if (!IN_PLACE_VISITED) {
+      return;
+    }
+
+    setDelete(IN_PLACE_VISITED, node);
+
+    if (mapGet(IN_PLACE_RETURNS, node) === undefined) {
+      mapSet(IN_PLACE_RETURNS, node, 0);
     }
   };
 
@@ -2087,7 +2101,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (
       SAFE_FOR_XML &&
       nodeType === NODE_TYPE.comment &&
-      regExpTest(EXPRESSIONS.COMMENT_MARKUP_PROBE, currentNode.data)
+      regExpTest(EXPRESSIONS.COMMENT_UNSAFE, currentNode.data)
     ) {
       return true;
     }
@@ -2922,7 +2936,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
        and the visit tracking of an outer call this one may be nested in */
     let inPlaceNodes: Node[] = [];
     const outerVisited = IN_PLACE_VISITED;
-    const outerBudget = IN_PLACE_BUDGET;
+    const outerReturns = IN_PLACE_RETURNS;
 
     if (inPlace) {
       _neutralizePatchLinkage(dirty as Node);
@@ -2950,7 +2964,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       IN_PLACE_VISITED = setCreate();
-      IN_PLACE_BUDGET = (inPlaceNodes.length + 1) * (MAX_UNVISITED_ROUNDS + 2);
+      IN_PLACE_RETURNS = mapCreate();
     } else if (_isNode(dirty)) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
@@ -3011,10 +3025,6 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       const nodeIterator = _createNodeIterator(walkRoot);
       while ((currentNode = nodeIterator.nextNode())) {
-        if (inPlace) {
-          _spendWalkStep();
-        }
-
         _sanitizeNode(currentNode, walkRoot);
       }
 
@@ -3029,7 +3039,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       throw error;
     } finally {
       IN_PLACE_VISITED = outerVisited;
-      IN_PLACE_BUDGET = outerBudget;
+      IN_PLACE_RETURNS = outerReturns;
     }
 
     if (inPlace) {
