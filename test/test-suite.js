@@ -1903,6 +1903,74 @@
     );
 
     QUnit.test(
+      'a DOM-built comment that would end early on a reparse is removed',
+      (assert) => {
+        const config = { ADD_TAGS: ['#comment'] };
+        ['>x', '->x', 'a-->b', 'a--!>b', 'a<!-'].forEach((data) => {
+          const root = document.createElement('div');
+          root.appendChild(document.createComment(data));
+          root.appendChild(document.createElement('b'));
+          assert.strictEqual(
+            DOMPurify.sanitize(root, config),
+            '<div><b></b></div>',
+            JSON.stringify(data)
+          );
+        });
+
+        assert.strictEqual(
+          DOMPurify.sanitize('<b></b><!-- a > b - c -- d -->', config),
+          '<b></b><!-- a > b - c -- d -->',
+          'an ordinary parsed comment is kept'
+        );
+
+        const template = document.createElement('div');
+        template.appendChild(document.createComment('>&lt;%= 1 %&gt;'));
+        const clean = DOMPurify.sanitize(template, {
+          ADD_TAGS: ['#comment'],
+          SAFE_FOR_TEMPLATES: true,
+        });
+        const reparsed = document.createElement('div');
+        reparsed.innerHTML = clean;
+        assert.notOk(
+          /<%|%>/.test(reparsed.textContent),
+          `no template marker after a reparse - got: ${clean}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a hook may insert many new nodes into a small tree',
+      (assert) => {
+        const root = document.createElement('div');
+        root.innerHTML = '<p>a</p><span class="slot"></span><p>b</p>';
+
+        let done = false;
+        DOMPurify.addHook('afterSanitizeElements', (node) => {
+          if (!done && node.nodeName === 'SPAN') {
+            done = true;
+            for (let i = 0; i < 300; i++) {
+              const item = document.createElement('b');
+              item.setAttribute('onclick', 'alert(1)');
+              node.parentNode.insertBefore(item, node.nextSibling);
+            }
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(root.querySelectorAll('b').length, 300);
+          assert.strictEqual(
+            root.querySelectorAll('[onclick]').length,
+            0,
+            'the inserted nodes were sanitized by the walk'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeElements');
+        }
+      }
+    );
+
+    QUnit.test(
       'IN_PLACE: a clobbered root is torn down inside its shadow roots, too',
       (assert) => {
         const root = document.createElement('form');

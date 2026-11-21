@@ -24,6 +24,9 @@ export const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 // regExpTest() resets lastIndex before every call.
 export const ELEMENT_MARKUP_PROBE = seal(/<[/\w!]/g);
 export const COMMENT_MARKUP_PROBE = seal(/<[/\w]/g);
+// Comment data the HTML serializer writes but the parser ends early, or that
+// holds markup: a leading ">" or "->", "-->", "--!>", a trailing "<!-"
+export const COMMENT_UNSAFE = seal(/<[/\w]|^-?>|--!?>|<!-$/g);
 export const FALLBACK_TAG_CLOSE = seal(/<\/no(script|embed|frames)/i);
 export const SELF_CLOSING_TAG = seal(/\/>/i);
 // Comment closers and raw-text end tags inside an attribute value
