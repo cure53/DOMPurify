@@ -1440,6 +1440,162 @@
       }
     );
 
+    QUnit.test(
+      'CUSTOM_ELEMENT_HANDLING: a kept name is a custom element in HTML only',
+      (assert) => {
+        const config = {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: /^foo-/,
+            attributeNameCheck: /baz/,
+          },
+        };
+
+        assert.strictEqual(
+          DOMPurify.sanitize('<foo-bar baz="1">x</foo-bar>', config),
+          '<foo-bar baz="1">x</foo-bar>',
+          'kept in HTML'
+        );
+        assert.notOk(
+          /foo-bar/.test(
+            DOMPurify.sanitize('<svg><foo-bar baz="1"></foo-bar></svg>', config)
+          ),
+          'removed in SVG'
+        );
+        assert.notOk(
+          /foo-bar/.test(
+            DOMPurify.sanitize(
+              '<math><foo-bar baz="1"></foo-bar></math>',
+              config
+            )
+          ),
+          'removed in MathML'
+        );
+
+        const root = document.createElement('div');
+        const svg = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'svg'
+        );
+        svg.appendChild(document.createElement('foo-bar'));
+        root.appendChild(svg);
+        assert.notOk(
+          /foo-bar/.test(DOMPurify.sanitize(root, config)),
+          'removed as an HTML element under an SVG parent'
+        );
+      }
+    );
+
+    QUnit.test(
+      'uponSanitizeAttribute: a hook may remove other attributes of the node',
+      (assert) => {
+        DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+          if (data.attrName === 'style') {
+            node.removeAttribute('style');
+            node.removeAttribute('class');
+          }
+        });
+
+        try {
+          assert.strictEqual(
+            DOMPurify.sanitize('<p class="c" style="color:red">x</p>'),
+            '<p>x</p>'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeAttribute');
+        }
+      }
+    );
+
+    QUnit.test(
+      'a sanitize() call from inside a hook does not change the outer call',
+      (assert) => {
+        const dirty =
+          '<b title="<i>tip</i>">a</b><img src="x"><a href="https://x.test/" id="k">l</a><p>{{1+1}}</p><foo-bar>c</foo-bar>';
+        const outerConfigs = [
+          { ALLOWED_TAGS: ['b'], ALLOWED_ATTR: ['title'] },
+          { SAFE_FOR_TEMPLATES: true },
+          { FORBID_TAGS: ['a'], FORBID_ATTR: ['id'] },
+          {},
+        ];
+        const nestedConfigs = [{}, { ADD_TAGS: ['foo-bar'], ADD_ATTR: ['id'] }];
+
+        outerConfigs.forEach((outer) => {
+          const expected = DOMPurify.sanitize(dirty, outer);
+          const expectedRemoved = DOMPurify.removed.length;
+
+          nestedConfigs.forEach((nested) => {
+            DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+              if (data.attrName === 'title') {
+                DOMPurify.sanitize(data.attrValue, nested);
+              }
+            });
+
+            try {
+              assert.strictEqual(
+                DOMPurify.sanitize(dirty, outer),
+                expected,
+                `outer ${JSON.stringify(outer)}, nested ${JSON.stringify(nested)}`
+              );
+              assert.strictEqual(
+                DOMPurify.removed.length,
+                expectedRemoved,
+                'the outer removal log is intact'
+              );
+            } finally {
+              DOMPurify.removeHook('uponSanitizeAttribute');
+            }
+          });
+        });
+      }
+    );
+
+    QUnit.test(
+      'a nested sanitize() call does not change what the outer call returns',
+      (assert) => {
+        let nested = false;
+        DOMPurify.addHook('uponSanitizeElement', () => {
+          // The hook also runs for the nested call, so only nest once
+          if (!nested) {
+            nested = true;
+            DOMPurify.sanitize('<i>x</i>');
+          }
+        });
+
+        try {
+          const clean = DOMPurify.sanitize('<b>a</b>', { RETURN_DOM: true });
+          assert.strictEqual(typeof clean, 'object', 'still a DOM node');
+          assert.strictEqual(clean.innerHTML, '<b>a</b>');
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement');
+        }
+      }
+    );
+
+    QUnit.test(
+      'node input: a CDATA section from an XML document cannot break out on a reparse',
+      (assert) => {
+        const xml = new window.DOMParser().parseFromString(
+          '<div xmlns="http://www.w3.org/1999/xhtml">a<![CDATA[><img src="x" onerror="alert(1)">]]>b</div>',
+          'text/xml'
+        );
+
+        let clean = '';
+        try {
+          clean = DOMPurify.sanitize(xml.documentElement);
+        } catch (_) {
+          // Some DOMs refuse to import a CDATA section: nothing is returned
+        }
+
+        const reparsed = document.createElement('div');
+        reparsed.innerHTML = clean;
+        assert.strictEqual(
+          reparsed.querySelector('img'),
+          null,
+          `no element out of the CDATA section - got: ${clean}`
+        );
+      }
+    );
+
     QUnit.module('Config — SANITIZE_DOM');
 
     QUnit.test('strips names that would clobber document.* APIs', (assert) => {

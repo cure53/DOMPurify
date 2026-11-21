@@ -1321,6 +1321,7 @@ function createDOMPurify() {
 	const DEFAULT_PARSER_MEDIA_TYPE = "text/html";
 	let transformCaseFunc = null;
 	let CONFIG = null;
+	let ACTIVE_CONFIG = null;
 	const formElement = document.createElement("form");
 	const isRegexOrFunction = function isRegexOrFunction(testValue) {
 		return testValue instanceof RegExp || testValue instanceof Function;
@@ -2168,14 +2169,7 @@ function createDOMPurify() {
 			_forceRemove(currentNode);
 			return true;
 		}
-		if (FORBID_TAGS[tagName] || !(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && !ALLOWED_TAGS[tagName]) {
-			const removed = _sanitizeDisallowedNode(currentNode, tagName, root);
-			if (removed === false) {
-				_executeHooks(hooks.afterSanitizeElements, currentNode, null);
-				if (_handleHookDetachedNode(currentNode, root)) return true;
-			}
-			return removed;
-		}
+		if ((FORBID_TAGS[tagName] || !(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && !ALLOWED_TAGS[tagName]) && _sanitizeDisallowedNode(currentNode, tagName, root)) return true;
 		if (nodeType === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {
 			_forceRemove(currentNode);
 			return true;
@@ -2323,6 +2317,7 @@ function createDOMPurify() {
 		const lcTag = transformCaseFunc(_readNodeName(currentNode));
 		while (l--) {
 			const attr = attributes[l];
+			if (!attr) continue;
 			const name = attr.name, namespaceURI = attr.namespaceURI, attrValue = attr.value;
 			const lcName = transformCaseFunc(name);
 			const initValue = attrValue;
@@ -2447,7 +2442,7 @@ function createDOMPurify() {
 			}
 		}
 	};
-	DOMPurify.sanitize = function(dirty) {
+	const _sanitize = function _sanitize(dirty) {
 		let cfg = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
 		let body = null;
 		let importedNode = null;
@@ -2464,6 +2459,7 @@ function createDOMPurify() {
 			ALLOWED_TAGS = SET_CONFIG_ALLOWED_TAGS;
 			ALLOWED_ATTR = SET_CONFIG_ALLOWED_ATTR;
 		} else _parseConfig(cfg);
+		ACTIVE_CONFIG = CONFIG;
 		DOMPurify.removed = [];
 		const inPlace = IN_PLACE && typeof dirty !== "string" && _isNode(dirty);
 		let inPlaceNodes = [];
@@ -2527,6 +2523,25 @@ function createDOMPurify() {
 		let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 		if (WHOLE_DOCUMENT && ALLOWED_TAGS["!doctype"] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) serializedHTML = "<!DOCTYPE " + body.ownerDocument.doctype.name + ">\n" + serializedHTML;
 		return _signOutput(serializedHTML);
+	};
+	DOMPurify.sanitize = function(dirty) {
+		let cfg = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
+		const outerConfig = ACTIVE_CONFIG;
+		const outerTags = ALLOWED_TAGS;
+		const outerAttr = ALLOWED_ATTR;
+		const outerRemoved = DOMPurify.removed;
+		ACTIVE_CONFIG = null;
+		try {
+			return _sanitize(dirty, cfg);
+		} finally {
+			ACTIVE_CONFIG = outerConfig;
+			if (outerConfig) {
+				if (!SET_CONFIG) _parseConfig(outerConfig);
+				ALLOWED_TAGS = outerTags;
+				ALLOWED_ATTR = outerAttr;
+				DOMPurify.removed = outerRemoved;
+			}
+		}
 	};
 	DOMPurify.setConfig = function() {
 		let cfg = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};

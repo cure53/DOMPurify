@@ -682,6 +682,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /* Keep a reference to config to pass to hooks */
   let CONFIG: Config | null = null;
 
+  /* The config of the sanitize() call that is walking right now, if any.
+     A call made from one of its hooks or config callbacks is nested. */
+  let ACTIVE_CONFIG: Config | null = null;
+
   /* Ideally, do not touch anything below this line */
   /* ______________________________________________ */
 
@@ -2267,32 +2271,21 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
-    /* Remove element if anything forbids its presence */
+    /* Remove element if anything forbids its presence. A custom element kept
+       by _sanitizeDisallowedNode continues like any allowed element:
+       namespace check, then afterSanitizeElements (GHSA-c2j3-45gr-mqc4).
+       Custom elements exist in HTML only, so a kept name in SVG or MathML
+       is removed there. */
     if (
-      FORBID_TAGS[tagName] ||
-      (!(
-        EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
-        EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
-      ) &&
-        !ALLOWED_TAGS[tagName])
+      (FORBID_TAGS[tagName] ||
+        (!(
+          EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
+          EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
+        ) &&
+          !ALLOWED_TAGS[tagName])) &&
+      _sanitizeDisallowedNode(currentNode, tagName, root)
     ) {
-      const removed = _sanitizeDisallowedNode(currentNode, tagName, root);
-
-      /* A kept custom element still gets afterSanitizeElements, like any
-         allowed element (GHSA-c2j3-45gr-mqc4). */
-      if (removed === false) {
-        _executeHooks(hooks.afterSanitizeElements, currentNode, null);
-
-        /* The hook may have detached the kept custom element. Same
-           IN_PLACE hazard as the before/upon sites: neutralize the
-           detached subtree before the walker skips past it (see
-           _handleHookDetachedNode). */
-        if (_handleHookDetachedNode(currentNode, root)) {
-          return true;
-        }
-      }
-
-      return removed;
+      return true;
     }
 
     /* Check whether element has a valid namespace. nodeType comes from the
@@ -2596,6 +2589,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param currentNode to sanitize
    * @param root the current walk root
    */
+  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function (
     currentNode: Element,
     root: Node
@@ -2636,6 +2630,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
       const attr = attributes[l];
+      /* A hook may have removed attributes behind the loop index */
+      if (!attr) {
+        continue;
+      }
+
       const { name, namespaceURI, value: attrValue } = attr;
       const lcName = transformCaseFunc(name);
 
@@ -2856,7 +2855,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   // eslint-disable-next-line complexity
-  DOMPurify.sanitize = function (dirty, cfg = {}) {
+  const _sanitize = function (dirty: any, cfg: Config = {}): any {
     let body = null;
     let importedNode = null;
     let currentNode = null;
@@ -2893,6 +2892,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     } else {
       _parseConfig(cfg);
     }
+
+    ACTIVE_CONFIG = CONFIG;
 
     /* Clean up removed elements */
     DOMPurify.removed = [];
@@ -3076,6 +3077,34 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     return _signOutput(serializedHTML);
+  };
+
+  DOMPurify.sanitize = function (dirty, cfg = {}) {
+    /* All calls share this instance's state. When this call is nested in
+       another one, hand that one its config, allowlists and removal log
+       back afterwards, so its remaining nodes are not sanitized under the
+       nested call's config. */
+    const outerConfig = ACTIVE_CONFIG;
+    const outerTags = ALLOWED_TAGS;
+    const outerAttr = ALLOWED_ATTR;
+    const outerRemoved = DOMPurify.removed;
+    ACTIVE_CONFIG = null;
+
+    try {
+      return _sanitize(dirty, cfg);
+    } finally {
+      ACTIVE_CONFIG = outerConfig;
+
+      if (outerConfig) {
+        if (!SET_CONFIG) {
+          _parseConfig(outerConfig);
+        }
+
+        ALLOWED_TAGS = outerTags;
+        ALLOWED_ATTR = outerAttr;
+        DOMPurify.removed = outerRemoved;
+      }
+    }
   };
 
   DOMPurify.setConfig = function (cfg = {}) {
