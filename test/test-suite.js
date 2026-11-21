@@ -1348,6 +1348,598 @@
     // Config: SANITIZE_DOM
     // =======================================================================
 
+    QUnit.test(
+      'SAFE_FOR_TEMPLATES: a DOM-built textarea or title cannot smuggle an entity-encoded expression',
+      (assert) => {
+        ['textarea', 'title'].forEach((name) => {
+          const root = document.createElement('div');
+          const holder = document.createElement(name);
+          const style = document.createElement('style');
+          style.appendChild(
+            document.createTextNode('&#123;&#123;1+1&#125;&#125;')
+          );
+          holder.appendChild(style);
+          root.appendChild(holder);
+
+          const clean = DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true });
+          const reparsed = document.createElement('div');
+          reparsed.innerHTML = clean;
+          assert.notOk(
+            /{{|}}/.test(reparsed.textContent),
+            `no expression after a reparse for <${name}> - got: ${clean}`
+          );
+        });
+      }
+    );
+
+    QUnit.test(
+      'SAFE_FOR_TEMPLATES: children of a DOM-built void element cannot hide a text boundary',
+      (assert) => {
+        const root = document.createElement('div');
+        const voidWithChild = () => {
+          const col = document.createElement('col');
+          col.appendChild(document.createTextNode('x'));
+          return col;
+        };
+
+        root.appendChild(document.createTextNode('{'));
+        root.appendChild(voidWithChild());
+        root.appendChild(document.createTextNode('{1+1}'));
+        root.appendChild(voidWithChild());
+        root.appendChild(document.createTextNode('}'));
+
+        const clean = DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true });
+        const reparsed = document.createElement('div');
+        reparsed.innerHTML = clean;
+        reparsed.normalize();
+        assert.notOk(
+          /{{|}}/.test(reparsed.textContent),
+          `no expression after a reparse - got: ${clean}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'SAFE_FOR_TEMPLATES: NUL in DOM-built text cannot split a marker',
+      (assert) => {
+        const root = document.createElement('div');
+        root.appendChild(document.createTextNode('{\u0000{1+1}\u0000}'));
+
+        const clean = DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true });
+        const reparsed = document.createElement('div');
+        reparsed.innerHTML = clean;
+        assert.notOk(
+          /{{|}}/.test(reparsed.textContent),
+          `no expression after a reparse - got: ${JSON.stringify(clean)}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'a DOM-built textarea or title with an element child is removed',
+      (assert) => {
+        ['textarea', 'title'].forEach((name) => {
+          const root = document.createElement('div');
+          const holder = document.createElement(name);
+          holder.appendChild(document.createElement('b'));
+          root.appendChild(holder);
+          root.appendChild(document.createElement('i'));
+
+          const clean = DOMPurify.sanitize(root);
+          assert.notOk(
+            new RegExp('<' + name, 'i').test(clean),
+            `<${name}> with an element child is gone - got: ${clean}`
+          );
+        });
+
+        assert.strictEqual(
+          DOMPurify.sanitize('<textarea>&lt;b&gt;x&lt;/b&gt;</textarea>'),
+          '<textarea>&lt;b&gt;x&lt;/b&gt;</textarea>',
+          'a parsed textarea showing markup as text is kept'
+        );
+      }
+    );
+
+    QUnit.test(
+      'CUSTOM_ELEMENT_HANDLING: a kept name is a custom element in HTML only',
+      (assert) => {
+        const config = {
+          CUSTOM_ELEMENT_HANDLING: {
+            tagNameCheck: /^foo-/,
+            attributeNameCheck: /baz/,
+          },
+        };
+
+        assert.strictEqual(
+          DOMPurify.sanitize('<foo-bar baz="1">x</foo-bar>', config),
+          '<foo-bar baz="1">x</foo-bar>',
+          'kept in HTML'
+        );
+        assert.notOk(
+          /foo-bar/.test(
+            DOMPurify.sanitize('<svg><foo-bar baz="1"></foo-bar></svg>', config)
+          ),
+          'removed in SVG'
+        );
+        assert.notOk(
+          /foo-bar/.test(
+            DOMPurify.sanitize(
+              '<math><foo-bar baz="1"></foo-bar></math>',
+              config
+            )
+          ),
+          'removed in MathML'
+        );
+
+        const root = document.createElement('div');
+        const svg = document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          'svg'
+        );
+        svg.appendChild(document.createElement('foo-bar'));
+        root.appendChild(svg);
+        assert.notOk(
+          /foo-bar/.test(DOMPurify.sanitize(root, config)),
+          'removed as an HTML element under an SVG parent'
+        );
+      }
+    );
+
+    QUnit.test(
+      'uponSanitizeAttribute: a hook may remove other attributes of the node',
+      (assert) => {
+        DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+          if (data.attrName === 'style') {
+            node.removeAttribute('style');
+            node.removeAttribute('class');
+          }
+        });
+
+        try {
+          assert.strictEqual(
+            DOMPurify.sanitize('<p class="c" style="color:red">x</p>'),
+            '<p>x</p>'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeAttribute');
+        }
+      }
+    );
+
+    QUnit.test(
+      'a sanitize() call from inside a hook does not change the outer call',
+      (assert) => {
+        const dirty =
+          '<b title="<i>tip</i>">a</b><img src="x"><a href="https://x.test/" id="k">l</a><p>{{1+1}}</p><foo-bar>c</foo-bar>';
+        const outerConfigs = [
+          { ALLOWED_TAGS: ['b'], ALLOWED_ATTR: ['title'] },
+          { SAFE_FOR_TEMPLATES: true },
+          { FORBID_TAGS: ['a'], FORBID_ATTR: ['id'] },
+          {},
+        ];
+        const nestedConfigs = [{}, { ADD_TAGS: ['foo-bar'], ADD_ATTR: ['id'] }];
+
+        outerConfigs.forEach((outer) => {
+          const expected = DOMPurify.sanitize(dirty, outer);
+          const expectedRemoved = DOMPurify.removed.length;
+
+          nestedConfigs.forEach((nested) => {
+            DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+              if (data.attrName === 'title') {
+                DOMPurify.sanitize(data.attrValue, nested);
+              }
+            });
+
+            try {
+              assert.strictEqual(
+                DOMPurify.sanitize(dirty, outer),
+                expected,
+                `outer ${JSON.stringify(outer)}, nested ${JSON.stringify(nested)}`
+              );
+              assert.strictEqual(
+                DOMPurify.removed.length,
+                expectedRemoved,
+                'the outer removal log is intact'
+              );
+            } finally {
+              DOMPurify.removeHook('uponSanitizeAttribute');
+            }
+          });
+        });
+      }
+    );
+
+    QUnit.test(
+      'a nested sanitize() call does not change what the outer call returns',
+      (assert) => {
+        let nested = false;
+        DOMPurify.addHook('uponSanitizeElement', () => {
+          // The hook also runs for the nested call, so only nest once
+          if (!nested) {
+            nested = true;
+            DOMPurify.sanitize('<i>x</i>');
+          }
+        });
+
+        try {
+          const clean = DOMPurify.sanitize('<b>a</b>', { RETURN_DOM: true });
+          assert.strictEqual(typeof clean, 'object', 'still a DOM node');
+          assert.strictEqual(clean.innerHTML, '<b>a</b>');
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement');
+        }
+      }
+    );
+
+    QUnit.test(
+      'node input: a CDATA section from an XML document cannot break out on a reparse',
+      (assert) => {
+        const xml = new window.DOMParser().parseFromString(
+          '<div xmlns="http://www.w3.org/1999/xhtml">a<![CDATA[><img src="x" onerror="alert(1)">]]>b</div>',
+          'text/xml'
+        );
+
+        let clean = '';
+        try {
+          clean = DOMPurify.sanitize(xml.documentElement);
+        } catch (_) {
+          // Some DOMs refuse to import a CDATA section: nothing is returned
+        }
+
+        const reparsed = document.createElement('div');
+        reparsed.innerHTML = clean;
+        assert.strictEqual(
+          reparsed.querySelector('img'),
+          null,
+          `no element out of the CDATA section - got: ${clean}`
+        );
+      }
+    );
+
+    // ---- Feature audit, Nov 2026: edges and things that must stay untouched
+
+    QUnit.test(
+      'malformed-element rules leave parser-built markup alone',
+      (assert) => {
+        const kept = [
+          '<p>a<br>b<img src="x" alt="y"><input type="text" value="v"></p><hr>',
+          '<table><colgroup><col><col></colgroup><tbody><tr><td>x</td></tr></tbody></table>',
+          '<textarea>&lt;b&gt;x&lt;/b&gt; {a}</textarea>',
+          '<svg><title>t</title><desc>d</desc><g></g></svg>',
+        ];
+        kept.forEach((html) => {
+          assert.strictEqual(DOMPurify.sanitize(html), html, html);
+        });
+      }
+    );
+
+    QUnit.test(
+      'malformed-element rules apply to HTML elements only',
+      (assert) => {
+        const svgNS = 'http://www.w3.org/2000/svg';
+        const root = document.createElement('div');
+        const svg = document.createElementNS(svgNS, 'svg');
+        const title = document.createElementNS(svgNS, 'title');
+        title.appendChild(document.createElement('b'));
+        svg.appendChild(title);
+        root.appendChild(svg);
+
+        assert.ok(
+          /<title>/.test(DOMPurify.sanitize(root)),
+          'an SVG title holding an element is not an HTML title'
+        );
+      }
+    );
+
+    QUnit.test(
+      'a DOM-built void element with children is removed in every mode',
+      (assert) => {
+        const build = () => {
+          const root = document.createElement('div');
+          const img = document.createElement('img');
+          img.setAttribute('src', 'x');
+          img.appendChild(document.createTextNode('hidden'));
+          root.appendChild(img);
+          root.appendChild(document.createElement('i'));
+          return root;
+        };
+
+        assert.strictEqual(
+          DOMPurify.sanitize(build()),
+          '<div><i></i></div>',
+          'string output'
+        );
+
+        const dom = DOMPurify.sanitize(build(), { RETURN_DOM: true });
+        assert.strictEqual(dom.querySelector('img'), null, 'RETURN_DOM');
+
+        const live = build();
+        DOMPurify.sanitize(live, { IN_PLACE: true });
+        assert.strictEqual(live.querySelector('img'), null, 'IN_PLACE');
+      }
+    );
+
+    QUnit.test(
+      'SAFE_FOR_XML: false switches the malformed-element rules off',
+      (assert) => {
+        const root = document.createElement('div');
+        const textarea = document.createElement('textarea');
+        textarea.appendChild(document.createElement('b'));
+        root.appendChild(textarea);
+
+        assert.ok(
+          /<textarea>/.test(DOMPurify.sanitize(root, { SAFE_FOR_XML: false })),
+          'kept, like the literal-text rule this opt-out already covers'
+        );
+      }
+    );
+
+    QUnit.test(
+      'NUL is dropped from text in SAFE_FOR_TEMPLATES mode only',
+      (assert) => {
+        const build = () => {
+          const root = document.createElement('div');
+          root.appendChild(document.createTextNode('a\u0000b'));
+          return root;
+        };
+
+        const scrubbed = DOMPurify.sanitize(build(), {
+          SAFE_FOR_TEMPLATES: true,
+          RETURN_DOM: true,
+        });
+        assert.strictEqual(scrubbed.textContent, 'ab', 'dropped');
+
+        const plain = DOMPurify.sanitize(build(), { RETURN_DOM: true });
+        assert.strictEqual(plain.textContent, 'a\u0000b', 'untouched');
+      }
+    );
+
+    QUnit.test(
+      'CUSTOM_ELEMENT_HANDLING: a kept element stays valid at an integration point and gets its hook once',
+      (assert) => {
+        const config = {
+          CUSTOM_ELEMENT_HANDLING: { tagNameCheck: /^foo-/ },
+        };
+
+        assert.strictEqual(
+          DOMPurify.sanitize(
+            '<math><mtext><foo-bar>x</foo-bar></mtext></math>',
+            config
+          ),
+          '<math><mtext><foo-bar>x</foo-bar></mtext></math>',
+          'inside mtext it is an HTML element, so still a custom element'
+        );
+
+        let calls = 0;
+        DOMPurify.addHook('afterSanitizeElements', (node) => {
+          if (node.nodeName === 'FOO-BAR') {
+            calls++;
+          }
+        });
+        try {
+          DOMPurify.sanitize('<foo-bar>x</foo-bar>', config);
+          assert.strictEqual(calls, 1, 'afterSanitizeElements ran once');
+        } finally {
+          DOMPurify.removeHook('afterSanitizeElements');
+        }
+      }
+    );
+
+    QUnit.test(
+      'uponSanitizeAttribute: removing every attribute of the node is safe',
+      (assert) => {
+        DOMPurify.addHook('uponSanitizeAttribute', (node) => {
+          while (node.attributes.length > 0) {
+            node.removeAttribute(node.attributes[0].name);
+          }
+        });
+
+        try {
+          assert.strictEqual(
+            DOMPurify.sanitize(
+              '<p id="a" class="b" title="c" onclick="alert(1)">x</p>'
+            ),
+            '<p>x</p>'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeAttribute');
+        }
+      }
+    );
+
+    QUnit.test(
+      'a nested sanitize() call keeps a persistent setConfig() intact',
+      (assert) => {
+        const dirty = '<b title="t">a</b><i>b</i><a href="https://x.test/">c</a>';
+        DOMPurify.setConfig({ ALLOWED_TAGS: ['b'], ALLOWED_ATTR: ['title'] });
+        try {
+          const expected = DOMPurify.sanitize(dirty);
+
+          let nested = false;
+          DOMPurify.addHook('uponSanitizeAttribute', () => {
+            if (!nested) {
+              nested = true;
+              DOMPurify.sanitize('<i>x</i>');
+            }
+          });
+          assert.strictEqual(DOMPurify.sanitize(dirty), expected);
+        } finally {
+          DOMPurify.removeHook('uponSanitizeAttribute');
+          DOMPurify.clearConfig();
+        }
+      }
+    );
+
+    QUnit.test(
+      'a nested sanitize() call that throws leaves the outer call intact',
+      (assert) => {
+        const dirty = '<b title="t">a</b><i>b</i><p>{{1+1}}</p>';
+        const config = { ALLOWED_TAGS: ['b', 'p'], SAFE_FOR_TEMPLATES: true };
+        const expected = DOMPurify.sanitize(dirty, config);
+
+        DOMPurify.addHook('uponSanitizeAttribute', () => {
+          try {
+            // A forbidden in-place root makes the nested call throw
+            DOMPurify.sanitize(document.createElement('unknown-root'), {
+              IN_PLACE: true,
+            });
+          } catch (_) {
+            // Expected
+          }
+        });
+
+        try {
+          assert.strictEqual(DOMPurify.sanitize(dirty, config), expected);
+        } finally {
+          DOMPurify.removeHook('uponSanitizeAttribute');
+        }
+      }
+    );
+
+    QUnit.test(
+      'a nested sanitize() call from a config callback does not change the outer call',
+      (assert) => {
+        const dirty = '<foo-bar>a</foo-bar><i>b</i><a href="https://x.test/">c</a>';
+        const outer = (tagNameCheck) => ({
+          ALLOWED_TAGS: ['i'],
+          CUSTOM_ELEMENT_HANDLING: { tagNameCheck },
+        });
+        const expected = DOMPurify.sanitize(dirty, outer(/^foo-/));
+
+        const nesting = (tagName) => {
+          DOMPurify.sanitize('<a href="https://x.test/">n</a>');
+          return /^foo-/.test(tagName);
+        };
+        assert.strictEqual(DOMPurify.sanitize(dirty, outer(nesting)), expected);
+      }
+    );
+
+    QUnit.test(
+      'a hook-widened allow-list survives a nested sanitize() call, and only that call',
+      (assert) => {
+        let nested = false;
+        DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+          data.allowedTags['my-widget'] = true;
+          if (!nested) {
+            nested = true;
+            DOMPurify.sanitize('<i>x</i>');
+          }
+        });
+
+        try {
+          assert.strictEqual(
+            DOMPurify.sanitize('<b>a</b><my-widget>w</my-widget>'),
+            '<b>a</b><my-widget>w</my-widget>',
+            'still widened after the nested call'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement');
+        }
+
+        assert.strictEqual(
+          DOMPurify.sanitize('<b>a</b><my-widget>w</my-widget>'),
+          '<b>a</b>w',
+          'gone in the next call'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a custom element that keeps putting itself back fails closed',
+      (assert) => {
+        if (typeof window.customElements === 'undefined') {
+          assert.ok(true, 'no custom elements in this engine; skipping');
+          return;
+        }
+
+        // Re-inserting behind or ahead of the walk: both used to keep it busy
+        ['first', 'last'].forEach((position) => {
+          const name = `inplace-sticky-${position}`;
+          if (!window.customElements.get(name)) {
+            window.customElements.define(
+              name,
+              class extends window.HTMLElement {
+                disconnectedCallback() {
+                  const home = this.stickyHome;
+                  if (home && !this.parentNode) {
+                    home.insertBefore(
+                      this,
+                      position === 'first' ? home.firstChild : null
+                    );
+                  }
+                }
+              }
+            );
+          }
+
+          const host = document.createElement('div');
+          document.body.appendChild(host);
+          const root = document.createElement('div');
+          host.appendChild(root);
+          const sticky = document.createElement(name);
+          sticky.setAttribute('onclick', 'alert(1)');
+          sticky.stickyHome = root;
+          root.appendChild(document.createElement('b'));
+          root.appendChild(sticky);
+          root.appendChild(document.createElement('i'));
+
+          try {
+            assert.throws(
+              () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+              /kept changing/,
+              `${position}: the call ends with an error`
+            );
+            assert.strictEqual(
+              sticky.getAttribute('onclick'),
+              null,
+              `${position}: the handler is stripped`
+            );
+          } finally {
+            sticky.stickyHome = null;
+            host.remove();
+          }
+        });
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a clobbered root is torn down inside its shadow roots, too',
+      (assert) => {
+        const root = document.createElement('form');
+        const clobber = document.createElement('input');
+        clobber.setAttribute('name', 'attributes');
+        root.appendChild(clobber);
+
+        const host = document.createElement('div');
+        if (typeof host.attachShadow !== 'function') {
+          assert.ok(true, 'no shadow DOM in this engine; skipping');
+          return;
+        }
+
+        root.appendChild(host);
+        const img = document.createElement('img');
+        img.setAttribute('onerror', 'alert(1)');
+        host.attachShadow({ mode: 'open' }).appendChild(img);
+        root.appendChild(document.createTextNode('text'));
+
+        let threw = false;
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+        } catch (_) {
+          threw = true;
+        }
+
+        if (threw) {
+          // Engines with form clobbering reject the root
+          assert.strictEqual(img.getAttribute('onerror'), null);
+          assert.strictEqual(root.childNodes.length, 0, 'root is empty');
+        } else {
+          // Without clobbering the walk ran and sanitized the shadow root
+          assert.strictEqual(img.getAttribute('onerror'), null);
+        }
+      }
+    );
+
     QUnit.module('Config — SANITIZE_DOM');
 
     QUnit.test('strips names that would clobber document.* APIs', (assert) => {
@@ -2783,6 +3375,114 @@
     });
 
     QUnit.test(
+      'IN_PLACE: a rejected root is neutralized inside its open shadow roots, too',
+      (assert) => {
+        const root = document.createElement('unknown-root');
+        const host = document.createElement('div');
+        if (typeof host.attachShadow !== 'function') {
+          assert.ok(true, 'no shadow DOM in this engine; skipping');
+          return;
+        }
+
+        root.appendChild(host);
+        const shadow = host.attachShadow({ mode: 'open' });
+        const img = document.createElement('img');
+        img.setAttribute('onerror', 'alert(1)');
+        shadow.appendChild(img);
+        const innerHost = document.createElement('span');
+        shadow.appendChild(innerHost);
+        const innerImg = document.createElement('img');
+        innerImg.setAttribute('onerror', 'alert(1)');
+        innerHost.attachShadow({ mode: 'open' }).appendChild(innerImg);
+
+        assert.throws(
+          () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+          /root node is forbidden/
+        );
+        assert.strictEqual(
+          img.getAttribute('onerror'),
+          null,
+          'handler stripped inside the shadow root'
+        );
+        assert.strictEqual(
+          innerImg.getAttribute('onerror'),
+          null,
+          'handler stripped inside the nested shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a removed node a hook puts back is removed again',
+      (assert) => {
+        const root = document.createElement('div');
+        const first = document.createElement('p');
+        const bad = document.createElement('iframe');
+        bad.setAttribute('src', 'javascript:alert(1)');
+        const last = document.createElement('b');
+        root.appendChild(first);
+        root.appendChild(bad);
+        root.appendChild(last);
+
+        let putBack = false;
+        DOMPurify.addHook('afterSanitizeElements', (node) => {
+          if (node === last && !putBack) {
+            putBack = true;
+            root.insertBefore(bad, first);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            root.querySelector('iframe'),
+            null,
+            'the iframe is not in the returned tree'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeElements');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a node a hook detaches and a later hook re-attaches is sanitized',
+      (assert) => {
+        const root = document.createElement('div');
+        const first = document.createElement('p');
+        const bad = document.createElement('object');
+        bad.setAttribute('data', 'javascript:alert(1)');
+        root.appendChild(first);
+        root.appendChild(bad);
+
+        DOMPurify.addHook('uponSanitizeElement', (node) => {
+          if (node === bad && bad.parentNode) {
+            bad.remove();
+          }
+        });
+        let reattached = false;
+        DOMPurify.addHook('beforeSanitizeAttributes', (node) => {
+          if (node === bad && !reattached) {
+            reattached = true;
+            root.insertBefore(bad, first);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            root.querySelector('object'),
+            null,
+            'the object is not in the returned tree'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement');
+          DOMPurify.removeHook('beforeSanitizeAttributes');
+        }
+      }
+    );
+
+    QUnit.test(
       'IN_PLACE: uponSanitizeShadowNode detaching a sibling neutralizes it (GHSA-mrv2)',
       (assert) => {
         const root = document.createElement('div');
@@ -3063,6 +3763,54 @@
           );
         } finally {
           DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a failed call leaves no text or comment in the root either',
+      (assert) => {
+        const build = (name) => {
+          const root = document.createElement(name);
+          root.appendChild(document.createTextNode('{{1+1}}'));
+          root.appendChild(document.createComment('c'));
+          root.appendChild(document.createElement('b'));
+          return root;
+        };
+
+        const rejected = build('unknown-root');
+        assert.throws(
+          () => DOMPurify.sanitize(rejected, { IN_PLACE: true }),
+          /root node is forbidden/
+        );
+        assert.strictEqual(
+          rejected.childNodes.length,
+          0,
+          'rejected root is empty'
+        );
+
+        const failed = build('div');
+        DOMPurify.addHook('uponSanitizeElement', (node) => {
+          if (node.nodeName === 'B') {
+            throw new Error('boom');
+          }
+        });
+        try {
+          assert.throws(
+            () =>
+              DOMPurify.sanitize(failed, {
+                IN_PLACE: true,
+                SAFE_FOR_TEMPLATES: true,
+              }),
+            /boom/
+          );
+          assert.strictEqual(
+            failed.childNodes.length,
+            0,
+            'root of a failed walk is empty'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement');
         }
       }
     );
