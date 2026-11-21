@@ -1348,6 +1348,98 @@
     // Config: SANITIZE_DOM
     // =======================================================================
 
+    QUnit.test(
+      'SAFE_FOR_TEMPLATES: a DOM-built textarea or title cannot smuggle an entity-encoded expression',
+      (assert) => {
+        ['textarea', 'title'].forEach((name) => {
+          const root = document.createElement('div');
+          const holder = document.createElement(name);
+          const style = document.createElement('style');
+          style.appendChild(
+            document.createTextNode('&#123;&#123;1+1&#125;&#125;')
+          );
+          holder.appendChild(style);
+          root.appendChild(holder);
+
+          const clean = DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true });
+          const reparsed = document.createElement('div');
+          reparsed.innerHTML = clean;
+          assert.notOk(
+            /{{|}}/.test(reparsed.textContent),
+            `no expression after a reparse for <${name}> - got: ${clean}`
+          );
+        });
+      }
+    );
+
+    QUnit.test(
+      'SAFE_FOR_TEMPLATES: children of a DOM-built void element cannot hide a text boundary',
+      (assert) => {
+        const root = document.createElement('div');
+        const voidWithChild = () => {
+          const col = document.createElement('col');
+          col.appendChild(document.createTextNode('x'));
+          return col;
+        };
+
+        root.appendChild(document.createTextNode('{'));
+        root.appendChild(voidWithChild());
+        root.appendChild(document.createTextNode('{1+1}'));
+        root.appendChild(voidWithChild());
+        root.appendChild(document.createTextNode('}'));
+
+        const clean = DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true });
+        const reparsed = document.createElement('div');
+        reparsed.innerHTML = clean;
+        reparsed.normalize();
+        assert.notOk(
+          /{{|}}/.test(reparsed.textContent),
+          `no expression after a reparse - got: ${clean}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'SAFE_FOR_TEMPLATES: NUL in DOM-built text cannot split a marker',
+      (assert) => {
+        const root = document.createElement('div');
+        root.appendChild(document.createTextNode('{\u0000{1+1}\u0000}'));
+
+        const clean = DOMPurify.sanitize(root, { SAFE_FOR_TEMPLATES: true });
+        const reparsed = document.createElement('div');
+        reparsed.innerHTML = clean;
+        assert.notOk(
+          /{{|}}/.test(reparsed.textContent),
+          `no expression after a reparse - got: ${JSON.stringify(clean)}`
+        );
+      }
+    );
+
+    QUnit.test(
+      'a DOM-built textarea or title with an element child is removed',
+      (assert) => {
+        ['textarea', 'title'].forEach((name) => {
+          const root = document.createElement('div');
+          const holder = document.createElement(name);
+          holder.appendChild(document.createElement('b'));
+          root.appendChild(holder);
+          root.appendChild(document.createElement('i'));
+
+          const clean = DOMPurify.sanitize(root);
+          assert.notOk(
+            new RegExp('<' + name, 'i').test(clean),
+            `<${name}> with an element child is gone - got: ${clean}`
+          );
+        });
+
+        assert.strictEqual(
+          DOMPurify.sanitize('<textarea>&lt;b&gt;x&lt;/b&gt;</textarea>'),
+          '<textarea>&lt;b&gt;x&lt;/b&gt;</textarea>',
+          'a parsed textarea showing markup as text is kept'
+        );
+      }
+    );
+
     QUnit.module('Config — SANITIZE_DOM');
 
     QUnit.test('strips names that would clobber document.* APIs', (assert) => {
@@ -2783,6 +2875,114 @@
     });
 
     QUnit.test(
+      'IN_PLACE: a rejected root is neutralized inside its open shadow roots, too',
+      (assert) => {
+        const root = document.createElement('unknown-root');
+        const host = document.createElement('div');
+        if (typeof host.attachShadow !== 'function') {
+          assert.ok(true, 'no shadow DOM in this engine; skipping');
+          return;
+        }
+
+        root.appendChild(host);
+        const shadow = host.attachShadow({ mode: 'open' });
+        const img = document.createElement('img');
+        img.setAttribute('onerror', 'alert(1)');
+        shadow.appendChild(img);
+        const innerHost = document.createElement('span');
+        shadow.appendChild(innerHost);
+        const innerImg = document.createElement('img');
+        innerImg.setAttribute('onerror', 'alert(1)');
+        innerHost.attachShadow({ mode: 'open' }).appendChild(innerImg);
+
+        assert.throws(
+          () => DOMPurify.sanitize(root, { IN_PLACE: true }),
+          /root node is forbidden/
+        );
+        assert.strictEqual(
+          img.getAttribute('onerror'),
+          null,
+          'handler stripped inside the shadow root'
+        );
+        assert.strictEqual(
+          innerImg.getAttribute('onerror'),
+          null,
+          'handler stripped inside the nested shadow root'
+        );
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a removed node a hook puts back is removed again',
+      (assert) => {
+        const root = document.createElement('div');
+        const first = document.createElement('p');
+        const bad = document.createElement('iframe');
+        bad.setAttribute('src', 'javascript:alert(1)');
+        const last = document.createElement('b');
+        root.appendChild(first);
+        root.appendChild(bad);
+        root.appendChild(last);
+
+        let putBack = false;
+        DOMPurify.addHook('afterSanitizeElements', (node) => {
+          if (node === last && !putBack) {
+            putBack = true;
+            root.insertBefore(bad, first);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            root.querySelector('iframe'),
+            null,
+            'the iframe is not in the returned tree'
+          );
+        } finally {
+          DOMPurify.removeHook('afterSanitizeElements');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a node a hook detaches and a later hook re-attaches is sanitized',
+      (assert) => {
+        const root = document.createElement('div');
+        const first = document.createElement('p');
+        const bad = document.createElement('object');
+        bad.setAttribute('data', 'javascript:alert(1)');
+        root.appendChild(first);
+        root.appendChild(bad);
+
+        DOMPurify.addHook('uponSanitizeElement', (node) => {
+          if (node === bad && bad.parentNode) {
+            bad.remove();
+          }
+        });
+        let reattached = false;
+        DOMPurify.addHook('beforeSanitizeAttributes', (node) => {
+          if (node === bad && !reattached) {
+            reattached = true;
+            root.insertBefore(bad, first);
+          }
+        });
+
+        try {
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          assert.strictEqual(
+            root.querySelector('object'),
+            null,
+            'the object is not in the returned tree'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement');
+          DOMPurify.removeHook('beforeSanitizeAttributes');
+        }
+      }
+    );
+
+    QUnit.test(
       'IN_PLACE: uponSanitizeShadowNode detaching a sibling neutralizes it (GHSA-mrv2)',
       (assert) => {
         const root = document.createElement('div');
@@ -3063,6 +3263,54 @@
           );
         } finally {
           DOMPurify.removeHook('afterSanitizeAttributes');
+        }
+      }
+    );
+
+    QUnit.test(
+      'IN_PLACE: a failed call leaves no text or comment in the root either',
+      (assert) => {
+        const build = (name) => {
+          const root = document.createElement(name);
+          root.appendChild(document.createTextNode('{{1+1}}'));
+          root.appendChild(document.createComment('c'));
+          root.appendChild(document.createElement('b'));
+          return root;
+        };
+
+        const rejected = build('unknown-root');
+        assert.throws(
+          () => DOMPurify.sanitize(rejected, { IN_PLACE: true }),
+          /root node is forbidden/
+        );
+        assert.strictEqual(
+          rejected.childNodes.length,
+          0,
+          'rejected root is empty'
+        );
+
+        const failed = build('div');
+        DOMPurify.addHook('uponSanitizeElement', (node) => {
+          if (node.nodeName === 'B') {
+            throw new Error('boom');
+          }
+        });
+        try {
+          assert.throws(
+            () =>
+              DOMPurify.sanitize(failed, {
+                IN_PLACE: true,
+                SAFE_FOR_TEMPLATES: true,
+              }),
+            /boom/
+          );
+          assert.strictEqual(
+            failed.childNodes.length,
+            0,
+            'root of a failed walk is empty'
+          );
+        } finally {
+          DOMPurify.removeHook('uponSanitizeElement');
         }
       }
     );

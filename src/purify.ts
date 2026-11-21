@@ -26,6 +26,7 @@ import {
   regExpTest,
   setAdd,
   setCreate,
+  setDelete,
   setHas,
   isRegex,
   typeErrorCreate,
@@ -82,6 +83,36 @@ const LITERAL_TEXT_ELEMENT_NAMES = [
   'noscript',
 ];
 const LITERAL_TEXT_ELEMENTS = freeze(addToSet({}, LITERAL_TEXT_ELEMENT_NAMES));
+
+/* Elements whose content the HTML parser reads as text with entities decoded.
+   It never gives them an element child; one from a DOM-built tree turns into
+   text on the next parse. */
+const ESCAPABLE_TEXT_ELEMENTS = freeze(addToSet({}, ['textarea', 'title']));
+
+/* Elements the HTML serializer writes without their children. Children from a
+   DOM-built tree are seen by a tree walk, but are gone after a reparse. */
+const VOID_ELEMENTS = freeze(
+  addToSet({}, [
+    'area',
+    'base',
+    'basefont',
+    'bgsound',
+    'br',
+    'col',
+    'embed',
+    'frame',
+    'hr',
+    'img',
+    'input',
+    'keygen',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr',
+  ])
+);
 
 const getGlobal = function (): WindowLike {
   return typeof window === 'undefined' ? null : window;
@@ -233,6 +264,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
   const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
   const remove = lookupGetter(ElementPrototype, 'remove');
+  const removeChild = lookupGetter(ElementPrototype, 'removeChild');
   // Cached, as a form child named "removeAttributeNode" shadows the method
   const removeAttributeNode = lookupGetter(
     ElementPrototype,
@@ -1136,6 +1168,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    */
   const _forceRemove = function (node: Node): void {
     arrayPush(DOMPurify.removed, { element: node });
+    _unmarkVisited(node);
 
     try {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
@@ -1194,7 +1227,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (childNodes) {
       arrayForEach(arraySlice(childNodes), (child: Node) => {
         try {
-          remove(child);
+          // Not remove(): that one is Element-only and skips text and comments
+          removeChild(root, child);
         } catch (_) {
           /* Best effort */
         }
@@ -1404,6 +1438,19 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return rootRemoved;
   };
 
+  /**
+   * Fail-closed teardown of an in-place tree that cannot be returned: empties
+   * the root and neutralizes everything that was under it, open shadow roots
+   * included.
+   *
+   * @param root the in-place root
+   * @param before the root's nodes, collected before the walk
+   */
+  const _failClosed = function (root: Node, before: Node[]): void {
+    _neutralizeRoot(root);
+    _neutralizeDiscarded(root, before);
+  };
+
   const MAX_UNVISITED_ROUNDS = 8;
 
   /**
@@ -1498,6 +1545,18 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   const _markVisited = function (node: Node): void {
     if (IN_PLACE_VISITED) {
       setAdd(IN_PLACE_VISITED, node);
+    }
+  };
+
+  /**
+   * Forgets that `node` was processed: it was removed or detached. If a hook
+   * or custom element puts it back, _sanitizeUnvisitedNodes handles it again.
+   *
+   * @param node the node that left the tree
+   */
+  const _unmarkVisited = function (node: Node): void {
+    if (IN_PLACE_VISITED) {
+      setDelete(IN_PLACE_VISITED, node);
     }
   };
 
@@ -1806,6 +1865,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     let currentNode = walker.nextNode() as CharacterData | null;
     while (currentNode) {
       let { data } = currentNode;
+      /* The parser drops NUL from text, which can join a marker */
+      if (regExpTest(EXPRESSIONS.NUL, data)) {
+        data = stringReplace(data, EXPRESSIONS.NUL, '');
+        currentNode.data = data;
+      }
+
       if (regExpTest(EXPRESSIONS.TMPL_MARKER, data)) {
         data = _stripTemplateExpressions(data);
         currentNode.data = data;
@@ -1915,6 +1980,47 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   }
 
   /**
+   * Elements in a state the HTML parser never produces: a void element with
+   * children, a text-only element with an element child or, for literal-text
+   * elements, with markup-like text. See VOID_ELEMENTS, LITERAL_TEXT_ELEMENTS
+   * and ESCAPABLE_TEXT_ELEMENTS. Reads textContent, as an XML document
+   * escapes innerHTML. Elements only: a processing instruction's nodeName is
+   * its target and can collide with these names.
+   *
+   * @param currentNode the element to inspect
+   * @param tagName the element's transformCaseFunc'd tag name
+   * @return true if the element must be removed
+   */
+  const _isMalformedElement = function (
+    currentNode: any,
+    tagName: string
+  ): boolean {
+    const isVoid = Boolean(VOID_ELEMENTS[tagName]);
+    const literal = Boolean(LITERAL_TEXT_ELEMENTS[tagName]);
+    if (!isVoid && !literal && !ESCAPABLE_TEXT_ELEMENTS[tagName]) {
+      return false;
+    }
+
+    if (_readNamespaceURI(currentNode) !== HTML_NAMESPACE) {
+      return false;
+    }
+
+    if (isVoid) {
+      return currentNode.hasChildNodes();
+    }
+
+    if (_isNode(currentNode.firstElementChild)) {
+      return true;
+    }
+
+    return (
+      literal &&
+      typeof currentNode.textContent === 'string' &&
+      regExpTest(EXPRESSIONS.ELEMENT_MARKUP_PROBE, currentNode.textContent)
+    );
+  };
+
+  /**
    * Structural-threat checks that condemn a node regardless of the
    * allowlists: mXSS via namespace confusion, risky CSS construction,
    * processing instructions, markup-bearing comments. Pure predicate;
@@ -1942,21 +2048,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
-    /* Literal-text elements holding an element child or markup-like text,
-       see LITERAL_TEXT_ELEMENTS. Reads textContent, as an XML document
-       escapes innerHTML. Elements only: a processing instruction's nodeName
-       is its target and can collide with these names. */
+    /* Elements in a state the parser never produces */
     if (
       SAFE_FOR_XML &&
-      LITERAL_TEXT_ELEMENTS[tagName] &&
       nodeType === NODE_TYPE.element &&
-      _readNamespaceURI(currentNode) === HTML_NAMESPACE &&
-      (_isNode(currentNode.firstElementChild) ||
-        (typeof currentNode.textContent === 'string' &&
-          regExpTest(
-            EXPRESSIONS.ELEMENT_MARKUP_PROBE,
-            currentNode.textContent
-          )))
+      _isMalformedElement(currentNode, tagName)
     ) {
       return true;
     }
@@ -2106,6 +2202,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (IN_PLACE) {
       _neutralizeSubtree(currentNode);
     }
+
+    _unmarkVisited(currentNode);
 
     return true;
   };
@@ -2809,6 +2907,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
     if (inPlace) {
       _neutralizePatchLinkage(dirty as Node);
+      inPlaceNodes = _collectLiveNodes(dirty as Node);
 
       /* The root must be an allowed tag and not clobbered: a parentless root
          cannot be removed, so it would come back unsanitized. Its name is read
@@ -2817,7 +2916,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       if (typeof nn === 'string') {
         const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
-          _neutralizeRoot(dirty as Node);
+          _failClosed(dirty as Node, inPlaceNodes);
           throw typeErrorCreate(
             'root node is forbidden and cannot be sanitized in-place'
           );
@@ -2825,13 +2924,12 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       if (_isClobbered(dirty as Element)) {
-        _neutralizeRoot(dirty as Node);
+        _failClosed(dirty as Node, inPlaceNodes);
         throw typeErrorCreate(
           'root node is clobbered and cannot be sanitized in-place'
         );
       }
 
-      inPlaceNodes = _collectLiveNodes(dirty as Node);
       IN_PLACE_VISITED = setCreate();
     } else if (_isNode(dirty)) {
       /* If dirty is a DOM element, append to an empty document to avoid
@@ -2901,8 +2999,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     } catch (error) {
       if (inPlace) {
-        _neutralizeRoot(dirty as Node);
-        _neutralizeDiscarded(dirty as Node, inPlaceNodes);
+        _failClosed(dirty as Node, inPlaceNodes);
       }
 
       throw error;

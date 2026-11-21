@@ -49,6 +49,7 @@ const arrayIsArray = Array.isArray;
 const setCreate = unconstruct(Set) as () => Set<unknown>;
 const setAdd = unapply(Set.prototype.add);
 const setHas = unapply(Set.prototype.has);
+const setDelete = unapply(Set.prototype.delete);
 
 const stringToLowerCase = unapply(String.prototype.toLowerCase);
 const stringToString = unapply(String.prototype.toString);
@@ -370,6 +371,7 @@ export {
   regExpTest,
   setAdd,
   setCreate,
+  setDelete,
   setHas,
   isRegex,
   // String
