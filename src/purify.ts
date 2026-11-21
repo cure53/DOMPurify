@@ -565,6 +565,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /* IN_PLACE: nodes processed during the current call */
   let IN_PLACE_VISITED: Set<unknown> | null = null;
 
+  /* Nodes the in-place walk may still process. A hook or custom element that
+     keeps putting a removed node back would otherwise keep it running. */
+  let IN_PLACE_BUDGET = 0;
+
   /* Allow usage of profiles like html, svg and mathMl */
   let USE_PROFILES: UseProfilesConfig | false = false;
 
@@ -1537,7 +1541,20 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
         _executeHooks(hooks.uponSanitizeShadowNode, node, null);
       }
 
+      _spendWalkStep();
       _sanitizeNode(node, root);
+    }
+  };
+
+  /**
+   * Counts one node of the in-place walk against IN_PLACE_BUDGET.
+   */
+  const _spendWalkStep = function (): void {
+    if (--IN_PLACE_BUDGET < 0) {
+      throw typeErrorCreate(
+        'the tree kept changing during in-place sanitization; ' +
+          'refusing to return it'
+      );
     }
   };
 
@@ -2905,6 +2922,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
        and the visit tracking of an outer call this one may be nested in */
     let inPlaceNodes: Node[] = [];
     const outerVisited = IN_PLACE_VISITED;
+    const outerBudget = IN_PLACE_BUDGET;
 
     if (inPlace) {
       _neutralizePatchLinkage(dirty as Node);
@@ -2932,6 +2950,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       IN_PLACE_VISITED = setCreate();
+      IN_PLACE_BUDGET = (inPlaceNodes.length + 1) * (MAX_UNVISITED_ROUNDS + 2);
     } else if (_isNode(dirty)) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
@@ -2992,6 +3011,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       const nodeIterator = _createNodeIterator(walkRoot);
       while ((currentNode = nodeIterator.nextNode())) {
+        if (inPlace) {
+          _spendWalkStep();
+        }
+
         _sanitizeNode(currentNode, walkRoot);
       }
 
@@ -3006,6 +3029,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       throw error;
     } finally {
       IN_PLACE_VISITED = outerVisited;
+      IN_PLACE_BUDGET = outerBudget;
     }
 
     if (inPlace) {

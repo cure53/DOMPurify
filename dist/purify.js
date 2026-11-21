@@ -1235,6 +1235,7 @@
 		let KEEP_CONTENT = true;
 		let IN_PLACE = false;
 		let IN_PLACE_VISITED = null;
+		let IN_PLACE_BUDGET = 0;
 		let USE_PROFILES = false;
 		let FORBID_CONTENTS = null;
 		const DEFAULT_FORBID_CONTENTS = addToSet({}, [
@@ -1771,8 +1772,15 @@
 			while (node = iterator.nextNode()) {
 				if (!setHas(original, node) || setHas(IN_PLACE_VISITED, node)) continue;
 				if (inShadow) _executeHooks(hooks.uponSanitizeShadowNode, node, null);
+				_spendWalkStep();
 				_sanitizeNode(node, root);
 			}
+		};
+		/**
+		* Counts one node of the in-place walk against IN_PLACE_BUDGET.
+		*/
+		const _spendWalkStep = function _spendWalkStep() {
+			if (--IN_PLACE_BUDGET < 0) throw typeErrorCreate("the tree kept changing during in-place sanitization; refusing to return it");
 		};
 		/**
 		* Records that _sanitizeElements processed `node`. No-op outside IN_PLACE.
@@ -2468,6 +2476,7 @@
 			const inPlace = IN_PLACE && typeof dirty !== "string" && _isNode(dirty);
 			let inPlaceNodes = [];
 			const outerVisited = IN_PLACE_VISITED;
+			const outerBudget = IN_PLACE_BUDGET;
 			if (inPlace) {
 				_neutralizePatchLinkage(dirty);
 				inPlaceNodes = _collectLiveNodes(dirty);
@@ -2484,6 +2493,7 @@
 					throw typeErrorCreate("root node is clobbered and cannot be sanitized in-place");
 				}
 				IN_PLACE_VISITED = setCreate();
+				IN_PLACE_BUDGET = (inPlaceNodes.length + 1) * 10;
 			} else if (_isNode(dirty)) {
 				body = _initDocument("<!---->");
 				importedNode = body.ownerDocument.importNode(dirty, true);
@@ -2501,13 +2511,17 @@
 			try {
 				if (inPlace) _sanitizeAttachedShadowRoots(dirty);
 				const nodeIterator = _createNodeIterator(walkRoot);
-				while (currentNode = nodeIterator.nextNode()) _sanitizeNode(currentNode, walkRoot);
+				while (currentNode = nodeIterator.nextNode()) {
+					if (inPlace) _spendWalkStep();
+					_sanitizeNode(currentNode, walkRoot);
+				}
 				if (inPlace) _sanitizeUnvisitedNodes(dirty, inPlaceNodes);
 			} catch (error) {
 				if (inPlace) _failClosed(dirty, inPlaceNodes);
 				throw error;
 			} finally {
 				IN_PLACE_VISITED = outerVisited;
+				IN_PLACE_BUDGET = outerBudget;
 			}
 			if (inPlace) {
 				if (_neutralizeDiscarded(dirty, inPlaceNodes)) throw typeErrorCreate("a node selected for removal could not be safely returned; refusing to sanitize in place");
