@@ -83,7 +83,7 @@ Well, please note, if you _first_ sanitize HTML and then modify it _afterwards_,
 
 ### What about passing a DOM node instead of a string?
 
-`DOMPurify.sanitize()` also accepts a DOM node (an `Element`, `DocumentFragment` or `Document`). Since 3.4.14 that path is hardened for nodes that did not come out of the HTML parser: a node built with the DOM API or parsed as XML/XHTML (for example via `DOMParser` with `application/xhtml+xml` and `importNode()`) can carry case-preserved attribute names such as `ONERROR`, or a rawtext element like `<style>` with an element child or its own end tag inside its text. Both shapes are invisible to a string sanitizer because the HTML parser can never build them, but they break out on reparse. DOMPurify now removes attributes by their exact `Attr` node and treats these literal-text trees as unsafe, so mixing document contexts on the input side is covered. It remains your job not to mix contexts on the _output_ side, see the paragraph above.
+`DOMPurify.sanitize()` also accepts a DOM node (an `Element` or a `DocumentFragment`). A `Document` itself cannot be imported, so pass `document.documentElement` or `document.body` instead. Since 3.4.14 that path is hardened for nodes that did not come out of the HTML parser: a node built with the DOM API or parsed as XML/XHTML (for example via `DOMParser` with `application/xhtml+xml` and `importNode()`) can carry case-preserved attribute names such as `ONERROR`, or a rawtext element like `<style>` with an element child or its own end tag inside its text. Both shapes are invisible to a string sanitizer because the HTML parser can never build them, but they break out on reparse. DOMPurify now removes attributes by their exact `Attr` node and treats these literal-text trees as unsafe, so mixing document contexts on the input side is covered. Since 3.5.0 the same goes for two more shapes only a DOM-built tree can have: a `<textarea>` or `<title>` with an element child, and a void element such as `<img>` or `<col>` with children. Both are removed. It remains your job not to mix contexts on the _output_ side, see the paragraph above.
 
 One thing DOMPurify cannot sanitize is the content of a closed shadow root. Open shadow roots are walked, closed ones are invisible to any script, DOMPurify included. Markup can create one declaratively (`<template shadowrootmode="closed">`) when it goes through a parser that honors declarative shadow DOM, such as `setHTMLUnsafe()` or `parseHTMLUnsafe()`. So do not parse untrusted markup that way before handing the node to DOMPurify. This matters for `IN_PLACE`, `RETURN_DOM` and `RETURN_DOM_FRAGMENT`; string output never contains shadow roots, and string input is not affected.
 
@@ -217,12 +217,16 @@ Before you widen the allow-list (`ADD_TAGS`, `ADD_ATTR`, `CUSTOM_ELEMENT_HANDLIN
 ### General settings
 
 ```js
-// strip {{ ... }}, ${ ... } and <% ... %> to make output safe for template systems
+// strip {{ ... }}, ${ ... } and <% ... %> from text, comments and attribute values.
+// other template syntaxes and framework directives are not covered.
 // be careful please, this mode is not recommended for production usage.
 // allowing template parsing in user-controlled HTML is not advised at all.
 // only use this mode if there is really no alternative.
-// text, comments and attribute values are scrubbed. Attribute names are not,
-// and neither are values a hook keeps via forceKeepAttr or writes itself.
+// attribute names are not scrubbed, and neither are values a hook keeps via
+// forceKeepAttr or writes itself.
+// this is guaranteed for string input. For DOM node input and IN_PLACE it is
+// best effort: a tree the HTML parser did not build can change shape when it
+// is parsed again, and text can join into an expression at that point.
 const clean = DOMPurify.sanitize(dirty, { SAFE_FOR_TEMPLATES: true });
 
 // change how e.g. comments containing risky HTML characters are treated.
@@ -317,6 +321,8 @@ const clean = DOMPurify.sanitize(dirty, { ALLOW_DATA_ATTR: false });
 // When using a predicate function for attributeNameCheck, it can optionally receive the tagName as a second parameter
 // for more granular control over which attributes are allowed for specific elements.
 // The default values are very restrictive to prevent accidental XSS bypasses. Handle with great care!
+// A broad attributeNameCheck such as /./ or () => true also lets event handlers like onclick through.
+// Custom elements exist in HTML only: a matching name inside SVG or MathML is removed (since 3.5.0).
 
 const clean = DOMPurify.sanitize(
   '<foo-bar baz="foobar" forbidden="true"></foo-bar><div is="foo-baz"></div>',
@@ -480,10 +486,11 @@ const clean = DOMPurify.sanitize(dirty, { IN_PLACE: true }); // see https://gith
 
 A few things to know about `IN_PLACE`:
 
-- The root node you pass in must itself be an allowed tag and must not be DOM-clobbered (for example a `<form>` with a child named `nodeName` or `ownerDocument`). If it is, DOMPurify strips the root's subtree of every non-allow-listed attribute and then throws a `TypeError`, so a rejected root is never handed back armed.
+- The root node you pass in must itself be an allowed tag and must not be DOM-clobbered (for example a `<form>` with a child named `nodeName` or `ownerDocument`). If it is, DOMPurify empties the root, strips every non-allow-listed attribute from what was under it, open shadow roots included, and then throws a `TypeError`, so a rejected root is never handed back armed.
 - If anything throws mid-walk, the same fail-closed neutralization runs over the root and over every subtree already detached during that walk before the error propagates.
-- Nodes that a hook detaches from the tree (a common pattern, see [Hooks](#hooks)) are treated as removed. In `IN_PLACE` mode, every element that was under the root when `sanitize()` started and is no longer under it when the call ends has its non-allow-listed attributes stripped before `sanitize()` returns or throws, no matter what detached it: a hook removing the node it was called for, its parent or another ancestor, or a node elsewhere in the tree, a hook moving a subtree out of the root, or a custom element reacting to one of DOMPurify's own attribute removals. So an `<img onload>` that was already loading when you built the live tree cannot fire after `sanitize()` returns. Likewise, a node of your tree that a hook or custom element moves to a position the walk has already passed is still sanitized before `sanitize()` returns; if the tree keeps changing that way, DOMPurify strips the root bare and throws instead of returning it.
+- Nodes that a hook detaches from the tree (a common pattern, see [Hooks](#hooks)) are treated as removed. In `IN_PLACE` mode, every element that was under the root when `sanitize()` started and is no longer under it when the call ends has its non-allow-listed attributes stripped before `sanitize()` returns or throws, no matter what detached it: a hook removing the node it was called for, its parent or another ancestor, or a node elsewhere in the tree, a hook moving a subtree out of the root, or a custom element reacting to one of DOMPurify's own attribute removals. So an `<img onload>` that was already loading when you built the live tree cannot fire after `sanitize()` returns. Likewise, a node of your tree that a hook or custom element moves to a position the walk has already passed is still sanitized before `sanitize()` returns, and so is a removed node that something puts back. If the tree keeps changing that way, for example because an element re-inserts itself every time it is removed, DOMPurify strips the root bare and throws instead of returning it.
 - Content inside a closed shadow root is not sanitized, see [the note on DOM nodes](#what-about-passing-a-dom-node-instead-of-a-string).
+- Two things the walk does not follow: a hook that moves nodes into or out of `<template>` content, and a custom element that re-inserts itself while DOMPurify empties a tree it refuses to return. Avoid both.
 - DOMPurify cannot undo engine mutations that already fired _before_ `sanitize()` was called (a patch applied on connection, a `selectedcontent` re-clone, and so on). Sanitize attacker-controlled trees before connecting them to the live document, not after.
 
 There is even [more examples here](https://github.com/cure53/DOMPurify/tree/main/demos#what-is-this), showing how you can run, customize and configure DOMPurify to fit your needs.
@@ -526,15 +533,16 @@ DOMPurify.addHook(
 - **Detaching a node from a hook is supported.** If a `beforeSanitizeElements` or `uponSanitizeElement` hook removes the current node from the tree (for example `node.remove()` to drop a `foreignObject`), DOMPurify treats the node as removed and stops processing it. Such nodes are not recorded in `DOMPurify.removed`. In `IN_PLACE` mode the detached subtree is still neutralized (since 3.4.13), because a live node may carry an already-queued resource event.
 - **`afterSanitizeElements` runs for kept custom elements, too.** Since 3.4.12, an element admitted via `CUSTOM_ELEMENT_HANDLING.tagNameCheck` goes through `afterSanitizeElements` exactly like an allow-listed element, so a policy applied in that hook (for example stripping an attribute from every surviving element) cannot silently skip custom elements ([GHSA-c2j3-45gr-mqc4](https://github.com/cure53/DOMPurify/security/advisories/GHSA-c2j3-45gr-mqc4)).
 - **Prefer `hookEvent.keepAttr` / `forceKeepAttr` over writing to `hookEvent.allowedAttributes` or `allowedTags`.** The per-node flags cannot leak. Writes to the allow-list objects are isolated per call, including when the hook is installed lazily from inside another hook and when a persistent config from `setConfig()` is active ([GHSA-cmwh-pvxp-8882](https://github.com/cure53/DOMPurify/security/advisories/GHSA-cmwh-pvxp-8882)), but they remain the sharper tool.
-- **`afterSanitize*` hooks run after validation.** Whatever you write there is not re-checked. Put attacker-influenced values through `uponSanitize*` hooks instead.
+- **`afterSanitize*` hooks run after validation.** Whatever you write there is not re-checked. To change an attribute value, set `hookEvent.attrValue` in `uponSanitizeAttribute`; that value is checked afterwards. An attribute you set on the node yourself is only checked if you do it in `beforeSanitizeAttributes` or earlier.
+- **A hook may remove attributes of the node it is called for.** Before 3.5.0, removing several at once from `uponSanitizeAttribute` could make `sanitize()` throw.
 
 ### A note on calling `sanitize()` from a hook
 
-**`DOMPurify.sanitize()` is not re-entrant.** Please do not call it from inside a hook, or from a configuration callback such as `CUSTOM_ELEMENT_HANDLING.tagNameCheck` or `attributeNameCheck`. Those callbacks run in the _middle_ of an active sanitizer pass.
+Since 3.5.0 you can call `DOMPurify.sanitize()` from inside a hook, or from a configuration callback such as `CUSTOM_ELEMENT_HANDLING.tagNameCheck`. When the nested call returns, the outer one gets its configuration, its allow-lists and `DOMPurify.removed` back, so the rest of the document is still sanitized the way you asked.
 
-A nested `sanitize()` call re-reads the configuration handed to it and, in doing so, **replaces the configuration the outer pass is still using**. The rest of the outer document is then sanitized against the nested call's configuration instead of yours. Since the nested call typically runs with the default configuration, a strict `ALLOWED_TAGS` allow-list can silently widen back to the default one part-way through a document, with no error and no warning.
+Two things to keep in mind. Your hooks also run for the nested call, so guard against recursion. And `DOMPurify.removed` shows the removals of the outer call afterwards, not those of the nested one.
 
-If you need to sanitize nested markup, for example an HTML fragment carried inside an attribute value, you have two safe options. Either set your configuration once with [`DOMPurify.setConfig`](#persistent-configuration) instead of passing it per call, since a persistent configuration is shared by the nested call and stays in effect for the whole pass; or collect the fragments during the hook and sanitize them with a separate `sanitize()` call _after_ the outer one has returned.
+Before 3.5.0 a nested call replaced the configuration of the outer one for the rest of the pass. If you support older versions, set your configuration with [`DOMPurify.setConfig`](#persistent-configuration) or sanitize nested fragments after the outer call has returned.
 
 ## Removed Configuration
 
