@@ -1,4 +1,4 @@
-/*! @license DOMPurify 3.4.18 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.4.18/LICENSE */
+/*! @license DOMPurify 3.5.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.5.0/LICENSE */
 (function(global, factory) {
 	typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define([], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, global.DOMPurify = factory());
 })(this, function() {
@@ -132,6 +132,10 @@
 	const setCreate = unconstruct(Set);
 	const setAdd = unapply(Set.prototype.add);
 	const setHas = unapply(Set.prototype.has);
+	const setDelete = unapply(Set.prototype.delete);
+	const mapCreate = unconstruct(Map);
+	const mapGet = unapply(Map.prototype.get);
+	const mapSet = unapply(Map.prototype.set);
 	const stringToLowerCase = unapply(String.prototype.toLowerCase);
 	const stringToString = unapply(String.prototype.toString);
 	const stringMatch = unapply(String.prototype.match);
@@ -967,7 +971,9 @@
 	const MUSTACHE_EXPR = seal(/{{[\w\W]*|^[\w\W]*}}/g);
 	const ERB_EXPR = seal(/<%[\w\W]*|^[\w\W]*%>/g);
 	const TMPLIT_EXPR = seal(/\${[\w\W]*/g);
-	const TMPL_MARKER_SERIALIZED = seal(/{{|}}|\${|<%|%>|&lt;%|%&gt;/);
+	const TMPL_MARKER = seal(/{{|}}|\${|<%|%>/);
+	const NON_WHITESPACE = seal(/[^\t\n\f\r ]/);
+	const NUL = seal(/\u0000/g);
 	const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/);
 	const ARIA_ATTR = seal(/^aria-[\-\w]+$/);
 	const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i);
@@ -977,6 +983,7 @@
 	const CUSTOM_ELEMENT = seal(/^[a-z][.\w]*(-[.\w]+)+$/i);
 	const ELEMENT_MARKUP_PROBE = seal(/<[/\w!]/g);
 	const COMMENT_MARKUP_PROBE = seal(/<[/\w]/g);
+	const COMMENT_UNSAFE = seal(/<[/\w]|^-?>|--!?>|<!-$/g);
 	const FALLBACK_TAG_CLOSE = seal(/<\/no(script|embed|frames)/i);
 	const SELF_CLOSING_TAG = seal(/\/>/i);
 	const ATTR_VALUE_BREAKOUT = seal(/((--!?|])>)|<\/(style|script|title|xmp|textarea|noscript|iframe|noembed|noframes)/i);
@@ -998,6 +1005,27 @@
 		"noframes",
 		"plaintext",
 		"noscript"
+	]));
+	const ESCAPABLE_TEXT_ELEMENTS = freeze(addToSet({}, ["textarea", "title"]));
+	const VOID_ELEMENTS = freeze(addToSet({}, [
+		"area",
+		"base",
+		"basefont",
+		"bgsound",
+		"br",
+		"col",
+		"embed",
+		"frame",
+		"hr",
+		"img",
+		"input",
+		"keygen",
+		"link",
+		"meta",
+		"param",
+		"source",
+		"track",
+		"wbr"
 	]));
 	const getGlobal = function getGlobal() {
 		return typeof window === "undefined" ? null : window;
@@ -1070,7 +1098,7 @@
 	function createDOMPurify() {
 		let window = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : getGlobal();
 		const DOMPurify = (root) => createDOMPurify(root);
-		DOMPurify.version = "3.4.18";
+		DOMPurify.version = "3.5.0";
 		DOMPurify.removed = [];
 		if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
 			DOMPurify.isSupported = false;
@@ -1083,6 +1111,7 @@
 		const ElementPrototype = Element.prototype;
 		const cloneNode = lookupGetter(ElementPrototype, "cloneNode");
 		const remove = lookupGetter(ElementPrototype, "remove");
+		const removeChild = lookupGetter(ElementPrototype, "removeChild");
 		const removeAttributeNode = lookupGetter(ElementPrototype, "removeAttributeNode");
 		const getNextSibling = lookupGetter(ElementPrototype, "nextSibling");
 		const getChildNodes = lookupGetter(ElementPrototype, "childNodes");
@@ -1101,6 +1130,9 @@
 		const getNamespaceURI = lookupAccessor(ElementPrototype, "namespaceURI");
 		const _readNamespaceURI = function _readNamespaceURI(element) {
 			return getNamespaceURI ? getNamespaceURI(element) : element.namespaceURI;
+		};
+		const _readAttributes = function _readAttributes(node) {
+			return _readNodeType(node) === NODE_TYPE.element ? getAttributes(node) : null;
 		};
 		if (typeof HTMLTemplateElement === "function") {
 			const template = document.createElement("template");
@@ -1207,6 +1239,7 @@
 		let KEEP_CONTENT = true;
 		let IN_PLACE = false;
 		let IN_PLACE_VISITED = null;
+		let IN_PLACE_RETURNS = null;
 		let USE_PROFILES = false;
 		let FORBID_CONTENTS = null;
 		const DEFAULT_FORBID_CONTENTS = addToSet({}, [
@@ -1297,6 +1330,7 @@
 		const DEFAULT_PARSER_MEDIA_TYPE = "text/html";
 		let transformCaseFunc = null;
 		let CONFIG = null;
+		let ACTIVE_CONFIG = null;
 		const formElement = document.createElement("form");
 		const isRegexOrFunction = function isRegexOrFunction(testValue) {
 			return testValue instanceof RegExp || testValue instanceof Function;
@@ -1502,6 +1536,7 @@
 		*/
 		const _forceRemove = function _forceRemove(node) {
 			arrayPush(DOMPurify.removed, { element: node });
+			_unmarkVisited(node);
 			try {
 				getParentNode(node).removeChild(node);
 			} catch (_) {
@@ -1540,7 +1575,7 @@
 			const childNodes = getChildNodes(root);
 			if (childNodes) arrayForEach(arraySlice(childNodes), (child) => {
 				try {
-					remove(child);
+					removeChild(root, child);
 				} catch (_) {}
 			});
 			if (_readNodeType(root) === NODE_TYPE.element) _stripAttributes(root, false);
@@ -1678,6 +1713,18 @@
 			_neutralizeEscapedElements(root, before);
 			return rootRemoved;
 		};
+		/**
+		* Fail-closed teardown of an in-place tree that cannot be returned: empties
+		* the root and neutralizes everything that was under it, open shadow roots
+		* included.
+		*
+		* @param root the in-place root
+		* @param before the root's nodes, collected before the walk
+		*/
+		const _failClosed = function _failClosed(root, before) {
+			_neutralizeRoot(root);
+			_neutralizeDiscarded(root, before);
+		};
 		const MAX_UNVISITED_ROUNDS = 8;
 		/**
 		* The walk only moves forward, so a node moved to a position it already
@@ -1734,11 +1781,28 @@
 		};
 		/**
 		* Records that _sanitizeElements processed `node`. No-op outside IN_PLACE.
+		* Fails closed when a node that left the tree comes back too often.
 		*
 		* @param node the node being processed
 		*/
 		const _markVisited = function _markVisited(node) {
-			if (IN_PLACE_VISITED) setAdd(IN_PLACE_VISITED, node);
+			if (!IN_PLACE_VISITED) return;
+			setAdd(IN_PLACE_VISITED, node);
+			const returns = mapGet(IN_PLACE_RETURNS, node);
+			if (returns === void 0) return;
+			if (returns >= MAX_UNVISITED_ROUNDS) throw typeErrorCreate("the tree kept changing during in-place sanitization; refusing to return it");
+			mapSet(IN_PLACE_RETURNS, node, returns + 1);
+		};
+		/**
+		* Forgets that `node` was processed: it was removed or detached. If a hook
+		* or custom element puts it back, _sanitizeUnvisitedNodes handles it again.
+		*
+		* @param node the node that left the tree
+		*/
+		const _unmarkVisited = function _unmarkVisited(node) {
+			if (!IN_PLACE_VISITED) return;
+			setDelete(IN_PLACE_VISITED, node);
+			if (mapGet(IN_PLACE_RETURNS, node) === void 0) mapSet(IN_PLACE_RETURNS, node, 0);
 		};
 		/**
 		* Patch-linkage attributes (declarative partial updates): `patchsrc`
@@ -1861,6 +1925,47 @@
 				if (_isDocumentFragment(tmpl.content)) _scrubTemplateExpressions2(tmpl.content);
 			});
 		};
+		const TABLE_STRUCTURE = "table,tbody,thead,tfoot,tr,colgroup";
+		const TABLE_CONTENT = addToSet({}, [
+			"caption",
+			"colgroup",
+			"col",
+			"thead",
+			"tbody",
+			"tfoot",
+			"tr",
+			"td",
+			"th",
+			"style",
+			"script",
+			"template"
+		]);
+		/**
+		* Moves content the HTML parser would foster-parent to where it would put
+		* it: in front of the table. Only a tree the parser did not build, or one
+		* changed after the parse, holds such content. Without this, a reparse
+		* reorders the text and can join fragments that were not neighbours.
+		*
+		* @param root The root whose tables should be checked.
+		*/
+		const _fosterTableContent = function _fosterTableContent(root) {
+			var _root$querySelectorAl;
+			if (PARSER_MEDIA_TYPE === "application/xhtml+xml") return;
+			const structures = (_root$querySelectorAl = root.querySelectorAll) === null || _root$querySelectorAl === void 0 ? void 0 : _root$querySelectorAl.call(root, TABLE_STRUCTURE);
+			if (!structures || structures.length === 0) return;
+			arrayForEach(structures, (structure) => {
+				arrayForEach(arraySlice(getChildNodes(structure)), (child) => {
+					const nodeType = _readNodeType(child);
+					if (!(nodeType === NODE_TYPE.text ? regExpTest(NON_WHITESPACE, child.data) : nodeType === NODE_TYPE.element && !TABLE_CONTENT[stringToLowerCase(_readNodeName(child))])) return;
+					let table = structure;
+					while (table && stringToLowerCase(_readNodeName(table)) !== "table") table = table === root ? null : getParentNode(table);
+					const tableParent = table && table !== root ? getParentNode(table) : null;
+					if (tableParent) try {
+						tableParent.insertBefore(child, table);
+					} catch (_) {}
+				});
+			});
+		};
 		/**
 		* Normalizes `node` and strips template expressions from its own character
 		* data. Template contents and shadow roots are not entered, their own
@@ -1869,11 +1974,29 @@
 		* @param node The root whose own character data should be scrubbed.
 		*/
 		const _scrubOwnCharacterData = function _scrubOwnCharacterData(node) {
+			_fosterTableContent(node);
 			node.normalize();
 			const walker = _createNodeIterator(node, true);
+			let previousText = null;
 			let currentNode = walker.nextNode();
 			while (currentNode) {
-				currentNode.data = _stripTemplateExpressions(currentNode.data);
+				let data = currentNode.data;
+				if (regExpTest(NUL, data)) {
+					data = stringReplace(data, NUL, "");
+					currentNode.data = data;
+				}
+				if (regExpTest(TMPL_MARKER, data)) {
+					data = _stripTemplateExpressions(data);
+					currentNode.data = data;
+				}
+				if (data && _readNodeType(currentNode) === NODE_TYPE.text) {
+					if (previousText) {
+						const tail = previousText.data;
+						const boundary = tail[tail.length - 1] + data[0];
+						if (regExpTest(TMPL_MARKER, boundary)) previousText.data = _stripTemplateExpressions(tail + data[0]);
+					}
+					previousText = currentNode;
+				}
 				currentNode = walker.nextNode();
 			}
 		};
@@ -1920,6 +2043,27 @@
 			});
 		}
 		/**
+		* Elements in a state the HTML parser never produces: a void element with
+		* children, a text-only element with an element child or, for literal-text
+		* elements, with markup-like text. See VOID_ELEMENTS, LITERAL_TEXT_ELEMENTS
+		* and ESCAPABLE_TEXT_ELEMENTS. Reads textContent, as an XML document
+		* escapes innerHTML. Elements only: a processing instruction's nodeName is
+		* its target and can collide with these names.
+		*
+		* @param currentNode the element to inspect
+		* @param tagName the element's transformCaseFunc'd tag name
+		* @return true if the element must be removed
+		*/
+		const _isMalformedElement = function _isMalformedElement(currentNode, tagName) {
+			const isVoid = Boolean(VOID_ELEMENTS[tagName]);
+			const literal = Boolean(LITERAL_TEXT_ELEMENTS[tagName]);
+			if (!isVoid && !literal && !ESCAPABLE_TEXT_ELEMENTS[tagName]) return false;
+			if (_readNamespaceURI(currentNode) !== HTML_NAMESPACE) return false;
+			if (isVoid) return currentNode.hasChildNodes();
+			if (_isNode(currentNode.firstElementChild)) return true;
+			return literal && typeof currentNode.textContent === "string" && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent);
+		};
+		/**
 		* Structural-threat checks that condemn a node regardless of the
 		* allowlists: mXSS via namespace confusion, risky CSS construction,
 		* processing instructions, markup-bearing comments. Pure predicate;
@@ -1932,9 +2076,9 @@
 		*/
 		const _isUnsafeNode = function _isUnsafeNode(currentNode, tagName, nodeType) {
 			if (SAFE_FOR_XML && nodeType === NODE_TYPE.element && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent) && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.innerHTML)) return true;
-			if (SAFE_FOR_XML && LITERAL_TEXT_ELEMENTS[tagName] && nodeType === NODE_TYPE.element && _readNamespaceURI(currentNode) === HTML_NAMESPACE && (_isNode(currentNode.firstElementChild) || typeof currentNode.textContent === "string" && regExpTest(ELEMENT_MARKUP_PROBE, currentNode.textContent))) return true;
+			if (SAFE_FOR_XML && nodeType === NODE_TYPE.element && _isMalformedElement(currentNode, tagName)) return true;
 			if (nodeType === NODE_TYPE.processingInstruction) return true;
-			if (SAFE_FOR_XML && nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, currentNode.data)) return true;
+			if (SAFE_FOR_XML && nodeType === NODE_TYPE.comment && regExpTest(COMMENT_UNSAFE, currentNode.data)) return true;
 			return false;
 		};
 		/**
@@ -2010,6 +2154,7 @@
 		const _handleHookDetachedNode = function _handleHookDetachedNode(currentNode, root) {
 			if (currentNode === root || getParentNode(currentNode) !== null) return false;
 			if (IN_PLACE) _neutralizeSubtree(currentNode);
+			_unmarkVisited(currentNode);
 			return true;
 		};
 		/**
@@ -2041,14 +2186,7 @@
 				_forceRemove(currentNode);
 				return true;
 			}
-			if (FORBID_TAGS[tagName] || !(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && !ALLOWED_TAGS[tagName]) {
-				const removed = _sanitizeDisallowedNode(currentNode, tagName, root);
-				if (removed === false) {
-					_executeHooks(hooks.afterSanitizeElements, currentNode, null);
-					if (_handleHookDetachedNode(currentNode, root)) return true;
-				}
-				return removed;
-			}
+			if ((FORBID_TAGS[tagName] || !(EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function && EXTRA_ELEMENT_HANDLING.tagCheck(tagName)) && !ALLOWED_TAGS[tagName]) && _sanitizeDisallowedNode(currentNode, tagName, root)) return true;
 			if (nodeType === NODE_TYPE.element && !_checkValidNamespace(currentNode)) {
 				_forceRemove(currentNode);
 				return true;
@@ -2182,7 +2320,7 @@
 		const _sanitizeAttributes = function _sanitizeAttributes(currentNode, root) {
 			_executeHooks(hooks.beforeSanitizeAttributes, currentNode, null);
 			if (_handleHookDetachedNode(currentNode, root)) return;
-			const attributes = currentNode.attributes;
+			const attributes = _readAttributes(currentNode);
 			if (!attributes || _isClobbered(currentNode)) return;
 			ALLOWED_ATTR = _forkSharedAllowlist(hooks.uponSanitizeAttribute, ALLOWED_ATTR, DEFAULT_ALLOWED_ATTR, SET_CONFIG_ALLOWED_ATTR);
 			const hookEvent = {
@@ -2196,6 +2334,7 @@
 			const lcTag = transformCaseFunc(_readNodeName(currentNode));
 			while (l--) {
 				const attr = attributes[l];
+				if (!attr) continue;
 				const name = attr.name, namespaceURI = attr.namespaceURI, attrValue = attr.value;
 				const lcName = transformCaseFunc(name);
 				const initValue = attrValue;
@@ -2320,7 +2459,7 @@
 				}
 			}
 		};
-		DOMPurify.sanitize = function(dirty) {
+		const _sanitize = function _sanitize(dirty) {
 			let cfg = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
 			let body = null;
 			let importedNode = null;
@@ -2337,26 +2476,29 @@
 				ALLOWED_TAGS = SET_CONFIG_ALLOWED_TAGS;
 				ALLOWED_ATTR = SET_CONFIG_ALLOWED_ATTR;
 			} else _parseConfig(cfg);
+			ACTIVE_CONFIG = CONFIG;
 			DOMPurify.removed = [];
 			const inPlace = IN_PLACE && typeof dirty !== "string" && _isNode(dirty);
 			let inPlaceNodes = [];
 			const outerVisited = IN_PLACE_VISITED;
+			const outerReturns = IN_PLACE_RETURNS;
 			if (inPlace) {
 				_neutralizePatchLinkage(dirty);
+				inPlaceNodes = _collectLiveNodes(dirty);
 				const nn = _readNodeName(dirty);
 				if (typeof nn === "string") {
 					const tagName = transformCaseFunc(nn);
 					if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
-						_neutralizeRoot(dirty);
+						_failClosed(dirty, inPlaceNodes);
 						throw typeErrorCreate("root node is forbidden and cannot be sanitized in-place");
 					}
 				}
 				if (_isClobbered(dirty)) {
-					_neutralizeRoot(dirty);
+					_failClosed(dirty, inPlaceNodes);
 					throw typeErrorCreate("root node is clobbered and cannot be sanitized in-place");
 				}
-				inPlaceNodes = _collectLiveNodes(dirty);
 				IN_PLACE_VISITED = setCreate();
+				IN_PLACE_RETURNS = mapCreate();
 			} else if (_isNode(dirty)) {
 				body = _initDocument("<!---->");
 				importedNode = body.ownerDocument.importNode(dirty, true);
@@ -2377,13 +2519,11 @@
 				while (currentNode = nodeIterator.nextNode()) _sanitizeNode(currentNode, walkRoot);
 				if (inPlace) _sanitizeUnvisitedNodes(dirty, inPlaceNodes);
 			} catch (error) {
-				if (inPlace) {
-					_neutralizeRoot(dirty);
-					_neutralizeDiscarded(dirty, inPlaceNodes);
-				}
+				if (inPlace) _failClosed(dirty, inPlaceNodes);
 				throw error;
 			} finally {
 				IN_PLACE_VISITED = outerVisited;
+				IN_PLACE_RETURNS = outerReturns;
 			}
 			if (inPlace) {
 				if (_neutralizeDiscarded(dirty, inPlaceNodes)) throw typeErrorCreate("a node selected for removal could not be safely returned; refusing to sanitize in place");
@@ -2399,14 +2539,29 @@
 				if (ALLOWED_ATTR.shadowroot || ALLOWED_ATTR.shadowrootmode) returnNode = importNode.call(originalDocument, returnNode, true);
 				return returnNode;
 			}
-			const serialize = () => WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
-			let serializedHTML = serialize();
-			if (SAFE_FOR_TEMPLATES && regExpTest(TMPL_MARKER_SERIALIZED, serializedHTML)) {
-				_scrubOwnCharacterData(body);
-				serializedHTML = serialize();
-			}
+			if (SAFE_FOR_TEMPLATES) _scrubOwnCharacterData(body);
+			let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 			if (WHOLE_DOCUMENT && ALLOWED_TAGS["!doctype"] && body.ownerDocument && body.ownerDocument.doctype && body.ownerDocument.doctype.name && regExpTest(DOCTYPE_NAME, body.ownerDocument.doctype.name)) serializedHTML = "<!DOCTYPE " + body.ownerDocument.doctype.name + ">\n" + serializedHTML;
 			return _signOutput(serializedHTML);
+		};
+		DOMPurify.sanitize = function(dirty) {
+			let cfg = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
+			const outerConfig = ACTIVE_CONFIG;
+			const outerTags = ALLOWED_TAGS;
+			const outerAttr = ALLOWED_ATTR;
+			const outerRemoved = DOMPurify.removed;
+			ACTIVE_CONFIG = null;
+			try {
+				return _sanitize(dirty, cfg);
+			} finally {
+				ACTIVE_CONFIG = outerConfig;
+				if (outerConfig) {
+					if (!SET_CONFIG) _parseConfig(outerConfig);
+					ALLOWED_TAGS = outerTags;
+					ALLOWED_ATTR = outerAttr;
+					DOMPurify.removed = outerRemoved;
+				}
+			}
 		};
 		DOMPurify.setConfig = function() {
 			let cfg = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};

@@ -1,86 +1,91 @@
 name: Build & Test
 
+# One workflow, always triggered. The "changes" job decides whether code was
+# touched; docs-only changes skip the heavy jobs. The "CI" job at the bottom
+# is the only job that should be a required status check.
+
 on:
   push:
-    branches:
-      - main
-      - 3.x
-      - 2.x
-    # Skip on docs-only / metadata-only pushes. Keep this list in SYNC with
-    # build-and-test-skip.yml - that companion workflow reports success for
-    # the same required-check names when this one is skipped, otherwise PRs
-    # that only touch docs would hang forever on "Waiting for status to be
-    # reported" (GitHub's well-known paths-filter + required-check gotcha).
-    paths-ignore:
-      - '**/*.md'
-      - 'demos/**'
-      - 'website/**'
-      - 'LICENSE'
-      - '.gitattributes'
-      - '.editorconfig'
-      - '.prettierrc'
-      - '.nvmrc'
-      - '.gitignore'
-      - '.husky/**'
-      - 'osv-scanner.toml'
-      - '.github/ISSUE_TEMPLATE.md'
-      - '.github/PULL_REQUEST_TEMPLATE.md'
-      - '.github/FUNDING.yml'
-      - '.github/dependabot.yml'
-      - '.github/workflows/codeql-analysis.yml'
-      - '.github/workflows/dependency-review.yml'
-      - '.github/workflows/fuzz.yml'
-      - '.github/workflows/scorecard.yml'
-      - '.github/workflows/sign-release.yml'
-      - '.github/workflows/slsa-provenance.yml'
-      - '.github/workflows/legacy-browsers.yml'
+    branches: [main, 3.x, 2.x]
   pull_request:
-    paths-ignore:
-      - '**/*.md'
-      - 'demos/**'
-      - 'website/**'
-      - 'LICENSE'
-      - '.gitattributes'
-      - '.editorconfig'
-      - '.prettierrc'
-      - '.nvmrc'
-      - '.gitignore'
-      - '.husky/**'
-      - 'osv-scanner.toml'
-      - '.github/ISSUE_TEMPLATE.md'
-      - '.github/PULL_REQUEST_TEMPLATE.md'
-      - '.github/FUNDING.yml'
-      - '.github/dependabot.yml'
-      - '.github/workflows/codeql-analysis.yml'
-      - '.github/workflows/dependency-review.yml'
-      - '.github/workflows/fuzz.yml'
-      - '.github/workflows/scorecard.yml'
-      - '.github/workflows/sign-release.yml'
-      - '.github/workflows/slsa-provenance.yml'
-      - '.github/workflows/legacy-browsers.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-# Cancel superseded runs on the same PR to save minutes on rapid pushes.
-# Pushes to protected branches are NOT cancelled - we want full CI history
-# for every merged commit.
+# Cancel superseded PR runs. Pushes to release branches always run to the end.
 concurrency:
   group: build-test-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+env:
+  # Runs lint, type checks, fuzzing and the browsers. Keep it on an LTS line.
+  PRIMARY_NODE: 24.x
+
 jobs:
-  # Fast feedback: lint, build, dist-sync and jsdom across all supported
-  # Node versions. The full three-engine browser suite runs once, on the
-  # primary Node version only - browser behaviour is Node-independent, so
-  # repeating it per Node entry added cost without coverage.
-  # Runs on every push and every PR.
-  install:
+  changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.detect.outputs.code }}
+      os: ${{ steps.detect.outputs.os }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+
+      - name: Detect code changes
+        id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # Files that never affect build or test results.
+          docs='\.md$|^demos/|^website/|^LICENSE$|^\.(gitattributes|editorconfig|prettierrc|nvmrc|gitignore)$|^\.husky/|^osv-scanner\.toml$|^\.github/(ISSUE_TEMPLATE\.md|PULL_REQUEST_TEMPLATE\.md|FUNDING\.yml|dependabot\.yml)$|^\.github/workflows/(codeql-analysis|dependency-review|fuzz|scorecard|sign-release|slsa-provenance|legacy-browsers)\.yml$'
+
+          # When in doubt, test: any failure to list files counts as a code change.
+          code=true
+          files=''
+          if [ "$EVENT" = pull_request ]; then
+            # HEAD is the merge commit, its first parent is the base branch.
+            files=$(git diff --name-only HEAD^1 HEAD) || files=''
+          elif [ "$EVENT" = push ] && git fetch --quiet --depth=1 origin "$BEFORE"; then
+            files=$(git diff --name-only "$BEFORE" HEAD) || files=''
+          fi
+          if [ -n "$files" ] && ! printf '%s\n' "$files" | grep -qvE "$docs"; then
+            code=false
+          fi
+
+          # Pull requests test the browsers on Linux, everything else on all OSes.
+          if [ "$EVENT" = pull_request ]; then
+            os='["ubuntu-latest"]'
+          else
+            os='["ubuntu-latest","macos-latest","windows-latest"]'
+          fi
+
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "os=$os" >> "$GITHUB_OUTPUT"
+          echo "code=$code os=$os"
+
+  # Build, dist check and jsdom on every supported Node version. Lint, type
+  # checks and a short fuzz run only once, on the primary version.
+  install:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [20.x, 22.x, 24.x, 25.x, 26.x]
+        node-version: [20.x, 22.x, 24.x, 26.x]
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -102,68 +107,50 @@ jobs:
       - name: Install Dependencies
         run: npm ci --ignore-scripts
 
-      # All three engines, but only on the primary Node version (the same
-      # one the browser-matrix job uses). DOMPurify's security posture
-      # depends on per-engine HTML parser behaviour being exercised on
-      # every PR - but the browsers don't care which Node drives them, so
-      # installing and running 3 engines x 5 Node versions repeated the
-      # same suite 15 times. This gate keeps the full per-engine coverage
-      # once per PR and drops the 12 redundant runs.
-      - name: Install Playwright Browsers
-        if: matrix.node-version == '25.x'
-        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
-
       - name: Build
         run: npm run build
-        
+
+      # Checked on every Node version: the committed dist/ is what ships, so
+      # it has to be reproducible from src/ no matter which Node builds it.
       - name: Verify dist/ matches src/
         run: |
-          if ! git diff --quiet dist/; then
-            echo "::error::dist/ is out of sync with src/. The husky pre-commit hook should have rebuilt dist/ before commit. Did you commit without running 'npm install' first (which wires up the hook), or bypass hooks with --no-verify?"
-            echo "--- dist/ diff ---"
-            git diff --stat dist/
+          if [ -n "$(git status --porcelain dist/)" ]; then
+            echo "::error::dist/ is out of sync with src/. Run 'npm run build' and commit the result (the husky pre-commit hook normally does this)."
+            git status --short dist/
             git diff dist/ | head -100
             exit 1
           fi
-          echo "dist/ matches src/ ✓"
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Test (jsdom + full browser matrix)
-        if: matrix.node-version == '25.x'
-        run: npm run test:ci
+          echo "dist/ matches src/"
 
       - name: Test (jsdom)
-        if: matrix.node-version != '25.x'
         run: npm run test:jsdom
 
-      - name: Upload Playwright report
-        if: failure() && matrix.node-version == '25.x'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: playwright-report-node-${{ matrix.node-version }}
-          path: playwright-report/
-          retention-days: 7
+      - name: Lint
+        if: matrix.node-version == env.PRIMARY_NODE
+        run: npm run lint
 
       - name: Verify TypeScript
+        if: matrix.node-version == env.PRIMARY_NODE
         run: npm run verify-typescript
 
-  # Browser diversity: chromium + firefox + webkit across Ubuntu, macOS, and
-  # Windows. Catches OS-specific rendering quirks (e.g. macOS WebKit ≈ real
-  # Safari engine, Windows font shaping, Linux-specific parser paths).
-  #
-  # Only runs on release branches (main, 2.x, 3.x) to conserve runner minutes.
-  # PRs get full three-engine coverage on a single Node version from the
-  # "install" job above, which is sufficient for catching regressions.
-  browser-matrix:
-    if: github.event_name == 'push'
+      - name: Fuzz (short run)
+        if: matrix.node-version == env.PRIMARY_NODE
+        run: npm run test:fuzz
+        env:
+          FUZZ_RUNS: 300
+
+  # Chromium, Firefox and WebKit. Linux only on pull requests; Linux, macOS
+  # and Windows on pushes to release branches and on manual runs.
+  browsers:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: ${{ fromJSON(needs.changes.outputs.os) }}
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -176,10 +163,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Setup Node.js 25.x
+      - name: Setup Node.js ${{ env.PRIMARY_NODE }}
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 25.x
+          node-version: ${{ env.PRIMARY_NODE }}
           cache: npm
 
       - name: Install Dependencies
@@ -204,5 +191,36 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-${{ matrix.os }}
-          path: playwright-report/
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 7
+
+  # The one required status check. Green only if every job above passed, or
+  # was skipped because no code changed.
+  ci:
+    name: CI
+    if: always()
+    needs: [changes, install, browsers]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
+      - name: Check results
+        env:
+          CHANGES: ${{ needs.changes.result }}
+          CODE: ${{ needs.changes.outputs.code }}
+          INSTALL: ${{ needs.install.result }}
+          BROWSERS: ${{ needs.browsers.result }}
+        run: |
+          echo "changes=$CHANGES code=$CODE install=$INSTALL browsers=$BROWSERS"
+          [ "$CHANGES" = success ] || exit 1
+          if [ "$CODE" = false ]; then
+            [ "$INSTALL" = skipped ] && [ "$BROWSERS" = skipped ]
+          else
+            [ "$INSTALL" = success ] && [ "$BROWSERS" = success ]
+          fi

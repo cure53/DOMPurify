@@ -1,10 +1,9 @@
 name: Fuzz
 
+# Nightly long run. Pull requests and pushes get a short run from the
+# Build & Test workflow.
+
 on:
-  pull_request:
-  push:
-    branches:
-      - main
   schedule:
     - cron: '23 3 * * *'
   workflow_dispatch:
@@ -15,9 +14,11 @@ permissions:
 jobs:
   fuzz:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [20.x, 24.x, 26.x]
+        node-version: [22.x, 24.x, 26.x]
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
@@ -41,5 +42,15 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Several short rounds instead of one long one: every round draws a
+      # fresh seed, and the harness holds on to each jsdom window until the
+      # process exits, so a single long round runs out of memory.
       - name: Run fuzzing
-        run: FUZZ_RUNS=300 npm run test:fuzz
+        env:
+          FUZZ_RUNS: 300
+        run: |
+          for round in 1 2 3 4 5 6 7 8; do
+            echo "::group::Round $round"
+            npm run test:fuzz
+            echo "::endgroup::"
+          done

@@ -65,16 +65,18 @@ export interface DOMPurify {
    *
    * @param dirty string or DOM node
    * @param cfg object
-   * @returns Sanitized DOM node.
+   * @returns Sanitized body or root element. Can be null at runtime if
+   * the input cannot be parsed, e.g. malformed XHTML.
    */
-  sanitize(dirty: string | Node, cfg: Config & { RETURN_DOM: true }): Node;
+  sanitize(dirty: string | Node, cfg: Config & { RETURN_DOM: true }): Element;
 
   /**
    * Provides core sanitation functionality.
    *
    * @param dirty string or DOM node
    * @param cfg object
-   * @returns Sanitized document fragment.
+   * @returns Sanitized document fragment. Can be null at runtime if
+   * the input cannot be parsed, e.g. malformed XHTML.
    */
   sanitize(
     dirty: string | Node,

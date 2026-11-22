@@ -175,7 +175,8 @@ export interface Config {
   RETURN_DOM_FRAGMENT?: boolean | undefined;
 
   /**
-   * Return a DOM `HTMLBodyElement` instead of an HTML string (default is false).
+   * Return the sanitized body element instead of an HTML string (default is false).
+   * With `WHOLE_DOCUMENT` or a custom `NAMESPACE` it is the root element.
    */
   RETURN_DOM?: boolean | undefined;
 

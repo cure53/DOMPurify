@@ -49,6 +49,11 @@ const arrayIsArray = Array.isArray;
 const setCreate = unconstruct(Set) as () => Set<unknown>;
 const setAdd = unapply(Set.prototype.add);
 const setHas = unapply(Set.prototype.has);
+const setDelete = unapply(Set.prototype.delete);
+
+const mapCreate = unconstruct(Map) as () => Map<unknown, number>;
+const mapGet = unapply(Map.prototype.get);
+const mapSet = unapply(Map.prototype.set);
 
 const stringToLowerCase = unapply(String.prototype.toLowerCase);
 const stringToString = unapply(String.prototype.toString);
@@ -368,8 +373,12 @@ export {
   objectHasOwnProperty,
   // RegExp
   regExpTest,
+  mapCreate,
+  mapGet,
+  mapSet,
   setAdd,
   setCreate,
+  setDelete,
   setHas,
   isRegex,
   // String
