@@ -20,13 +20,14 @@ on:
   # only on schedule + branch_protection_rule means evaluation happens well
   # after CodeQL has completed, so merges no longer move the score.
 
-# Declare default permissions as read only.
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   analysis:
     name: Scorecard analysis
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # `publish_results: true` only works when run from the default branch.
     # (The previous 'pull_request' clause here was dead code - this workflow
     # doesn't trigger on pull_request events.)

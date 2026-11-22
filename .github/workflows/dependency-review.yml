@@ -15,6 +15,7 @@ permissions:
 jobs:
   dependency-review:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
@@ -26,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - name: 'Dependency Review'
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
         with:
           # Block PRs that introduce high/critical CVEs. Lower-severity findings
           # still surface in the PR comment but don't block merge - consistent
@@ -34,6 +35,3 @@ jobs:
           # suppresses dev-tooling CVEs that don't affect the distributed
           # runtime.
           fail-on-severity: high
-          # Only post the summary comment when something actually needs
-          # attention - cuts PR-comment noise on clean dependency bumps.
-          comment-summary-in-pr: on-failure

@@ -24,8 +24,12 @@ import {
   stringIndexOf,
   stringTrim,
   regExpTest,
+  mapCreate,
+  mapGet,
+  mapSet,
   setAdd,
   setCreate,
+  setDelete,
   setHas,
   isRegex,
   typeErrorCreate,
@@ -82,6 +86,36 @@ const LITERAL_TEXT_ELEMENT_NAMES = [
   'noscript',
 ];
 const LITERAL_TEXT_ELEMENTS = freeze(addToSet({}, LITERAL_TEXT_ELEMENT_NAMES));
+
+/* Elements whose content the HTML parser reads as text with entities decoded.
+   It never gives them an element child; one from a DOM-built tree turns into
+   text on the next parse. */
+const ESCAPABLE_TEXT_ELEMENTS = freeze(addToSet({}, ['textarea', 'title']));
+
+/* Elements the HTML serializer writes without their children. Children from a
+   DOM-built tree are seen by a tree walk, but are gone after a reparse. */
+const VOID_ELEMENTS = freeze(
+  addToSet({}, [
+    'area',
+    'base',
+    'basefont',
+    'bgsound',
+    'br',
+    'col',
+    'embed',
+    'frame',
+    'hr',
+    'img',
+    'input',
+    'keygen',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr',
+  ])
+);
 
 const getGlobal = function (): WindowLike {
   return typeof window === 'undefined' ? null : window;
@@ -233,6 +267,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
   const cloneNode = lookupGetter(ElementPrototype, 'cloneNode');
   const remove = lookupGetter(ElementPrototype, 'remove');
+  const removeChild = lookupGetter(ElementPrototype, 'removeChild');
   // Cached, as a form child named "removeAttributeNode" shadows the method
   const removeAttributeNode = lookupGetter(
     ElementPrototype,
@@ -273,6 +308,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return getNamespaceURI
       ? getNamespaceURI(element)
       : (element as any).namespaceURI;
+  };
+
+  /* Attributes through the cached getter, so an own-property override cannot
+     hide them. Null for non-elements, on which the getter throws. */
+  const _readAttributes = function (node: Node): NamedNodeMap | null {
+    return _readNodeType(node) === NODE_TYPE.element
+      ? getAttributes(node)
+      : null;
   };
 
   // As per issue #47, the web-components registry is inherited by a
@@ -525,6 +568,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   /* IN_PLACE: nodes processed during the current call */
   let IN_PLACE_VISITED: Set<unknown> | null = null;
 
+  /* Nodes the in-place walk saw leave the tree, with how often each one came
+     back. A hook or custom element that keeps putting a removed node back
+     would otherwise keep the walk running. */
+  let IN_PLACE_RETURNS: Map<unknown, number> | null = null;
+
   /* Allow usage of profiles like html, svg and mathMl */
   let USE_PROFILES: UseProfilesConfig | false = false;
 
@@ -641,6 +689,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
   /* Keep a reference to config to pass to hooks */
   let CONFIG: Config | null = null;
+
+  /* The config of the sanitize() call that is walking right now, if any.
+     A call made from one of its hooks or config callbacks is nested. */
+  let ACTIVE_CONFIG: Config | null = null;
 
   /* Ideally, do not touch anything below this line */
   /* ______________________________________________ */
@@ -1128,6 +1180,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    */
   const _forceRemove = function (node: Node): void {
     arrayPush(DOMPurify.removed, { element: node });
+    _unmarkVisited(node);
 
     try {
       // eslint-disable-next-line unicorn/prefer-dom-node-remove
@@ -1186,7 +1239,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (childNodes) {
       arrayForEach(arraySlice(childNodes), (child: Node) => {
         try {
-          remove(child);
+          // Not remove(): that one is Element-only and skips text and comments
+          removeChild(root, child);
         } catch (_) {
           /* Best effort */
         }
@@ -1396,6 +1450,19 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     return rootRemoved;
   };
 
+  /**
+   * Fail-closed teardown of an in-place tree that cannot be returned: empties
+   * the root and neutralizes everything that was under it, open shadow roots
+   * included.
+   *
+   * @param root the in-place root
+   * @param before the root's nodes, collected before the walk
+   */
+  const _failClosed = function (root: Node, before: Node[]): void {
+    _neutralizeRoot(root);
+    _neutralizeDiscarded(root, before);
+  };
+
   const MAX_UNVISITED_ROUNDS = 8;
 
   /**
@@ -1484,12 +1551,47 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
   /**
    * Records that _sanitizeElements processed `node`. No-op outside IN_PLACE.
+   * Fails closed when a node that left the tree comes back too often.
    *
    * @param node the node being processed
    */
   const _markVisited = function (node: Node): void {
-    if (IN_PLACE_VISITED) {
-      setAdd(IN_PLACE_VISITED, node);
+    if (!IN_PLACE_VISITED) {
+      return;
+    }
+
+    setAdd(IN_PLACE_VISITED, node);
+
+    const returns = mapGet(IN_PLACE_RETURNS, node);
+    if (returns === undefined) {
+      return;
+    }
+
+    if (returns >= MAX_UNVISITED_ROUNDS) {
+      throw typeErrorCreate(
+        'the tree kept changing during in-place sanitization; ' +
+          'refusing to return it'
+      );
+    }
+
+    mapSet(IN_PLACE_RETURNS, node, returns + 1);
+  };
+
+  /**
+   * Forgets that `node` was processed: it was removed or detached. If a hook
+   * or custom element puts it back, _sanitizeUnvisitedNodes handles it again.
+   *
+   * @param node the node that left the tree
+   */
+  const _unmarkVisited = function (node: Node): void {
+    if (!IN_PLACE_VISITED) {
+      return;
+    }
+
+    setDelete(IN_PLACE_VISITED, node);
+
+    if (mapGet(IN_PLACE_RETURNS, node) === undefined) {
+      mapSet(IN_PLACE_RETURNS, node, 0);
     }
   };
 
@@ -1716,6 +1818,72 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
   };
 
+  /* Elements that hold table structure, and what the parser lets them hold */
+  const TABLE_STRUCTURE = 'table,tbody,thead,tfoot,tr,colgroup';
+  const TABLE_CONTENT = addToSet({}, [
+    'caption',
+    'colgroup',
+    'col',
+    'thead',
+    'tbody',
+    'tfoot',
+    'tr',
+    'td',
+    'th',
+    'style',
+    'script',
+    'template',
+  ]);
+
+  /**
+   * Moves content the HTML parser would foster-parent to where it would put
+   * it: in front of the table. Only a tree the parser did not build, or one
+   * changed after the parse, holds such content. Without this, a reparse
+   * reorders the text and can join fragments that were not neighbours.
+   *
+   * @param root The root whose tables should be checked.
+   */
+  const _fosterTableContent = function (root: Element): void {
+    if (PARSER_MEDIA_TYPE === 'application/xhtml+xml') {
+      return;
+    }
+
+    const structures = root.querySelectorAll?.(TABLE_STRUCTURE);
+    if (!structures || structures.length === 0) {
+      return;
+    }
+
+    arrayForEach(structures, (structure: Element) => {
+      arrayForEach(arraySlice(getChildNodes(structure)), (child: Node) => {
+        const nodeType = _readNodeType(child);
+        const misplaced =
+          nodeType === NODE_TYPE.text
+            ? regExpTest(EXPRESSIONS.NON_WHITESPACE, (child as Text).data)
+            : nodeType === NODE_TYPE.element &&
+              !TABLE_CONTENT[stringToLowerCase(_readNodeName(child))];
+        if (!misplaced) {
+          return;
+        }
+
+        let table: Node | null = structure;
+        while (table && stringToLowerCase(_readNodeName(table)) !== 'table') {
+          table = table === root ? null : getParentNode(table);
+        }
+
+        const tableParent =
+          table && table !== root ? getParentNode(table) : null;
+        if (tableParent) {
+          try {
+            // eslint-disable-next-line unicorn/prefer-modern-dom-apis
+            tableParent.insertBefore(child, table);
+          } catch (_) {
+            /* Clobbered parent: leave the node where it is */
+          }
+        }
+      });
+    });
+  };
+
   /**
    * Normalizes `node` and strips template expressions from its own character
    * data. Template contents and shadow roots are not entered, their own
@@ -1724,12 +1892,41 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param node The root whose own character data should be scrubbed.
    */
   const _scrubOwnCharacterData = function (node: Element): void {
+    _fosterTableContent(node);
     node.normalize();
     const walker = _createNodeIterator(node, true);
+    let previousText: CharacterData | null = null;
 
     let currentNode = walker.nextNode() as CharacterData | null;
     while (currentNode) {
-      currentNode.data = _stripTemplateExpressions(currentNode.data);
+      let { data } = currentNode;
+      /* The parser drops NUL from text, which can join a marker */
+      if (regExpTest(EXPRESSIONS.NUL, data)) {
+        data = stringReplace(data, EXPRESSIONS.NUL, '');
+        currentNode.data = data;
+      }
+
+      if (regExpTest(EXPRESSIONS.TMPL_MARKER, data)) {
+        data = _stripTemplateExpressions(data);
+        currentNode.data = data;
+      }
+
+      /* A reparse can drop the tags between two text nodes, e.g. those of a
+         nested form. If their boundary completes a marker, scrub the previous
+         text as if the next character belonged to it. */
+      if (data && _readNodeType(currentNode) === NODE_TYPE.text) {
+        if (previousText) {
+          const tail = previousText.data;
+          // eslint-disable-next-line unicorn/prefer-at
+          const boundary = tail[tail.length - 1] + data[0];
+          if (regExpTest(EXPRESSIONS.TMPL_MARKER, boundary)) {
+            previousText.data = _stripTemplateExpressions(tail + data[0]);
+          }
+        }
+
+        previousText = currentNode;
+      }
+
       currentNode = walker.nextNode() as CharacterData | null;
     }
   };
@@ -1818,6 +2015,47 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   }
 
   /**
+   * Elements in a state the HTML parser never produces: a void element with
+   * children, a text-only element with an element child or, for literal-text
+   * elements, with markup-like text. See VOID_ELEMENTS, LITERAL_TEXT_ELEMENTS
+   * and ESCAPABLE_TEXT_ELEMENTS. Reads textContent, as an XML document
+   * escapes innerHTML. Elements only: a processing instruction's nodeName is
+   * its target and can collide with these names.
+   *
+   * @param currentNode the element to inspect
+   * @param tagName the element's transformCaseFunc'd tag name
+   * @return true if the element must be removed
+   */
+  const _isMalformedElement = function (
+    currentNode: any,
+    tagName: string
+  ): boolean {
+    const isVoid = Boolean(VOID_ELEMENTS[tagName]);
+    const literal = Boolean(LITERAL_TEXT_ELEMENTS[tagName]);
+    if (!isVoid && !literal && !ESCAPABLE_TEXT_ELEMENTS[tagName]) {
+      return false;
+    }
+
+    if (_readNamespaceURI(currentNode) !== HTML_NAMESPACE) {
+      return false;
+    }
+
+    if (isVoid) {
+      return currentNode.hasChildNodes();
+    }
+
+    if (_isNode(currentNode.firstElementChild)) {
+      return true;
+    }
+
+    return (
+      literal &&
+      typeof currentNode.textContent === 'string' &&
+      regExpTest(EXPRESSIONS.ELEMENT_MARKUP_PROBE, currentNode.textContent)
+    );
+  };
+
+  /**
    * Structural-threat checks that condemn a node regardless of the
    * allowlists: mXSS via namespace confusion, risky CSS construction,
    * processing instructions, markup-bearing comments. Pure predicate;
@@ -1845,21 +2083,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
-    /* Literal-text elements holding an element child or markup-like text,
-       see LITERAL_TEXT_ELEMENTS. Reads textContent, as an XML document
-       escapes innerHTML. Elements only: a processing instruction's nodeName
-       is its target and can collide with these names. */
+    /* Elements in a state the parser never produces */
     if (
       SAFE_FOR_XML &&
-      LITERAL_TEXT_ELEMENTS[tagName] &&
       nodeType === NODE_TYPE.element &&
-      _readNamespaceURI(currentNode) === HTML_NAMESPACE &&
-      (_isNode(currentNode.firstElementChild) ||
-        (typeof currentNode.textContent === 'string' &&
-          regExpTest(
-            EXPRESSIONS.ELEMENT_MARKUP_PROBE,
-            currentNode.textContent
-          )))
+      _isMalformedElement(currentNode, tagName)
     ) {
       return true;
     }
@@ -1873,7 +2101,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     if (
       SAFE_FOR_XML &&
       nodeType === NODE_TYPE.comment &&
-      regExpTest(EXPRESSIONS.COMMENT_MARKUP_PROBE, currentNode.data)
+      regExpTest(EXPRESSIONS.COMMENT_UNSAFE, currentNode.data)
     ) {
       return true;
     }
@@ -2010,6 +2238,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       _neutralizeSubtree(currentNode);
     }
 
+    _unmarkVisited(currentNode);
+
     return true;
   };
 
@@ -2072,32 +2302,21 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return true;
     }
 
-    /* Remove element if anything forbids its presence */
+    /* Remove element if anything forbids its presence. A custom element kept
+       by _sanitizeDisallowedNode continues like any allowed element:
+       namespace check, then afterSanitizeElements (GHSA-c2j3-45gr-mqc4).
+       Custom elements exist in HTML only, so a kept name in SVG or MathML
+       is removed there. */
     if (
-      FORBID_TAGS[tagName] ||
-      (!(
-        EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
-        EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
-      ) &&
-        !ALLOWED_TAGS[tagName])
+      (FORBID_TAGS[tagName] ||
+        (!(
+          EXTRA_ELEMENT_HANDLING.tagCheck instanceof Function &&
+          EXTRA_ELEMENT_HANDLING.tagCheck(tagName)
+        ) &&
+          !ALLOWED_TAGS[tagName])) &&
+      _sanitizeDisallowedNode(currentNode, tagName, root)
     ) {
-      const removed = _sanitizeDisallowedNode(currentNode, tagName, root);
-
-      /* A kept custom element still gets afterSanitizeElements, like any
-         allowed element (GHSA-c2j3-45gr-mqc4). */
-      if (removed === false) {
-        _executeHooks(hooks.afterSanitizeElements, currentNode, null);
-
-        /* The hook may have detached the kept custom element. Same
-           IN_PLACE hazard as the before/upon sites: neutralize the
-           detached subtree before the walker skips past it (see
-           _handleHookDetachedNode). */
-        if (_handleHookDetachedNode(currentNode, root)) {
-          return true;
-        }
-      }
-
-      return removed;
+      return true;
     }
 
     /* Check whether element has a valid namespace. nodeType comes from the
@@ -2401,6 +2620,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
    * @param currentNode to sanitize
    * @param root the current walk root
    */
+  // eslint-disable-next-line complexity
   const _sanitizeAttributes = function (
     currentNode: Element,
     root: Node
@@ -2413,7 +2633,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return;
     }
 
-    const { attributes } = currentNode;
+    const attributes = _readAttributes(currentNode);
 
     /* Check if we have attributes; if not we might have a text node */
     if (!attributes || _isClobbered(currentNode)) {
@@ -2441,6 +2661,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Go backwards over all attributes; safely remove bad ones */
     while (l--) {
       const attr = attributes[l];
+      /* A hook may have removed attributes behind the loop index */
+      if (!attr) {
+        continue;
+      }
+
       const { name, namespaceURI, value: attrValue } = attr;
       const lcName = transformCaseFunc(name);
 
@@ -2661,7 +2886,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
   };
 
   // eslint-disable-next-line complexity
-  DOMPurify.sanitize = function (dirty, cfg = {}) {
+  const _sanitize = function (dirty: any, cfg: Config = {}): any {
     let body = null;
     let importedNode = null;
     let currentNode = null;
@@ -2699,6 +2924,8 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       _parseConfig(cfg);
     }
 
+    ACTIVE_CONFIG = CONFIG;
+
     /* Clean up removed elements */
     DOMPurify.removed = [];
 
@@ -2709,9 +2936,11 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
        and the visit tracking of an outer call this one may be nested in */
     let inPlaceNodes: Node[] = [];
     const outerVisited = IN_PLACE_VISITED;
+    const outerReturns = IN_PLACE_RETURNS;
 
     if (inPlace) {
       _neutralizePatchLinkage(dirty as Node);
+      inPlaceNodes = _collectLiveNodes(dirty as Node);
 
       /* The root must be an allowed tag and not clobbered: a parentless root
          cannot be removed, so it would come back unsanitized. Its name is read
@@ -2720,7 +2949,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       if (typeof nn === 'string') {
         const tagName = transformCaseFunc(nn);
         if (!ALLOWED_TAGS[tagName] || FORBID_TAGS[tagName]) {
-          _neutralizeRoot(dirty as Node);
+          _failClosed(dirty as Node, inPlaceNodes);
           throw typeErrorCreate(
             'root node is forbidden and cannot be sanitized in-place'
           );
@@ -2728,14 +2957,14 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
 
       if (_isClobbered(dirty as Element)) {
-        _neutralizeRoot(dirty as Node);
+        _failClosed(dirty as Node, inPlaceNodes);
         throw typeErrorCreate(
           'root node is clobbered and cannot be sanitized in-place'
         );
       }
 
-      inPlaceNodes = _collectLiveNodes(dirty as Node);
       IN_PLACE_VISITED = setCreate();
+      IN_PLACE_RETURNS = mapCreate();
     } else if (_isNode(dirty)) {
       /* If dirty is a DOM element, append to an empty document to avoid
          elements being stripped by the parser */
@@ -2804,13 +3033,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       }
     } catch (error) {
       if (inPlace) {
-        _neutralizeRoot(dirty as Node);
-        _neutralizeDiscarded(dirty as Node, inPlaceNodes);
+        _failClosed(dirty as Node, inPlaceNodes);
       }
 
       throw error;
     } finally {
       IN_PLACE_VISITED = outerVisited;
+      IN_PLACE_RETURNS = outerReturns;
     }
 
     if (inPlace) {
@@ -2860,20 +3089,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       return returnNode;
     }
 
-    const serialize = (): string =>
-      WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
-    let serializedHTML = serialize();
-
     /* Scrub our tree, not the markup: a regex over markup cuts through
-       tags. Only needed if the output holds a marker pair. Template
-       content was already scrubbed by _sanitizeShadowDOM. */
-    if (
-      SAFE_FOR_TEMPLATES &&
-      regExpTest(EXPRESSIONS.TMPL_MARKER_SERIALIZED, serializedHTML)
-    ) {
+       tags. Template content was already scrubbed by _sanitizeShadowDOM. */
+    if (SAFE_FOR_TEMPLATES) {
       _scrubOwnCharacterData(body);
-      serializedHTML = serialize();
     }
+
+    let serializedHTML = WHOLE_DOCUMENT ? body.outerHTML : body.innerHTML;
 
     /* Serialize doctype if allowed */
     if (
@@ -2889,6 +3111,34 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     }
 
     return _signOutput(serializedHTML);
+  };
+
+  DOMPurify.sanitize = function (dirty, cfg = {}) {
+    /* All calls share this instance's state. When this call is nested in
+       another one, hand that one its config, allowlists and removal log
+       back afterwards, so its remaining nodes are not sanitized under the
+       nested call's config. */
+    const outerConfig = ACTIVE_CONFIG;
+    const outerTags = ALLOWED_TAGS;
+    const outerAttr = ALLOWED_ATTR;
+    const outerRemoved = DOMPurify.removed;
+    ACTIVE_CONFIG = null;
+
+    try {
+      return _sanitize(dirty, cfg);
+    } finally {
+      ACTIVE_CONFIG = outerConfig;
+
+      if (outerConfig) {
+        if (!SET_CONFIG) {
+          _parseConfig(outerConfig);
+        }
+
+        ALLOWED_TAGS = outerTags;
+        ALLOWED_ATTR = outerAttr;
+        DOMPurify.removed = outerRemoved;
+      }
+    }
   };
 
   DOMPurify.setConfig = function (cfg = {}) {

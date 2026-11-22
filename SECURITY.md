@@ -27,6 +27,19 @@ question we ask of any report is **what does the attacker control?**
   (for example passing an attacker-controlled string as a hook entry point). We
   treat these as defensive fixes.
 
+Some features are best effort by design. We fix what we can there, but a
+finding is a hardening bug and not a bypass of a guarantee:
+
+- **`SAFE_FOR_TEMPLATES` with DOM node input or `IN_PLACE`.** The mode is
+  guaranteed for string input. A tree the HTML parser did not build can change
+  shape when it is parsed again, and text can join into a template expression
+  at that point.
+- **`SAFE_FOR_TEMPLATES` and anything but `{{ }}`, `${ }` and `<% %>`.** Other
+  template syntaxes and framework directives are not scrubbed.
+- **`IN_PLACE` with hooks or custom elements that keep changing the tree.**
+  DOMPurify fails closed where it can, see the README for the two cases it
+  cannot follow.
+
 The dividing line is about _who supplies the dangerous element_, not how severe
 the consequence sounds. A report framed as "stored XSS" that requires the
 application to allow `onerror` via a hook is still a hardening bug, because the
@@ -83,7 +96,7 @@ policy decision and not an oversight. We will not adopt either.
   attestations).
 - No npm publish token exists as a repository secret. The only sensitive
   secret in the repository is `SCORECARD_TOKEN`, a fine-grained, repo-scoped,
-  time-bounded PAT used by the weekly OpenSSF Scorecard run.
+  time-bounded PAT used by the daily OpenSSF Scorecard run.
 
 ### Verification
 
