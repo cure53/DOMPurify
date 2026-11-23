@@ -24,40 +24,14 @@
 #   tree now resolves to brace-expansion 1.1.21 / 2.1.7 / 5.0.12 and js-yaml
 #   4.3.2, all past the published fixes (1.1.16 / 2.1.2 / 5.0.7 and 4.3.0).
 #
-#   GHSA-mh99-v99m-4gvg is NOT cleared by a refresh: its only fix is on the
-#   5.x line (5.0.8). The top-level brace-expansion is on 5.0.12 and clears,
-#   but the transitive 1.x / 2.x copies pulled in by eslint / typescript-estree
-#   / test-exclude top out at 1.1.21 / 2.1.7 - both below 5.0.8, with no
-#   in-line backport - so they stay flagged until those parents adopt
-#   brace-expansion 5.x (or the copies are deduped out). Drop this entry then,
-#   not on a version bump of the dep alone.
-#
-#   GHSA-vfj7-8cjw-p6xm (braces) has NO fix at all as of 2026-10-05: the
-#   advisory marks 3.0.3 as last_affected, 3.0.3 is the newest release on
-#   npm (2024-05), and micromatch 4.0.8 / xo 5.x still depend on ^3.0.3, so
-#   there is no parent upgrade that routes around it either. Drop this entry
-#   once a fixed braces ships and the lockfile picks it up.
-#
 # 2026-11: GHSA-3g3m-2fjr-6pw4 (glob) and GHSA-g3hv-75wg-m249 (minimatch)
 #   fixed via scoped npm overrides: rimraf 6, nyc and babel-plugin-istanbul
 #   now resolve glob 14.0.3 / minimatch 11.0.3, typescript-estree minimatch
 #   11.0.3. flat-cache's glob 7.2.3 is outside the glob range (>= 9.0.0).
-#   The minimatch 3.1.5 copies (eslint 8 via xo 0.60) are suppressed below:
-#   3.x has no optimizationLevel / globparts preprocessing, so the vulnerable
-#   code does not exist there, and 11.x cannot replace 3.x (different export
-#   shape). Drop the entry once xo moves off eslint 8.
-
-[[IgnoredVulns]]
-id = "GHSA-mh99-v99m-4gvg"
-ignoreUntil = 2027-07-22
-reason = "brace-expansion (CVE-2026-14257): unbounded expansion length causing an out-of-memory process crash, availability-only (CVSS 7.5). OSV range is [0, 5.0.8) with the fix on the 5.x line only. Dev-only path - the top-level copy is on 5.0.12 and clears, but the transitive 1.1.21 / 2.1.7 copies (eslint / typescript-estree / test-exclude) have no in-line backport and stay below 5.0.8 until those parents adopt brace-expansion 5.x. DOMPurify ships no runtime dependencies, so this is absent from the published artifact, and CI only ever expands repo-owned glob patterns, never attacker-controlled input."
-
-[[IgnoredVulns]]
-id = "GHSA-vfj7-8cjw-p6xm"
-ignoreUntil = 2027-10-05
-reason = "braces (CVE-2026-93687): stack exhaustion via deeply nested brace patterns in the recursive AST walkers, availability-only (CVSS 7.5). No fixed version exists: 3.0.3 is both last_affected and the newest npm release, and micromatch ^4.0.8 / xo pin ^3.0.3. Dev-only path - reached only via xo -> micromatch -> braces for lint-time glob matching of repo-owned patterns, never attacker-controlled input. DOMPurify ships no runtime dependencies, so this is absent from the published artifact."
-
-[[IgnoredVulns]]
-id = "GHSA-g3hv-75wg-m249"
-ignoreUntil = 2027-11-01
-reason = "minimatch (CVE-2026-118764): globparts amplification DoS with optimizationLevel >= 2, availability-only. OSV range is [0, 11.0.1) but the bug lives in the two-phase globparts preprocessing that 3.x does not have. Remaining copies are 3.1.5 under eslint 8 (xo 0.60), dev-only, lint-time matching of repo-owned patterns. All 9.x / 10.x copies are overridden to 11.0.3. DOMPurify ships no runtime dependencies."
+#
+# 2026-11: the last three entries dropped. GHSA-mh99-v99m-4gvg
+#   (brace-expansion) now lists backports (fixed in 1.1.17 / 2.1.3 / 3.0.3 /
+#   5.0.8), so the 1.1.22 and 5.0.13 copies are outside it.
+#   GHSA-g3hv-75wg-m249 (minimatch) now covers only >= 7.0.0, < 11.0.1, so
+#   the 3.1.5 and 11.0.9 copies are outside it. GHSA-vfj7-8cjw-p6xm (braces)
+#   was withdrawn on 2026-10-23.
