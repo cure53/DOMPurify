@@ -1104,7 +1104,7 @@ function createDOMPurify() {
 	let document = window.document;
 	const originalDocument = document;
 	const currentScript = originalDocument.currentScript;
-	const HTMLTemplateElement = window.HTMLTemplateElement, Node = window.Node, Element = window.Element, NodeFilter = window.NodeFilter, DOMParser = window.DOMParser, trustedTypes = window.trustedTypes;
+	const HTMLTemplateElement = window.HTMLTemplateElement, Node = window.Node, Element = window.Element, NodeFilter = window.NodeFilter, DOMParser = window.DOMParser, MutationObserver = window.MutationObserver, trustedTypes = window.trustedTypes;
 	const ElementPrototype = Element.prototype;
 	const cloneNode = lookupGetter(ElementPrototype, "cloneNode");
 	const remove = lookupGetter(ElementPrototype, "remove");
@@ -1675,18 +1675,36 @@ function createDOMPurify() {
 		return nodes;
 	};
 	/**
-	* Removes every disallowed <selectedcontent> before the in-place walk. The
-	* engine re-mirrors the selected <option> into it whenever the walk changes
-	* the selection, and drops the previous copies armed and out of our reach.
+	* Watches every <selectedcontent> under the in-place root. The engine
+	* re-mirrors the selected <option> into it whenever the walk changes the
+	* selection, and drops the previous copy armed and otherwise out of reach.
 	*
-	* @param root the in-place root
 	* @param before the root's nodes, collected before the walk
+	* @return the observer, or null if there is nothing to watch
 	*/
-	const _removeMirrorTargets = function _removeMirrorTargets(root, before) {
-		if (ALLOWED_TAGS.selectedcontent && !FORBID_TAGS.selectedcontent) return;
+	const _observeMirrorTargets = function _observeMirrorTargets(before) {
+		let observer = null;
+		if (!MutationObserver) return observer;
 		arrayForEach(before, (node) => {
-			if (node !== root && _readNodeType(node) === NODE_TYPE.element && transformCaseFunc(_readNodeName(node)) === "selectedcontent") _forceRemove(node);
+			if (_readNodeType(node) === NODE_TYPE.element && transformCaseFunc(_readNodeName(node)) === "selectedcontent") {
+				observer = observer || new MutationObserver(() => void 0);
+				observer.observe(node, { childList: true });
+			}
 		});
+		return observer;
+	};
+	/**
+	* Neutralizes every mirror copy that entered or left a watched
+	* <selectedcontent>, wherever it is now.
+	*
+	* @param observer the observer from _observeMirrorTargets
+	*/
+	const _neutralizeMirrorCopies = function _neutralizeMirrorCopies(observer) {
+		arrayForEach(observer.takeRecords(), (record) => {
+			arrayForEach(record.addedNodes, _neutralizeSubtree);
+			arrayForEach(record.removedNodes, _neutralizeSubtree);
+		});
+		observer.disconnect();
 	};
 	/**
 	* Strips disallowed attributes from every element that was under the
@@ -2524,9 +2542,10 @@ function createDOMPurify() {
 		}
 		if (body && FORCE_BODY) _forceRemove(body.firstChild);
 		const walkRoot = inPlace ? dirty : body;
+		let mirrorObserver = null;
 		try {
 			if (inPlace) {
-				_removeMirrorTargets(dirty, inPlaceNodes);
+				mirrorObserver = _observeMirrorTargets(inPlaceNodes);
 				_sanitizeAttachedShadowRoots(dirty);
 			}
 			const nodeIterator = _createNodeIterator(walkRoot);
@@ -2536,6 +2555,7 @@ function createDOMPurify() {
 			if (inPlace) _failClosed(dirty, inPlaceNodes);
 			throw error;
 		} finally {
+			if (mirrorObserver) _neutralizeMirrorCopies(mirrorObserver);
 			IN_PLACE_VISITED = outerVisited;
 			IN_PLACE_RETURNS = outerReturns;
 		}

@@ -349,5 +349,6 @@ export type WindowLike = Pick<
   | 'DOMParser'
 > & {
   document?: Document;
+  MutationObserver?: typeof globalThis.MutationObserver;
   MozNamedAttrMap?: typeof window.NamedNodeMap;
 } & Pick<TrustedTypesWindow, 'trustedTypes'>;

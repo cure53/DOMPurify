@@ -439,6 +439,7 @@ interface UponSanitizeAttributeHookEvent {
  */
 type WindowLike = Pick<typeof globalThis, 'DocumentFragment' | 'HTMLTemplateElement' | 'Node' | 'Element' | 'NodeFilter' | 'NamedNodeMap' | 'HTMLFormElement' | 'DOMParser'> & {
   document?: Document;
+  MutationObserver?: typeof globalThis.MutationObserver;
   MozNamedAttrMap?: typeof window.NamedNodeMap;
 } & Pick<TrustedTypesWindow, 'trustedTypes'>;
 declare const _default: DOMPurify;
