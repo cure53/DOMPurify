@@ -1675,6 +1675,20 @@ function createDOMPurify() {
 		return nodes;
 	};
 	/**
+	* Removes every disallowed <selectedcontent> before the in-place walk. The
+	* engine re-mirrors the selected <option> into it whenever the walk changes
+	* the selection, and drops the previous copies armed and out of our reach.
+	*
+	* @param root the in-place root
+	* @param before the root's nodes, collected before the walk
+	*/
+	const _removeMirrorTargets = function _removeMirrorTargets(root, before) {
+		if (ALLOWED_TAGS.selectedcontent && !FORBID_TAGS.selectedcontent) return;
+		arrayForEach(before, (node) => {
+			if (node !== root && _readNodeType(node) === NODE_TYPE.element && transformCaseFunc(_readNodeName(node)) === "selectedcontent") _forceRemove(node);
+		});
+	};
+	/**
 	* Strips disallowed attributes from every element that was under the
 	* in-place root when the call started and no longer is, whatever removed
 	* or moved it.
@@ -2511,7 +2525,10 @@ function createDOMPurify() {
 		if (body && FORCE_BODY) _forceRemove(body.firstChild);
 		const walkRoot = inPlace ? dirty : body;
 		try {
-			if (inPlace) _sanitizeAttachedShadowRoots(dirty);
+			if (inPlace) {
+				_removeMirrorTargets(dirty, inPlaceNodes);
+				_sanitizeAttachedShadowRoots(dirty);
+			}
 			const nodeIterator = _createNodeIterator(walkRoot);
 			while (currentNode = nodeIterator.nextNode()) _sanitizeNode(currentNode, walkRoot);
 			if (inPlace) _sanitizeUnvisitedNodes(dirty, inPlaceNodes);
