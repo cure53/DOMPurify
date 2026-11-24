@@ -8286,6 +8286,73 @@
     );
 
     QUnit.test(
+      'IN_PLACE: no armed <selectedcontent> mirror copy is left behind',
+      (assert) => {
+        // Removing `multiple` and `selected` makes the engine mirror the
+        // still-dirty option into <selectedcontent>, then replace that copy.
+        // The replaced copy is in no list DOMPurify keeps. Some Chromium
+        // versions only mirror in a tree that was connected once, hence the
+        // parse-and-adopt. Trivially green in engines that do not mirror.
+        if (typeof window.MutationObserver !== 'function') {
+          assert.ok(true, 'no MutationObserver in this environment; skipping');
+          return;
+        }
+
+        const option =
+          '<option selected="javascript:1"><img src="x" onerror="alert(1)">' +
+          '</option><option>b</option>';
+        const vectors = [
+          '<select multiple="javascript:1">' +
+            option +
+            '<selectedcontent></selectedcontent></select>',
+          '<select multiple="javascript:1"><selectedcontent></selectedcontent>' +
+            option +
+            '</select>',
+        ];
+
+        vectors.forEach((vector) => {
+          const parsed = new window.DOMParser().parseFromString(
+            '<div>' + vector + '</div>',
+            'text/html'
+          );
+          const root = document.adoptNode(parsed.body.firstChild);
+          const targets = Array.from(root.querySelectorAll('selectedcontent'));
+
+          const observer = new window.MutationObserver(() => {});
+          observer.observe(root, { childList: true, subtree: true });
+          targets.forEach((target) => {
+            observer.observe(target, { childList: true });
+          });
+          DOMPurify.sanitize(root, { IN_PLACE: true });
+          const records = observer.takeRecords();
+          observer.disconnect();
+
+          let armed = 0;
+          records.forEach((record) => {
+            record.removedNodes.forEach((node) => {
+              if (node.nodeType !== 1) {
+                return;
+              }
+
+              const elements = [node].concat(
+                Array.from(node.querySelectorAll('*'))
+              );
+              elements.forEach((element) => {
+                armed += element.hasAttribute('onerror') ? 1 : 0;
+              });
+            });
+          });
+
+          assert.equal(armed, 0, 'no detached node keeps its handler');
+          assert.notOk(
+            /selectedcontent|onerror/i.test(root.innerHTML),
+            'returned tree is clean: ' + root.innerHTML
+          );
+        });
+      }
+    );
+
+    QUnit.test(
       'C3-F2: custom-element mid-walk abort leaves no surviving handler',
       (assert) => {
         // A page-registered custom element whose reaction detaches the wrapper

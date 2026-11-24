@@ -260,6 +260,7 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     Element,
     NodeFilter,
     DOMParser,
+    MutationObserver,
     trustedTypes,
   } = window;
 
@@ -1400,6 +1401,49 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
       true
     );
     return nodes;
+  };
+
+  /**
+   * Watches every <selectedcontent> under the in-place root. The engine
+   * re-mirrors the selected <option> into it whenever the walk changes the
+   * selection, and drops the previous copy armed and otherwise out of reach.
+   *
+   * @param before the root's nodes, collected before the walk
+   * @return the observer, or null if there is nothing to watch
+   */
+  const _observeMirrorTargets = function (
+    before: Node[]
+  ): MutationObserver | null {
+    let observer: MutationObserver | null = null;
+    if (!MutationObserver) {
+      return observer;
+    }
+
+    arrayForEach(before, (node: Node) => {
+      if (
+        _readNodeType(node) === NODE_TYPE.element &&
+        transformCaseFunc(_readNodeName(node)) === 'selectedcontent'
+      ) {
+        observer = observer || new MutationObserver(() => undefined);
+        observer.observe(node, { childList: true });
+      }
+    });
+
+    return observer;
+  };
+
+  /**
+   * Neutralizes every mirror copy that entered or left a watched
+   * <selectedcontent>, wherever it is now.
+   *
+   * @param observer the observer from _observeMirrorTargets
+   */
+  const _neutralizeMirrorCopies = function (observer: MutationObserver): void {
+    arrayForEach(observer.takeRecords(), (record: MutationRecord) => {
+      arrayForEach(record.addedNodes, _neutralizeSubtree);
+      arrayForEach(record.removedNodes, _neutralizeSubtree);
+    });
+    observer.disconnect();
   };
 
   /**
@@ -3016,10 +3060,13 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
     /* Get node iterator */
     const walkRoot: Node = inPlace ? (dirty as Node) : body;
 
+    let mirrorObserver: MutationObserver | null = null;
+
     /* If anything throws, an in-place tree is stripped bare before the error
        propagates, never left half-sanitized. */
     try {
       if (inPlace) {
+        mirrorObserver = _observeMirrorTargets(inPlaceNodes);
         _sanitizeAttachedShadowRoots(dirty as Node);
       }
 
@@ -3038,6 +3085,10 @@ function createDOMPurify(window: WindowLike = getGlobal()): DOMPurify {
 
       throw error;
     } finally {
+      if (mirrorObserver) {
+        _neutralizeMirrorCopies(mirrorObserver);
+      }
+
       IN_PLACE_VISITED = outerVisited;
       IN_PLACE_RETURNS = outerReturns;
     }
